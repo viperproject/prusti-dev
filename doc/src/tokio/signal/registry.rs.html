@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.1/src/signal/registry.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>registry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.21.2/src/signal/registry.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>registry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -277,13 +277,17 @@
 <span id="277">277</span>
 <span id="278">278</span>
 <span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
 </pre><pre class="rust"><code><span class="attribute">#![allow(clippy::unit_arg)]
 
 </span><span class="kw">use </span><span class="kw">crate</span>::signal::os::{<a href="unix.rs.html#53">OsExtraData</a>, <a href="unix.rs.html#23">OsStorage</a>};
-
 <span class="kw">use </span><a href="../sync/mod.rs.html#472"><span class="kw">crate</span>::sync::watch</a>;
+<span class="kw">use </span><a href="../util/once_cell.rs.html#6"><span class="kw">crate</span>::util::once_cell::OnceCell</a>;
 
-<span class="kw">use </span><a href="../../../once_cell/sync/struct.Lazy.html">once_cell::sync::Lazy</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ops/index.html">std::ops</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
 <span class="kw">use </span>std::sync::atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicBool.html">AtomicBool</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
@@ -298,13 +302,13 @@
     tx: watch::Sender&lt;()&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#17">EventInfo</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#16">EventInfo</a> {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>(tx, _rx) = <a href="../sync/watch.rs.html#317">watch::channel</a>(());
 
         <span class="self">Self </span>{
             pending: AtomicBool::new(<span class="bool-val">false</span>),
-            <a href="#24">tx</a>,
+            <a href="#23">tx</a>,
         }
     }
 }
@@ -312,24 +316,24 @@
 <span class="doccomment">/// An interface for retrieving the `EventInfo` for a particular eventId.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Storage {
     <span class="doccomment">/// Gets the `EventInfo` for `id` if it exists.
-    </span><span class="kw">fn </span>event_info(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="#12">EventId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#17">EventInfo</a>&gt;;
+    </span><span class="kw">fn </span>event_info(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="#11">EventId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#16">EventInfo</a>&gt;;
 
     <span class="doccomment">/// Invokes `f` once for each defined `EventInfo` in this storage.
     </span><span class="kw">fn </span>for_each&lt;<span class="lifetime">&#39;a</span>, F&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, f: F)
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#17">EventInfo</a>);
+        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#16">EventInfo</a>);
 }
 
-<span class="kw">impl </span><a href="#34">Storage</a> <span class="kw">for </span>Vec&lt;<a href="#17">EventInfo</a>&gt; {
-    <span class="kw">fn </span>event_info(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="#12">EventId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#17">EventInfo</a>&gt; {
-        <a class="self" href="#45">self</a>.get(<a href="#45">id</a>)
+<span class="kw">impl </span><a href="#33">Storage</a> <span class="kw">for </span>Vec&lt;<a href="#16">EventInfo</a>&gt; {
+    <span class="kw">fn </span>event_info(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="#11">EventId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#16">EventInfo</a>&gt; {
+        <a class="self" href="#44">self</a>.get(<a href="#44">id</a>)
     }
 
     <span class="kw">fn </span>for_each&lt;<span class="lifetime">&#39;a</span>, F&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, f: F)
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#17">EventInfo</a>),
+        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#16">EventInfo</a>),
     {
-        <a class="self" href="#49">self</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<a href="#49">f</a>)
+        <a class="self" href="#48">self</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<a href="#48">f</a>)
     }
 }
 
@@ -350,15 +354,15 @@
 
 <span class="kw">impl</span>&lt;S&gt; Registry&lt;S&gt; {
     <span class="kw">fn </span>new(storage: S) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="#73">storage</a> }
+        <span class="self">Self </span>{ <a href="#72">storage</a> }
     }
 }
 
-<span class="kw">impl</span>&lt;S: <a href="#34">Storage</a>&gt; Registry&lt;S&gt; {
+<span class="kw">impl</span>&lt;S: <a href="#33">Storage</a>&gt; Registry&lt;S&gt; {
     <span class="doccomment">/// Registers a new listener for `event_id`.
-    </span><span class="kw">fn </span>register_listener(<span class="kw-2">&amp;</span><span class="self">self</span>, event_id: <a href="#12">EventId</a>) -&gt; watch::Receiver&lt;()&gt; {
-        <a class="self" href="#80">self</a>.storage
-            .<a href="#36">event_info</a>(<a href="#80">event_id</a>)
+    </span><span class="kw">fn </span>register_listener(<span class="kw-2">&amp;</span><span class="self">self</span>, event_id: <a href="#11">EventId</a>) -&gt; watch::Receiver&lt;()&gt; {
+        <a class="self" href="#79">self</a>.storage
+            .<a href="#35">event_info</a>(<a href="#79">event_id</a>)
             .unwrap_or_else(|| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;invalid event_id: {}&quot;</span>, event_id))
             .tx
             .<a href="../sync/watch.rs.html#932">subscribe</a>()
@@ -366,9 +370,9 @@
 
     <span class="doccomment">/// Marks `event_id` as having been delivered, without broadcasting it to
     /// any listeners.
-    </span><span class="kw">fn </span>record_event(<span class="kw-2">&amp;</span><span class="self">self</span>, event_id: <a href="#12">EventId</a>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(event_info) = <a class="self" href="#90">self</a>.storage.<a href="#36">event_info</a>(<a href="#90">event_id</a>) {
-            <a href="#91">event_info</a>.pending.store(<span class="bool-val">true</span>, Ordering::SeqCst)
+    </span><span class="kw">fn </span>record_event(<span class="kw-2">&amp;</span><span class="self">self</span>, event_id: <a href="#11">EventId</a>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(event_info) = <a class="self" href="#89">self</a>.storage.<a href="#35">event_info</a>(<a href="#89">event_id</a>) {
+            <a href="#90">event_info</a>.pending.store(<span class="bool-val">true</span>, Ordering::SeqCst)
         }
     }
 
@@ -377,7 +381,7 @@
     /// Returns `true` if an event was delivered to at least one listener.
     </span><span class="kw">fn </span>broadcast(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>did_notify = <span class="bool-val">false</span>;
-        <a class="self" href="#99">self</a>.storage.<a href="#39-41">for_each</a>(|event_info| {
+        <a class="self" href="#98">self</a>.storage.<a href="#38-40">for_each</a>(|event_info| {
             <span class="comment">// Any signal of this kind arrived since we checked last?
             </span><span class="kw">if </span>!event_info.pending.swap(<span class="bool-val">false</span>, Ordering::SeqCst) {
                 <span class="kw">return</span>;
@@ -385,11 +389,11 @@
 
             <span class="comment">// Ignore errors if there are no listeners
             </span><span class="kw">if </span>event_info.tx.send(()).is_ok() {
-                <a href="#100">did_notify</a> = <span class="bool-val">true</span>;
+                <a href="#99">did_notify</a> = <span class="bool-val">true</span>;
             }
         });
 
-        <a href="#100">did_notify</a>
+        <a href="#99">did_notify</a>
     }
 }
 
@@ -398,52 +402,58 @@
     registry: Registry&lt;<a href="unix.rs.html#23">OsStorage</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a> <span class="kw">for </span><a href="#117">Globals</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">ops::Deref</a> <span class="kw">for </span><a href="#116">Globals</a> {
     <span class="kw">type </span>Target = <a href="unix.rs.html#53">OsExtraData</a>;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-        <span class="kw-2">&amp;</span><a class="self" href="#125">self</a>.extra
+        <span class="kw-2">&amp;</span><a class="self" href="#124">self</a>.extra
     }
 }
 
-<span class="kw">impl </span><a href="#117">Globals</a> {
+<span class="kw">impl </span><a href="#116">Globals</a> {
     <span class="doccomment">/// Registers a new listener for `event_id`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_listener(<span class="kw-2">&amp;</span><span class="self">self</span>, event_id: <a href="#12">EventId</a>) -&gt; watch::Receiver&lt;()&gt; {
-        <a class="self" href="#132">self</a>.registry.<a href="#80">register_listener</a>(<a href="#132">event_id</a>)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>register_listener(<span class="kw-2">&amp;</span><span class="self">self</span>, event_id: <a href="#11">EventId</a>) -&gt; watch::Receiver&lt;()&gt; {
+        <a class="self" href="#131">self</a>.registry.<a href="#79">register_listener</a>(<a href="#131">event_id</a>)
     }
 
     <span class="doccomment">/// Marks `event_id` as having been delivered, without broadcasting it to
     /// any listeners.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>record_event(<span class="kw-2">&amp;</span><span class="self">self</span>, event_id: <a href="#12">EventId</a>) {
-        <a class="self" href="#138">self</a>.registry.<a href="#90">record_event</a>(<a href="#138">event_id</a>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>record_event(<span class="kw-2">&amp;</span><span class="self">self</span>, event_id: <a href="#11">EventId</a>) {
+        <a class="self" href="#137">self</a>.registry.<a href="#89">record_event</a>(<a href="#137">event_id</a>);
     }
 
     <span class="doccomment">/// Broadcasts all previously recorded events to their respective listeners.
     ///
     /// Returns `true` if an event was delivered to at least one listener.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>broadcast(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#145">self</a>.registry.<a href="#99">broadcast</a>()
+        <a class="self" href="#144">self</a>.registry.<a href="#98">broadcast</a>()
     }
 
     <span class="attribute">#[cfg(unix)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>storage(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="unix.rs.html#23">OsStorage</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#150">self</a>.registry.storage
+        <span class="kw-2">&amp;</span><a class="self" href="#149">self</a>.registry.storage
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>globals() -&gt; Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#117">Globals</a>&gt;
+<span class="kw">fn </span>globals_init() -&gt; <a href="#116">Globals</a>
 <span class="kw">where
-    </span><a href="unix.rs.html#53">OsExtraData</a>: <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="#59">Init</a>,
-    <a href="unix.rs.html#23">OsStorage</a>: <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="#59">Init</a>,
+    </span><a href="unix.rs.html#53">OsExtraData</a>: <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="#58">Init</a>,
+    <a href="unix.rs.html#23">OsStorage</a>: <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="#58">Init</a>,
 {
-    <span class="kw">static </span>GLOBALS: Lazy&lt;Pin&lt;Box&lt;<a href="#117">Globals</a>&gt;&gt;&gt; = Lazy::new(|| {
-        Box::pin(<a href="#117">Globals</a> {
-            extra: OsExtraData::init(),
-            registry: Registry::new(OsStorage::init()),
-        })
-    });
+    <a href="#116">Globals</a> {
+        extra: OsExtraData::init(),
+        registry: Registry::new(OsStorage::init()),
+    }
+}
 
-    <a href="#160">GLOBALS</a>.as_ref()
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>globals() -&gt; Pin&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#116">Globals</a>&gt;
+<span class="kw">where
+    </span><a href="unix.rs.html#53">OsExtraData</a>: <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="#58">Init</a>,
+    <a href="unix.rs.html#23">OsStorage</a>: <span class="lifetime">&#39;static </span>+ <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <a href="#58">Init</a>,
+{
+    <span class="kw">static </span>GLOBALS: OnceCell&lt;<a href="#116">Globals</a>&gt; = OnceCell::new();
+
+    Pin::new(<a href="#170">GLOBALS</a>.<a href="../util/once_cell.rs.html#28">get</a>(<a href="#154-157">globals_init</a>))
 }
 
 <span class="attribute">#[cfg(all(test, not(loom)))]
@@ -557,4 +567,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

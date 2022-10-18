@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/bn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/bn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1413,6 +1413,17 @@
 <span id="1413">1413</span>
 <span id="1414">1414</span>
 <span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
 </pre><pre class="rust"><code><span class="doccomment">//! BigNum implementation
 //!
 //! Large numbers are important for a cryptographic library.  OpenSSL implementation
@@ -1446,18 +1457,20 @@
 <span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>, <a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">ptr</a>};
 
 <span class="kw">use </span><a href="asn1.rs.html#483-499"><span class="kw">crate</span>::asn1::Asn1Integer</a>;
-<span class="kw">use </span><a href="error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="error.rs.html#39"><span class="kw">crate</span>::error::ErrorStack</a>;
 <span class="kw">use </span><a href="string.rs.html#11-17"><span class="kw">crate</span>::string::OpensslString</a>;
-<span class="kw">use crate</span>::{<a href="lib.rs.html#194">cvt</a>, <a href="lib.rs.html#203">cvt_n</a>, <a href="lib.rs.html#185">cvt_p</a>};
+<span class="kw">use crate</span>::{<a href="lib.rs.html#202">cvt</a>, <a href="lib.rs.html#211">cvt_n</a>, <a href="lib.rs.html#193">cvt_p</a>, <a href="lib.rs.html#190">LenType</a>};
 <span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attribute">#[cfg(any(ossl110, libressl350))] </span>{
         <span class="kw">use </span>ffi::{
-            <a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc2409_prime_1024.html">BN_get_rfc2409_prime_1024</a>, <a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc2409_prime_768.html">BN_get_rfc2409_prime_768</a>, <a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc3526_prime_1536.html">BN_get_rfc3526_prime_1536</a>,
-            <a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc3526_prime_2048.html">BN_get_rfc3526_prime_2048</a>, <a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc3526_prime_3072.html">BN_get_rfc3526_prime_3072</a>, <a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc3526_prime_4096.html">BN_get_rfc3526_prime_4096</a>,
-            <a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc3526_prime_6144.html">BN_get_rfc3526_prime_6144</a>, <a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc3526_prime_8192.html">BN_get_rfc3526_prime_8192</a>, <a href="../../openssl_sys/handwritten/bn/fn.BN_is_negative.html">BN_is_negative</a>,
+            <a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc2409_prime_1024.html">BN_get_rfc2409_prime_1024</a>, <a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc2409_prime_768.html">BN_get_rfc2409_prime_768</a>, <a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc3526_prime_1536.html">BN_get_rfc3526_prime_1536</a>,
+            <a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc3526_prime_2048.html">BN_get_rfc3526_prime_2048</a>, <a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc3526_prime_3072.html">BN_get_rfc3526_prime_3072</a>, <a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc3526_prime_4096.html">BN_get_rfc3526_prime_4096</a>,
+            <a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc3526_prime_6144.html">BN_get_rfc3526_prime_6144</a>, <a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc3526_prime_8192.html">BN_get_rfc3526_prime_8192</a>, <a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_is_negative.html">BN_is_negative</a>,
         };
+    } <span class="kw">else if </span><span class="attribute">#[cfg(boringssl)] </span>{
+        <span class="kw">use </span>ffi::BN_is_negative;
     } <span class="kw">else </span>{
         <span class="kw">use </span>ffi::{
             get_rfc2409_prime_1024 <span class="kw">as </span>BN_get_rfc2409_prime_1024,
@@ -1480,22 +1493,22 @@
 <span class="doccomment">/// Options for the most significant bits of a randomly generated `BigNum`.
 </span><span class="kw">pub struct </span>MsbOption(<a href="../../libc/unix/type.c_int.html">c_int</a>);
 
-<span class="kw">impl </span><a href="#66">MsbOption</a> {
+<span class="kw">impl </span><a href="#68">MsbOption</a> {
     <span class="doccomment">/// The most significant bit of the number may be 0.
-    </span><span class="kw">pub const </span>MAYBE_ZERO: <a href="#66">MsbOption</a> = <a href="#66">MsbOption</a>(-<span class="number">1</span>);
+    </span><span class="kw">pub const </span>MAYBE_ZERO: <a href="#68">MsbOption</a> = <a href="#68">MsbOption</a>(-<span class="number">1</span>);
 
     <span class="doccomment">/// The most significant bit of the number must be 1.
-    </span><span class="kw">pub const </span>ONE: <a href="#66">MsbOption</a> = <a href="#66">MsbOption</a>(<span class="number">0</span>);
+    </span><span class="kw">pub const </span>ONE: <a href="#68">MsbOption</a> = <a href="#68">MsbOption</a>(<span class="number">0</span>);
 
     <span class="doccomment">/// The most significant two bits of the number must be 1.
     ///
     /// The number of bits in the product of two such numbers will always be exactly twice the
     /// number of bits in the original numbers.
-    </span><span class="kw">pub const </span>TWO_ONES: <a href="#66">MsbOption</a> = <a href="#66">MsbOption</a>(<span class="number">1</span>);
+    </span><span class="kw">pub const </span>TWO_ONES: <a href="#68">MsbOption</a> = <a href="#68">MsbOption</a>(<span class="number">1</span>);
 }
 
-<a class="macro" href="macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/handwritten/types/enum.BN_CTX.html">ffi::BN_CTX</a>;
+<a class="macro" href="macros.rs.html#134-163">foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/types/enum.BN_CTX.html">ffi::BN_CTX</a>;
     <span class="kw">fn </span>drop = ffi::BN_CTX_free;
 
     <span class="doccomment">/// Temporary storage for BigNums on the secure heap
@@ -1512,29 +1525,29 @@
     </span><span class="kw">pub struct </span>BigNumContextRef;
 }
 
-<span class="kw">impl </span><a href="#82-98">BigNumContext</a> {
+<span class="kw">impl </span><a href="#84-100">BigNumContext</a> {
     <span class="doccomment">/// Returns a new `BigNumContext`.
     </span><span class="attribute">#[corresponds(BN_CTX_new)]
-    </span><span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#82-98">BigNumContext</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#84-100">BigNumContext</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
-            <a href="lib.rs.html#185">cvt_p</a>(ffi::BN_CTX_new()).map(<a href="#82-98">BigNumContext</a>)
+            <a href="lib.rs.html#193">cvt_p</a>(ffi::BN_CTX_new()).map(<a href="#84-100">BigNumContext</a>)
         }
     }
 
     <span class="doccomment">/// Returns a new secure `BigNumContext`.
     </span><span class="attribute">#[corresponds(BN_CTX_secure_new)]
     #[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>new_secure() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#82-98">BigNumContext</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>new_secure() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#84-100">BigNumContext</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
-            <a href="lib.rs.html#185">cvt_p</a>(ffi::BN_CTX_secure_new()).map(<a href="#82-98">BigNumContext</a>)
+            <a href="lib.rs.html#193">cvt_p</a>(ffi::BN_CTX_secure_new()).map(<a href="#84-100">BigNumContext</a>)
         }
     }
 }
 
-<a class="macro" href="macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/handwritten/types/enum.BIGNUM.html">ffi::BIGNUM</a>;
+<a class="macro" href="macros.rs.html#134-163">foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/types/enum.BIGNUM.html">ffi::BIGNUM</a>;
     <span class="kw">fn </span>drop = ffi::BN_free;
 
     <span class="doccomment">/// Dynamically sized large number implementation
@@ -1567,43 +1580,43 @@
     </span><span class="kw">pub struct </span>BigNumRef;
 }
 
-<span class="kw">impl </span><a href="#121-153">BigNumRef</a> {
+<span class="kw">impl </span><a href="#123-155">BigNumRef</a> {
     <span class="doccomment">/// Erases the memory used by this `BigNum`, resetting its value to 0.
     ///
     /// This can be used to destroy sensitive data such as keys when they are no longer needed.
     </span><span class="attribute">#[corresponds(BN_clear)]
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ ffi::BN_clear(<a class="self" href="#160">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) }
+        <span class="kw">unsafe </span>{ ffi::BN_clear(<a class="self" href="#162">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) }
     }
 
     <span class="doccomment">/// Adds a `u32` to `self`.
     </span><span class="attribute">#[corresponds(BN_add_word)]
-    </span><span class="kw">pub fn </span>add_word(<span class="kw-2">&amp;mut </span><span class="self">self</span>, w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#194">cvt</a>(ffi::BN_add_word(<a class="self" href="#166">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#166">w</a> <span class="kw">as </span>ffi::BN_ULONG)).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>add_word(<span class="kw-2">&amp;mut </span><span class="self">self</span>, w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::BN_add_word(<a class="self" href="#168">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#168">w</a> <span class="kw">as </span>ffi::BN_ULONG)).map(|<span class="kw">_</span>| ()) }
     }
 
     <span class="doccomment">/// Subtracts a `u32` from `self`.
     </span><span class="attribute">#[corresponds(BN_sub_word)]
-    </span><span class="kw">pub fn </span>sub_word(<span class="kw-2">&amp;mut </span><span class="self">self</span>, w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#194">cvt</a>(ffi::BN_sub_word(<a class="self" href="#172">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#172">w</a> <span class="kw">as </span>ffi::BN_ULONG)).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>sub_word(<span class="kw-2">&amp;mut </span><span class="self">self</span>, w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::BN_sub_word(<a class="self" href="#174">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#174">w</a> <span class="kw">as </span>ffi::BN_ULONG)).map(|<span class="kw">_</span>| ()) }
     }
 
     <span class="doccomment">/// Multiplies a `u32` by `self`.
     </span><span class="attribute">#[corresponds(BN_mul_word)]
-    </span><span class="kw">pub fn </span>mul_word(<span class="kw-2">&amp;mut </span><span class="self">self</span>, w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#194">cvt</a>(ffi::BN_mul_word(<a class="self" href="#178">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#178">w</a> <span class="kw">as </span>ffi::BN_ULONG)).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>mul_word(<span class="kw-2">&amp;mut </span><span class="self">self</span>, w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::BN_mul_word(<a class="self" href="#180">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#180">w</a> <span class="kw">as </span>ffi::BN_ULONG)).map(|<span class="kw">_</span>| ()) }
     }
 
     <span class="doccomment">/// Divides `self` by a `u32`, returning the remainder.
     </span><span class="attribute">#[corresponds(BN_div_word)]
     #[allow(clippy::useless_conversion)]
-    </span><span class="kw">pub fn </span>div_word(<span class="kw-2">&amp;mut </span><span class="self">self</span>, w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>div_word(<span class="kw-2">&amp;mut </span><span class="self">self</span>, w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>r = ffi::BN_div_word(<a class="self" href="#185">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#185">w</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="kw">let </span>r = ffi::BN_div_word(<a class="self" href="#187">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#187">w</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
             <span class="kw">if </span>r == ffi::BN_ULONG::max_value() {
                 <span class="prelude-val">Err</span>(ErrorStack::get())
             } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(<a href="#187">r</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                <span class="prelude-val">Ok</span>(<a href="#189">r</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
         }
     }
@@ -1611,13 +1624,13 @@
     <span class="doccomment">/// Returns the result of `self` modulo `w`.
     </span><span class="attribute">#[corresponds(BN_mod_word)]
     #[allow(clippy::useless_conversion)]
-    </span><span class="kw">pub fn </span>mod_word(<span class="kw-2">&amp;</span><span class="self">self</span>, w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>mod_word(<span class="kw-2">&amp;</span><span class="self">self</span>, w: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>r = ffi::BN_mod_word(<a class="self" href="#199">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#199">w</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="kw">let </span>r = ffi::BN_mod_word(<a class="self" href="#201">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#201">w</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
             <span class="kw">if </span>r == ffi::BN_ULONG::max_value() {
                 <span class="prelude-val">Err</span>(ErrorStack::get())
             } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(<a href="#201">r</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                <span class="prelude-val">Ok</span>(<a href="#203">r</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             }
         }
     }
@@ -1625,14 +1638,14 @@
     <span class="doccomment">/// Places a cryptographically-secure pseudo-random nonnegative
     /// number less than `self` in `rnd`.
     </span><span class="attribute">#[corresponds(BN_rand_range)]
-    </span><span class="kw">pub fn </span>rand_range(<span class="kw-2">&amp;</span><span class="self">self</span>, rnd: <span class="kw-2">&amp;mut </span><a href="#121-153">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#194">cvt</a>(ffi::BN_rand_range(<a href="#213">rnd</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="self" href="#213">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>rand_range(<span class="kw-2">&amp;</span><span class="self">self</span>, rnd: <span class="kw-2">&amp;mut </span><a href="#123-155">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::BN_rand_range(<a href="#215">rnd</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="self" href="#215">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
     }
 
     <span class="doccomment">/// The cryptographically weak counterpart to `rand_in_range`.
     </span><span class="attribute">#[corresponds(BN_pseudo_rand_range)]
-    </span><span class="kw">pub fn </span>pseudo_rand_range(<span class="kw-2">&amp;</span><span class="self">self</span>, rnd: <span class="kw-2">&amp;mut </span><a href="#121-153">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#194">cvt</a>(ffi::BN_pseudo_rand_range(<a href="#219">rnd</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="self" href="#219">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>pseudo_rand_range(<span class="kw-2">&amp;</span><span class="self">self</span>, rnd: <span class="kw-2">&amp;mut </span><a href="#123-155">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::BN_pseudo_rand_range(<a href="#221">rnd</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a class="self" href="#221">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
     }
 
     <span class="doccomment">/// Sets bit `n`. Equivalent to `self |= (1 &lt;&lt; n)`.
@@ -1640,8 +1653,8 @@
     /// When setting a bit outside of `self`, it is expanded.
     </span><span class="attribute">#[corresponds(BN_set_bit)]
     #[allow(clippy::useless_conversion)]
-    </span><span class="kw">pub fn </span>set_bit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#194">cvt</a>(ffi::BN_set_bit(<a class="self" href="#228">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#228">n</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>set_bit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::BN_set_bit(<a class="self" href="#230">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#230">n</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())).map(|<span class="kw">_</span>| ()) }
     }
 
     <span class="doccomment">/// Clears bit `n`, setting it to 0. Equivalent to `self &amp;= ~(1 &lt;&lt; n)`.
@@ -1649,15 +1662,15 @@
     /// When clearing a bit outside of `self`, an error is returned.
     </span><span class="attribute">#[corresponds(BN_clear_bit)]
     #[allow(clippy::useless_conversion)]
-    </span><span class="kw">pub fn </span>clear_bit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#194">cvt</a>(ffi::BN_clear_bit(<a class="self" href="#237">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#237">n</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>clear_bit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::BN_clear_bit(<a class="self" href="#239">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#239">n</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())).map(|<span class="kw">_</span>| ()) }
     }
 
     <span class="doccomment">/// Returns `true` if the `n`th bit of `self` is set to 1, `false` otherwise.
     </span><span class="attribute">#[corresponds(BN_is_bit_set)]
     #[allow(clippy::useless_conversion)]
     </span><span class="kw">pub fn </span>is_bit_set(<span class="kw-2">&amp;</span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">unsafe </span>{ ffi::BN_is_bit_set(<a class="self" href="#244">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#244">n</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) == <span class="number">1 </span>}
+        <span class="kw">unsafe </span>{ ffi::BN_is_bit_set(<a class="self" href="#246">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#246">n</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()) == <span class="number">1 </span>}
     }
 
     <span class="doccomment">/// Truncates `self` to the lowest `n` bits.
@@ -1665,63 +1678,63 @@
     /// An error occurs if `self` is already shorter than `n` bits.
     </span><span class="attribute">#[corresponds(BN_mask_bits)]
     #[allow(clippy::useless_conversion)]
-    </span><span class="kw">pub fn </span>mask_bits(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#194">cvt</a>(ffi::BN_mask_bits(<a class="self" href="#253">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#253">n</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>mask_bits(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::BN_mask_bits(<a class="self" href="#255">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#255">n</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())).map(|<span class="kw">_</span>| ()) }
     }
 
     <span class="doccomment">/// Places `a &lt;&lt; 1` in `self`.  Equivalent to `self * 2`.
     </span><span class="attribute">#[corresponds(BN_lshift1)]
-    </span><span class="kw">pub fn </span>lshift1(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#194">cvt</a>(ffi::BN_lshift1(<a class="self" href="#259">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#259">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>lshift1(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::BN_lshift1(<a class="self" href="#261">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#261">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
     }
 
     <span class="doccomment">/// Places `a &gt;&gt; 1` in `self`. Equivalent to `self / 2`.
     </span><span class="attribute">#[corresponds(BN_rshift1)]
-    </span><span class="kw">pub fn </span>rshift1(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#194">cvt</a>(ffi::BN_rshift1(<a class="self" href="#265">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#265">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>rshift1(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::BN_rshift1(<a class="self" href="#267">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#267">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
     }
 
     <span class="doccomment">/// Places `a + b` in `self`.  [`core::ops::Add`] is also implemented for `BigNumRef`.
     ///
     /// [`core::ops::Add`]: struct.BigNumRef.html#method.add
     </span><span class="attribute">#[corresponds(BN_add)]
-    </span><span class="kw">pub fn </span>checked_add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>, b: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#194">cvt</a>(ffi::BN_add(<a class="self" href="#273">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#273">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#273">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>checked_add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>, b: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::BN_add(<a class="self" href="#275">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#275">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#275">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
     }
 
     <span class="doccomment">/// Places `a - b` in `self`. [`core::ops::Sub`] is also implemented for `BigNumRef`.
     ///
     /// [`core::ops::Sub`]: struct.BigNumRef.html#method.sub
     </span><span class="attribute">#[corresponds(BN_sub)]
-    </span><span class="kw">pub fn </span>checked_sub(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>, b: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#194">cvt</a>(ffi::BN_sub(<a class="self" href="#281">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#281">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#281">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>checked_sub(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>, b: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::BN_sub(<a class="self" href="#283">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#283">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#283">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
     }
 
     <span class="doccomment">/// Places `a &lt;&lt; n` in `self`.  Equivalent to `a * 2 ^ n`.
     </span><span class="attribute">#[corresponds(BN_lshift)]
     #[allow(clippy::useless_conversion)]
-    </span><span class="kw">pub fn </span>lshift(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#194">cvt</a>(ffi::BN_lshift(<a class="self" href="#288">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#288">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#288">n</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>lshift(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::BN_lshift(<a class="self" href="#290">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#290">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#290">n</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())).map(|<span class="kw">_</span>| ()) }
     }
 
     <span class="doccomment">/// Places `a &gt;&gt; n` in `self`. Equivalent to `a / 2 ^ n`.
     </span><span class="attribute">#[corresponds(BN_rshift)]
     #[allow(clippy::useless_conversion)]
-    </span><span class="kw">pub fn </span>rshift(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#194">cvt</a>(ffi::BN_rshift(<a class="self" href="#295">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#295">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#295">n</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>rshift(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::BN_rshift(<a class="self" href="#297">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#297">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#297">n</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())).map(|<span class="kw">_</span>| ()) }
     }
 
     <span class="doccomment">/// Creates a new BigNum with the same value.
     </span><span class="attribute">#[corresponds(BN_dup)]
-    </span><span class="kw">pub fn </span>to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#121-153">BigNum</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#185">cvt_p</a>(ffi::BN_dup(<a class="self" href="#301">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|b| BigNum::from_ptr(<a href="#302">b</a>)) }
+    </span><span class="kw">pub fn </span>to_owned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#123-155">BigNum</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#193">cvt_p</a>(ffi::BN_dup(<a class="self" href="#303">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|b| BigNum::from_ptr(<a href="#304">b</a>)) }
     }
 
     <span class="doccomment">/// Sets the sign of `self`.  Pass true to set `self` to a negative.  False sets
     /// `self` positive.
     </span><span class="attribute">#[corresponds(BN_set_negative)]
     </span><span class="kw">pub fn </span>set_negative(<span class="kw-2">&amp;mut </span><span class="self">self</span>, negative: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <span class="kw">unsafe </span>{ ffi::BN_set_negative(<a class="self" href="#308">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#308">negative</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>) }
+        <span class="kw">unsafe </span>{ ffi::BN_set_negative(<a class="self" href="#310">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#310">negative</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>) }
     }
 
     <span class="doccomment">/// Compare the absolute values of `self` and `oth`.
@@ -1737,25 +1750,25 @@
     /// assert_eq!(s.ucmp(&amp;o), Ordering::Equal);
     /// ```
     </span><span class="attribute">#[corresponds(BN_ucmp)]
-    </span><span class="kw">pub fn </span>ucmp(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
-        <span class="kw">unsafe </span>{ ffi::BN_ucmp(<a class="self" href="#325">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#325">oth</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><span class="number">0</span>) }
+    </span><span class="kw">pub fn </span>ucmp(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
+        <span class="kw">unsafe </span>{ ffi::BN_ucmp(<a class="self" href="#327">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#327">oth</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><span class="number">0</span>) }
     }
 
     <span class="doccomment">/// Returns `true` if `self` is negative.
     </span><span class="attribute">#[corresponds(BN_is_negative)]
     </span><span class="kw">pub fn </span>is_negative(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">unsafe </span>{ <a href="../../openssl_sys/handwritten/bn/fn.BN_is_negative.html">BN_is_negative</a>(<a class="self" href="#331">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) == <span class="number">1 </span>}
+        <span class="kw">unsafe </span>{ <a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_is_negative.html">BN_is_negative</a>(<a class="self" href="#333">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) == <span class="number">1 </span>}
     }
 
     <span class="doccomment">/// Returns the number of significant bits in `self`.
     </span><span class="attribute">#[corresponds(BN_num_bits)]
     </span><span class="kw">pub fn </span>num_bits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-        <span class="kw">unsafe </span>{ ffi::BN_num_bits(<a class="self" href="#337">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> }
+        <span class="kw">unsafe </span>{ ffi::BN_num_bits(<a class="self" href="#339">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> }
     }
 
     <span class="doccomment">/// Returns the size of `self` in bytes. Implemented natively.
     </span><span class="kw">pub fn </span>num_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> {
-        (<a class="self" href="#342">self</a>.<a href="#337">num_bits</a>() + <span class="number">7</span>) / <span class="number">8
+        (<a class="self" href="#344">self</a>.<a href="#339">num_bits</a>() + <span class="number">7</span>) / <span class="number">8
     </span>}
 
     <span class="doccomment">/// Generates a cryptographically strong pseudo-random `BigNum`, placing it in `self`.
@@ -1784,13 +1797,13 @@
     /// [`constants`]: index.html#constants
     </span><span class="attribute">#[corresponds(BN_rand)]
     #[allow(clippy::useless_conversion)]
-    </span><span class="kw">pub fn </span>rand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, msb: <a href="#66">MsbOption</a>, odd: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>rand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, msb: <a href="#68">MsbOption</a>, odd: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_rand(
-                <a class="self" href="#372">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#372">bits</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#372">msb</a>.<span class="number">0</span>,
-                <a href="#372">odd</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_rand(
+                <a class="self" href="#374">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#374">bits</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                <a href="#374">msb</a>.<span class="number">0</span>,
+                <a href="#374">odd</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1799,13 +1812,13 @@
     <span class="doccomment">/// The cryptographically weak counterpart to `rand`.  Not suitable for key generation.
     </span><span class="attribute">#[corresponds(BN_pseudo_rand)]
     #[allow(clippy::useless_conversion)]
-    </span><span class="kw">pub fn </span>pseudo_rand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, msb: <a href="#66">MsbOption</a>, odd: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>pseudo_rand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, msb: <a href="#68">MsbOption</a>, odd: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_pseudo_rand(
-                <a class="self" href="#387">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#387">bits</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#387">msb</a>.<span class="number">0</span>,
-                <a href="#387">odd</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_pseudo_rand(
+                <a class="self" href="#389">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#389">bits</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                <a href="#389">msb</a>.<span class="number">0</span>,
+                <a href="#389">odd</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1839,16 +1852,16 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         bits: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
         safe: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        add: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>&gt;,
-        rem: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        add: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>&gt;,
+        rem: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_generate_prime_ex(
-                <a class="self" href="#424">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#425">bits</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
-                <a href="#426">safe</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
-                <a href="#427">add</a>.map(|n| <a href="#435">n</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()).unwrap_or(ptr::null_mut()),
-                <a href="#428">rem</a>.map(|n| <a href="#436">n</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()).unwrap_or(ptr::null_mut()),
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_generate_prime_ex(
+                <a class="self" href="#426">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#427">bits</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+                <a href="#428">safe</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+                <a href="#429">add</a>.map(|n| <a href="#437">n</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()).unwrap_or(ptr::null_mut()),
+                <a href="#430">rem</a>.map(|n| <a href="#438">n</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()).unwrap_or(ptr::null_mut()),
                 ptr::null_mut(),
             ))
             .map(|<span class="kw">_</span>| ())
@@ -1862,16 +1875,16 @@
     </span><span class="attribute">#[corresponds(BN_mul)]
     </span><span class="kw">pub fn </span>checked_mul(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        b: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        b: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_mul(
-                <a class="self" href="#449">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#450">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#451">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#452">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_mul(
+                <a class="self" href="#451">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#452">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#453">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#454">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1884,17 +1897,17 @@
     </span><span class="attribute">#[corresponds(BN_div)]
     </span><span class="kw">pub fn </span>checked_div(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        b: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        b: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_div(
-                <a class="self" href="#471">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_div(
+                <a class="self" href="#473">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 ptr::null_mut(),
-                <a href="#472">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#473">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#474">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#474">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#475">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#476">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1904,17 +1917,17 @@
     </span><span class="attribute">#[corresponds(BN_div)]
     </span><span class="kw">pub fn </span>checked_rem(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        b: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        b: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_div(
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_div(
                 ptr::null_mut(),
-                <a class="self" href="#491">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#492">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#493">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#494">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a class="self" href="#493">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#494">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#495">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#496">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1924,18 +1937,18 @@
     </span><span class="attribute">#[corresponds(BN_div)]
     </span><span class="kw">pub fn </span>div_rem(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        rem: <span class="kw-2">&amp;mut </span><a href="#121-153">BigNumRef</a>,
-        a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        b: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        rem: <span class="kw-2">&amp;mut </span><a href="#123-155">BigNumRef</a>,
+        a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        b: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_div(
-                <a class="self" href="#511">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#512">rem</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#513">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#514">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#515">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_div(
+                <a class="self" href="#513">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#514">rem</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#515">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#516">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#517">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1943,8 +1956,8 @@
 
     <span class="doccomment">/// Places the result of `a²` in `self`.
     </span><span class="attribute">#[corresponds(BN_sqr)]
-    </span><span class="kw">pub fn </span>sqr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>, ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#194">cvt</a>(ffi::BN_sqr(<a class="self" href="#531">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#531">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#531">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
+    </span><span class="kw">pub fn </span>sqr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>, ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#202">cvt</a>(ffi::BN_sqr(<a class="self" href="#533">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#533">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#533">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(|<span class="kw">_</span>| ()) }
     }
 
     <span class="doccomment">/// Places the result of `a mod m` in `self`.  As opposed to `div_rem`
@@ -1952,16 +1965,16 @@
     </span><span class="attribute">#[corresponds(BN_nnmod)]
     </span><span class="kw">pub fn </span>nnmod(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        m: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        m: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_nnmod(
-                <a class="self" href="#539">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#540">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#541">m</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#542">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_nnmod(
+                <a class="self" href="#541">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#542">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#543">m</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#544">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1971,18 +1984,18 @@
     </span><span class="attribute">#[corresponds(BN_mod_add)]
     </span><span class="kw">pub fn </span>mod_add(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        b: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        m: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        b: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        m: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_mod_add(
-                <a class="self" href="#558">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#559">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#560">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#561">m</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#562">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_mod_add(
+                <a class="self" href="#560">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#561">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#562">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#563">m</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#564">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -1992,18 +2005,18 @@
     </span><span class="attribute">#[corresponds(BN_mod_sub)]
     </span><span class="kw">pub fn </span>mod_sub(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        b: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        m: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        b: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        m: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_mod_sub(
-                <a class="self" href="#579">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#580">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#581">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#582">m</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#583">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_mod_sub(
+                <a class="self" href="#581">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#582">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#583">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#584">m</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#585">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -2013,18 +2026,18 @@
     </span><span class="attribute">#[corresponds(BN_mod_mul)]
     </span><span class="kw">pub fn </span>mod_mul(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        b: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        m: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        b: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        m: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_mod_mul(
-                <a class="self" href="#600">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#601">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#602">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#603">m</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#604">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_mod_mul(
+                <a class="self" href="#602">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#603">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#604">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#605">m</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#606">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -2034,16 +2047,16 @@
     </span><span class="attribute">#[corresponds(BN_mod_sqr)]
     </span><span class="kw">pub fn </span>mod_sqr(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        m: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        m: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_mod_sqr(
-                <a class="self" href="#621">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#622">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#623">m</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#624">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_mod_sqr(
+                <a class="self" href="#623">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#624">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#625">m</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#626">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -2053,16 +2066,16 @@
     </span><span class="attribute">#[corresponds(BN_exp)]
     </span><span class="kw">pub fn </span>exp(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        p: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        p: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_exp(
-                <a class="self" href="#640">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#641">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#642">p</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#643">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_exp(
+                <a class="self" href="#642">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#643">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#644">p</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#645">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -2072,18 +2085,18 @@
     </span><span class="attribute">#[corresponds(BN_mod_exp)]
     </span><span class="kw">pub fn </span>mod_exp(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        p: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        m: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        p: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        m: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_mod_exp(
-                <a class="self" href="#659">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#660">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#661">p</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#662">m</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#663">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_mod_exp(
+                <a class="self" href="#661">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#662">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#663">p</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#664">m</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#665">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -2093,16 +2106,16 @@
     </span><span class="attribute">#[corresponds(BN_mod_inverse)]
     </span><span class="kw">pub fn </span>mod_inverse(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        n: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        n: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#185">cvt_p</a>(ffi::BN_mod_inverse(
-                <a class="self" href="#680">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#681">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#682">n</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#683">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a href="lib.rs.html#193">cvt_p</a>(ffi::BN_mod_inverse(
+                <a class="self" href="#682">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#683">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#684">n</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#685">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -2112,16 +2125,16 @@
     </span><span class="attribute">#[corresponds(BN_gcd)]
     </span><span class="kw">pub fn </span>gcd(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        a: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        b: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+        a: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        b: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>,
+        ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_gcd(
-                <a class="self" href="#699">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#700">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#701">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#702">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_gcd(
+                <a class="self" href="#701">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#702">a</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#703">b</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#704">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
             .map(|<span class="kw">_</span>| ())
         }
@@ -2136,15 +2149,15 @@
     /// Returns `true` if `self` is prime with an error probability of less than `0.25 ^ checks`.
     </span><span class="attribute">#[corresponds(BN_is_prime_ex)]
     #[allow(clippy::useless_conversion)]
-    </span><span class="kw">pub fn </span>is_prime(<span class="kw-2">&amp;</span><span class="self">self</span>, checks: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>is_prime(<span class="kw-2">&amp;</span><span class="self">self</span>, checks: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#203">cvt_n</a>(ffi::BN_is_prime_ex(
-                <a class="self" href="#724">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#724">checks</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#724">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a href="lib.rs.html#211">cvt_n</a>(ffi::BN_is_prime_ex(
+                <a class="self" href="#726">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#726">checks</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                <a href="#726">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 ptr::null_mut(),
             ))
-            .map(|r| <a href="#732">r</a> != <span class="number">0</span>)
+            .map(|r| <a href="#734">r</a> != <span class="number">0</span>)
         }
     }
 
@@ -2162,18 +2175,18 @@
     </span><span class="kw">pub fn </span>is_prime_fasttest(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         checks: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
-        ctx: <span class="kw-2">&amp;mut </span><a href="#82-98">BigNumContextRef</a>,
+        ctx: <span class="kw-2">&amp;mut </span><a href="#84-100">BigNumContextRef</a>,
         do_trial_division: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#203">cvt_n</a>(ffi::BN_is_prime_fasttest_ex(
-                <a class="self" href="#748">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#749">checks</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                <a href="#750">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
-                <a href="#751">do_trial_division</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+            <a href="lib.rs.html#211">cvt_n</a>(ffi::BN_is_prime_fasttest_ex(
+                <a class="self" href="#750">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#751">checks</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                <a href="#752">ctx</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+                <a href="#753">do_trial_division</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
                 ptr::null_mut(),
             ))
-            .map(|r| <a href="#761">r</a> != <span class="number">0</span>)
+            .map(|r| <a href="#763">r</a> != <span class="number">0</span>)
         }
     }
 
@@ -2191,13 +2204,13 @@
     /// ```
     </span><span class="attribute">#[corresponds(BN_bn2bin)]
     </span><span class="kw">pub fn </span>to_vec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-        <span class="kw">let </span>size = <a class="self" href="#778">self</a>.<a href="#342">num_bytes</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::with_capacity(<a href="#779">size</a>);
+        <span class="kw">let </span>size = <a class="self" href="#780">self</a>.<a href="#344">num_bytes</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::with_capacity(<a href="#781">size</a>);
         <span class="kw">unsafe </span>{
-            ffi::BN_bn2bin(<a class="self" href="#778">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#780">v</a>.as_mut_ptr());
-            <a href="#780">v</a>.set_len(<a href="#779">size</a>);
+            ffi::BN_bn2bin(<a class="self" href="#780">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#782">v</a>.as_mut_ptr());
+            <a href="#782">v</a>.set_len(<a href="#781">size</a>);
         }
-        <a href="#780">v</a>
+        <a href="#782">v</a>
     }
 
     <span class="doccomment">/// Returns a big-endian byte vector representation of the absolute value of `self` padded
@@ -2223,13 +2236,13 @@
     /// ```
     </span><span class="attribute">#[corresponds(BN_bn2binpad)]
     #[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>to_vec_padded(<span class="kw-2">&amp;</span><span class="self">self</span>, pad_to: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::with_capacity(<a href="#811">pad_to</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+    </span><span class="kw">pub fn </span>to_vec_padded(<span class="kw-2">&amp;</span><span class="self">self</span>, pad_to: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::with_capacity(<a href="#813">pad_to</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
         <span class="kw">unsafe </span>{
             cvt(ffi::BN_bn2binpad(<span class="self">self</span>.as_ptr(), v.as_mut_ptr(), pad_to))<span class="question-mark">?</span>;
-            <a href="#812">v</a>.set_len(<a href="#811">pad_to</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+            <a href="#814">v</a>.set_len(<a href="#813">pad_to</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
         }
-        <span class="prelude-val">Ok</span>(<a href="#812">v</a>)
+        <span class="prelude-val">Ok</span>(<a href="#814">v</a>)
     }
 
     <span class="doccomment">/// Returns a decimal string representation of `self`.
@@ -2241,10 +2254,10 @@
     /// assert_eq!(&amp;**s.to_dec_str().unwrap(), &quot;-12345&quot;);
     /// ```
     </span><span class="attribute">#[corresponds(BN_bn2dec)]
-    </span><span class="kw">pub fn </span>to_dec_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="string.rs.html#11-17">OpensslString</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>to_dec_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="string.rs.html#11-17">OpensslString</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>buf = cvt_p(ffi::BN_bn2dec(<span class="self">self</span>.as_ptr()))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(OpensslString::from_ptr(<a href="#831">buf</a>))
+            <span class="prelude-val">Ok</span>(OpensslString::from_ptr(<a href="#833">buf</a>))
         }
     }
 
@@ -2254,22 +2267,22 @@
     /// # use openssl::bn::BigNum;
     /// let s = -BigNum::from_u32(0x99ff).unwrap();
     ///
-    /// assert_eq!(&amp;**s.to_hex_str().unwrap(), &quot;-99FF&quot;);
+    /// assert_eq!(s.to_hex_str().unwrap().to_uppercase(), &quot;-99FF&quot;);
     /// ```
     </span><span class="attribute">#[corresponds(BN_bn2hex)]
-    </span><span class="kw">pub fn </span>to_hex_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="string.rs.html#11-17">OpensslString</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>to_hex_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="string.rs.html#11-17">OpensslString</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>buf = cvt_p(ffi::BN_bn2hex(<span class="self">self</span>.as_ptr()))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(OpensslString::from_ptr(<a href="#847">buf</a>))
+            <span class="prelude-val">Ok</span>(OpensslString::from_ptr(<a href="#849">buf</a>))
         }
     }
 
     <span class="doccomment">/// Returns an `Asn1Integer` containing the value of `self`.
     </span><span class="attribute">#[corresponds(BN_to_ASN1_INTEGER)]
-    </span><span class="kw">pub fn </span>to_asn1_integer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="asn1.rs.html#483-499">Asn1Integer</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>to_asn1_integer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="asn1.rs.html#483-499">Asn1Integer</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#185">cvt_p</a>(ffi::BN_to_ASN1_INTEGER(<a class="self" href="#854">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), ptr::null_mut()))
-                .map(|p| Asn1Integer::from_ptr(<a href="#857">p</a>))
+            <a href="lib.rs.html#193">cvt_p</a>(ffi::BN_to_ASN1_INTEGER(<a class="self" href="#856">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), ptr::null_mut()))
+                .map(|p| Asn1Integer::from_ptr(<a href="#859">p</a>))
         }
     }
 
@@ -2277,7 +2290,7 @@
     </span><span class="attribute">#[corresponds(BN_set_flags)]
     #[cfg(ossl110)]
     </span><span class="kw">pub fn </span>set_const_time(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">unsafe </span>{ ffi::BN_set_flags(<a class="self" href="#864">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), ffi::BN_FLG_CONSTTIME) }
+        <span class="kw">unsafe </span>{ ffi::BN_set_flags(<a class="self" href="#866">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), ffi::BN_FLG_CONSTTIME) }
     }
 
     <span class="doccomment">/// Returns true if `self` is in const time mode.
@@ -2285,8 +2298,8 @@
     #[cfg(ossl110)]
     </span><span class="kw">pub fn </span>is_const_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ret = ffi::BN_get_flags(<a class="self" href="#871">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), ffi::BN_FLG_CONSTTIME);
-            <a href="#873">ret</a> == ffi::BN_FLG_CONSTTIME
+            <span class="kw">let </span>ret = ffi::BN_get_flags(<a class="self" href="#873">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), ffi::BN_FLG_CONSTTIME);
+            <a href="#875">ret</a> == ffi::BN_FLG_CONSTTIME
         }
     }
 
@@ -2295,63 +2308,63 @@
     #[cfg(ossl110)]
     </span><span class="kw">pub fn </span>is_secure(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ret = ffi::BN_get_flags(<a class="self" href="#881">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), ffi::BN_FLG_SECURE);
-            <a href="#883">ret</a> == ffi::BN_FLG_SECURE
+            <span class="kw">let </span>ret = ffi::BN_get_flags(<a class="self" href="#883">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), ffi::BN_FLG_SECURE);
+            <a href="#885">ret</a> == ffi::BN_FLG_SECURE
         }
     }
 }
 
-<span class="kw">impl </span><a href="#121-153">BigNum</a> {
+<span class="kw">impl </span><a href="#123-155">BigNum</a> {
     <span class="doccomment">/// Creates a new `BigNum` with the value 0.
     </span><span class="attribute">#[corresponds(BN_new)]
-    </span><span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#121-153">BigNum</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#123-155">BigNum</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
             <span class="kw">let </span>v = cvt_p(ffi::BN_new())<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(BigNum::from_ptr(<a href="#895">v</a>))
+            <span class="prelude-val">Ok</span>(BigNum::from_ptr(<a href="#897">v</a>))
         }
     }
 
     <span class="doccomment">/// Returns a new secure `BigNum`.
     </span><span class="attribute">#[corresponds(BN_secure_new)]
     #[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>new_secure() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#121-153">BigNum</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>new_secure() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#123-155">BigNum</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
             <span class="kw">let </span>v = cvt_p(ffi::BN_secure_new())<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(BigNum::from_ptr(<a href="#906">v</a>))
+            <span class="prelude-val">Ok</span>(BigNum::from_ptr(<a href="#908">v</a>))
         }
     }
 
     <span class="doccomment">/// Creates a new `BigNum` with the given value.
     </span><span class="attribute">#[corresponds(BN_set_word)]
-    </span><span class="kw">pub fn </span>from_u32(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#121-153">BigNum</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>from_u32(n: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#123-155">BigNum</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         BigNum::new().and_then(|v| <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::BN_set_word(<a href="#914">v</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a href="#913">n</a> <span class="kw">as </span>ffi::BN_ULONG)).map(|<span class="kw">_</span>| <a href="#914">v</a>)
+            <a href="lib.rs.html#202">cvt</a>(ffi::BN_set_word(<a href="#916">v</a>.<a href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a href="#915">n</a> <span class="kw">as </span>ffi::BN_ULONG)).map(|<span class="kw">_</span>| <a href="#916">v</a>)
         })
     }
 
     <span class="doccomment">/// Creates a `BigNum` from a decimal string.
     </span><span class="attribute">#[corresponds(BN_dec2bn)]
-    </span><span class="kw">pub fn </span>from_dec_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#121-153">BigNum</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>from_dec_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#123-155">BigNum</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
-            <span class="kw">let </span>c_str = CString::new(<a href="#921">s</a>.as_bytes()).unwrap();
+            <span class="kw">let </span>c_str = CString::new(<a href="#923">s</a>.as_bytes()).unwrap();
             <span class="kw">let </span><span class="kw-2">mut </span>bn = ptr::null_mut();
             cvt(ffi::BN_dec2bn(<span class="kw-2">&amp;mut </span>bn, c_str.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(BigNum::from_ptr(<a href="#925">bn</a>))
+            <span class="prelude-val">Ok</span>(BigNum::from_ptr(<a href="#927">bn</a>))
         }
     }
 
     <span class="doccomment">/// Creates a `BigNum` from a hexadecimal string.
     </span><span class="attribute">#[corresponds(BN_hex2bn)]
-    </span><span class="kw">pub fn </span>from_hex_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#121-153">BigNum</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>from_hex_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#123-155">BigNum</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
-            <span class="kw">let </span>c_str = CString::new(<a href="#933">s</a>.as_bytes()).unwrap();
+            <span class="kw">let </span>c_str = CString::new(<a href="#935">s</a>.as_bytes()).unwrap();
             <span class="kw">let </span><span class="kw-2">mut </span>bn = ptr::null_mut();
             cvt(ffi::BN_hex2bn(<span class="kw-2">&amp;mut </span>bn, c_str.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(BigNum::from_ptr(<a href="#937">bn</a>))
+            <span class="prelude-val">Ok</span>(BigNum::from_ptr(<a href="#939">bn</a>))
         }
     }
 
@@ -2361,10 +2374,11 @@
     ///
     /// [`RFC 2409`]: https://tools.ietf.org/html/rfc2409#page-21
     </span><span class="attribute">#[corresponds(BN_get_rfc2409_prime_768)]
-    </span><span class="kw">pub fn </span>get_rfc2409_prime_768() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#121-153">BigNum</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    #[cfg(not(boringssl))]
+    </span><span class="kw">pub fn </span>get_rfc2409_prime_768() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#123-155">BigNum</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
-            <a href="lib.rs.html#185">cvt_p</a>(<a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc2409_prime_768.html">BN_get_rfc2409_prime_768</a>(ptr::null_mut())).map(<a href="#121-153">BigNum</a>)
+            <a href="lib.rs.html#193">cvt_p</a>(<a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc2409_prime_768.html">BN_get_rfc2409_prime_768</a>(ptr::null_mut())).map(<a href="#123-155">BigNum</a>)
         }
     }
 
@@ -2374,10 +2388,11 @@
     ///
     /// [`RFC 2409`]: https://tools.ietf.org/html/rfc2409#page-21
     </span><span class="attribute">#[corresponds(BN_get_rfc2409_prime_1024)]
-    </span><span class="kw">pub fn </span>get_rfc2409_prime_1024() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#121-153">BigNum</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    #[cfg(not(boringssl))]
+    </span><span class="kw">pub fn </span>get_rfc2409_prime_1024() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#123-155">BigNum</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
-            <a href="lib.rs.html#185">cvt_p</a>(<a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc2409_prime_1024.html">BN_get_rfc2409_prime_1024</a>(ptr::null_mut())).map(<a href="#121-153">BigNum</a>)
+            <a href="lib.rs.html#193">cvt_p</a>(<a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc2409_prime_1024.html">BN_get_rfc2409_prime_1024</a>(ptr::null_mut())).map(<a href="#123-155">BigNum</a>)
         }
     }
 
@@ -2387,10 +2402,11 @@
     ///
     /// [`RFC 3526`]: https://tools.ietf.org/html/rfc3526#page-3
     </span><span class="attribute">#[corresponds(BN_get_rfc3526_prime_1536)]
-    </span><span class="kw">pub fn </span>get_rfc3526_prime_1536() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#121-153">BigNum</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    #[cfg(not(boringssl))]
+    </span><span class="kw">pub fn </span>get_rfc3526_prime_1536() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#123-155">BigNum</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
-            <a href="lib.rs.html#185">cvt_p</a>(<a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc3526_prime_1536.html">BN_get_rfc3526_prime_1536</a>(ptr::null_mut())).map(<a href="#121-153">BigNum</a>)
+            <a href="lib.rs.html#193">cvt_p</a>(<a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc3526_prime_1536.html">BN_get_rfc3526_prime_1536</a>(ptr::null_mut())).map(<a href="#123-155">BigNum</a>)
         }
     }
 
@@ -2400,10 +2416,11 @@
     ///
     /// [`RFC 3526`]: https://tools.ietf.org/html/rfc3526#page-3
     </span><span class="attribute">#[corresponds(BN_get_rfc3526_prime_2048)]
-    </span><span class="kw">pub fn </span>get_rfc3526_prime_2048() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#121-153">BigNum</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    #[cfg(not(boringssl))]
+    </span><span class="kw">pub fn </span>get_rfc3526_prime_2048() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#123-155">BigNum</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
-            <a href="lib.rs.html#185">cvt_p</a>(<a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc3526_prime_2048.html">BN_get_rfc3526_prime_2048</a>(ptr::null_mut())).map(<a href="#121-153">BigNum</a>)
+            <a href="lib.rs.html#193">cvt_p</a>(<a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc3526_prime_2048.html">BN_get_rfc3526_prime_2048</a>(ptr::null_mut())).map(<a href="#123-155">BigNum</a>)
         }
     }
 
@@ -2413,10 +2430,11 @@
     ///
     /// [`RFC 3526`]: https://tools.ietf.org/html/rfc3526#page-4
     </span><span class="attribute">#[corresponds(BN_get_rfc3526_prime_3072)]
-    </span><span class="kw">pub fn </span>get_rfc3526_prime_3072() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#121-153">BigNum</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    #[cfg(not(boringssl))]
+    </span><span class="kw">pub fn </span>get_rfc3526_prime_3072() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#123-155">BigNum</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
-            <a href="lib.rs.html#185">cvt_p</a>(<a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc3526_prime_3072.html">BN_get_rfc3526_prime_3072</a>(ptr::null_mut())).map(<a href="#121-153">BigNum</a>)
+            <a href="lib.rs.html#193">cvt_p</a>(<a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc3526_prime_3072.html">BN_get_rfc3526_prime_3072</a>(ptr::null_mut())).map(<a href="#123-155">BigNum</a>)
         }
     }
 
@@ -2426,10 +2444,11 @@
     ///
     /// [`RFC 3526`]: https://tools.ietf.org/html/rfc3526#page-4
     </span><span class="attribute">#[corresponds(BN_get_rfc3526_prime_4096)]
-    </span><span class="kw">pub fn </span>get_rfc3526_prime_4096() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#121-153">BigNum</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    #[cfg(not(boringssl))]
+    </span><span class="kw">pub fn </span>get_rfc3526_prime_4096() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#123-155">BigNum</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
-            <a href="lib.rs.html#185">cvt_p</a>(<a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc3526_prime_4096.html">BN_get_rfc3526_prime_4096</a>(ptr::null_mut())).map(<a href="#121-153">BigNum</a>)
+            <a href="lib.rs.html#193">cvt_p</a>(<a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc3526_prime_4096.html">BN_get_rfc3526_prime_4096</a>(ptr::null_mut())).map(<a href="#123-155">BigNum</a>)
         }
     }
 
@@ -2439,10 +2458,11 @@
     ///
     /// [`RFC 3526`]: https://tools.ietf.org/html/rfc3526#page-6
     </span><span class="attribute">#[corresponds(BN_get_rfc3526_prime_6114)]
-    </span><span class="kw">pub fn </span>get_rfc3526_prime_6144() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#121-153">BigNum</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    #[cfg(not(boringssl))]
+    </span><span class="kw">pub fn </span>get_rfc3526_prime_6144() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#123-155">BigNum</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
-            <a href="lib.rs.html#185">cvt_p</a>(<a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc3526_prime_6144.html">BN_get_rfc3526_prime_6144</a>(ptr::null_mut())).map(<a href="#121-153">BigNum</a>)
+            <a href="lib.rs.html#193">cvt_p</a>(<a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc3526_prime_6144.html">BN_get_rfc3526_prime_6144</a>(ptr::null_mut())).map(<a href="#123-155">BigNum</a>)
         }
     }
 
@@ -2452,10 +2472,11 @@
     ///
     /// [`RFC 3526`]: https://tools.ietf.org/html/rfc3526#page-6
     </span><span class="attribute">#[corresponds(BN_get_rfc3526_prime_8192)]
-    </span><span class="kw">pub fn </span>get_rfc3526_prime_8192() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#121-153">BigNum</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    #[cfg(not(boringssl))]
+    </span><span class="kw">pub fn </span>get_rfc3526_prime_8192() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#123-155">BigNum</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
-            <a href="lib.rs.html#185">cvt_p</a>(<a href="../../openssl_sys/handwritten/bn/fn.BN_get_rfc3526_prime_8192.html">BN_get_rfc3526_prime_8192</a>(ptr::null_mut())).map(<a href="#121-153">BigNum</a>)
+            <a href="lib.rs.html#193">cvt_p</a>(<a href="../../openssl_sys/openssl/handwritten/bn/fn.BN_get_rfc3526_prime_8192.html">BN_get_rfc3526_prime_8192</a>(ptr::null_mut())).map(<a href="#123-155">BigNum</a>)
         }
     }
 
@@ -2472,117 +2493,118 @@
     /// assert_eq!(bignum, BigNum::from_u32(0x120034).unwrap());
     /// ```
     </span><span class="attribute">#[corresponds(BN_bin2bn)]
-    </span><span class="kw">pub fn </span>from_slice(n: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#121-153">BigNum</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>from_slice(n: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#123-155">BigNum</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(n.len() &lt;= c_int::max_value() <span class="kw">as </span>usize);
-            <a href="lib.rs.html#185">cvt_p</a>(ffi::BN_bin2bn(
-                <a href="#1060">n</a>.as_ptr(),
-                <a href="#1060">n</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
+
+            <a href="lib.rs.html#193">cvt_p</a>(ffi::BN_bin2bn(
+                <a href="#1070">n</a>.as_ptr(),
+                <a href="#1070">n</a>.len() <span class="kw">as </span><a href="lib.rs.html#190">LenType</a>,
                 ptr::null_mut(),
             ))
-            .map(|p| BigNum::from_ptr(<a href="#1069">p</a>))
+            .map(|p| BigNum::from_ptr(<a href="#1080">p</a>))
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#121-153">BigNumRef</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#123-155">BigNumRef</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><a class="self" href="#1075">self</a>.<a href="#829">to_dec_str</a>() {
-            <span class="prelude-val">Ok</span>(s) =&gt; <a href="#1075">f</a>.write_str(<span class="kw-2">&amp;</span><a href="#1077">s</a>),
-            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<a href="#1078">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="kw">match </span><a class="self" href="#1086">self</a>.<a href="#831">to_dec_str</a>() {
+            <span class="prelude-val">Ok</span>(s) =&gt; <a href="#1086">f</a>.write_str(<span class="kw-2">&amp;</span><a href="#1088">s</a>),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<a href="#1089">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#121-153">BigNum</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#123-155">BigNum</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><a class="self" href="#1084">self</a>.<a href="#829">to_dec_str</a>() {
-            <span class="prelude-val">Ok</span>(s) =&gt; <a href="#1084">f</a>.write_str(<span class="kw-2">&amp;</span><a href="#1086">s</a>),
-            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<a href="#1087">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="kw">match </span><a class="self" href="#1095">self</a>.<a href="#831">to_dec_str</a>() {
+            <span class="prelude-val">Ok</span>(s) =&gt; <a href="#1095">f</a>.write_str(<span class="kw-2">&amp;</span><a href="#1097">s</a>),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<a href="#1098">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#121-153">BigNumRef</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#123-155">BigNumRef</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><a class="self" href="#1093">self</a>.<a href="#829">to_dec_str</a>() {
-            <span class="prelude-val">Ok</span>(s) =&gt; <a href="#1093">f</a>.write_str(<span class="kw-2">&amp;</span><a href="#1095">s</a>),
-            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<a href="#1096">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="kw">match </span><a class="self" href="#1104">self</a>.<a href="#831">to_dec_str</a>() {
+            <span class="prelude-val">Ok</span>(s) =&gt; <a href="#1104">f</a>.write_str(<span class="kw-2">&amp;</span><a href="#1106">s</a>),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<a href="#1107">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#121-153">BigNum</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#123-155">BigNum</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><a class="self" href="#1102">self</a>.<a href="#829">to_dec_str</a>() {
-            <span class="prelude-val">Ok</span>(s) =&gt; <a href="#1102">f</a>.write_str(<span class="kw-2">&amp;</span><a href="#1104">s</a>),
-            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<a href="#1105">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="kw">match </span><a class="self" href="#1113">self</a>.<a href="#831">to_dec_str</a>() {
+            <span class="prelude-val">Ok</span>(s) =&gt; <a href="#1113">f</a>.write_str(<span class="kw-2">&amp;</span><a href="#1115">s</a>),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<a href="#1116">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         }
     }
 }
 
-<span class="kw">impl </span>PartialEq&lt;<a href="#121-153">BigNumRef</a>&gt; <span class="kw">for </span><a href="#121-153">BigNumRef</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1111">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#1111">oth</a>) == Ordering::Equal
+<span class="kw">impl </span>PartialEq&lt;<a href="#123-155">BigNumRef</a>&gt; <span class="kw">for </span><a href="#123-155">BigNumRef</a> {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="#1122">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#1122">oth</a>) == Ordering::Equal
     }
 }
 
-<span class="kw">impl </span>PartialEq&lt;<a href="#121-153">BigNum</a>&gt; <span class="kw">for </span><a href="#121-153">BigNumRef</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#121-153">BigNum</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1117">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">eq</a>(<a href="#1117">oth</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>())
+<span class="kw">impl </span>PartialEq&lt;<a href="#123-155">BigNum</a>&gt; <span class="kw">for </span><a href="#123-155">BigNumRef</a> {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#123-155">BigNum</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="#1128">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">eq</a>(<a href="#1128">oth</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="#121-153">BigNumRef</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="#123-155">BigNumRef</a> {}
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="#121-153">BigNum</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#121-153">BigNum</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1125">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">eq</a>(<a href="#1125">oth</a>)
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for </span><a href="#123-155">BigNum</a> {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#123-155">BigNum</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="#1136">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">eq</a>(<a href="#1136">oth</a>)
     }
 }
 
-<span class="kw">impl </span>PartialEq&lt;<a href="#121-153">BigNumRef</a>&gt; <span class="kw">for </span><a href="#121-153">BigNum</a> {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#1131">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">eq</a>(<a href="#1131">oth</a>)
+<span class="kw">impl </span>PartialEq&lt;<a href="#123-155">BigNumRef</a>&gt; <span class="kw">for </span><a href="#123-155">BigNum</a> {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="#1142">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">eq</a>(<a href="#1142">oth</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="#121-153">BigNum</a> {}
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="kw">for </span><a href="#123-155">BigNum</a> {}
 
-<span class="kw">impl </span>PartialOrd&lt;<a href="#121-153">BigNumRef</a>&gt; <span class="kw">for </span><a href="#121-153">BigNumRef</a> {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
-        <span class="prelude-val">Some</span>(<a class="self" href="#1139">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#1139">oth</a>))
+<span class="kw">impl </span>PartialOrd&lt;<a href="#123-155">BigNumRef</a>&gt; <span class="kw">for </span><a href="#123-155">BigNumRef</a> {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
+        <span class="prelude-val">Some</span>(<a class="self" href="#1150">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#1150">oth</a>))
     }
 }
 
-<span class="kw">impl </span>PartialOrd&lt;<a href="#121-153">BigNum</a>&gt; <span class="kw">for </span><a href="#121-153">BigNumRef</a> {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#121-153">BigNum</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
-        <span class="prelude-val">Some</span>(<a class="self" href="#1145">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#1145">oth</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>()))
+<span class="kw">impl </span>PartialOrd&lt;<a href="#123-155">BigNum</a>&gt; <span class="kw">for </span><a href="#123-155">BigNumRef</a> {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#123-155">BigNum</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
+        <span class="prelude-val">Some</span>(<a class="self" href="#1156">self</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#1156">oth</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>()))
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="#121-153">BigNumRef</a> {
-    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
-        <span class="kw">unsafe </span>{ ffi::BN_cmp(<a class="self" href="#1151">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#1151">oth</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><span class="number">0</span>) }
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="#123-155">BigNumRef</a> {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
+        <span class="kw">unsafe </span>{ ffi::BN_cmp(<a class="self" href="#1162">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(), <a href="#1162">oth</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()).<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<span class="kw-2">&amp;</span><span class="number">0</span>) }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="#121-153">BigNum</a> {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#121-153">BigNum</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
-        <a class="self" href="#1157">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<a href="#1157">oth</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>())
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for </span><a href="#123-155">BigNum</a> {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#123-155">BigNum</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
+        <a class="self" href="#1168">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<a href="#1168">oth</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>())
     }
 }
 
-<span class="kw">impl </span>PartialOrd&lt;<a href="#121-153">BigNumRef</a>&gt; <span class="kw">for </span><a href="#121-153">BigNum</a> {
-    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
-        <a class="self" href="#1163">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<a href="#1163">oth</a>)
+<span class="kw">impl </span>PartialOrd&lt;<a href="#123-155">BigNumRef</a>&gt; <span class="kw">for </span><a href="#123-155">BigNum</a> {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a>&gt; {
+        <a class="self" href="#1174">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">partial_cmp</a>(<a href="#1174">oth</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="#121-153">BigNum</a> {
-    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#121-153">BigNum</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
-        <a class="self" href="#1169">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#1169">oth</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>())
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for </span><a href="#123-155">BigNum</a> {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#123-155">BigNum</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">Ordering</a> {
+        <a class="self" href="#1180">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">cmp</a>(<a href="#1180">oth</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>())
     }
 }
 
@@ -2614,128 +2636,128 @@
     };
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; Add&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="#121-153">BigNumRef</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#121-153">BigNumRef</a> {
-    <span class="kw">type </span>Output = <a href="#121-153">BigNum</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; Add&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="#123-155">BigNumRef</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#123-155">BigNumRef</a> {
+    <span class="kw">type </span>Output = <a href="#123-155">BigNum</a>;
 
-    <span class="kw">fn </span>add(<span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>) -&gt; <a href="#121-153">BigNum</a> {
+    <span class="kw">fn </span>add(<span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>) -&gt; <a href="#123-155">BigNum</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>r = BigNum::new().unwrap();
-        <a href="#1206">r</a>.<a href="#273">checked_add</a>(<a class="self" href="#1205">self</a>, <a href="#1205">oth</a>).unwrap();
-        <a href="#1206">r</a>
+        <a href="#1217">r</a>.<a href="#275">checked_add</a>(<a class="self" href="#1216">self</a>, <a href="#1216">oth</a>).unwrap();
+        <a href="#1217">r</a>
     }
 }
 
-<a class="macro" href="#1174-1200">delegate!</a>(Add, add);
+<a class="macro" href="#1185-1211">delegate!</a>(Add, add);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; Sub&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="#121-153">BigNumRef</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#121-153">BigNumRef</a> {
-    <span class="kw">type </span>Output = <a href="#121-153">BigNum</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; Sub&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="#123-155">BigNumRef</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#123-155">BigNumRef</a> {
+    <span class="kw">type </span>Output = <a href="#123-155">BigNum</a>;
 
-    <span class="kw">fn </span>sub(<span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>) -&gt; <a href="#121-153">BigNum</a> {
+    <span class="kw">fn </span>sub(<span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>) -&gt; <a href="#123-155">BigNum</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>r = BigNum::new().unwrap();
-        <a href="#1218">r</a>.<a href="#281">checked_sub</a>(<a class="self" href="#1217">self</a>, <a href="#1217">oth</a>).unwrap();
-        <a href="#1218">r</a>
+        <a href="#1229">r</a>.<a href="#283">checked_sub</a>(<a class="self" href="#1228">self</a>, <a href="#1228">oth</a>).unwrap();
+        <a href="#1229">r</a>
     }
 }
 
-<a class="macro" href="#1174-1200">delegate!</a>(Sub, sub);
+<a class="macro" href="#1185-1211">delegate!</a>(Sub, sub);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; Mul&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="#121-153">BigNumRef</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#121-153">BigNumRef</a> {
-    <span class="kw">type </span>Output = <a href="#121-153">BigNum</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; Mul&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="#123-155">BigNumRef</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#123-155">BigNumRef</a> {
+    <span class="kw">type </span>Output = <a href="#123-155">BigNum</a>;
 
-    <span class="kw">fn </span>mul(<span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#121-153">BigNumRef</a>) -&gt; <a href="#121-153">BigNum</a> {
+    <span class="kw">fn </span>mul(<span class="self">self</span>, oth: <span class="kw-2">&amp;</span><a href="#123-155">BigNumRef</a>) -&gt; <a href="#123-155">BigNum</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = BigNumContext::new().unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>r = BigNum::new().unwrap();
-        <a href="#1231">r</a>.<a href="#448-453">checked_mul</a>(<a class="self" href="#1229">self</a>, <a href="#1229">oth</a>, <span class="kw-2">&amp;mut </span><a href="#1230">ctx</a>).unwrap();
-        <a href="#1231">r</a>
+        <a href="#1242">r</a>.<a href="#450-455">checked_mul</a>(<a class="self" href="#1240">self</a>, <a href="#1240">oth</a>, <span class="kw-2">&amp;mut </span><a href="#1241">ctx</a>).unwrap();
+        <a href="#1242">r</a>
     }
 }
 
-<a class="macro" href="#1174-1200">delegate!</a>(Mul, mul);
+<a class="macro" href="#1185-1211">delegate!</a>(Mul, mul);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; Div&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="#121-153">BigNumRef</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#121-153">BigNumRef</a> {
-    <span class="kw">type </span>Output = <a href="#121-153">BigNum</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; Div&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="#123-155">BigNumRef</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#123-155">BigNumRef</a> {
+    <span class="kw">type </span>Output = <a href="#123-155">BigNum</a>;
 
-    <span class="kw">fn </span>div(<span class="self">self</span>, oth: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="#121-153">BigNumRef</a>) -&gt; <a href="#121-153">BigNum</a> {
+    <span class="kw">fn </span>div(<span class="self">self</span>, oth: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="#123-155">BigNumRef</a>) -&gt; <a href="#123-155">BigNum</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = BigNumContext::new().unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>r = BigNum::new().unwrap();
-        <a href="#1244">r</a>.<a href="#470-475">checked_div</a>(<a class="self" href="#1242">self</a>, <a href="#1242">oth</a>, <span class="kw-2">&amp;mut </span><a href="#1243">ctx</a>).unwrap();
-        <a href="#1244">r</a>
+        <a href="#1255">r</a>.<a href="#472-477">checked_div</a>(<a class="self" href="#1253">self</a>, <a href="#1253">oth</a>, <span class="kw-2">&amp;mut </span><a href="#1254">ctx</a>).unwrap();
+        <a href="#1255">r</a>
     }
 }
 
-<a class="macro" href="#1174-1200">delegate!</a>(Div, div);
+<a class="macro" href="#1185-1211">delegate!</a>(Div, div);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; Rem&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="#121-153">BigNumRef</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#121-153">BigNumRef</a> {
-    <span class="kw">type </span>Output = <a href="#121-153">BigNum</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; Rem&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="#123-155">BigNumRef</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#123-155">BigNumRef</a> {
+    <span class="kw">type </span>Output = <a href="#123-155">BigNum</a>;
 
-    <span class="kw">fn </span>rem(<span class="self">self</span>, oth: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="#121-153">BigNumRef</a>) -&gt; <a href="#121-153">BigNum</a> {
+    <span class="kw">fn </span>rem(<span class="self">self</span>, oth: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><a href="#123-155">BigNumRef</a>) -&gt; <a href="#123-155">BigNum</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = BigNumContext::new().unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>r = BigNum::new().unwrap();
-        <a href="#1257">r</a>.<a href="#490-495">checked_rem</a>(<a class="self" href="#1255">self</a>, <a href="#1255">oth</a>, <span class="kw-2">&amp;mut </span><a href="#1256">ctx</a>).unwrap();
-        <a href="#1257">r</a>
+        <a href="#1268">r</a>.<a href="#492-497">checked_rem</a>(<a class="self" href="#1266">self</a>, <a href="#1266">oth</a>, <span class="kw-2">&amp;mut </span><a href="#1267">ctx</a>).unwrap();
+        <a href="#1268">r</a>
     }
 }
 
-<a class="macro" href="#1174-1200">delegate!</a>(Rem, rem);
+<a class="macro" href="#1185-1211">delegate!</a>(Rem, rem);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Shl&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#121-153">BigNumRef</a> {
-    <span class="kw">type </span>Output = <a href="#121-153">BigNum</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Shl&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#123-155">BigNumRef</a> {
+    <span class="kw">type </span>Output = <a href="#123-155">BigNum</a>;
 
-    <span class="kw">fn </span>shl(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="#121-153">BigNum</a> {
+    <span class="kw">fn </span>shl(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="#123-155">BigNum</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>r = BigNum::new().unwrap();
-        <a href="#1269">r</a>.<a href="#288">lshift</a>(<a class="self" href="#1268">self</a>, <a href="#1268">n</a>).unwrap();
-        <a href="#1269">r</a>
+        <a href="#1280">r</a>.<a href="#290">lshift</a>(<a class="self" href="#1279">self</a>, <a href="#1279">n</a>).unwrap();
+        <a href="#1280">r</a>
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Shl&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#121-153">BigNum</a> {
-    <span class="kw">type </span>Output = <a href="#121-153">BigNum</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Shl&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#123-155">BigNum</a> {
+    <span class="kw">type </span>Output = <a href="#123-155">BigNum</a>;
 
-    <span class="kw">fn </span>shl(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="#121-153">BigNum</a> {
-        <a class="self" href="#1278">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shl.html">shl</a>(<a href="#1278">n</a>)
+    <span class="kw">fn </span>shl(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="#123-155">BigNum</a> {
+        <a class="self" href="#1289">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shl.html">shl</a>(<a href="#1289">n</a>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Shr&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#121-153">BigNumRef</a> {
-    <span class="kw">type </span>Output = <a href="#121-153">BigNum</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Shr&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#123-155">BigNumRef</a> {
+    <span class="kw">type </span>Output = <a href="#123-155">BigNum</a>;
 
-    <span class="kw">fn </span>shr(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="#121-153">BigNum</a> {
+    <span class="kw">fn </span>shr(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="#123-155">BigNum</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>r = BigNum::new().unwrap();
-        <a href="#1287">r</a>.<a href="#295">rshift</a>(<a class="self" href="#1286">self</a>, <a href="#1286">n</a>).unwrap();
-        <a href="#1287">r</a>
+        <a href="#1298">r</a>.<a href="#297">rshift</a>(<a class="self" href="#1297">self</a>, <a href="#1297">n</a>).unwrap();
+        <a href="#1298">r</a>
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Shr&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#121-153">BigNum</a> {
-    <span class="kw">type </span>Output = <a href="#121-153">BigNum</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Shr&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#123-155">BigNum</a> {
+    <span class="kw">type </span>Output = <a href="#123-155">BigNum</a>;
 
-    <span class="kw">fn </span>shr(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="#121-153">BigNum</a> {
-        <a class="self" href="#1296">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shr.html">shr</a>(<a href="#1296">n</a>)
+    <span class="kw">fn </span>shr(<span class="self">self</span>, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>) -&gt; <a href="#123-155">BigNum</a> {
+        <a class="self" href="#1307">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/ops/bit/trait.Shr.html">shr</a>(<a href="#1307">n</a>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">Neg</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#121-153">BigNumRef</a> {
-    <span class="kw">type </span>Output = <a href="#121-153">BigNum</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">Neg</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#123-155">BigNumRef</a> {
+    <span class="kw">type </span>Output = <a href="#123-155">BigNum</a>;
 
-    <span class="kw">fn </span>neg(<span class="self">self</span>) -&gt; <a href="#121-153">BigNum</a> {
-        <a class="self" href="#1304">self</a>.<a href="#301">to_owned</a>().unwrap().<a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">neg</a>()
+    <span class="kw">fn </span>neg(<span class="self">self</span>) -&gt; <a href="#123-155">BigNum</a> {
+        <a class="self" href="#1315">self</a>.<a href="#303">to_owned</a>().unwrap().<a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">neg</a>()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">Neg</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#121-153">BigNum</a> {
-    <span class="kw">type </span>Output = <a href="#121-153">BigNum</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">Neg</a> <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="#123-155">BigNum</a> {
+    <span class="kw">type </span>Output = <a href="#123-155">BigNum</a>;
 
-    <span class="kw">fn </span>neg(<span class="self">self</span>) -&gt; <a href="#121-153">BigNum</a> {
-        <a class="self" href="#1312">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">neg</a>()
+    <span class="kw">fn </span>neg(<span class="self">self</span>) -&gt; <a href="#123-155">BigNum</a> {
+        <a class="self" href="#1323">self</a>.<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">deref</a>().<a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">neg</a>()
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">Neg</a> <span class="kw">for </span><a href="#121-153">BigNum</a> {
-    <span class="kw">type </span>Output = <a href="#121-153">BigNum</a>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">Neg</a> <span class="kw">for </span><a href="#123-155">BigNum</a> {
+    <span class="kw">type </span>Output = <a href="#123-155">BigNum</a>;
 
-    <span class="kw">fn </span>neg(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <a href="#121-153">BigNum</a> {
-        <span class="kw">let </span>negative = <a class="self" href="#1320">self</a>.<a href="#331">is_negative</a>();
-        <a class="self" href="#1320">self</a>.<a href="#308">set_negative</a>(!<a href="#1321">negative</a>);
-        <span class="self"><a href="#1320">self</a>
+    <span class="kw">fn </span>neg(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <a href="#123-155">BigNum</a> {
+        <span class="kw">let </span>negative = <a class="self" href="#1331">self</a>.<a href="#333">is_negative</a>();
+        <a class="self" href="#1331">self</a>.<a href="#310">set_negative</a>(!<a href="#1332">negative</a>);
+        <span class="self"><a href="#1331">self</a>
     </span>}
 }
 
@@ -2829,4 +2851,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

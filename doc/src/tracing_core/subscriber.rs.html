@@ -1,6 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.29/src/subscriber.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>subscriber.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.30/src/subscriber.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>subscriber.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tracing_core/index.html">
-                        <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+                        <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -849,8 +849,29 @@
 <span id="847">847</span>
 <span id="848">848</span>
 <span id="849">849</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Subscribers collect and record trace data.
-</span><span class="kw">use crate</span>::{<a href="lib.rs.html#277">span</a>, <a href="event.rs.html#23">Event</a>, <a href="metadata.rs.html#240">LevelFilter</a>, <a href="metadata.rs.html#57">Metadata</a>};
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Collectors collect and record trace data.
+</span><span class="kw">use crate</span>::{<a href="lib.rs.html#277">span</a>, <a href="dispatcher.rs.html#155">Dispatch</a>, <a href="event.rs.html#23">Event</a>, <a href="metadata.rs.html#240">LevelFilter</a>, <a href="metadata.rs.html#57">Metadata</a>};
 
 <span class="kw">use </span><span class="kw">crate</span>::stdlib::{
     any::{<a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>, <a href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>},
@@ -932,9 +953,30 @@
 /// [`event`]: Subscriber::event
 /// [`event_enabled`]: Subscriber::event_enabled
 </span><span class="kw">pub trait </span>Subscriber: <span class="lifetime">&#39;static </span>{
-    <span class="comment">// === Span registry methods ==============================================
+    <span class="doccomment">/// Invoked when this subscriber becomes a [`Dispatch`].
+    ///
+    /// ## Avoiding Memory Leaks
+    ///
+    /// `Subscriber`s should not store their own [`Dispatch`]. Because the
+    /// `Dispatch` owns the `Subscriber`, storing the `Dispatch` within the
+    /// `Subscriber` will create a reference count cycle, preventing the `Dispatch`
+    /// from ever being dropped.
+    ///
+    /// Instead, when it is necessary to store a cyclical reference to the
+    /// `Dispatch` within a `Subscriber`, use [`Dispatch::downgrade`] to convert a
+    /// `Dispatch` into a [`WeakDispatch`]. This type is analogous to
+    /// [`std::sync::Weak`], and does not create a reference count cycle. A
+    /// [`WeakDispatch`] can be stored within a `Subscriber` without causing a
+    /// memory leak, and can be [upgraded] into a `Dispatch` temporarily when
+    /// the `Dispatch` must be accessed by the `Subscriber`.
+    ///
+    /// [`WeakDispatch`]: crate::dispatcher::WeakDispatch
+    /// [upgraded]: crate::dispatcher::WeakDispatch::upgrade
+    </span><span class="kw">fn </span>on_register_dispatch(<span class="kw-2">&amp;</span><span class="self">self</span>, subscriber: <span class="kw-2">&amp;</span><a href="dispatcher.rs.html#155">Dispatch</a>) {
+        <span class="kw">let _ </span>= <a href="#103">subscriber</a>;
+    }
 
-    </span><span class="doccomment">/// Registers a new [callsite] with this subscriber, returning whether or not
+    <span class="doccomment">/// Registers a new [callsite] with this subscriber, returning whether or not
     /// the subscriber is interested in being notified about the callsite.
     ///
     /// By default, this function assumes that the subscriber&#39;s [filter]
@@ -1005,7 +1047,7 @@
     /// [`enabled`]: Subscriber::enabled()
     /// [`rebuild_interest_cache`]: super::callsite::rebuild_interest_cache
     /// [cs-reg]: crate::callsite#registering-callsites
-    </span><span class="kw">fn </span>register_callsite(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="#571">Interest</a> {
+    </span><span class="kw">fn </span>register_callsite(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="#592">Interest</a> {
         <span class="kw">if </span><span class="self">self</span>.enabled(metadata) {
             Interest::always()
         } <span class="kw">else </span>{
@@ -1154,7 +1196,7 @@
     /// more complicated, this can be used to determine if `event` should be
     /// called at all, separating out the decision from the processing.
     </span><span class="kw">fn </span>event_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let _ </span>= <a href="#305">event</a>;
+        <span class="kw">let _ </span>= <a href="#326">event</a>;
         <span class="bool-val">true
     </span>}
 
@@ -1221,7 +1263,7 @@
     /// [span ID]: super::span::Id
     /// [`try_close`]: Subscriber::try_close
     </span><span class="kw">fn </span>clone_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>) -&gt; <a href="span.rs.html#16">span::Id</a> {
-        <a href="#372">id</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a href="#393">id</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 
     <span class="doccomment">/// **This method is deprecated.**
@@ -1274,7 +1316,7 @@
     /// [`drop_span`]: Subscriber::drop_span
     </span><span class="kw">fn </span>try_close(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="span.rs.html#16">span::Id</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="attribute">#[allow(deprecated)]
-        </span><a class="self" href="#424">self</a>.<a href="#386">drop_span</a>(<a href="#424">id</a>);
+        </span><a class="self" href="#445">self</a>.<a href="#407">drop_span</a>(<a href="#445">id</a>);
         <span class="bool-val">false
     </span>}
 
@@ -1324,7 +1366,7 @@
     /// [`downcast_ref`]: #method.downcast_ref
     </span><span class="kw">unsafe fn </span>downcast_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*const </span>()&gt; {
         <span class="kw">if </span>id == TypeId::of::&lt;<span class="self">Self</span>&gt;() {
-            <span class="prelude-val">Some</span>(<span class="self"><a href="#474">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="self">Self </span><span class="kw">as </span><span class="kw-2">*const </span>())
+            <span class="prelude-val">Some</span>(<span class="self"><a href="#495">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="self">Self </span><span class="kw">as </span><span class="kw-2">*const </span>())
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
@@ -1334,7 +1376,7 @@
 <span class="kw">impl dyn </span><a href="#83">Subscriber</a> {
     <span class="doccomment">/// Returns `true` if this `Subscriber` is the same type as `T`.
     </span><span class="kw">pub fn </span>is&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#485">self</a>.<a href="#491">downcast_ref</a>::&lt;T&gt;().is_some()
+        <a class="self" href="#506">self</a>.<a href="#512">downcast_ref</a>::&lt;T&gt;().is_some()
     }
 
     <span class="doccomment">/// Returns some reference to this `Subscriber` value if it is of type `T`,
@@ -1345,7 +1387,7 @@
             <span class="kw">if </span>raw.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span>(<a href="#493">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span>(<a href="#514">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
             }
         }
     }
@@ -1354,7 +1396,7 @@
 <span class="kw">impl dyn </span><a href="#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> {
     <span class="doccomment">/// Returns `true` if this [`Subscriber`] is the same type as `T`.
     </span><span class="kw">pub fn </span>is&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#505">self</a>.<a href="#511">downcast_ref</a>::&lt;T&gt;().is_some()
+        <a class="self" href="#526">self</a>.<a href="#532">downcast_ref</a>::&lt;T&gt;().is_some()
     }
 
     <span class="doccomment">/// Returns some reference to this [`Subscriber`] value if it is of type `T`,
@@ -1365,7 +1407,7 @@
             <span class="kw">if </span>raw.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span>(<a href="#513">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span>(<a href="#534">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
             }
         }
     }
@@ -1374,7 +1416,7 @@
 <span class="kw">impl dyn </span><a href="#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {
     <span class="doccomment">/// Returns `true` if this [`Subscriber`] is the same type as `T`.
     </span><span class="kw">pub fn </span>is&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#525">self</a>.<a href="#531">downcast_ref</a>::&lt;T&gt;().is_some()
+        <a class="self" href="#546">self</a>.<a href="#552">downcast_ref</a>::&lt;T&gt;().is_some()
     }
 
     <span class="doccomment">/// Returns some reference to this `[`Subscriber`] value if it is of type `T`,
@@ -1385,7 +1427,7 @@
             <span class="kw">if </span>raw.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span>(<a href="#533">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span>(<a href="#554">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
             }
         }
     }
@@ -1394,7 +1436,7 @@
 <span class="kw">impl dyn </span><a href="#83">Subscriber</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> {
     <span class="doccomment">/// Returns `true` if this [`Subscriber`] is the same type as `T`.
     </span><span class="kw">pub fn </span>is&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#545">self</a>.<a href="#551">downcast_ref</a>::&lt;T&gt;().is_some()
+        <a class="self" href="#566">self</a>.<a href="#572">downcast_ref</a>::&lt;T&gt;().is_some()
     }
 
     <span class="doccomment">/// Returns some reference to this [`Subscriber`] value if it is of type `T`,
@@ -1405,7 +1447,7 @@
             <span class="kw">if </span>raw.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span>(<a href="#553">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span>(<a href="#574">raw</a> <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>))
             }
         }
     }
@@ -1419,7 +1461,7 @@
 /// [`Subscriber`]: super::Subscriber
 /// [`register_callsite`]: super::Subscriber::register_callsite
 </span><span class="attribute">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>Interest(<a href="#574">InterestKind</a>);
+</span><span class="kw">pub struct </span>Interest(<a href="#595">InterestKind</a>);
 
 <span class="attribute">#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 </span><span class="kw">enum </span>InterestKind {
@@ -1428,7 +1470,7 @@
     Always = <span class="number">2</span>,
 }
 
-<span class="kw">impl </span><a href="#571">Interest</a> {
+<span class="kw">impl </span><a href="#592">Interest</a> {
     <span class="doccomment">/// Returns an `Interest` indicating that the subscriber is never interested
     /// in being notified about a callsite.
     ///
@@ -1436,7 +1478,7 @@
     /// be completely disabled unless a new subscriber becomes active.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>never() -&gt; <span class="self">Self </span>{
-        <a href="#571">Interest</a>(<a href="#575">InterestKind::Never</a>)
+        <a href="#592">Interest</a>(<a href="#596">InterestKind::Never</a>)
     }
 
     <span class="doccomment">/// Returns an `Interest` indicating the subscriber is sometimes interested
@@ -1448,7 +1490,7 @@
     /// subscriber expresses that it is `always` interested in the callsite.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>sometimes() -&gt; <span class="self">Self </span>{
-        <a href="#571">Interest</a>(<a href="#576">InterestKind::Sometimes</a>)
+        <a href="#592">Interest</a>(<a href="#597">InterestKind::Sometimes</a>)
     }
 
     <span class="doccomment">/// Returns an `Interest` indicating the subscriber is always interested in
@@ -1458,7 +1500,7 @@
     /// callsite, then the callsite will always be enabled.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>always() -&gt; <span class="self">Self </span>{
-        <a href="#571">Interest</a>(<a href="#577">InterestKind::Always</a>)
+        <a href="#592">Interest</a>(<a href="#598">InterestKind::Always</a>)
     }
 
     <span class="doccomment">/// Returns `true` if the subscriber is never interested in being notified
@@ -1488,9 +1530,9 @@
     /// Otherwise, if they differ, the result must always be
     /// `Interest::sometimes` --- if the two subscribers differ in opinion, we
     /// will have to ask the current subscriber what it thinks, no matter what.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>and(<span class="self">self</span>, rhs: <a href="#571">Interest</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>and(<span class="self">self</span>, rhs: <a href="#592">Interest</a>) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>== rhs.<span class="number">0 </span>{
-            <span class="self"><a href="#640">self</a>
+            <span class="self"><a href="#661">self</a>
         </span>} <span class="kw">else </span>{
             Interest::sometimes()
         }
@@ -1504,9 +1546,9 @@
 </span><span class="attribute">#[derive(Copy, Clone, Debug, Default)]
 </span><span class="kw">pub struct </span>NoSubscriber(());
 
-<span class="kw">impl </span><a href="#83">Subscriber</a> <span class="kw">for </span><a href="#654">NoSubscriber</a> {
+<span class="kw">impl </span><a href="#83">Subscriber</a> <span class="kw">for </span><a href="#675">NoSubscriber</a> {
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>register_callsite(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="#571">Interest</a> {
+    </span><span class="kw">fn </span>register_callsite(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="#592">Interest</a> {
         Interest::never()
     }
 
@@ -1534,83 +1576,83 @@
     </span>S: <a href="#83">Subscriber</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>register_callsite(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="#571">Interest</a> {
-        <a class="self" href="#686">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#157">register_callsite</a>(<a href="#686">metadata</a>)
+    </span><span class="kw">fn </span>register_callsite(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="#592">Interest</a> {
+        <a class="self" href="#707">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#178">register_callsite</a>(<a href="#707">metadata</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#691">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#185">enabled</a>(<a href="#691">metadata</a>)
+        <a class="self" href="#712">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#206">enabled</a>(<a href="#712">metadata</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>max_level_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="metadata.rs.html#240">LevelFilter</a>&gt; {
-        <a class="self" href="#696">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#209">max_level_hint</a>()
+        <a class="self" href="#717">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#230">max_level_hint</a>()
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>new_span(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span>span::Attributes&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="span.rs.html#16">span::Id</a> {
-        <a class="self" href="#701">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#237">new_span</a>(<a href="#701">span</a>)
+        <a class="self" href="#722">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#258">new_span</a>(<a href="#722">span</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>, values: <span class="kw-2">&amp;</span>span::Record&lt;<span class="lifetime">&#39;_</span>&gt;) {
-        <a class="self" href="#706">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#277">record</a>(<a href="#706">span</a>, <a href="#706">values</a>)
+        <a class="self" href="#727">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#298">record</a>(<a href="#727">span</a>, <a href="#727">values</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>record_follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>, follows: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>) {
-        <a class="self" href="#711">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#297">record_follows_from</a>(<a href="#711">span</a>, <a href="#711">follows</a>)
+        <a class="self" href="#732">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#318">record_follows_from</a>(<a href="#732">span</a>, <a href="#732">follows</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>event_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#716">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#305">event_enabled</a>(<a href="#716">event</a>)
+        <a class="self" href="#737">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#326">event_enabled</a>(<a href="#737">event</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>event(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) {
-        <a class="self" href="#721">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#328">event</a>(<a href="#721">event</a>)
+        <a class="self" href="#742">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#349">event</a>(<a href="#742">event</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>) {
-        <a class="self" href="#726">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#338">enter</a>(<a href="#726">span</a>)
+        <a class="self" href="#747">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#359">enter</a>(<a href="#747">span</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>) {
-        <a class="self" href="#731">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#350">exit</a>(<a href="#731">span</a>)
+        <a class="self" href="#752">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#371">exit</a>(<a href="#752">span</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>clone_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>) -&gt; <a href="span.rs.html#16">span::Id</a> {
-        <a class="self" href="#736">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#372">clone_span</a>(<a href="#736">id</a>)
+        <a class="self" href="#757">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#393">clone_span</a>(<a href="#757">id</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>try_close(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="span.rs.html#16">span::Id</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#741">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#424">try_close</a>(<a href="#741">id</a>)
+        <a class="self" href="#762">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#445">try_close</a>(<a href="#762">id</a>)
     }
 
     <span class="attribute">#[inline]
     #[allow(deprecated)]
     </span><span class="kw">fn </span>drop_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="span.rs.html#16">span::Id</a>) {
-        <a class="self" href="#747">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#424">try_close</a>(<a href="#747">id</a>);
+        <a class="self" href="#768">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#445">try_close</a>(<a href="#768">id</a>);
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>current_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="span.rs.html#44">span::Current</a> {
-        <a class="self" href="#752">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#443">current_span</a>()
+        <a class="self" href="#773">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#464">current_span</a>()
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">unsafe fn </span>downcast_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*const </span>()&gt; {
         <span class="kw">if </span>id == TypeId::of::&lt;<span class="self">Self</span>&gt;() {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self"><a href="#757">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="self">Self </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self"><a href="#778">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="self">Self </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
         }
 
-        <a class="self" href="#757">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#474">downcast_raw</a>(<a href="#757">id</a>)
+        <a class="self" href="#778">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#495">downcast_raw</a>(<a href="#778">id</a>)
     }
 }
 
@@ -1619,84 +1661,84 @@
     </span>S: <a href="#83">Subscriber</a> + <span class="question-mark">?</span><a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
 {
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>register_callsite(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="#571">Interest</a> {
-        <a class="self" href="#771">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#157">register_callsite</a>(<a href="#771">metadata</a>)
+    </span><span class="kw">fn </span>register_callsite(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Metadata&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <a href="#592">Interest</a> {
+        <a class="self" href="#792">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#178">register_callsite</a>(<a href="#792">metadata</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, metadata: <span class="kw-2">&amp;</span>Metadata&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#776">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#185">enabled</a>(<a href="#776">metadata</a>)
+        <a class="self" href="#797">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#206">enabled</a>(<a href="#797">metadata</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>max_level_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="metadata.rs.html#240">LevelFilter</a>&gt; {
-        <a class="self" href="#781">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#209">max_level_hint</a>()
+        <a class="self" href="#802">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#230">max_level_hint</a>()
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>new_span(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span>span::Attributes&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="span.rs.html#16">span::Id</a> {
-        <a class="self" href="#786">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#237">new_span</a>(<a href="#786">span</a>)
+        <a class="self" href="#807">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#258">new_span</a>(<a href="#807">span</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>, values: <span class="kw-2">&amp;</span>span::Record&lt;<span class="lifetime">&#39;_</span>&gt;) {
-        <a class="self" href="#791">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#277">record</a>(<a href="#791">span</a>, <a href="#791">values</a>)
+        <a class="self" href="#812">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#298">record</a>(<a href="#812">span</a>, <a href="#812">values</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>record_follows_from(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>, follows: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>) {
-        <a class="self" href="#796">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#297">record_follows_from</a>(<a href="#796">span</a>, <a href="#796">follows</a>)
+        <a class="self" href="#817">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#318">record_follows_from</a>(<a href="#817">span</a>, <a href="#817">follows</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>event_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#801">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#305">event_enabled</a>(<a href="#801">event</a>)
+        <a class="self" href="#822">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#326">event_enabled</a>(<a href="#822">event</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>event(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>Event&lt;<span class="lifetime">&#39;_</span>&gt;) {
-        <a class="self" href="#806">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#328">event</a>(<a href="#806">event</a>)
+        <a class="self" href="#827">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#349">event</a>(<a href="#827">event</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>enter(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>) {
-        <a class="self" href="#811">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#338">enter</a>(<a href="#811">span</a>)
+        <a class="self" href="#832">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#359">enter</a>(<a href="#832">span</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>) {
-        <a class="self" href="#816">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#350">exit</a>(<a href="#816">span</a>)
+        <a class="self" href="#837">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#371">exit</a>(<a href="#837">span</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>clone_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="span.rs.html#16">span::Id</a>) -&gt; <a href="span.rs.html#16">span::Id</a> {
-        <a class="self" href="#821">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#372">clone_span</a>(<a href="#821">id</a>)
+        <a class="self" href="#842">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#393">clone_span</a>(<a href="#842">id</a>)
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>try_close(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="span.rs.html#16">span::Id</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#826">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#424">try_close</a>(<a href="#826">id</a>)
+        <a class="self" href="#847">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#445">try_close</a>(<a href="#847">id</a>)
     }
 
     <span class="attribute">#[inline]
     #[allow(deprecated)]
     </span><span class="kw">fn </span>drop_span(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="span.rs.html#16">span::Id</a>) {
-        <a class="self" href="#832">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#424">try_close</a>(<a href="#832">id</a>);
+        <a class="self" href="#853">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#445">try_close</a>(<a href="#853">id</a>);
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>current_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="span.rs.html#44">span::Current</a> {
-        <a class="self" href="#837">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#443">current_span</a>()
+        <a class="self" href="#858">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#464">current_span</a>()
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">unsafe fn </span>downcast_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <a href="https://doc.rust-lang.org/nightly/core/any/struct.TypeId.html">TypeId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*const </span>()&gt; {
         <span class="kw">if </span>id == TypeId::of::&lt;<span class="self">Self</span>&gt;() {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self"><a href="#842">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="self">Self </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self"><a href="#863">self</a> </span><span class="kw">as </span><span class="kw-2">*const </span><span class="self">Self </span><span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>);
         }
 
-        <a class="self" href="#842">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#474">downcast_raw</a>(<a href="#842">id</a>)
+        <a class="self" href="#863">self</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<a href="#495">downcast_raw</a>(<a href="#863">id</a>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

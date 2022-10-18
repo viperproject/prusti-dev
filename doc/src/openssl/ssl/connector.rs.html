@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/ssl/connector.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connector.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/ssl/connector.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connector.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -598,19 +598,23 @@
 <span id="598">598</span>
 <span id="599">599</span>
 <span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="../../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
 <span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
 <span class="kw">use </span>std::ops::{<a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a>, <a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a>};
 
 <span class="kw">use </span><a href="../dh.rs.html#12-19"><span class="kw">crate</span>::dh::Dh</a>;
-<span class="kw">use </span><a href="../error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="../error.rs.html#39"><span class="kw">crate</span>::error::ErrorStack</a>;
 <span class="attribute">#[cfg(any(ossl111, libressl340))]
-</span><span class="kw">use </span><a href="mod.rs.html#597"><span class="kw">crate</span>::ssl::SslVersion</a>;
+</span><span class="kw">use </span><a href="mod.rs.html#627"><span class="kw">crate</span>::ssl::SslVersion</a>;
 <span class="kw">use </span><span class="kw">crate</span>::ssl::{
-    <a href="error.rs.html#138">HandshakeError</a>, <a href="mod.rs.html#2081-2097">Ssl</a>, <a href="mod.rs.html#1640-1654">SslContext</a>, <a href="mod.rs.html#651">SslContextBuilder</a>, <a href="mod.rs.html#1640-1654">SslContextRef</a>, <a href="mod.rs.html#313">SslMethod</a>, <a href="mod.rs.html#262-309">SslMode</a>,
-    <a href="mod.rs.html#142-260">SslOptions</a>, <a href="mod.rs.html#2081-2097">SslRef</a>, <a href="mod.rs.html#3072">SslStream</a>, <a href="mod.rs.html#359-379">SslVerifyMode</a>,
+    <a href="error.rs.html#138">HandshakeError</a>, <a href="mod.rs.html#2140-2156">Ssl</a>, <a href="mod.rs.html#1696-1710">SslContext</a>, <a href="mod.rs.html#695">SslContextBuilder</a>, <a href="mod.rs.html#1696-1710">SslContextRef</a>, <a href="mod.rs.html#333">SslMethod</a>, <a href="mod.rs.html#282-329">SslMode</a>,
+    <a href="mod.rs.html#144-280">SslOptions</a>, <a href="mod.rs.html#2140-2156">SslRef</a>, <a href="mod.rs.html#3169">SslStream</a>, <a href="mod.rs.html#379-399">SslVerifyMode</a>,
 };
-<span class="kw">use </span><a href="../lib.rs.html#181"><span class="kw">crate</span>::version</a>;
+<span class="kw">use </span><a href="../lib.rs.html#184"><span class="kw">crate</span>::version</a>;
 
 <span class="kw">const </span>FFDHE_2048: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="string">&quot;
 -----BEGIN DH PARAMETERS-----
@@ -624,18 +628,22 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
 &quot;</span>;
 
 <span class="attribute">#[allow(clippy::inconsistent_digit_grouping, clippy::unusual_byte_groupings)]
-</span><span class="kw">fn </span>ctx(method: <a href="mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#651">SslContextBuilder</a>, <a href="../error.rs.html#32">ErrorStack</a>&gt; {
+</span><span class="kw">fn </span>ctx(method: <a href="mod.rs.html#333">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#695">SslContextBuilder</a>, <a href="../error.rs.html#39">ErrorStack</a>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>ctx = SslContextBuilder::new(method)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span><span class="kw-2">mut </span>opts = SslOptions::ALL
-        | SslOptions::NO_COMPRESSION
-        | SslOptions::NO_SSLV2
-        | SslOptions::NO_SSLV3
-        | SslOptions::SINGLE_DH_USE
-        | SslOptions::SINGLE_ECDH_USE;
-    <a href="#30">opts</a> &amp;= !SslOptions::DONT_INSERT_EMPTY_FRAGMENTS;
+    <span class="macro">cfg_if! </span>{
+        <span class="kw">if </span><span class="attribute">#[cfg(not(boringssl))] </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>opts = SslOptions::ALL
+                | SslOptions::NO_COMPRESSION
+                | SslOptions::NO_SSLV2
+                | SslOptions::NO_SSLV3
+                | SslOptions::SINGLE_DH_USE
+                | SslOptions::SINGLE_ECDH_USE;
+            <a href="#32">opts</a> &amp;= !SslOptions::DONT_INSERT_EMPTY_FRAGMENTS;
 
-    <a href="#28">ctx</a>.<a href="mod.rs.html#1050">set_options</a>(<a href="#30">opts</a>);
+            <a href="#28">ctx</a>.<a href="mod.rs.html#1100">set_options</a>(<a href="#32">opts</a>);
+        }
+    }
 
     <span class="kw">let </span><span class="kw-2">mut </span>mode =
         SslMode::AUTO_RETRY | SslMode::ACCEPT_MOVING_WRITE_BUFFER | SslMode::ENABLE_PARTIAL_WRITE;
@@ -644,10 +652,10 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
     // caused CVEs in OpenSSL pre-1.0.1h, according to
     // https://bugs.python.org/issue25672
     </span><span class="kw">if </span>version::number() &gt;= <span class="number">0x1_00_01_08_0 </span>{
-        <a href="#40">mode</a> |= SslMode::RELEASE_BUFFERS;
+        <a href="#44">mode</a> |= SslMode::RELEASE_BUFFERS;
     }
 
-    <a href="#28">ctx</a>.<a href="mod.rs.html#782">set_mode</a>(<a href="#40">mode</a>);
+    <a href="#28">ctx</a>.<a href="mod.rs.html#828">set_mode</a>(<a href="#44">mode</a>);
 
     <span class="prelude-val">Ok</span>(<a href="#28">ctx</a>)
 }
@@ -660,21 +668,21 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
 /// OpenSSL&#39;s built-in hostname verification is used when linking against OpenSSL 1.0.2 or 1.1.0,
 /// and a custom implementation is used when linking against OpenSSL 1.0.1.
 </span><span class="attribute">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>SslConnector(<a href="mod.rs.html#1640-1654">SslContext</a>);
+</span><span class="kw">pub struct </span>SslConnector(<a href="mod.rs.html#1696-1710">SslContext</a>);
 
-<span class="kw">impl </span><a href="#63">SslConnector</a> {
+<span class="kw">impl </span><a href="#67">SslConnector</a> {
     <span class="doccomment">/// Creates a new builder for TLS connections.
     ///
     /// The default configuration is subject to change, and is currently derived from Python.
-    </span><span class="kw">pub fn </span>builder(method: <a href="mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#111">SslConnectorBuilder</a>, <a href="../error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>builder(method: <a href="mod.rs.html#333">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#115">SslConnectorBuilder</a>, <a href="../error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = ctx(method)<span class="question-mark">?</span>;
         ctx.set_default_verify_paths()<span class="question-mark">?</span>;
         ctx.set_cipher_list(
             <span class="string">&quot;DEFAULT:!aNULL:!eNULL:!MD5:!3DES:!DES:!RC4:!IDEA:!SEED:!aDSS:!SRP:!PSK&quot;</span>,
         )<span class="question-mark">?</span>;
-        <a href="#384">setup_verify</a>(<span class="kw-2">&amp;mut </span><a href="#70">ctx</a>);
+        <a href="#388">setup_verify</a>(<span class="kw-2">&amp;mut </span><a href="#74">ctx</a>);
 
-        <span class="prelude-val">Ok</span>(<a href="#111">SslConnectorBuilder</a>(<a href="#70">ctx</a>))
+        <span class="prelude-val">Ok</span>(<a href="#115">SslConnectorBuilder</a>(<a href="#74">ctx</a>))
     }
 
     <span class="doccomment">/// Initiates a client-side TLS session on a stream.
@@ -684,78 +692,78 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
     <span class="kw">where
         </span>S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     {
-        <span class="self">self</span>.configure()<span class="question-mark">?</span>.<a href="#192-194">connect</a>(<a href="#83">domain</a>, <a href="#83">stream</a>)
+        <span class="self">self</span>.configure()<span class="question-mark">?</span>.<a href="#196-198">connect</a>(<a href="#87">domain</a>, <a href="#87">stream</a>)
     }
 
     <span class="doccomment">/// Returns a structure allowing for configuration of a single TLS session before connection.
-    </span><span class="kw">pub fn </span>configure(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#135">ConnectConfiguration</a>, <a href="../error.rs.html#32">ErrorStack</a>&gt; {
-        Ssl::new(<span class="kw-2">&amp;</span><a class="self" href="#91">self</a>.<span class="number">0</span>).map(|ssl| <a href="#135">ConnectConfiguration</a> {
-            <a href="#92">ssl</a>,
+    </span><span class="kw">pub fn </span>configure(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#139">ConnectConfiguration</a>, <a href="../error.rs.html#39">ErrorStack</a>&gt; {
+        Ssl::new(<span class="kw-2">&amp;</span><a class="self" href="#95">self</a>.<span class="number">0</span>).map(|ssl| <a href="#139">ConnectConfiguration</a> {
+            <a href="#96">ssl</a>,
             sni: <span class="bool-val">true</span>,
             verify_hostname: <span class="bool-val">true</span>,
         })
     }
 
     <span class="doccomment">/// Consumes the `SslConnector`, returning the inner raw `SslContext`.
-    </span><span class="kw">pub fn </span>into_context(<span class="self">self</span>) -&gt; <a href="mod.rs.html#1640-1654">SslContext</a> {
-        <a class="self" href="#100">self</a>.<span class="number">0
+    </span><span class="kw">pub fn </span>into_context(<span class="self">self</span>) -&gt; <a href="mod.rs.html#1696-1710">SslContext</a> {
+        <a class="self" href="#104">self</a>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns a shared reference to the inner raw `SslContext`.
-    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="mod.rs.html#1640-1654">SslContextRef</a> {
-        <span class="kw-2">&amp;*</span><a class="self" href="#105">self</a>.<span class="number">0
+    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="mod.rs.html#1696-1710">SslContextRef</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="#109">self</a>.<span class="number">0
     </span>}
 }
 
 <span class="doccomment">/// A builder for `SslConnector`s.
-</span><span class="kw">pub struct </span>SslConnectorBuilder(<a href="mod.rs.html#651">SslContextBuilder</a>);
+</span><span class="kw">pub struct </span>SslConnectorBuilder(<a href="mod.rs.html#695">SslContextBuilder</a>);
 
-<span class="kw">impl </span><a href="#111">SslConnectorBuilder</a> {
+<span class="kw">impl </span><a href="#115">SslConnectorBuilder</a> {
     <span class="doccomment">/// Consumes the builder, returning an `SslConnector`.
-    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; <a href="#63">SslConnector</a> {
-        <a href="#63">SslConnector</a>(<a class="self" href="#115">self</a>.<span class="number">0</span>.<a href="mod.rs.html#1635">build</a>())
+    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; <a href="#67">SslConnector</a> {
+        <a href="#67">SslConnector</a>(<a class="self" href="#119">self</a>.<span class="number">0</span>.<a href="mod.rs.html#1691">build</a>())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="#111">SslConnectorBuilder</a> {
-    <span class="kw">type </span>Target = <a href="mod.rs.html#651">SslContextBuilder</a>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="#115">SslConnectorBuilder</a> {
+    <span class="kw">type </span>Target = <a href="mod.rs.html#695">SslContextBuilder</a>;
 
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="mod.rs.html#651">SslContextBuilder</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#123">self</a>.<span class="number">0
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="mod.rs.html#695">SslContextBuilder</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="#127">self</a>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span><a href="#111">SslConnectorBuilder</a> {
-    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="mod.rs.html#651">SslContextBuilder</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#129">self</a>.<span class="number">0
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span><a href="#115">SslConnectorBuilder</a> {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="mod.rs.html#695">SslContextBuilder</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="#133">self</a>.<span class="number">0
     </span>}
 }
 
 <span class="doccomment">/// A type which allows for configuration of a client-side TLS session before connection.
 </span><span class="kw">pub struct </span>ConnectConfiguration {
-    ssl: <a href="mod.rs.html#2081-2097">Ssl</a>,
+    ssl: <a href="mod.rs.html#2140-2156">Ssl</a>,
     sni: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     verify_hostname: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl </span><a href="#135">ConnectConfiguration</a> {
+<span class="kw">impl </span><a href="#139">ConnectConfiguration</a> {
     <span class="doccomment">/// A builder-style version of `set_use_server_name_indication`.
-    </span><span class="kw">pub fn </span>use_server_name_indication(<span class="kw-2">mut </span><span class="self">self</span>, use_sni: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="#135">ConnectConfiguration</a> {
-        <a class="self" href="#143">self</a>.<a href="#151">set_use_server_name_indication</a>(<a href="#143">use_sni</a>);
-        <span class="self"><a href="#143">self</a>
+    </span><span class="kw">pub fn </span>use_server_name_indication(<span class="kw-2">mut </span><span class="self">self</span>, use_sni: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="#139">ConnectConfiguration</a> {
+        <a class="self" href="#147">self</a>.<a href="#155">set_use_server_name_indication</a>(<a href="#147">use_sni</a>);
+        <span class="self"><a href="#147">self</a>
     </span>}
 
     <span class="doccomment">/// Configures the use of Server Name Indication (SNI) when connecting.
     ///
     /// Defaults to `true`.
     </span><span class="kw">pub fn </span>set_use_server_name_indication(<span class="kw-2">&amp;mut </span><span class="self">self</span>, use_sni: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="#151">self</a>.sni = <a href="#151">use_sni</a>;
+        <a class="self" href="#155">self</a>.sni = <a href="#155">use_sni</a>;
     }
 
     <span class="doccomment">/// A builder-style version of `set_verify_hostname`.
-    </span><span class="kw">pub fn </span>verify_hostname(<span class="kw-2">mut </span><span class="self">self</span>, verify_hostname: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="#135">ConnectConfiguration</a> {
-        <a class="self" href="#156">self</a>.<a href="#170">set_verify_hostname</a>(<a href="#156">verify_hostname</a>);
-        <span class="self"><a href="#156">self</a>
+    </span><span class="kw">pub fn </span>verify_hostname(<span class="kw-2">mut </span><span class="self">self</span>, verify_hostname: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="#139">ConnectConfiguration</a> {
+        <a class="self" href="#160">self</a>.<a href="#174">set_verify_hostname</a>(<a href="#160">verify_hostname</a>);
+        <span class="self"><a href="#160">self</a>
     </span>}
 
     <span class="doccomment">/// Configures the use of hostname verification when connecting.
@@ -768,13 +776,13 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
     /// used, *any* valid certificate for *any* site will be trusted for use from any other. This
     /// introduces a significant vulnerability to man-in-the-middle attacks.
     </span><span class="kw">pub fn </span>set_verify_hostname(<span class="kw-2">&amp;mut </span><span class="self">self</span>, verify_hostname: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="#170">self</a>.verify_hostname = <a href="#170">verify_hostname</a>;
+        <a class="self" href="#174">self</a>.verify_hostname = <a href="#174">verify_hostname</a>;
     }
 
     <span class="doccomment">/// Returns an `Ssl` configured to connect to the provided domain.
     ///
     /// The domain is used for SNI and hostname verification if enabled.
-    </span><span class="kw">pub fn </span>into_ssl(<span class="kw-2">mut </span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#2081-2097">Ssl</a>, <a href="../error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>into_ssl(<span class="kw-2">mut </span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#2140-2156">Ssl</a>, <a href="../error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">if </span><span class="self">self</span>.sni {
             <span class="self">self</span>.ssl.set_hostname(domain)<span class="question-mark">?</span>;
         }
@@ -783,7 +791,7 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
             setup_verify_hostname(<span class="kw-2">&amp;mut </span><span class="self">self</span>.ssl, domain)<span class="question-mark">?</span>;
         }
 
-        <span class="prelude-val">Ok</span>(<a class="self" href="#177">self</a>.ssl)
+        <span class="prelude-val">Ok</span>(<a class="self" href="#181">self</a>.ssl)
     }
 
     <span class="doccomment">/// Initiates a client-side TLS session on a stream.
@@ -793,21 +801,21 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
     <span class="kw">where
         </span>S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     {
-        <span class="self">self</span>.into_ssl(domain)<span class="question-mark">?</span>.<a href="mod.rs.html#2166-2168">connect</a>(<a href="#192">stream</a>)
+        <span class="self">self</span>.into_ssl(domain)<span class="question-mark">?</span>.<a href="mod.rs.html#2228-2230">connect</a>(<a href="#196">stream</a>)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="#135">ConnectConfiguration</a> {
-    <span class="kw">type </span>Target = <a href="mod.rs.html#2081-2097">SslRef</a>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="#139">ConnectConfiguration</a> {
+    <span class="kw">type </span>Target = <a href="mod.rs.html#2140-2156">SslRef</a>;
 
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="mod.rs.html#2081-2097">SslRef</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#203">self</a>.ssl
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="mod.rs.html#2140-2156">SslRef</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="#207">self</a>.ssl
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span><a href="#135">ConnectConfiguration</a> {
-    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="mod.rs.html#2081-2097">SslRef</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#209">self</a>.ssl
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span><a href="#139">ConnectConfiguration</a> {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="mod.rs.html#2140-2156">SslRef</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="#213">self</a>.ssl
     }
 }
 
@@ -816,9 +824,9 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
 /// OpenSSL&#39;s default configuration is highly insecure. This connector manages the OpenSSL
 /// structures, configuring cipher suites, session options, and more.
 </span><span class="attribute">#[derive(Clone)]
-</span><span class="kw">pub struct </span>SslAcceptor(<a href="mod.rs.html#1640-1654">SslContext</a>);
+</span><span class="kw">pub struct </span>SslAcceptor(<a href="mod.rs.html#1696-1710">SslContext</a>);
 
-<span class="kw">impl </span><a href="#219">SslAcceptor</a> {
+<span class="kw">impl </span><a href="#223">SslAcceptor</a> {
     <span class="doccomment">/// Creates a new builder configured to connect to non-legacy clients. This should generally be
     /// considered a reasonable default choice.
     ///
@@ -826,9 +834,9 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
     /// recommendations. See its [documentation][docs] for more details on specifics.
     ///
     /// [docs]: https://wiki.mozilla.org/Security/Server_Side_TLS
-    </span><span class="kw">pub fn </span>mozilla_intermediate_v5(method: <a href="mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#338">SslAcceptorBuilder</a>, <a href="../error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>mozilla_intermediate_v5(method: <a href="mod.rs.html#333">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#342">SslAcceptorBuilder</a>, <a href="../error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = ctx(method)<span class="question-mark">?</span>;
-        <a href="#230">ctx</a>.<a href="mod.rs.html#1050">set_options</a>(SslOptions::NO_TLSV1 | SslOptions::NO_TLSV1_1);
+        <a href="#234">ctx</a>.<a href="mod.rs.html#1100">set_options</a>(SslOptions::NO_TLSV1 | SslOptions::NO_TLSV1_1);
         <span class="kw">let </span>dh = Dh::params_from_pem(FFDHE_2048.as_bytes())<span class="question-mark">?</span>;
         ctx.set_tmp_dh(<span class="kw-2">&amp;</span>dh)<span class="question-mark">?</span>;
         setup_curves(<span class="kw-2">&amp;mut </span>ctx)<span class="question-mark">?</span>;
@@ -841,7 +849,7 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
         </span>ctx.set_ciphersuites(
             <span class="string">&quot;TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256&quot;</span>,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#338">SslAcceptorBuilder</a>(<a href="#230">ctx</a>))
+        <span class="prelude-val">Ok</span>(<a href="#342">SslAcceptorBuilder</a>(<a href="#234">ctx</a>))
     }
 
     <span class="doccomment">/// Creates a new builder configured to connect to modern clients.
@@ -853,13 +861,13 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
     ///
     /// [docs]: https://wiki.mozilla.org/Security/Server_Side_TLS
     </span><span class="attribute">#[cfg(any(ossl111, libressl340))]
-    </span><span class="kw">pub fn </span>mozilla_modern_v5(method: <a href="mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#338">SslAcceptorBuilder</a>, <a href="../error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>mozilla_modern_v5(method: <a href="mod.rs.html#333">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#342">SslAcceptorBuilder</a>, <a href="../error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = ctx(method)<span class="question-mark">?</span>;
         ctx.set_min_proto_version(<span class="prelude-val">Some</span>(SslVersion::TLS1_3))<span class="question-mark">?</span>;
         ctx.set_ciphersuites(
             <span class="string">&quot;TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256&quot;</span>,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#338">SslAcceptorBuilder</a>(<a href="#257">ctx</a>))
+        <span class="prelude-val">Ok</span>(<a href="#342">SslAcceptorBuilder</a>(<a href="#261">ctx</a>))
     }
 
     <span class="doccomment">/// Creates a new builder configured to connect to non-legacy clients. This should generally be
@@ -870,11 +878,11 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
     ///
     /// [docs]: https://wiki.mozilla.org/Security/Server_Side_TLS
     </span><span class="comment">// FIXME remove in next major version
-    </span><span class="kw">pub fn </span>mozilla_intermediate(method: <a href="mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#338">SslAcceptorBuilder</a>, <a href="../error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>mozilla_intermediate(method: <a href="mod.rs.html#333">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#342">SslAcceptorBuilder</a>, <a href="../error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = ctx(method)<span class="question-mark">?</span>;
-        <a href="#274">ctx</a>.<a href="mod.rs.html#1050">set_options</a>(SslOptions::CIPHER_SERVER_PREFERENCE);
+        <a href="#278">ctx</a>.<a href="mod.rs.html#1100">set_options</a>(SslOptions::CIPHER_SERVER_PREFERENCE);
         <span class="attribute">#[cfg(any(ossl111, libressl340))]
-        </span><a href="#274">ctx</a>.<a href="mod.rs.html#1050">set_options</a>(SslOptions::NO_TLSV1_3);
+        </span><a href="#278">ctx</a>.<a href="mod.rs.html#1100">set_options</a>(SslOptions::NO_TLSV1_3);
         <span class="kw">let </span>dh = Dh::params_from_pem(FFDHE_2048.as_bytes())<span class="question-mark">?</span>;
         ctx.set_tmp_dh(<span class="kw-2">&amp;</span>dh)<span class="question-mark">?</span>;
         setup_curves(<span class="kw-2">&amp;mut </span>ctx)<span class="question-mark">?</span>;
@@ -888,7 +896,7 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
              EDH-RSA-DES-CBC3-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:\
              AES256-SHA:DES-CBC3-SHA:!DSS&quot;</span>,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#338">SslAcceptorBuilder</a>(<a href="#274">ctx</a>))
+        <span class="prelude-val">Ok</span>(<a href="#342">SslAcceptorBuilder</a>(<a href="#278">ctx</a>))
     }
 
     <span class="doccomment">/// Creates a new builder configured to connect to modern clients.
@@ -898,20 +906,20 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
     ///
     /// [docs]: https://wiki.mozilla.org/Security/Server_Side_TLS
     </span><span class="comment">// FIXME remove in next major version
-    </span><span class="kw">pub fn </span>mozilla_modern(method: <a href="mod.rs.html#313">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#338">SslAcceptorBuilder</a>, <a href="../error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>mozilla_modern(method: <a href="mod.rs.html#333">SslMethod</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#342">SslAcceptorBuilder</a>, <a href="../error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = ctx(method)<span class="question-mark">?</span>;
-        <a href="#302">ctx</a>.<a href="mod.rs.html#1050">set_options</a>(
+        <a href="#306">ctx</a>.<a href="mod.rs.html#1100">set_options</a>(
             SslOptions::CIPHER_SERVER_PREFERENCE | SslOptions::NO_TLSV1 | SslOptions::NO_TLSV1_1,
         );
         <span class="attribute">#[cfg(any(ossl111, libressl340))]
-        </span><a href="#302">ctx</a>.<a href="mod.rs.html#1050">set_options</a>(SslOptions::NO_TLSV1_3);
+        </span><a href="#306">ctx</a>.<a href="mod.rs.html#1100">set_options</a>(SslOptions::NO_TLSV1_3);
         setup_curves(<span class="kw-2">&amp;mut </span>ctx)<span class="question-mark">?</span>;
         ctx.set_cipher_list(
             <span class="string">&quot;ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:\
              ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:\
              ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256&quot;</span>,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#338">SslAcceptorBuilder</a>(<a href="#302">ctx</a>))
+        <span class="prelude-val">Ok</span>(<a href="#342">SslAcceptorBuilder</a>(<a href="#306">ctx</a>))
     }
 
     <span class="doccomment">/// Initiates a server-side TLS session on a stream.
@@ -920,48 +928,48 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
         </span>S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>,
     {
         <span class="kw">let </span>ssl = Ssl::new(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <a href="#322">ssl</a>.<a href="mod.rs.html#2185-2187">accept</a>(<a href="#318">stream</a>)
+        <a href="#326">ssl</a>.<a href="mod.rs.html#2247-2249">accept</a>(<a href="#322">stream</a>)
     }
 
     <span class="doccomment">/// Consumes the `SslAcceptor`, returning the inner raw `SslContext`.
-    </span><span class="kw">pub fn </span>into_context(<span class="self">self</span>) -&gt; <a href="mod.rs.html#1640-1654">SslContext</a> {
-        <a class="self" href="#327">self</a>.<span class="number">0
+    </span><span class="kw">pub fn </span>into_context(<span class="self">self</span>) -&gt; <a href="mod.rs.html#1696-1710">SslContext</a> {
+        <a class="self" href="#331">self</a>.<span class="number">0
     </span>}
 
     <span class="doccomment">/// Returns a shared reference to the inner raw `SslContext`.
-    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="mod.rs.html#1640-1654">SslContextRef</a> {
-        <span class="kw-2">&amp;*</span><a class="self" href="#332">self</a>.<span class="number">0
+    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="mod.rs.html#1696-1710">SslContextRef</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="#336">self</a>.<span class="number">0
     </span>}
 }
 
 <span class="doccomment">/// A builder for `SslAcceptor`s.
-</span><span class="kw">pub struct </span>SslAcceptorBuilder(<a href="mod.rs.html#651">SslContextBuilder</a>);
+</span><span class="kw">pub struct </span>SslAcceptorBuilder(<a href="mod.rs.html#695">SslContextBuilder</a>);
 
-<span class="kw">impl </span><a href="#338">SslAcceptorBuilder</a> {
+<span class="kw">impl </span><a href="#342">SslAcceptorBuilder</a> {
     <span class="doccomment">/// Consumes the builder, returning a `SslAcceptor`.
-    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; <a href="#219">SslAcceptor</a> {
-        <a href="#219">SslAcceptor</a>(<a class="self" href="#342">self</a>.<span class="number">0</span>.<a href="mod.rs.html#1635">build</a>())
+    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; <a href="#223">SslAcceptor</a> {
+        <a href="#223">SslAcceptor</a>(<a class="self" href="#346">self</a>.<span class="number">0</span>.<a href="mod.rs.html#1691">build</a>())
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="#338">SslAcceptorBuilder</a> {
-    <span class="kw">type </span>Target = <a href="mod.rs.html#651">SslContextBuilder</a>;
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for </span><a href="#342">SslAcceptorBuilder</a> {
+    <span class="kw">type </span>Target = <a href="mod.rs.html#695">SslContextBuilder</a>;
 
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="mod.rs.html#651">SslContextBuilder</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#350">self</a>.<span class="number">0
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="mod.rs.html#695">SslContextBuilder</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="#354">self</a>.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span><a href="#338">SslAcceptorBuilder</a> {
-    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="mod.rs.html#651">SslContextBuilder</a> {
-        <span class="kw-2">&amp;mut </span><a class="self" href="#356">self</a>.<span class="number">0
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for </span><a href="#342">SslAcceptorBuilder</a> {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><a href="mod.rs.html#695">SslContextBuilder</a> {
+        <span class="kw-2">&amp;mut </span><a class="self" href="#360">self</a>.<span class="number">0
     </span>}
 }
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attribute">#[cfg(ossl110)] </span>{
         <span class="attribute">#[allow(clippy::unnecessary_wraps)]
-        </span><span class="kw">fn </span>setup_curves(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span><a href="mod.rs.html#651">SslContextBuilder</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#32">ErrorStack</a>&gt; {
+        </span><span class="kw">fn </span>setup_curves(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span><a href="mod.rs.html#695">SslContextBuilder</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#39">ErrorStack</a>&gt; {
             <span class="prelude-val">Ok</span>(())
         }
     } <span class="kw">else if </span><span class="attribute">#[cfg(any(ossl102, libressl))] </span>{
@@ -981,18 +989,18 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
 
 <span class="macro">cfg_if! </span>{
     <span class="kw">if </span><span class="attribute">#[cfg(any(ossl102, libressl261))] </span>{
-        <span class="kw">fn </span>setup_verify(ctx: <span class="kw-2">&amp;mut </span><a href="mod.rs.html#651">SslContextBuilder</a>) {
-            <a href="#384">ctx</a>.<a href="mod.rs.html#681">set_verify</a>(SslVerifyMode::PEER);
+        <span class="kw">fn </span>setup_verify(ctx: <span class="kw-2">&amp;mut </span><a href="mod.rs.html#695">SslContextBuilder</a>) {
+            <a href="#388">ctx</a>.<a href="mod.rs.html#725">set_verify</a>(SslVerifyMode::PEER);
         }
 
-        <span class="kw">fn </span>setup_verify_hostname(ssl: <span class="kw-2">&amp;mut </span><a href="mod.rs.html#2081-2097">SslRef</a>, domain: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#32">ErrorStack</a>&gt; {
+        <span class="kw">fn </span>setup_verify_hostname(ssl: <span class="kw-2">&amp;mut </span><a href="mod.rs.html#2140-2156">SslRef</a>, domain: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#39">ErrorStack</a>&gt; {
             <span class="kw">use </span><a href="../x509/verify.rs.html#10-25"><span class="kw">crate</span>::x509::verify::X509CheckFlags</a>;
 
-            <span class="kw">let </span>param = <a href="#388">ssl</a>.<a href="mod.rs.html#2626">param_mut</a>();
-            <a href="#391">param</a>.<a href="../x509/verify.rs.html#75">set_hostflags</a>(X509CheckFlags::NO_PARTIAL_WILDCARDS);
-            <span class="kw">match </span><a href="#388">domain</a>.parse() {
-                <span class="prelude-val">Ok</span>(ip) =&gt; <a href="#391">param</a>.<a href="../x509/verify.rs.html#121">set_ip</a>(<a href="#394">ip</a>),
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a href="#391">param</a>.<a href="../x509/verify.rs.html#108">set_host</a>(<a href="#388">domain</a>),
+            <span class="kw">let </span>param = <a href="#392">ssl</a>.<a href="mod.rs.html#2691">param_mut</a>();
+            <a href="#395">param</a>.<a href="../x509/verify.rs.html#75">set_hostflags</a>(X509CheckFlags::NO_PARTIAL_WILDCARDS);
+            <span class="kw">match </span><a href="#392">domain</a>.parse() {
+                <span class="prelude-val">Ok</span>(ip) =&gt; <a href="#395">param</a>.<a href="../x509/verify.rs.html#121">set_ip</a>(<a href="#398">ip</a>),
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <a href="#395">param</a>.<a href="../x509/verify.rs.html#108">set_host</a>(<a href="#392">domain</a>),
             }
         }
     } <span class="kw">else </span>{
@@ -1199,4 +1207,4 @@ ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

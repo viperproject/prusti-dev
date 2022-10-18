@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/ocsp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ocsp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/ocsp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ocsp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -355,13 +355,13 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
 <span class="kw">use </span><a href="asn1.rs.html#46-66"><span class="kw">crate</span>::asn1::Asn1GeneralizedTimeRef</a>;
-<span class="kw">use </span><a href="error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="error.rs.html#39"><span class="kw">crate</span>::error::ErrorStack</a>;
 <span class="kw">use </span><a href="hash.rs.html#22"><span class="kw">crate</span>::hash::MessageDigest</a>;
 <span class="kw">use </span><a href="stack.rs.html#180"><span class="kw">crate</span>::stack::StackRef</a>;
 <span class="kw">use </span><a href="util.rs.html#80"><span class="kw">crate</span>::util::ForeignTypeRefExt</a>;
-<span class="kw">use </span><a href="x509/store.rs.html#173-181"><span class="kw">crate</span>::x509::store::X509StoreRef</a>;
+<span class="kw">use </span><a href="x509/store.rs.html#182-190"><span class="kw">crate</span>::x509::store::X509StoreRef</a>;
 <span class="kw">use </span><span class="kw">crate</span>::x509::{<a href="x509/mod.rs.html#362-370">X509Ref</a>, <a href="x509/mod.rs.html#362-370">X509</a>};
-<span class="kw">use crate</span>::{<a href="lib.rs.html#194">cvt</a>, <a href="lib.rs.html#185">cvt_p</a>};
+<span class="kw">use crate</span>::{<a href="lib.rs.html#202">cvt</a>, <a href="lib.rs.html#193">cvt_p</a>};
 <span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
 
 <a class="macro" href="../../bitflags/macro.bitflags.html">bitflags! </a>{
@@ -479,9 +479,9 @@
     /// The `maxsec` parameter limits the maximum age of the `this_update` parameter to prohibit
     /// very old responses.
     </span><span class="attribute">#[corresponds(OCSP_check_validity)]
-    </span><span class="kw">pub fn </span>check_validity(<span class="kw-2">&amp;</span><span class="self">self</span>, nsec: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, maxsec: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>check_validity(<span class="kw-2">&amp;</span><span class="self">self</span>, nsec: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, maxsec: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::OCSP_check_validity(
+            <a href="lib.rs.html#202">cvt</a>(ffi::OCSP_check_validity(
                 <a class="self" href="#132">self</a>.this_update.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 <a class="self" href="#132">self</a>.next_update.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 <a href="#132">nsec</a> <span class="kw">as </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
@@ -492,8 +492,8 @@
     }
 }
 
-<a class="macro" href="macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/handwritten/ocsp/enum.OCSP_BASICRESP.html">ffi::OCSP_BASICRESP</a>;
+<a class="macro" href="macros.rs.html#134-163">foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/ocsp/enum.OCSP_BASICRESP.html">ffi::OCSP_BASICRESP</a>;
     <span class="kw">fn </span>drop = ffi::OCSP_BASICRESP_free;
 
     <span class="kw">pub struct </span>OcspBasicResponse;
@@ -509,11 +509,11 @@
     </span><span class="kw">pub fn </span>verify(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         certs: <span class="kw-2">&amp;</span>StackRef&lt;<a href="x509/mod.rs.html#362-370">X509</a>&gt;,
-        store: <span class="kw-2">&amp;</span><a href="x509/store.rs.html#173-181">X509StoreRef</a>,
+        store: <span class="kw-2">&amp;</span><a href="x509/store.rs.html#182-190">X509StoreRef</a>,
         flags: <a href="#17-31">OcspFlag</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::OCSP_basic_verify(
+            <a href="lib.rs.html#202">cvt</a>(ffi::OCSP_basic_verify(
                 <a class="self" href="#160">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 <a href="#161">certs</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 <a href="#162">store</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
@@ -559,8 +559,8 @@
     }
 }
 
-<a class="macro" href="macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/handwritten/ocsp/enum.OCSP_CERTID.html">ffi::OCSP_CERTID</a>;
+<a class="macro" href="macros.rs.html#134-163">foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/ocsp/enum.OCSP_CERTID.html">ffi::OCSP_CERTID</a>;
     <span class="kw">fn </span>drop = ffi::OCSP_CERTID_free;
 
     <span class="kw">pub struct </span>OcspCertId;
@@ -574,10 +574,10 @@
         digest: <a href="hash.rs.html#22">MessageDigest</a>,
         subject: <span class="kw-2">&amp;</span><a href="x509/mod.rs.html#362-370">X509Ref</a>,
         issuer: <span class="kw-2">&amp;</span><a href="x509/mod.rs.html#362-370">X509Ref</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#212-218">OcspCertId</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#212-218">OcspCertId</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#185">cvt_p</a>(ffi::OCSP_cert_to_id(
-                <a href="#224">digest</a>.<a href="hash.rs.html#137">as_ptr</a>(),
+            <a href="lib.rs.html#193">cvt_p</a>(ffi::OCSP_cert_to_id(
+                <a href="#224">digest</a>.<a href="hash.rs.html#138">as_ptr</a>(),
                 <a href="#225">subject</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 <a href="#226">issuer</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             ))
@@ -586,8 +586,8 @@
     }
 }
 
-<a class="macro" href="macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/handwritten/types/enum.OCSP_RESPONSE.html">ffi::OCSP_RESPONSE</a>;
+<a class="macro" href="macros.rs.html#134-163">foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/types/enum.OCSP_RESPONSE.html">ffi::OCSP_RESPONSE</a>;
     <span class="kw">fn </span>drop = ffi::OCSP_RESPONSE_free;
 
     <span class="kw">pub struct </span>OcspResponse;
@@ -602,11 +602,11 @@
     </span><span class="kw">pub fn </span>create(
         status: <a href="#34">OcspResponseStatus</a>,
         body: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#145-151">OcspBasicResponseRef</a>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#239-245">OcspResponse</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#239-245">OcspResponse</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
 
-            <a href="lib.rs.html#185">cvt_p</a>(ffi::OCSP_response_create(
+            <a href="lib.rs.html#193">cvt_p</a>(ffi::OCSP_response_create(
                 <a href="#253">status</a>.<a href="#55">as_raw</a>(),
                 <a href="#254">body</a>.map(|r| <a href="#261">r</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()).unwrap_or(ptr::null_mut()),
             ))
@@ -614,7 +614,7 @@
         }
     }
 
-    <a class="macro" href="macros.rs.html#105-117">from_der! </a>{
+    <a class="macro" href="macros.rs.html#105-118">from_der! </a>{
         <span class="doccomment">/// Deserializes a DER-encoded OCSP response.
         </span><span class="attribute">#[corresponds(d2i_OCSP_RESPONSE)]
         </span>from_der,
@@ -641,13 +641,13 @@
     ///
     /// This will only succeed if `status()` returns `RESPONSE_STATUS_SUCCESSFUL`.
     </span><span class="attribute">#[corresponds(OCSP_response_get1_basic)]
-    </span><span class="kw">pub fn </span>basic(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#145-151">OcspBasicResponse</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
-        <span class="kw">unsafe </span>{ <a href="lib.rs.html#185">cvt_p</a>(ffi::OCSP_response_get1_basic(<a class="self" href="#294">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(<a href="#145-151">OcspBasicResponse</a>) }
+    </span><span class="kw">pub fn </span>basic(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#145-151">OcspBasicResponse</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
+        <span class="kw">unsafe </span>{ <a href="lib.rs.html#193">cvt_p</a>(ffi::OCSP_response_get1_basic(<a class="self" href="#294">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>())).map(<a href="#145-151">OcspBasicResponse</a>) }
     }
 }
 
-<a class="macro" href="macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/handwritten/ocsp/enum.OCSP_REQUEST.html">ffi::OCSP_REQUEST</a>;
+<a class="macro" href="macros.rs.html#134-163">foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/ocsp/enum.OCSP_REQUEST.html">ffi::OCSP_REQUEST</a>;
     <span class="kw">fn </span>drop = ffi::OCSP_REQUEST_free;
 
     <span class="kw">pub struct </span>OcspRequest;
@@ -656,15 +656,15 @@
 
 <span class="kw">impl </span><a href="#299-305">OcspRequest</a> {
     <span class="attribute">#[corresponds(OCSP_REQUEST_new)]
-    </span><span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#299-305">OcspRequest</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#299-305">OcspRequest</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <a href="../../openssl/fn.init.html">ffi::init</a>();
 
-            <a href="lib.rs.html#185">cvt_p</a>(ffi::OCSP_REQUEST_new()).map(<a href="#299-305">OcspRequest</a>)
+            <a href="lib.rs.html#193">cvt_p</a>(ffi::OCSP_REQUEST_new()).map(<a href="#299-305">OcspRequest</a>)
         }
     }
 
-    <a class="macro" href="macros.rs.html#105-117">from_der! </a>{
+    <a class="macro" href="macros.rs.html#105-118">from_der! </a>{
         <span class="doccomment">/// Deserializes a DER-encoded OCSP request.
         </span><span class="attribute">#[corresponds(d2i_OCSP_REQUEST)]
         </span>from_der,
@@ -682,7 +682,7 @@
     }
 
     <span class="attribute">#[corresponds(OCSP_request_add0_id)]
-    </span><span class="kw">pub fn </span>add_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="#212-218">OcspCertId</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;mut </span><a href="#344-350">OcspOneReqRef</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>add_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <a href="#212-218">OcspCertId</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;mut </span><a href="#344-350">OcspOneReqRef</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>ptr = cvt_p(ffi::OCSP_request_add0_id(<span class="self">self</span>.as_ptr(), id.as_ptr()))<span class="question-mark">?</span>;
             mem::forget(<a href="#335">id</a>);
@@ -691,12 +691,12 @@
     }
 }
 
-<a class="macro" href="macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/handwritten/ocsp/enum.OCSP_ONEREQ.html">ffi::OCSP_ONEREQ</a>;
+<a class="macro" href="macros.rs.html#134-163">foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/ocsp/enum.OCSP_ONEREQ.html">ffi::OCSP_ONEREQ</a>;
     <span class="kw">fn </span>drop = ffi::OCSP_ONEREQ_free;
 
     <span class="kw">pub struct </span>OcspOneReq;
     <span class="kw">pub struct </span>OcspOneReqRef;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

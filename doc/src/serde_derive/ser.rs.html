@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.144/src/ser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../serde_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../serde_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../serde_derive/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.145/src/ser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../serde_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../serde_derive/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1336,9 +1336,9 @@
 <span id="1336">1336</span>
 <span id="1337">1337</span>
 <span id="1338">1338</span>
-</pre><pre class="rust"><code><span class="kw">use </span>proc_macro2::{<a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Span.html">Span</a>, <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a>};
-<span class="kw">use </span><a href="https://docs.rs/syn/1.0.100/syn/spanned/trait.Spanned.html">syn::spanned::Spanned</a>;
-<span class="kw">use </span>syn::{<a class="self" href="https://docs.rs/syn/1.0.100/syn/index.html">self</a>, Ident, <a href="https://docs.rs/syn/1.0.100/syn/expr/struct.Index.html">Index</a>, <a href="https://docs.rs/syn/1.0.100/syn/expr/enum.Member.html">Member</a>};
+</pre><pre class="rust"><code><span class="kw">use </span>proc_macro2::{<a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Span.html">Span</a>, <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a>};
+<span class="kw">use </span><a href="https://docs.rs/syn/1.0.102/syn/spanned/trait.Spanned.html">syn::spanned::Spanned</a>;
+<span class="kw">use </span>syn::{<a class="self" href="https://docs.rs/syn/1.0.102/syn/index.html">self</a>, Ident, <a href="https://docs.rs/syn/1.0.102/syn/expr/struct.Index.html">Index</a>, <a href="https://docs.rs/syn/1.0.102/syn/expr/enum.Member.html">Member</a>};
 
 <span class="kw">use </span><a href="lib.rs.html#80">bound</a>;
 <span class="kw">use </span><a href="lib.rs.html#85">dummy</a>;
@@ -1348,8 +1348,8 @@
 <span class="kw">use </span><a href="lib.rs.html#86">pretend</a>;
 
 <span class="kw">pub fn </span>expand_derive_serialize(
-    input: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.100/syn/derive/struct.DeriveInput.html">syn::DeriveInput</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a>, Vec&lt;<a href="https://docs.rs/syn/1.0.100/syn/error/struct.Error.html">syn::Error</a>&gt;&gt; {
+    input: <span class="kw-2">&amp;mut </span><a href="https://docs.rs/syn/1.0.102/syn/derive/struct.DeriveInput.html">syn::DeriveInput</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a>, Vec&lt;<a href="https://docs.rs/syn/1.0.102/syn/error/struct.Error.html">syn::Error</a>&gt;&gt; {
     <a href="internals/receiver.rs.html#11">replace_receiver</a>(<a href="#13">input</a>);
 
     <span class="kw">let </span>ctxt = Ctxt::new();
@@ -1417,15 +1417,15 @@
 <span class="kw">struct </span>Parameters {
     <span class="doccomment">/// Variable holding the value being serialized. Either `self` for local
     /// types or `__self` for remote types.
-    </span>self_var: <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Ident.html">Ident</a>,
+    </span>self_var: <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Ident.html">Ident</a>,
 
     <span class="doccomment">/// Path to the type the impl is for. Either a single `Ident` for local
     /// types or `some::remote::Ident` for remote types. Does not include
     /// generic parameters.
-    </span>this: <a href="https://docs.rs/syn/1.0.100/syn/path/struct.Path.html">syn::Path</a>,
+    </span>this: <a href="https://docs.rs/syn/1.0.102/syn/path/struct.Path.html">syn::Path</a>,
 
     <span class="doccomment">/// Generics including any explicit and inferred bounds for the impl.
-    </span>generics: <a href="https://docs.rs/syn/1.0.100/syn/generics/struct.Generics.html">syn::Generics</a>,
+    </span>generics: <a href="https://docs.rs/syn/1.0.102/syn/generics/struct.Generics.html">syn::Generics</a>,
 
     <span class="doccomment">/// Type has a `serde(remote = &quot;...&quot;)` attribute.
     </span>is_remote: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -1470,7 +1470,7 @@
 
 <span class="comment">// All the generics in the input, plus a bound `T: Serialize` for each generic
 // field type that will be serialized by us.
-</span><span class="kw">fn </span>build_generics(cont: <span class="kw-2">&amp;</span><a href="internals/ast.rs.html#11">Container</a>) -&gt; <a href="https://docs.rs/syn/1.0.100/syn/generics/struct.Generics.html">syn::Generics</a> {
+</span><span class="kw">fn </span>build_generics(cont: <span class="kw-2">&amp;</span><a href="internals/ast.rs.html#11">Container</a>) -&gt; <a href="https://docs.rs/syn/1.0.102/syn/generics/struct.Generics.html">syn::Generics</a> {
     <span class="kw">let </span>generics = <a href="bound.rs.html#14">bound::without_defaults</a>(<a href="#135">cont</a>.generics);
 
     <span class="kw">let </span>generics =
@@ -1485,7 +1485,7 @@
             <a href="#135">cont</a>,
             <span class="kw-2">&amp;</span><a href="#141">generics</a>,
             <a href="#160">needs_serialize_bound</a>,
-            <span class="kw-2">&amp;</span><a class="macro" href="https://docs.rs/syn/1.0.100/syn/macro.parse_quote.html">parse_quote!</a>(_serde::Serialize),
+            <span class="kw-2">&amp;</span><a class="macro" href="https://docs.rs/syn/1.0.102/syn/macro.parse_quote.html">parse_quote!</a>(_serde::Serialize),
         ),
     }
 }
@@ -1539,7 +1539,7 @@
     <span class="kw">let </span>path = <span class="kw">match </span><a href="#198">transparent_field</a>.attrs.<a href="internals/attr.rs.html#1461">serialize_with</a>() {
         <span class="prelude-val">Some</span>(path) =&gt; <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote!</a>(#path),
         <span class="prelude-val">None </span>=&gt; {
-            <span class="kw">let </span>span = <a href="#198">transparent_field</a>.original.<a href="https://docs.rs/syn/1.0.100/syn/spanned/trait.Spanned.html">span</a>();
+            <span class="kw">let </span>span = <a href="#198">transparent_field</a>.original.<a href="https://docs.rs/syn/1.0.102/syn/spanned/trait.Spanned.html">span</a>();
             <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote_spanned.html">quote_spanned!</a>(span=&gt; _serde::Serialize::serialize)
         }
     };
@@ -1549,7 +1549,7 @@
     }
 }
 
-<span class="kw">fn </span>serialize_into(params: <span class="kw-2">&amp;</span><a href="#79">Parameters</a>, type_into: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.100/syn/ty/enum.Type.html">syn::Type</a>) -&gt; <a href="fragment.rs.html#5">Fragment</a> {
+<span class="kw">fn </span>serialize_into(params: <span class="kw-2">&amp;</span><a href="#79">Parameters</a>, type_into: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.102/syn/ty/enum.Type.html">syn::Type</a>) -&gt; <a href="fragment.rs.html#5">Fragment</a> {
     <span class="kw">let </span>self_var = <span class="kw-2">&amp;</span><a href="#214">params</a>.self_var;
     <a class="macro" href="fragment.rs.html#19-23">quote_block! </a>{
         _serde::Serialize::serialize(
@@ -1576,7 +1576,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>field_expr = <a href="#1248">get_member</a>(
         <a href="#232">params</a>,
         <a href="#233">field</a>,
-        <span class="kw-2">&amp;</span>Member::Unnamed(<a href="https://docs.rs/syn/1.0.100/syn/expr/struct.Index.html">Index</a> {
+        <span class="kw-2">&amp;</span>Member::Unnamed(<a href="https://docs.rs/syn/1.0.102/syn/expr/struct.Index.html">Index</a> {
             index: <span class="number">0</span>,
             span: Span::call_site(),
         }),
@@ -1585,7 +1585,7 @@
         <a href="#238">field_expr</a> = <a href="#1153-1158">wrap_serialize_field_with</a>(<a href="#232">params</a>, <a href="#233">field</a>.ty, <a href="#246">path</a>, <span class="kw-2">&amp;</span><a href="#238">field_expr</a>);
     }
 
-    <span class="kw">let </span>span = <a href="#233">field</a>.original.<a href="https://docs.rs/syn/1.0.100/syn/spanned/trait.Spanned.html">span</a>();
+    <span class="kw">let </span>span = <a href="#233">field</a>.original.<a href="https://docs.rs/syn/1.0.102/syn/spanned/trait.Spanned.html">span</a>();
     <span class="kw">let </span>func = <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote_spanned.html">quote_spanned!</a>(span=&gt; _serde::Serializer::serialize_newtype_struct);
     <a class="macro" href="fragment.rs.html#13-17">quote_expr! </a>{
         #func(__serializer, #type_name, #field_expr)
@@ -1614,7 +1614,7 @@
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(i, field)| <span class="kw">match </span><a href="#276">field</a>.attrs.<a href="internals/attr.rs.html#1453">skip_serializing_if</a>() {
             <span class="prelude-val">None </span>=&gt; <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote!</a>(<span class="number">1</span>),
             <span class="prelude-val">Some</span>(path) =&gt; {
-                <span class="kw">let </span>index = <a href="https://docs.rs/syn/1.0.100/syn/expr/struct.Index.html">syn::Index</a> {
+                <span class="kw">let </span>index = <a href="https://docs.rs/syn/1.0.102/syn/expr/struct.Index.html">syn::Index</a> {
                     index: <a href="#276">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
                     span: Span::call_site(),
                 };
@@ -1641,7 +1641,7 @@
     }
 }
 
-<span class="kw">fn </span>serialize_struct_tag_field(cattrs: <span class="kw-2">&amp;</span><a href="internals/attr.rs.html#209">attr::Container</a>, struct_trait: <span class="kw-2">&amp;</span><a href="#1284">StructTrait</a>) -&gt; <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a> {
+<span class="kw">fn </span>serialize_struct_tag_field(cattrs: <span class="kw-2">&amp;</span><a href="internals/attr.rs.html#209">attr::Container</a>, struct_trait: <span class="kw-2">&amp;</span><a href="#1284">StructTrait</a>) -&gt; <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">match </span><a href="#306">cattrs</a>.<a href="internals/attr.rs.html#654">tag</a>() {
         <a href="internals/attr.rs.html#244">attr::TagType::Internal</a> { tag } =&gt; {
             <span class="kw">let </span>type_name = <a href="#306">cattrs</a>.<a href="internals/attr.rs.html#626">name</a>().<a href="internals/attr.rs.html#184">serialize_name</a>();
@@ -1764,7 +1764,7 @@
     variant: <span class="kw-2">&amp;</span><a href="internals/ast.rs.html#33">Variant</a>,
     variant_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
     cattrs: <span class="kw-2">&amp;</span><a href="internals/attr.rs.html#209">attr::Container</a>,
-) -&gt; <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a> {
+) -&gt; <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let </span>this = <span class="kw-2">&amp;</span><a href="#425">params</a>.this;
     <span class="kw">let </span>variant_ident = <span class="kw-2">&amp;</span><a href="#426">variant</a>.ident;
 
@@ -1872,7 +1872,7 @@
                 <a href="#532">field_expr</a> = <a href="#1153-1158">wrap_serialize_field_with</a>(<a href="#498">params</a>, <a href="#531">field</a>.ty, <a href="#533">path</a>, <span class="kw-2">&amp;</span><a href="#532">field_expr</a>);
             }
 
-            <span class="kw">let </span>span = <a href="#531">field</a>.original.<a href="https://docs.rs/syn/1.0.100/syn/spanned/trait.Spanned.html">span</a>();
+            <span class="kw">let </span>span = <a href="#531">field</a>.original.<a href="https://docs.rs/syn/1.0.102/syn/spanned/trait.Spanned.html">span</a>();
             <span class="kw">let </span>func = <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote_spanned.html">quote_spanned!</a>(span=&gt; _serde::Serializer::serialize_newtype_variant);
             <a class="macro" href="fragment.rs.html#13-17">quote_expr! </a>{
                 #func(
@@ -1948,7 +1948,7 @@
                 <a href="#608">field_expr</a> = <a href="#1153-1158">wrap_serialize_field_with</a>(<a href="#571">params</a>, <a href="#607">field</a>.ty, <a href="#609">path</a>, <span class="kw-2">&amp;</span><a href="#608">field_expr</a>);
             }
 
-            <span class="kw">let </span>span = <a href="#607">field</a>.original.<a href="https://docs.rs/syn/1.0.100/syn/spanned/trait.Spanned.html">span</a>();
+            <span class="kw">let </span>span = <a href="#607">field</a>.original.<a href="https://docs.rs/syn/1.0.102/syn/spanned/trait.Spanned.html">span</a>();
             <span class="kw">let </span>func = <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote_spanned.html">quote_spanned!</a>(span=&gt; _serde::__private::ser::serialize_tagged_newtype);
             <a class="macro" href="fragment.rs.html#13-17">quote_expr! </a>{
                 #func(
@@ -2005,7 +2005,7 @@
                     <a href="#665">field_expr</a> = <a href="#1153-1158">wrap_serialize_field_with</a>(<a href="#637">params</a>, <a href="#664">field</a>.ty, <a href="#666">path</a>, <span class="kw-2">&amp;</span><a href="#665">field_expr</a>);
                 }
 
-                <span class="kw">let </span>span = <a href="#664">field</a>.original.<a href="https://docs.rs/syn/1.0.100/syn/spanned/trait.Spanned.html">span</a>();
+                <span class="kw">let </span>span = <a href="#664">field</a>.original.<a href="https://docs.rs/syn/1.0.102/syn/spanned/trait.Spanned.html">span</a>();
                 <span class="kw">let </span>func = <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote_spanned.html">quote_spanned!</a>(span=&gt; _serde::ser::SerializeStruct::serialize_field);
                 <span class="kw">return </span><a class="macro" href="fragment.rs.html#19-23">quote_block! </a>{
                     <span class="kw">let </span><span class="kw-2">mut </span>__struct = <span class="macro">try!</span>(_serde::Serializer::serialize_struct(
@@ -2110,7 +2110,7 @@
                 <a href="#770">field_expr</a> = <a href="#1153-1158">wrap_serialize_field_with</a>(<a href="#751">params</a>, <a href="#769">field</a>.ty, <a href="#771">path</a>, <span class="kw-2">&amp;</span><a href="#770">field_expr</a>);
             }
 
-            <span class="kw">let </span>span = <a href="#769">field</a>.original.<a href="https://docs.rs/syn/1.0.100/syn/spanned/trait.Spanned.html">span</a>();
+            <span class="kw">let </span>span = <a href="#769">field</a>.original.<a href="https://docs.rs/syn/1.0.102/syn/spanned/trait.Spanned.html">span</a>();
             <span class="kw">let </span>func = <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote_spanned.html">quote_spanned!</a>(span=&gt; _serde::Serialize::serialize);
             <a class="macro" href="fragment.rs.html#13-17">quote_expr! </a>{
                 #func(#field_expr, __serializer)
@@ -2379,7 +2379,7 @@
     params: <span class="kw-2">&amp;</span><a href="#79">Parameters</a>,
     is_enum: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     tuple_trait: <span class="kw-2">&amp;</span><a href="#1318">TupleTrait</a>,
-) -&gt; Vec&lt;<a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
+) -&gt; Vec&lt;<a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
     <a href="#1040">fields</a>
         .iter()
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
@@ -2392,7 +2392,7 @@
                 <a href="#1248">get_member</a>(
                     <a href="#1041">params</a>,
                     <a href="#1049">field</a>,
-                    <span class="kw-2">&amp;</span>Member::Unnamed(<a href="https://docs.rs/syn/1.0.100/syn/expr/struct.Index.html">Index</a> {
+                    <span class="kw-2">&amp;</span>Member::Unnamed(<a href="https://docs.rs/syn/1.0.102/syn/expr/struct.Index.html">Index</a> {
                         index: <a href="#1049">i</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
                         span: Span::call_site(),
                     }),
@@ -2408,7 +2408,7 @@
                 <a href="#1050">field_expr</a> = <a href="#1153-1158">wrap_serialize_field_with</a>(<a href="#1041">params</a>, <a href="#1049">field</a>.ty, <a href="#1069">path</a>, <span class="kw-2">&amp;</span><a href="#1050">field_expr</a>);
             }
 
-            <span class="kw">let </span>span = <a href="#1049">field</a>.original.<a href="https://docs.rs/syn/1.0.100/syn/spanned/trait.Spanned.html">span</a>();
+            <span class="kw">let </span>span = <a href="#1049">field</a>.original.<a href="https://docs.rs/syn/1.0.102/syn/spanned/trait.Spanned.html">span</a>();
             <span class="kw">let </span>func = <a href="#1043">tuple_trait</a>.<a href="#1325">serialize_element</a>(<a href="#1073">span</a>);
             <span class="kw">let </span>ser = <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
                 <span class="macro">try!</span>(#func(<span class="kw-2">&amp;mut </span>__serde_state, #field_expr));
@@ -2427,7 +2427,7 @@
     params: <span class="kw-2">&amp;</span><a href="#79">Parameters</a>,
     is_enum: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     struct_trait: <span class="kw-2">&amp;</span><a href="#1284">StructTrait</a>,
-) -&gt; Vec&lt;<a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
+) -&gt; Vec&lt;<a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
     <a href="#1088">fields</a>
         .iter()
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|<span class="kw-2">&amp;</span>field| !<a href="#1095">field</a>.attrs.<a href="internals/attr.rs.html#1445">skip_serializing</a>())
@@ -2451,7 +2451,7 @@
                 <a href="#1099">field_expr</a> = <a href="#1153-1158">wrap_serialize_field_with</a>(<a href="#1089">params</a>, <a href="#1096">field</a>.ty, <a href="#1112">path</a>, <span class="kw-2">&amp;</span><a href="#1099">field_expr</a>);
             }
 
-            <span class="kw">let </span>span = <a href="#1096">field</a>.original.<a href="https://docs.rs/syn/1.0.100/syn/spanned/trait.Spanned.html">span</a>();
+            <span class="kw">let </span>span = <a href="#1096">field</a>.original.<a href="https://docs.rs/syn/1.0.102/syn/spanned/trait.Spanned.html">span</a>();
             <span class="kw">let </span>ser = <span class="kw">if </span>field.attrs.flatten() {
                 <span class="kw">let </span>func = <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote_spanned.html">quote_spanned!</a>(span=&gt; _serde::Serialize::serialize);
                 <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
@@ -2490,18 +2490,18 @@
 
 <span class="kw">fn </span>wrap_serialize_field_with(
     params: <span class="kw-2">&amp;</span><a href="#79">Parameters</a>,
-    field_ty: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.100/syn/ty/enum.Type.html">syn::Type</a>,
-    serialize_with: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.100/syn/expr/struct.ExprPath.html">syn::ExprPath</a>,
-    field_expr: <span class="kw-2">&amp;</span><a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a>,
-) -&gt; <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a> {
+    field_ty: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.102/syn/ty/enum.Type.html">syn::Type</a>,
+    serialize_with: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.102/syn/expr/struct.ExprPath.html">syn::ExprPath</a>,
+    field_expr: <span class="kw-2">&amp;</span><a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a>,
+) -&gt; <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <a href="#1189-1194">wrap_serialize_with</a>(<a href="#1154">params</a>, <a href="#1156">serialize_with</a>, <span class="kw-2">&amp;</span>[<a href="#1155">field_ty</a>], <span class="kw-2">&amp;</span>[<a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote!</a>(#field_expr)])
 }
 
 <span class="kw">fn </span>wrap_serialize_variant_with(
     params: <span class="kw-2">&amp;</span><a href="#79">Parameters</a>,
-    serialize_with: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.100/syn/expr/struct.ExprPath.html">syn::ExprPath</a>,
+    serialize_with: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.102/syn/expr/struct.ExprPath.html">syn::ExprPath</a>,
     variant: <span class="kw-2">&amp;</span><a href="internals/ast.rs.html#33">Variant</a>,
-) -&gt; <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a> {
+) -&gt; <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let </span>field_tys: Vec&lt;<span class="kw">_</span>&gt; = <a href="#1165">variant</a>.fields.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|field| <a href="#1167">field</a>.ty).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
     <span class="kw">let </span>field_exprs: Vec&lt;<span class="kw">_</span>&gt; = <a href="#1165">variant</a>
         .fields
@@ -2526,10 +2526,10 @@
 
 <span class="kw">fn </span>wrap_serialize_with(
     params: <span class="kw-2">&amp;</span><a href="#79">Parameters</a>,
-    serialize_with: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.100/syn/expr/struct.ExprPath.html">syn::ExprPath</a>,
-    field_tys: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.100/syn/ty/enum.Type.html">syn::Type</a>],
-    field_exprs: <span class="kw-2">&amp;</span>[<a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a>],
-) -&gt; <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a> {
+    serialize_with: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.102/syn/expr/struct.ExprPath.html">syn::ExprPath</a>,
+    field_tys: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.102/syn/ty/enum.Type.html">syn::Type</a>],
+    field_exprs: <span class="kw-2">&amp;</span>[<a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a>],
+) -&gt; <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let </span>this = <span class="kw-2">&amp;</span><a href="#1190">params</a>.this;
     <span class="kw">let </span>(<span class="kw">_</span>, ty_generics, where_clause) = <a href="#1190">params</a>.generics.split_for_impl();
 
@@ -2541,7 +2541,7 @@
     <span class="kw">let </span>(wrapper_impl_generics, wrapper_ty_generics, <span class="kw">_</span>) = <a href="#1198">wrapper_generics</a>.split_for_impl();
 
     <span class="kw">let </span>field_access = (<span class="number">0</span>..<a href="#1193">field_exprs</a>.len()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|n| {
-        Member::Unnamed(<a href="https://docs.rs/syn/1.0.100/syn/expr/struct.Index.html">Index</a> {
+        Member::Unnamed(<a href="https://docs.rs/syn/1.0.102/syn/expr/struct.Index.html">Index</a> {
             index: <a href="#1205">n</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
             span: Span::call_site(),
         })
@@ -2575,7 +2575,7 @@
 //     _serde::ser::SerializeStruct::end(__serde_state)
 //
 // where we want to omit the `mut` to avoid a warning.
-</span><span class="kw">fn </span>mut_if(is_mut: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
+</span><span class="kw">fn </span>mut_if(is_mut: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
     <span class="kw">if </span>is_mut {
         <span class="prelude-val">Some</span>(<a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote!</a>(<span class="kw-2">mut</span>))
     } <span class="kw">else </span>{
@@ -2583,7 +2583,7 @@
     </span>}
 }
 
-<span class="kw">fn </span>get_member(params: <span class="kw-2">&amp;</span><a href="#79">Parameters</a>, field: <span class="kw-2">&amp;</span><a href="internals/ast.rs.html#42">Field</a>, member: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.100/syn/expr/enum.Member.html">Member</a>) -&gt; <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a> {
+<span class="kw">fn </span>get_member(params: <span class="kw-2">&amp;</span><a href="#79">Parameters</a>, field: <span class="kw-2">&amp;</span><a href="internals/ast.rs.html#42">Field</a>, member: <span class="kw-2">&amp;</span><a href="https://docs.rs/syn/1.0.102/syn/expr/enum.Member.html">Member</a>) -&gt; <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let </span>self_var = <span class="kw-2">&amp;</span><a href="#1248">params</a>.self_var;
     <span class="kw">match </span>(<a href="#1248">params</a>.is_remote, <a href="#1248">field</a>.attrs.<a href="internals/attr.rs.html#1481">getter</a>()) {
         (<span class="bool-val">false</span>, <span class="prelude-val">None</span>) =&gt; {
@@ -2626,7 +2626,7 @@
 }
 
 <span class="kw">impl </span><a href="#1284">StructTrait</a> {
-    <span class="kw">fn </span>serialize_field(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Span.html">Span</a>) -&gt; <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a> {
+    <span class="kw">fn </span>serialize_field(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Span.html">Span</a>) -&gt; <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a> {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#1291">self</a> </span>{
             <a href="#1285">StructTrait::SerializeMap</a> =&gt; {
                 <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote_spanned.html">quote_spanned!</a>(span=&gt; _serde::ser::SerializeMap::serialize_entry)
@@ -2640,7 +2640,7 @@
         }
     }
 
-    <span class="kw">fn </span>skip_field(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Span.html">Span</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
+    <span class="kw">fn </span>skip_field(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Span.html">Span</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a>&gt; {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#1305">self</a> </span>{
             <a href="#1285">StructTrait::SerializeMap</a> =&gt; <span class="prelude-val">None</span>,
             <a href="#1286">StructTrait::SerializeStruct</a> =&gt; {
@@ -2660,7 +2660,7 @@
 }
 
 <span class="kw">impl </span><a href="#1318">TupleTrait</a> {
-    <span class="kw">fn </span>serialize_element(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Span.html">Span</a>) -&gt; <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.TokenStream.html">TokenStream</a> {
+    <span class="kw">fn </span>serialize_element(<span class="kw-2">&amp;</span><span class="self">self</span>, span: <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Span.html">Span</a>) -&gt; <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.TokenStream.html">TokenStream</a> {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#1325">self</a> </span>{
             <a href="#1319">TupleTrait::SerializeTuple</a> =&gt; {
                 <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote_spanned.html">quote_spanned!</a>(span=&gt; _serde::ser::SerializeTuple::serialize_element)
@@ -2675,4 +2675,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="serde_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="serde_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

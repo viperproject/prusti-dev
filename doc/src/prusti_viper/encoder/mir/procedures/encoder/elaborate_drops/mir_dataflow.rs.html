@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/procedures/encoder/elaborate_drops/mir_dataflow.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_dataflow.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../../../normalize.css"><link rel="stylesheet" href="../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../../storage.js"></script><script defer src="../../../../../../../source-script.js"></script><script defer src="../../../../../../../source-files.js"></script><script defer src="../../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/procedures/encoder/elaborate_drops/mir_dataflow.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_dataflow.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../../../normalize.css"><link rel="stylesheet" href="../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../../storage.js"></script><script defer src="../../../../../../../source-script.js"></script><script defer src="../../../../../../../source-files.js"></script><script defer src="../../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1085,6 +1085,7 @@
 <span id="1085">1085</span>
 <span id="1086">1086</span>
 <span id="1087">1087</span>
+<span id="1088">1088</span>
 </pre><pre class="rust"><code><span class="comment">// This file was taken from the compiler:
 // https://github.com/rust-lang/rust/blob/661e8beec1fa5f3c58bf6e4362ae3c3fe0b4b1bd/compiler/rustc_mir_dataflow/src/elaborate_drops.rs
 // This file is licensed under Apache 2.0
@@ -1302,13 +1303,13 @@
                 );
             }
             DropStyle::Conditional =&gt; {
-                <span class="kw">let </span>drop_bb = <a class="self" href="#197">self</a>.<a href="#917">complete_drop</a>(<a class="self" href="#197">self</a>.succ, <a class="self" href="#197">self</a>.unwind);
+                <span class="kw">let </span>drop_bb = <a class="self" href="#197">self</a>.<a href="#918">complete_drop</a>(<a class="self" href="#197">self</a>.succ, <a class="self" href="#197">self</a>.unwind);
                 <a class="self" href="#197">self</a>.elaborator
                     .<a href="#74">patch</a>()
                     .patch_terminator(<a href="#197">bb</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> { target: <a href="#218">drop_bb</a> });
             }
             DropStyle::Open =&gt; {
-                <span class="kw">let </span>drop_bb = <a class="self" href="#197">self</a>.<a href="#881">open_drop</a>();
+                <span class="kw">let </span>drop_bb = <a class="self" href="#197">self</a>.<a href="#882">open_drop</a>();
                 <a class="self" href="#197">self</a>.elaborator
                     .<a href="#74">patch</a>()
                     .patch_terminator(<a href="#197">bb</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> { target: <a href="#224">drop_bb</a> });
@@ -1360,7 +1361,7 @@
                 <a href="#262">succ</a>,
                 <a href="#263">unwind</a>,
             }
-            .<a href="#950">elaborated_drop_block</a>()
+            .<a href="#951">elaborated_drop_block</a>()
         } <span class="kw">else </span>{
             <a class="macro" href="../../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;drop_subpath: for rest field {:?}&quot;</span>, place);
 
@@ -1374,7 +1375,7 @@
                 // our own drop flag.
                 </span>path: <a class="self" href="#259">self</a>.path,
             }
-            .<a href="#917">complete_drop</a>(<a href="#262">succ</a>, <a href="#263">unwind</a>)
+            .<a href="#918">complete_drop</a>(<a href="#262">succ</a>, <a href="#263">unwind</a>)
         }
     }
 
@@ -1409,7 +1410,7 @@
         // because the &quot;master&quot; drop protects the ADT&#39;s discriminant,
         // which is invalidated after the ADT is dropped.
         </span>(
-            <a class="self" href="#320">self</a>.<a href="#927-932">drop_flag_reset_block</a>(DropFlagMode::Shallow, <a class="self" href="#320">self</a>.succ, <a class="self" href="#320">self</a>.unwind),
+            <a class="self" href="#320">self</a>.<a href="#928-933">drop_flag_reset_block</a>(DropFlagMode::Shallow, <a class="self" href="#320">self</a>.succ, <a class="self" href="#320">self</a>.unwind),
             <a class="self" href="#320">self</a>.unwind,
         )
     }
@@ -1487,10 +1488,10 @@
         <span class="kw">let </span>interior = <a class="self" href="#397">self</a>.<a href="#175">tcx</a>().mk_place_deref(<a class="self" href="#397">self</a>.place);
         <span class="kw">let </span>interior_path = <a class="self" href="#397">self</a>.elaborator.<a href="#105">deref_subpath</a>(<a class="self" href="#397">self</a>.path);
 
-        <span class="kw">let </span>succ = <a class="self" href="#397">self</a>.<a href="#961-967">box_free_block</a>(<a href="#397">adt</a>, <a href="#397">substs</a>, <a class="self" href="#397">self</a>.succ, <a class="self" href="#397">self</a>.unwind);
+        <span class="kw">let </span>succ = <a class="self" href="#397">self</a>.<a href="#962-968">box_free_block</a>(<a href="#397">adt</a>, <a href="#397">substs</a>, <a class="self" href="#397">self</a>.succ, <a class="self" href="#397">self</a>.unwind);
         <span class="kw">let </span>unwind_succ = <span class="self"><a href="#397">self</a>
             </span>.unwind
-            .<a href="#33-35">map</a>(|unwind| <a class="self" href="#397">self</a>.<a href="#961-967">box_free_block</a>(<a href="#397">adt</a>, <a href="#397">substs</a>, <a href="#406">unwind</a>, Unwind::InCleanup));
+            .<a href="#33-35">map</a>(|unwind| <a class="self" href="#397">self</a>.<a href="#962-968">box_free_block</a>(<a href="#397">adt</a>, <a href="#397">substs</a>, <a href="#406">unwind</a>, Unwind::InCleanup));
 
         <a class="self" href="#397">self</a>.<a href="#258-264">drop_subpath</a>(<a href="#400">interior</a>, <a href="#401">interior_path</a>, <a href="#403">succ</a>, <a href="#404">unwind_succ</a>)
     }
@@ -1615,20 +1616,20 @@
         <span class="kw">if </span>!have_otherwise {
             <a href="#465">values</a>.pop();
         } <span class="kw">else if </span>!have_otherwise_with_drop_glue {
-            <a href="#466">normal_blocks</a>.push(<a class="self" href="#459">self</a>.<a href="#1025">goto_block</a>(<a href="#462">succ</a>, <a href="#463">unwind</a>));
+            <a href="#466">normal_blocks</a>.push(<a class="self" href="#459">self</a>.<a href="#1026">goto_block</a>(<a href="#462">succ</a>, <a href="#463">unwind</a>));
             <span class="kw">if let </span>Unwind::To(unwind) = <a href="#463">unwind</a> {
                 <a href="#467">unwind_blocks</a>
                     .as_mut()
                     .unwrap()
-                    .push(<a class="self" href="#459">self</a>.<a href="#1025">goto_block</a>(<a href="#532">unwind</a>, Unwind::InCleanup));
+                    .push(<a class="self" href="#459">self</a>.<a href="#1026">goto_block</a>(<a href="#532">unwind</a>, Unwind::InCleanup));
             }
         } <span class="kw">else </span>{
-            <a href="#466">normal_blocks</a>.push(<a class="self" href="#459">self</a>.<a href="#1016">drop_block</a>(<a href="#462">succ</a>, <a href="#463">unwind</a>));
+            <a href="#466">normal_blocks</a>.push(<a class="self" href="#459">self</a>.<a href="#1017">drop_block</a>(<a href="#462">succ</a>, <a href="#463">unwind</a>));
             <span class="kw">if let </span>Unwind::To(unwind) = <a href="#463">unwind</a> {
                 <a href="#467">unwind_blocks</a>
                     .as_mut()
                     .unwrap()
-                    .push(<a class="self" href="#459">self</a>.<a href="#1016">drop_block</a>(<a href="#540">unwind</a>, Unwind::InCleanup));
+                    .push(<a class="self" href="#459">self</a>.<a href="#1017">drop_block</a>(<a href="#540">unwind</a>, Unwind::InCleanup));
             }
         }
 
@@ -1662,7 +1663,7 @@
         // discriminant after it is free-ed, because that
         // way lies only trouble.
         </span><span class="kw">let </span>discr_ty = <a href="#564">adt</a>.repr().discr_type().<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/util/trait.IntTypeExt.html">to_ty</a>(<a class="self" href="#563">self</a>.<a href="#175">tcx</a>());
-        <span class="kw">let </span>discr = Place::from(<a class="self" href="#563">self</a>.<a href="#1069">new_temp</a>(<a href="#577">discr_ty</a>));
+        <span class="kw">let </span>discr = Place::from(<a class="self" href="#563">self</a>.<a href="#1070">new_temp</a>(<a href="#577">discr_ty</a>));
         <span class="kw">let </span>discr_rv = Rvalue::Discriminant(<a class="self" href="#563">self</a>.place);
         <span class="kw">let </span>switch_block = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlockData.html">BasicBlockData</a> {
             statements: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="self">self</span>.assign(discr, discr_rv)],
@@ -1680,7 +1681,7 @@
             is_cleanup: <a href="#568">unwind</a>.<a href="#31">is_cleanup</a>(),
         };
         <span class="kw">let </span>switch_block = <a class="self" href="#563">self</a>.elaborator.<a href="#74">patch</a>().new_block(<a href="#580">switch_block</a>);
-        <a class="self" href="#563">self</a>.<a href="#1035-1040">drop_flag_test_block</a>(<a href="#595">switch_block</a>, <a href="#567">succ</a>, <a href="#568">unwind</a>)
+        <a class="self" href="#563">self</a>.<a href="#1036-1041">drop_flag_test_block</a>(<a href="#595">switch_block</a>, <a href="#567">succ</a>, <a href="#568">unwind</a>)
     }
 
     <span class="kw">fn </span>destructor_call_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, (succ, unwind): (<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, Unwind)) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a> {
@@ -1698,8 +1699,8 @@
                 mutbl: hir::Mutability::Mut,
             },
         );
-        <span class="kw">let </span>ref_place = <a class="self" href="#599">self</a>.<a href="#1069">new_temp</a>(<a href="#607">ref_ty</a>);
-        <span class="kw">let </span>unit_temp = Place::from(<a class="self" href="#599">self</a>.<a href="#1069">new_temp</a>(<a href="#601">tcx</a>.mk_unit()));
+        <span class="kw">let </span>ref_place = <a class="self" href="#599">self</a>.<a href="#1070">new_temp</a>(<a href="#607">ref_ty</a>);
+        <span class="kw">let </span>unit_temp = Place::from(<a class="self" href="#599">self</a>.<a href="#1070">new_temp</a>(<a href="#601">tcx</a>.mk_unit()));
 
         <span class="kw">let </span>result = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlockData.html">BasicBlockData</a> {
             statements: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="self">self</span>.assign(
@@ -1762,10 +1763,10 @@
             ty: <a href="#666">ety</a>,
             mutbl: hir::Mutability::Mut,
         });
-        <span class="kw">let </span>ptr = Place::from(<a class="self" href="#662">self</a>.<a href="#1069">new_temp</a>(<a href="#674">ptr_ty</a>));
-        <span class="kw">let </span>can_go = Place::from(<a class="self" href="#662">self</a>.<a href="#1069">new_temp</a>(<a href="#672">tcx</a>.types.bool));
+        <span class="kw">let </span>ptr = Place::from(<a class="self" href="#662">self</a>.<a href="#1070">new_temp</a>(<a href="#674">ptr_ty</a>));
+        <span class="kw">let </span>can_go = Place::from(<a class="self" href="#662">self</a>.<a href="#1070">new_temp</a>(<a href="#672">tcx</a>.types.bool));
 
-        <span class="kw">let </span>one = <a class="self" href="#662">self</a>.<a href="#1073">constant_usize</a>(<span class="number">1</span>);
+        <span class="kw">let </span>one = <a class="self" href="#662">self</a>.<a href="#1074">constant_usize</a>(<span class="number">1</span>);
         <span class="kw">let </span>(ptr_next, cur_next) = <span class="kw">if </span>ptr_based {
             (
                 Rvalue::Use(<a href="#670">copy</a>(<a href="#664">cur</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
@@ -1855,8 +1856,8 @@
         }
 
         <span class="kw">let </span>move_ = Operand::Move;
-        <span class="kw">let </span>elem_size = Place::from(<a class="self" href="#736">self</a>.<a href="#1069">new_temp</a>(<a href="#745">tcx</a>.types.usize));
-        <span class="kw">let </span>len = Place::from(<a class="self" href="#736">self</a>.<a href="#1069">new_temp</a>(<a href="#745">tcx</a>.types.usize));
+        <span class="kw">let </span>elem_size = Place::from(<a class="self" href="#736">self</a>.<a href="#1070">new_temp</a>(<a href="#745">tcx</a>.types.usize));
+        <span class="kw">let </span>len = Place::from(<a class="self" href="#736">self</a>.<a href="#1070">new_temp</a>(<a href="#745">tcx</a>.types.usize));
 
         <span class="kw">let </span>base_block = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlockData.html">BasicBlockData</a> {
             statements: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
@@ -1897,9 +1898,9 @@
             <a href="#806">tcx</a>.types.usize
         };
 
-        <span class="kw">let </span>cur = <a class="self" href="#800">self</a>.<a href="#1069">new_temp</a>(<a href="#807">iter_ty</a>);
+        <span class="kw">let </span>cur = <a class="self" href="#800">self</a>.<a href="#1070">new_temp</a>(<a href="#807">iter_ty</a>);
         <span class="kw">let </span>length_or_end = <span class="kw">if </span>ptr_based {
-            Place::from(<a class="self" href="#800">self</a>.<a href="#1069">new_temp</a>(<a href="#807">iter_ty</a>))
+            Place::from(<a class="self" href="#800">self</a>.<a href="#1070">new_temp</a>(<a href="#807">iter_ty</a>))
         } <span class="kw">else </span>{
             <a href="#803">length</a>
         };
@@ -1920,15 +1921,16 @@
         <span class="kw">let </span>cur = Place::from(<a href="#813">cur</a>);
         <span class="kw">let </span>drop_block_stmts = <span class="kw">if </span>ptr_based {
             <span class="kw">let </span>tmp_ty = <a href="#806">tcx</a>.mk_mut_ptr(<a class="self" href="#800">self</a>.<a href="#171">place_ty</a>(<a class="self" href="#800">self</a>.place));
-            <span class="kw">let </span>tmp = Place::from(<a class="self" href="#800">self</a>.<a href="#1069">new_temp</a>(<a href="#835">tmp_ty</a>));
+            <span class="kw">let </span>tmp = Place::from(<a class="self" href="#800">self</a>.<a href="#1070">new_temp</a>(<a href="#835">tmp_ty</a>));
             <span class="comment">// tmp = &amp;raw mut P;
             // cur = tmp as *mut T;
             // end = Offset(cur, len);
-            </span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
+            </span><span class="kw">let </span>mir_cast_kind = ty::cast::mir_cast_kind(<a href="#807">iter_ty</a>, <a href="#835">tmp_ty</a>);
+            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                 <span class="self">self</span>.assign(tmp, Rvalue::AddressOf(Mutability::Mut, <span class="self">self</span>.place)),
                 <span class="self">self</span>.assign(
                     cur,
-                    Rvalue::Cast(CastKind::Misc, Operand::Move(tmp), iter_ty),
+                    Rvalue::Cast(mir_cast_kind, Operand::Move(tmp), iter_ty),
                 ),
                 <span class="self">self</span>.assign(
                     length_or_end,
@@ -1940,7 +1942,7 @@
             ]
         } <span class="kw">else </span>{
             <span class="comment">// cur = 0 (length already pushed)
-            </span><span class="kw">let </span>zero = <a class="self" href="#800">self</a>.<a href="#1073">constant_usize</a>(<span class="number">0</span>);
+            </span><span class="kw">let </span>zero = <a class="self" href="#800">self</a>.<a href="#1074">constant_usize</a>(<span class="number">0</span>);
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="self">self</span>.assign(cur, Rvalue::Use(zero))]
         };
         <span class="kw">let </span>drop_block = <a class="self" href="#800">self</a>.elaborator.<a href="#74">patch</a>().new_block(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlockData.html">BasicBlockData</a> {
@@ -1953,8 +1955,8 @@
         });
 
         <span class="comment">// FIXME(#34708): handle partially-dropped array/slice elements.
-        </span><span class="kw">let </span>reset_block = <a class="self" href="#800">self</a>.<a href="#927-932">drop_flag_reset_block</a>(DropFlagMode::Deep, <a href="#859">drop_block</a>, <a href="#820">unwind</a>);
-        <a class="self" href="#800">self</a>.<a href="#1035-1040">drop_flag_test_block</a>(<a href="#869">reset_block</a>, <a class="self" href="#800">self</a>.succ, <a href="#820">unwind</a>)
+        </span><span class="kw">let </span>reset_block = <a class="self" href="#800">self</a>.<a href="#928-933">drop_flag_reset_block</a>(DropFlagMode::Deep, <a href="#860">drop_block</a>, <a href="#820">unwind</a>);
+        <a class="self" href="#800">self</a>.<a href="#1036-1041">drop_flag_test_block</a>(<a href="#870">reset_block</a>, <a class="self" href="#800">self</a>.succ, <a href="#820">unwind</a>)
     }
 
     <span class="doccomment">/// The slow-path - create an &quot;open&quot;, elaborated drop for a type
@@ -1966,11 +1968,11 @@
     /// This creates a &quot;drop ladder&quot; that drops the needed fields of the
     /// ADT, both in the success case or if one of the destructors fail.
     </span><span class="kw">fn </span>open_drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a> {
-        <span class="kw">let </span>ty = <a class="self" href="#881">self</a>.<a href="#171">place_ty</a>(<a class="self" href="#881">self</a>.place);
-        <span class="kw">match </span><a href="#882">ty</a>.kind() {
+        <span class="kw">let </span>ty = <a class="self" href="#882">self</a>.<a href="#171">place_ty</a>(<a class="self" href="#882">self</a>.place);
+        <span class="kw">match </span><a href="#883">ty</a>.kind() {
             ty::Closure(<span class="kw">_</span>, substs) =&gt; {
-                <span class="kw">let </span>tys: Vec&lt;<span class="kw">_</span>&gt; = <a href="#884">substs</a>.as_closure().upvar_tys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-                <a class="self" href="#881">self</a>.<a href="#379">open_drop_for_tuple</a>(<span class="kw-2">&amp;</span><a href="#885">tys</a>)
+                <span class="kw">let </span>tys: Vec&lt;<span class="kw">_</span>&gt; = <a href="#885">substs</a>.as_closure().upvar_tys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                <a class="self" href="#882">self</a>.<a href="#379">open_drop_for_tuple</a>(<span class="kw-2">&amp;</span><a href="#886">tys</a>)
             }
             <span class="comment">// Note that `elaborate_drops` only drops the upvars of a generator,
             // and this is ok because `open_drop` here can only be reached
@@ -1979,23 +1981,23 @@
             // It effetively only contains upvars until the generator transformation runs.
             // See librustc_body/transform/generator.rs for more details.
             </span>ty::Generator(<span class="kw">_</span>, substs, <span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>tys: Vec&lt;<span class="kw">_</span>&gt; = <a href="#894">substs</a>.as_generator().upvar_tys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-                <a class="self" href="#881">self</a>.<a href="#379">open_drop_for_tuple</a>(<span class="kw-2">&amp;</span><a href="#895">tys</a>)
+                <span class="kw">let </span>tys: Vec&lt;<span class="kw">_</span>&gt; = <a href="#895">substs</a>.as_generator().upvar_tys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                <a class="self" href="#882">self</a>.<a href="#379">open_drop_for_tuple</a>(<span class="kw-2">&amp;</span><a href="#896">tys</a>)
             }
-            ty::Tuple(fields) =&gt; <a class="self" href="#881">self</a>.<a href="#379">open_drop_for_tuple</a>(<a href="#898">fields</a>),
+            ty::Tuple(fields) =&gt; <a class="self" href="#882">self</a>.<a href="#379">open_drop_for_tuple</a>(<a href="#899">fields</a>),
             ty::Adt(def, substs) =&gt; {
                 <span class="kw">if </span>def.is_box() {
-                    <a class="self" href="#881">self</a>.<a href="#397">open_drop_for_box</a>(<span class="kw-2">*</span><a href="#899">def</a>, <a href="#899">substs</a>)
+                    <a class="self" href="#882">self</a>.<a href="#397">open_drop_for_box</a>(<span class="kw-2">*</span><a href="#900">def</a>, <a href="#900">substs</a>)
                 } <span class="kw">else </span>{
-                    <a class="self" href="#881">self</a>.<a href="#411">open_drop_for_adt</a>(<span class="kw-2">*</span><a href="#899">def</a>, <a href="#899">substs</a>)
+                    <a class="self" href="#882">self</a>.<a href="#411">open_drop_for_adt</a>(<span class="kw-2">*</span><a href="#900">def</a>, <a href="#900">substs</a>)
                 }
             }
-            ty::Dynamic(..) =&gt; <a class="self" href="#881">self</a>.<a href="#917">complete_drop</a>(<a class="self" href="#881">self</a>.succ, <a class="self" href="#881">self</a>.unwind),
+            ty::Dynamic(..) =&gt; <a class="self" href="#882">self</a>.<a href="#918">complete_drop</a>(<a class="self" href="#882">self</a>.succ, <a class="self" href="#882">self</a>.unwind),
             ty::Array(ety, size) =&gt; {
-                <span class="kw">let </span>size = <a href="#907">size</a>.try_eval_usize(<a class="self" href="#881">self</a>.<a href="#175">tcx</a>(), <a class="self" href="#881">self</a>.elaborator.<a href="#77">param_env</a>());
-                <a class="self" href="#881">self</a>.<a href="#736">open_drop_for_array</a>(<span class="kw-2">*</span><a href="#907">ety</a>, <a href="#908">size</a>)
+                <span class="kw">let </span>size = <a href="#908">size</a>.try_eval_usize(<a class="self" href="#882">self</a>.<a href="#175">tcx</a>(), <a class="self" href="#882">self</a>.elaborator.<a href="#77">param_env</a>());
+                <a class="self" href="#882">self</a>.<a href="#736">open_drop_for_array</a>(<span class="kw-2">*</span><a href="#908">ety</a>, <a href="#909">size</a>)
             }
-            ty::Slice(ety) =&gt; <a class="self" href="#881">self</a>.<a href="#736">open_drop_for_array</a>(<span class="kw-2">*</span><a href="#911">ety</a>, <span class="prelude-val">None</span>),
+            ty::Slice(ety) =&gt; <a class="self" href="#882">self</a>.<a href="#736">open_drop_for_array</a>(<span class="kw-2">*</span><a href="#912">ety</a>, <span class="prelude-val">None</span>),
 
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;open drop from non-ADT `{:?}`&quot;</span>, ty),
         }
@@ -2004,9 +2006,9 @@
     <span class="kw">fn </span>complete_drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, succ: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, unwind: Unwind) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a> {
         <a class="macro" href="../../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;complete_drop(succ={:?}, unwind={:?})&quot;</span>, succ, unwind);
 
-        <span class="kw">let </span>drop_block = <a class="self" href="#917">self</a>.<a href="#1016">drop_block</a>(<a href="#917">succ</a>, <a href="#917">unwind</a>);
+        <span class="kw">let </span>drop_block = <a class="self" href="#918">self</a>.<a href="#1017">drop_block</a>(<a href="#918">succ</a>, <a href="#918">unwind</a>);
 
-        <a class="self" href="#917">self</a>.<a href="#1035-1040">drop_flag_test_block</a>(<a href="#920">drop_block</a>, <a href="#917">succ</a>, <a href="#917">unwind</a>)
+        <a class="self" href="#918">self</a>.<a href="#1036-1041">drop_flag_test_block</a>(<a href="#921">drop_block</a>, <a href="#918">succ</a>, <a href="#918">unwind</a>)
     }
 
     <span class="doccomment">/// Creates a block that resets the drop flag. If `mode` is deep, all children drop flags will
@@ -2022,23 +2024,23 @@
         <span class="kw">if </span>unwind.is_cleanup() {
             <span class="comment">// The drop flag isn&#39;t read again on the unwind path, so don&#39;t
             // bother setting it.
-            </span><span class="kw">return </span><a href="#930">succ</a>;
+            </span><span class="kw">return </span><a href="#931">succ</a>;
         }
-        <span class="kw">let </span>block = <a class="self" href="#928">self</a>.<a href="#1058">new_block</a>(<a href="#931">unwind</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> { target: <a href="#930">succ</a> });
+        <span class="kw">let </span>block = <a class="self" href="#929">self</a>.<a href="#1059">new_block</a>(<a href="#932">unwind</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> { target: <a href="#931">succ</a> });
         <span class="kw">let </span>block_start = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a> {
-            <a href="#940">block</a>,
+            <a href="#941">block</a>,
             statement_index: <span class="number">0</span>,
         };
-        <a class="self" href="#928">self</a>.elaborator
-            .<a href="#91">clear_drop_flag</a>(<a href="#941">block_start</a>, <a class="self" href="#928">self</a>.path, <a href="#929">mode</a>);
-        <a href="#940">block</a>
+        <a class="self" href="#929">self</a>.elaborator
+            .<a href="#91">clear_drop_flag</a>(<a href="#942">block_start</a>, <a class="self" href="#929">self</a>.path, <a href="#930">mode</a>);
+        <a href="#941">block</a>
     }
 
     <span class="kw">fn </span>elaborated_drop_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a> {
         <a class="macro" href="../../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;elaborated_drop_block({:?})&quot;</span>, <span class="self">self</span>);
-        <span class="kw">let </span>blk = <a class="self" href="#950">self</a>.<a href="#1016">drop_block</a>(<a class="self" href="#950">self</a>.succ, <a class="self" href="#950">self</a>.unwind);
-        <a class="self" href="#950">self</a>.<a href="#197">elaborate_drop</a>(<a href="#952">blk</a>);
-        <a href="#952">blk</a>
+        <span class="kw">let </span>blk = <a class="self" href="#951">self</a>.<a href="#1017">drop_block</a>(<a class="self" href="#951">self</a>.succ, <a class="self" href="#951">self</a>.unwind);
+        <a class="self" href="#951">self</a>.<a href="#197">elaborate_drop</a>(<a href="#953">blk</a>);
+        <a href="#953">blk</a>
     }
 
     <span class="doccomment">/// Creates a block that frees the backing memory of a `Box` if its drop is required (either
@@ -2052,8 +2054,8 @@
         target: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>,
         unwind: Unwind,
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a> {
-        <span class="kw">let </span>block = <a class="self" href="#962">self</a>.<a href="#974-980">unelaborated_free_block</a>(<a href="#963">adt</a>, <a href="#964">substs</a>, <a href="#965">target</a>, <a href="#966">unwind</a>);
-        <a class="self" href="#962">self</a>.<a href="#1035-1040">drop_flag_test_block</a>(<a href="#968">block</a>, <a href="#965">target</a>, <a href="#966">unwind</a>)
+        <span class="kw">let </span>block = <a class="self" href="#963">self</a>.<a href="#975-981">unelaborated_free_block</a>(<a href="#964">adt</a>, <a href="#965">substs</a>, <a href="#966">target</a>, <a href="#967">unwind</a>);
+        <a class="self" href="#963">self</a>.<a href="#1036-1041">drop_flag_test_block</a>(<a href="#969">block</a>, <a href="#966">target</a>, <a href="#967">unwind</a>)
     }
 
     <span class="doccomment">/// Creates a block that frees the backing memory of a `Box` (without dropping the contained
@@ -2065,53 +2067,53 @@
         target: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>,
         unwind: Unwind,
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a> {
-        <span class="kw">let </span>tcx = <a class="self" href="#975">self</a>.<a href="#175">tcx</a>();
-        <span class="kw">let </span>unit_temp = Place::from(<a class="self" href="#975">self</a>.<a href="#1069">new_temp</a>(<a href="#981">tcx</a>.mk_unit()));
-        <span class="kw">let </span>free_func = <a href="#981">tcx</a>.require_lang_item(LangItem::BoxFree, <span class="prelude-val">Some</span>(<a class="self" href="#975">self</a>.source_info.span));
-        <span class="kw">let </span>args = <a href="#976">adt</a>
+        <span class="kw">let </span>tcx = <a class="self" href="#976">self</a>.<a href="#175">tcx</a>();
+        <span class="kw">let </span>unit_temp = Place::from(<a class="self" href="#976">self</a>.<a href="#1070">new_temp</a>(<a href="#982">tcx</a>.mk_unit()));
+        <span class="kw">let </span>free_func = <a href="#982">tcx</a>.require_lang_item(LangItem::BoxFree, <span class="prelude-val">Some</span>(<a class="self" href="#976">self</a>.source_info.span));
+        <span class="kw">let </span>args = <a href="#977">adt</a>
             .variant(VariantIdx::new(<span class="number">0</span>))
             .fields
             .iter()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(i, f)| {
-                <span class="kw">let </span>field = Field::new(<a href="#989">i</a>);
-                <span class="kw">let </span>field_ty = <a href="#989">f</a>.ty(<a href="#981">tcx</a>, <a href="#977">substs</a>);
-                Operand::Move(<a href="#981">tcx</a>.mk_place_field(<a class="self" href="#975">self</a>.place, <a href="#990">field</a>, <a href="#991">field_ty</a>))
+                <span class="kw">let </span>field = Field::new(<a href="#990">i</a>);
+                <span class="kw">let </span>field_ty = <a href="#990">f</a>.ty(<a href="#982">tcx</a>, <a href="#978">substs</a>);
+                Operand::Move(<a href="#982">tcx</a>.mk_place_field(<a class="self" href="#976">self</a>.place, <a href="#991">field</a>, <a href="#992">field_ty</a>))
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
         <span class="kw">let </span>call = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Call</a> {
-            func: Operand::function_handle(<a href="#981">tcx</a>, <a href="#983">free_func</a>, <a href="#977">substs</a>, <a class="self" href="#975">self</a>.source_info.span),
-            <a href="#984">args</a>,
-            destination: <a href="#982">unit_temp</a>,
-            target: <span class="prelude-val">Some</span>(<a href="#978">target</a>),
+            func: Operand::function_handle(<a href="#982">tcx</a>, <a href="#984">free_func</a>, <a href="#978">substs</a>, <a class="self" href="#976">self</a>.source_info.span),
+            <a href="#985">args</a>,
+            destination: <a href="#983">unit_temp</a>,
+            target: <span class="prelude-val">Some</span>(<a href="#979">target</a>),
             cleanup: <span class="prelude-val">None</span>,
             from_hir_call: <span class="bool-val">false</span>,
-            fn_span: <a class="self" href="#975">self</a>.source_info.span,
+            fn_span: <a class="self" href="#976">self</a>.source_info.span,
         }; <span class="comment">// FIXME(#43234)
-        </span><span class="kw">let </span>free_block = <a class="self" href="#975">self</a>.<a href="#1058">new_block</a>(<a href="#979">unwind</a>, <a href="#996">call</a>);
+        </span><span class="kw">let </span>free_block = <a class="self" href="#976">self</a>.<a href="#1059">new_block</a>(<a href="#980">unwind</a>, <a href="#997">call</a>);
 
         <span class="kw">let </span>block_start = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">Location</a> {
-            block: <a href="#1005">free_block</a>,
+            block: <a href="#1006">free_block</a>,
             statement_index: <span class="number">0</span>,
         };
-        <a class="self" href="#975">self</a>.elaborator
-            .<a href="#91">clear_drop_flag</a>(<a href="#1007">block_start</a>, <a class="self" href="#975">self</a>.path, DropFlagMode::Shallow);
-        <a href="#1005">free_block</a>
+        <a class="self" href="#976">self</a>.elaborator
+            .<a href="#91">clear_drop_flag</a>(<a href="#1008">block_start</a>, <a class="self" href="#976">self</a>.path, DropFlagMode::Shallow);
+        <a href="#1006">free_block</a>
     }
 
     <span class="kw">fn </span>drop_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, unwind: Unwind) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a> {
         <span class="kw">let </span>block = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Drop</a> {
-            place: <a class="self" href="#1016">self</a>.place,
-            <a href="#1016">target</a>,
-            unwind: <a href="#1016">unwind</a>.<a href="#32">into_option</a>(),
+            place: <a class="self" href="#1017">self</a>.place,
+            <a href="#1017">target</a>,
+            unwind: <a href="#1017">unwind</a>.<a href="#32">into_option</a>(),
         };
-        <a class="self" href="#1016">self</a>.<a href="#1058">new_block</a>(<a href="#1016">unwind</a>, <a href="#1017">block</a>)
+        <a class="self" href="#1017">self</a>.<a href="#1059">new_block</a>(<a href="#1017">unwind</a>, <a href="#1018">block</a>)
     }
 
     <span class="kw">fn </span>goto_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, target: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, unwind: Unwind) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a> {
-        <span class="kw">let </span>block = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> { <a href="#1025">target</a> };
-        <a class="self" href="#1025">self</a>.<a href="#1058">new_block</a>(<a href="#1025">unwind</a>, <a href="#1026">block</a>)
+        <span class="kw">let </span>block = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> { <a href="#1026">target</a> };
+        <a class="self" href="#1026">self</a>.<a href="#1059">new_block</a>(<a href="#1026">unwind</a>, <a href="#1027">block</a>)
     }
 
     <span class="doccomment">/// Returns the block to jump to in order to test the drop flag and execute the drop.
@@ -2125,52 +2127,52 @@
         on_unset: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>,
         unwind: Unwind,
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a> {
-        <span class="kw">let </span>style = <a class="self" href="#1036">self</a>.elaborator.<a href="#82">drop_style</a>(<a class="self" href="#1036">self</a>.path, DropFlagMode::Shallow);
+        <span class="kw">let </span>style = <a class="self" href="#1037">self</a>.elaborator.<a href="#82">drop_style</a>(<a class="self" href="#1037">self</a>.path, DropFlagMode::Shallow);
         <a class="macro" href="../../../../../../../log/macro.debug.html">debug!</a>(
             <span class="string">&quot;drop_flag_test_block({:?},{:?},{:?},{:?}) - {:?}&quot;</span>,
             <span class="self">self</span>, on_set, on_unset, unwind, style
         );
 
-        <span class="kw">match </span><a href="#1041">style</a> {
-            DropStyle::Dead =&gt; <a href="#1038">on_unset</a>,
-            DropStyle::Static =&gt; <a href="#1037">on_set</a>,
+        <span class="kw">match </span><a href="#1042">style</a> {
+            DropStyle::Dead =&gt; <a href="#1039">on_unset</a>,
+            DropStyle::Static =&gt; <a href="#1038">on_set</a>,
             DropStyle::Conditional | DropStyle::Open =&gt; {
-                <span class="kw">let </span>flag = <a class="self" href="#1036">self</a>.elaborator.<a href="#85">get_drop_flag</a>(<a class="self" href="#1036">self</a>.path).unwrap();
-                <span class="kw">let </span>term = TerminatorKind::if_(<a class="self" href="#1036">self</a>.<a href="#175">tcx</a>(), <a href="#1051">flag</a>, <a href="#1037">on_set</a>, <a href="#1038">on_unset</a>);
-                <a class="self" href="#1036">self</a>.<a href="#1058">new_block</a>(<a href="#1039">unwind</a>, <a href="#1052">term</a>)
+                <span class="kw">let </span>flag = <a class="self" href="#1037">self</a>.elaborator.<a href="#85">get_drop_flag</a>(<a class="self" href="#1037">self</a>.path).unwrap();
+                <span class="kw">let </span>term = TerminatorKind::if_(<a class="self" href="#1037">self</a>.<a href="#175">tcx</a>(), <a href="#1052">flag</a>, <a href="#1038">on_set</a>, <a href="#1039">on_unset</a>);
+                <a class="self" href="#1037">self</a>.<a href="#1059">new_block</a>(<a href="#1040">unwind</a>, <a href="#1053">term</a>)
             }
         }
     }
 
     <span class="kw">fn </span>new_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, unwind: Unwind, k: TerminatorKind&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a> {
-        <a class="self" href="#1058">self</a>.elaborator.<a href="#74">patch</a>().new_block(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlockData.html">BasicBlockData</a> {
+        <a class="self" href="#1059">self</a>.elaborator.<a href="#74">patch</a>().new_block(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlockData.html">BasicBlockData</a> {
             statements: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             terminator: <span class="prelude-val">Some</span>(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/terminator/struct.Terminator.html">Terminator</a> {
-                source_info: <a class="self" href="#1058">self</a>.source_info,
-                kind: <a href="#1058">k</a>,
+                source_info: <a class="self" href="#1059">self</a>.source_info,
+                kind: <a href="#1059">k</a>,
             }),
-            is_cleanup: <a href="#1058">unwind</a>.<a href="#31">is_cleanup</a>(),
+            is_cleanup: <a href="#1059">unwind</a>.<a href="#31">is_cleanup</a>(),
         })
     }
 
     <span class="kw">fn </span>new_temp(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">Local</a> {
-        <a class="self" href="#1069">self</a>.elaborator.<a href="#74">patch</a>().new_temp(<a href="#1069">ty</a>, <a class="self" href="#1069">self</a>.source_info.span)
+        <a class="self" href="#1070">self</a>.elaborator.<a href="#74">patch</a>().new_temp(<a href="#1070">ty</a>, <a class="self" href="#1070">self</a>.source_info.span)
     }
 
     <span class="kw">fn </span>constant_usize(<span class="kw-2">&amp;</span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) -&gt; Operand&lt;<span class="lifetime">&#39;tcx</span>&gt; {
         Operand::Constant(Box::new(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Constant.html">Constant</a> {
-            span: <a class="self" href="#1073">self</a>.source_info.span,
+            span: <a class="self" href="#1074">self</a>.source_info.span,
             user_ty: <span class="prelude-val">None</span>,
-            literal: ConstantKind::Ty(ty::Const::from_usize(<a class="self" href="#1073">self</a>.<a href="#175">tcx</a>(), <a href="#1073">val</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
+            literal: ConstantKind::Ty(ty::Const::from_usize(<a class="self" href="#1074">self</a>.<a href="#175">tcx</a>(), <a href="#1074">val</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())),
         }))
     }
 
     <span class="kw">fn </span>assign(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: Place&lt;<span class="lifetime">&#39;tcx</span>&gt;, rhs: Rvalue&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; Statement&lt;<span class="lifetime">&#39;tcx</span>&gt; {
         <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Statement.html">Statement</a> {
-            source_info: <a class="self" href="#1081">self</a>.source_info,
-            kind: StatementKind::Assign(Box::new((<a href="#1081">lhs</a>, <a href="#1081">rhs</a>))),
+            source_info: <a class="self" href="#1082">self</a>.source_info,
+            kind: StatementKind::Assign(Box::new((<a href="#1082">lhs</a>, <a href="#1082">rhs</a>))),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

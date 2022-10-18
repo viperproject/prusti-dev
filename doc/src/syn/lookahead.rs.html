@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.100/src/lookahead.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lookahead.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.102/src/lookahead.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lookahead.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -167,8 +167,8 @@
 <span id="167">167</span>
 <span id="168">168</span>
 <span id="169">169</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="buffer.rs.html#179"><span class="kw">crate</span>::buffer::Cursor</a>;
-<span class="kw">use </span><span class="kw">crate</span>::error::{<a class="self" href="lib.rs.html#824">self</a>, <a href="error.rs.html#85">Error</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><a href="buffer.rs.html#107"><span class="kw">crate</span>::buffer::Cursor</a>;
+<span class="kw">use </span><span class="kw">crate</span>::error::{<a class="self" href="lib.rs.html#816">self</a>, <a href="error.rs.html#85">Error</a>};
 <span class="kw">use </span><a href="sealed.rs.html#3"><span class="kw">crate</span>::sealed::lookahead::Sealed</a>;
 <span class="kw">use </span><a href="span.rs.html#3"><span class="kw">crate</span>::span::IntoSpans</a>;
 <span class="kw">use </span><a href="token.rs.html#126"><span class="kw">crate</span>::token::Token</a>;
@@ -234,7 +234,7 @@
     comparisons: RefCell&lt;Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt;,
 }
 
-<span class="kw">pub fn </span>new(scope: <a href="../../proc_macro2/struct.Span.html">Span</a>, cursor: <a href="buffer.rs.html#179">Cursor</a>) -&gt; <a href="#62">Lookahead1</a> {
+<span class="kw">pub fn </span>new(scope: <a href="../../proc_macro2/struct.Span.html">Span</a>, cursor: <a href="buffer.rs.html#107">Cursor</a>) -&gt; <a href="#62">Lookahead1</a> {
     <a href="#62">Lookahead1</a> {
         <a href="#68">scope</a>,
         <a href="#68">cursor</a>,
@@ -244,7 +244,7 @@
 
 <span class="kw">fn </span>peek_impl(
     lookahead: <span class="kw-2">&amp;</span><a href="#62">Lookahead1</a>,
-    peek: <span class="kw">fn</span>(<a href="buffer.rs.html#179">Cursor</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    peek: <span class="kw">fn</span>(<a href="buffer.rs.html#107">Cursor</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     display: <span class="kw">fn</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
 ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <span class="kw">if </span>peek(lookahead.cursor) {
@@ -285,7 +285,7 @@
                 <span class="kw">if </span><span class="self">self</span>.cursor.eof() {
                     Error::new(<a class="self" href="#112">self</a>.scope, <span class="string">&quot;unexpected end of input&quot;</span>)
                 } <span class="kw">else </span>{
-                    Error::new(<a class="self" href="#112">self</a>.cursor.<a href="buffer.rs.html#378">span</a>(), <span class="string">&quot;unexpected token&quot;</span>)
+                    Error::new(<a class="self" href="#112">self</a>.cursor.<a href="buffer.rs.html#304">span</a>(), <span class="string">&quot;unexpected token&quot;</span>)
                 }
             }
             <span class="number">1 </span>=&gt; {
@@ -331,10 +331,10 @@
     }
 }
 
-<span class="kw">pub fn </span>is_delimiter(cursor: <a href="buffer.rs.html#179">Cursor</a>, delimiter: <a href="../../proc_macro2/enum.Delimiter.html">Delimiter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#165">cursor</a>.<a href="buffer.rs.html#274">group</a>(<a href="#165">delimiter</a>).is_some()
+<span class="kw">pub fn </span>is_delimiter(cursor: <a href="buffer.rs.html#107">Cursor</a>, delimiter: <a href="../../proc_macro2/enum.Delimiter.html">Delimiter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <a href="#165">cursor</a>.<a href="buffer.rs.html#200">group</a>(<a href="#165">delimiter</a>).is_some()
 }
 
 <span class="kw">impl</span>&lt;F: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> + FnOnce(<a href="#157">TokenMarker</a>) -&gt; T, T: <a href="token.rs.html#126">Token</a>&gt; <a href="sealed.rs.html#3">Sealed</a> <span class="kw">for </span>F {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

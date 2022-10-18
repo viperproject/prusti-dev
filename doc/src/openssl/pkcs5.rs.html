@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/pkcs5.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkcs5.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/pkcs5.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkcs5.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -307,8 +307,8 @@
 </pre><pre class="rust"><code><span class="kw">use </span><a href="../../libc/unix/type.c_int.html">libc::c_int</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
-<span class="kw">use </span><a href="lib.rs.html#194"><span class="kw">crate</span>::cvt</a>;
-<span class="kw">use </span><a href="error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><a href="lib.rs.html#202"><span class="kw">crate</span>::cvt</a>;
+<span class="kw">use </span><a href="error.rs.html#39"><span class="kw">crate</span>::error::ErrorStack</a>;
 <span class="kw">use </span><a href="hash.rs.html#22"><span class="kw">crate</span>::hash::MessageDigest</a>;
 <span class="kw">use </span><a href="symm.rs.html#73"><span class="kw">crate</span>::symm::Cipher</a>;
 <span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
@@ -337,7 +337,7 @@
     data: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
     salt: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
     count: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#11">KeyIvPair</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#11">KeyIvPair</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
     <span class="kw">unsafe </span>{
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(data.len() &lt;= c_int::max_value() <span class="kw">as </span>usize);
         <span class="kw">let </span>salt_ptr = <span class="kw">match </span><a href="#32">salt</a> {
@@ -350,10 +350,10 @@
 
         <a href="../../openssl/fn.init.html">ffi::init</a>();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>iv = <a href="#29">cipher</a>.<a href="symm.rs.html#358">iv_len</a>().map(|l| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; l]);
+        <span class="kw">let </span><span class="kw-2">mut </span>iv = <a href="#29">cipher</a>.<a href="symm.rs.html#370">iv_len</a>().map(|l| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; l]);
 
-        <span class="kw">let </span>cipher = <a href="#29">cipher</a>.<a href="symm.rs.html#345">as_ptr</a>();
-        <span class="kw">let </span>digest = <a href="#30">digest</a>.<a href="hash.rs.html#137">as_ptr</a>();
+        <span class="kw">let </span>cipher = <a href="#29">cipher</a>.<a href="symm.rs.html#357">as_ptr</a>();
+        <span class="kw">let </span>digest = <a href="#30">digest</a>.<a href="hash.rs.html#138">as_ptr</a>();
 
         <span class="kw">let </span>len = cvt(ffi::EVP_BytesToKey(
             cipher,
@@ -395,20 +395,20 @@
     iter: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     hash: <a href="hash.rs.html#22">MessageDigest</a>,
     key: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
     <span class="kw">unsafe </span>{
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(pass.len() &lt;= c_int::max_value() <span class="kw">as </span>usize);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(salt.len() &lt;= c_int::max_value() <span class="kw">as </span>usize);
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(key.len() &lt;= c_int::max_value() <span class="kw">as </span>usize);
 
         <a href="../../openssl/fn.init.html">ffi::init</a>();
-        <a href="lib.rs.html#194">cvt</a>(ffi::PKCS5_PBKDF2_HMAC(
+        <a href="lib.rs.html#202">cvt</a>(ffi::PKCS5_PBKDF2_HMAC(
             <a href="#87">pass</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
             <a href="#87">pass</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
             <a href="#88">salt</a>.as_ptr(),
             <a href="#88">salt</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
             <a href="#89">iter</a> <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
-            <a href="#90">hash</a>.<a href="hash.rs.html#137">as_ptr</a>(),
+            <a href="#90">hash</a>.<a href="hash.rs.html#138">as_ptr</a>(),
             <a href="#91">key</a>.len() <span class="kw">as </span><a href="../../libc/unix/type.c_int.html">c_int</a>,
             <a href="#91">key</a>.as_mut_ptr(),
         ))
@@ -429,10 +429,10 @@
     p: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
     maxmem: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
     key: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
-) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
     <span class="kw">unsafe </span>{
         <a href="../../openssl/fn.init.html">ffi::init</a>();
-        <a href="lib.rs.html#194">cvt</a>(ffi::EVP_PBE_scrypt(
+        <a href="lib.rs.html#202">cvt</a>(ffi::EVP_PBE_scrypt(
             <a href="#119">pass</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
             <a href="#119">pass</a>.len(),
             <a href="#120">salt</a>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
@@ -611,4 +611,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

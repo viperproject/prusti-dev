@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/pkcs7.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkcs7.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.42/src/pkcs7.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pkcs7.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -447,17 +447,17 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 
 <span class="kw">use </span><span class="kw">crate</span>::bio::{<a href="bio.rs.html#40">MemBio</a>, <a href="bio.rs.html#10">MemBioSlice</a>};
-<span class="kw">use </span><a href="error.rs.html#32"><span class="kw">crate</span>::error::ErrorStack</a>;
-<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="pkey.rs.html#126">HasPrivate</a>, <a href="pkey.rs.html#130-138">PKeyRef</a>};
+<span class="kw">use </span><a href="error.rs.html#39"><span class="kw">crate</span>::error::ErrorStack</a>;
+<span class="kw">use </span><span class="kw">crate</span>::pkey::{<a href="pkey.rs.html#128">HasPrivate</a>, <a href="pkey.rs.html#132-140">PKeyRef</a>};
 <span class="kw">use </span><span class="kw">crate</span>::stack::{<a href="stack.rs.html#43">Stack</a>, <a href="stack.rs.html#180">StackRef</a>};
 <span class="kw">use </span><a href="symm.rs.html#73"><span class="kw">crate</span>::symm::Cipher</a>;
-<span class="kw">use </span><a href="x509/store.rs.html#173-181"><span class="kw">crate</span>::x509::store::X509StoreRef</a>;
+<span class="kw">use </span><a href="x509/store.rs.html#182-190"><span class="kw">crate</span>::x509::store::X509StoreRef</a>;
 <span class="kw">use </span><span class="kw">crate</span>::x509::{<a href="x509/mod.rs.html#362-370">X509Ref</a>, <a href="x509/mod.rs.html#362-370">X509</a>};
-<span class="kw">use crate</span>::{<a href="lib.rs.html#194">cvt</a>, <a href="lib.rs.html#185">cvt_p</a>};
+<span class="kw">use crate</span>::{<a href="lib.rs.html#202">cvt</a>, <a href="lib.rs.html#193">cvt_p</a>};
 <span class="kw">use </span><a href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
 
-<a class="macro" href="macros.rs.html#133-162">foreign_type_and_impl_send_sync! </a>{
-    <span class="kw">type </span>CType = <a href="../../openssl_sys/handwritten/pkcs7/enum.PKCS7.html">ffi::PKCS7</a>;
+<a class="macro" href="macros.rs.html#134-163">foreign_type_and_impl_send_sync! </a>{
+    <span class="kw">type </span>CType = <a href="../../openssl_sys/openssl/handwritten/pkcs7/enum.PKCS7.html">ffi::PKCS7</a>;
     <span class="kw">fn </span>drop = ffi::PKCS7_free;
 
     <span class="doccomment">/// A PKCS#7 structure.
@@ -493,7 +493,7 @@
 }
 
 <span class="kw">impl </span><a href="#17-28">Pkcs7</a> {
-    <a class="macro" href="macros.rs.html#119-131">from_pem! </a>{
+    <a class="macro" href="macros.rs.html#120-132">from_pem! </a>{
         <span class="doccomment">/// Deserializes a PEM-encoded PKCS#7 signature
         ///
         /// The input should have a header of `-----BEGIN PKCS7-----`.
@@ -503,7 +503,7 @@
         ffi::PEM_read_bio_PKCS7
     }
 
-    <a class="macro" href="macros.rs.html#105-117">from_der! </a>{
+    <a class="macro" href="macros.rs.html#105-118">from_der! </a>{
         <span class="doccomment">/// Deserializes a DER-encoded PKCS#7 signature
         </span><span class="attribute">#[corresponds(d2i_PKCS7)]
         </span>from_der,
@@ -516,7 +516,7 @@
     /// Returns the loaded signature, along with the cleartext message (if
     /// available).
     </span><span class="attribute">#[corresponds(SMIME_read_PKCS7)]
-    </span><span class="kw">pub fn </span>from_smime(input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="#17-28">Pkcs7</a>, <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>from_smime(input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;(<a href="#17-28">Pkcs7</a>, <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <a href="../../openssl/fn.init.html">ffi::init</a>();
 
         <span class="kw">let </span>input_bio = MemBioSlice::new(input)<span class="question-mark">?</span>;
@@ -545,14 +545,14 @@
         input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         cipher: <a href="symm.rs.html#73">Cipher</a>,
         flags: <a href="#30-51">Pkcs7Flags</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#17-28">Pkcs7</a>, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#17-28">Pkcs7</a>, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">let </span>input_bio = MemBioSlice::new(input)<span class="question-mark">?</span>;
 
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#185">cvt_p</a>(ffi::PKCS7_encrypt(
+            <a href="lib.rs.html#193">cvt_p</a>(ffi::PKCS7_encrypt(
                 <a href="#102">certs</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 <a href="#107">input_bio</a>.<a href="bio.rs.html#35">as_ptr</a>(),
-                <a href="#104">cipher</a>.<a href="symm.rs.html#345">as_ptr</a>(),
+                <a href="#104">cipher</a>.<a href="symm.rs.html#357">as_ptr</a>(),
                 <a href="#105">flags</a>.bits,
             ))
             .map(<a href="#17-28">Pkcs7</a>)
@@ -572,13 +572,13 @@
         certs: <span class="kw-2">&amp;</span>StackRef&lt;<a href="x509/mod.rs.html#362-370">X509</a>&gt;,
         input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
         flags: <a href="#30-51">Pkcs7Flags</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#17-28">Pkcs7</a>, <a href="error.rs.html#32">ErrorStack</a>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#17-28">Pkcs7</a>, <a href="error.rs.html#39">ErrorStack</a>&gt;
     <span class="kw">where
-        </span>PT: <a href="pkey.rs.html#126">HasPrivate</a>,
+        </span>PT: <a href="pkey.rs.html#128">HasPrivate</a>,
     {
         <span class="kw">let </span>input_bio = MemBioSlice::new(input)<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#185">cvt_p</a>(ffi::PKCS7_sign(
+            <a href="lib.rs.html#193">cvt_p</a>(ffi::PKCS7_sign(
                 <a href="#128">signcert</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 <a href="#129">pkey</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 <a href="#130">certs</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
@@ -593,11 +593,11 @@
 <span class="kw">impl </span><a href="#17-28">Pkcs7Ref</a> {
     <span class="doccomment">/// Converts PKCS#7 structure to S/MIME format
     </span><span class="attribute">#[corresponds(SMIME_write_PKCS7)]
-    </span><span class="kw">pub fn </span>to_smime(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], flags: <a href="#30-51">Pkcs7Flags</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    </span><span class="kw">pub fn </span>to_smime(<span class="kw-2">&amp;</span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], flags: <a href="#30-51">Pkcs7Flags</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">let </span>input_bio = MemBioSlice::new(input)<span class="question-mark">?</span>;
         <span class="kw">let </span>output = MemBio::new()<span class="question-mark">?</span>;
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::SMIME_write_PKCS7(
+            <a href="lib.rs.html#202">cvt</a>(ffi::SMIME_write_PKCS7(
                 <a href="#156">output</a>.<a href="bio.rs.html#58">as_ptr</a>(),
                 <a class="self" href="#154">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 <a href="#155">input_bio</a>.<a href="bio.rs.html#35">as_ptr</a>(),
@@ -635,14 +635,14 @@
         pkey: <span class="kw-2">&amp;</span>PKeyRef&lt;PT&gt;,
         cert: <span class="kw-2">&amp;</span><a href="x509/mod.rs.html#362-370">X509Ref</a>,
         flags: <a href="#30-51">Pkcs7Flags</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="error.rs.html#32">ErrorStack</a>&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt;
     <span class="kw">where
-        </span>PT: <a href="pkey.rs.html#126">HasPrivate</a>,
+        </span>PT: <a href="pkey.rs.html#128">HasPrivate</a>,
     {
         <span class="kw">let </span>output = MemBio::new()<span class="question-mark">?</span>;
 
         <span class="kw">unsafe </span>{
-            <a href="lib.rs.html#194">cvt</a>(ffi::PKCS7_decrypt(
+            <a href="lib.rs.html#202">cvt</a>(ffi::PKCS7_decrypt(
                 <a class="self" href="#192">self</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 <a href="#193">pkey</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
                 <a href="#194">cert</a>.<a href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
@@ -663,11 +663,11 @@
     </span><span class="kw">pub fn </span>verify(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         certs: <span class="kw-2">&amp;</span>StackRef&lt;<a href="x509/mod.rs.html#362-370">X509</a>&gt;,
-        store: <span class="kw-2">&amp;</span><a href="x509/store.rs.html#173-181">X509StoreRef</a>,
+        store: <span class="kw-2">&amp;</span><a href="x509/store.rs.html#182-190">X509StoreRef</a>,
         indata: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]&gt;,
         out: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;&gt;,
         flags: <a href="#30-51">Pkcs7Flags</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">let </span>out_bio = MemBio::new()<span class="question-mark">?</span>;
 
         <span class="kw">let </span>indata_bio = <span class="kw">match </span><a href="#225">indata</a> {
@@ -702,7 +702,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         certs: <span class="kw-2">&amp;</span>StackRef&lt;<a href="x509/mod.rs.html#362-370">X509</a>&gt;,
         flags: <a href="#30-51">Pkcs7Flags</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Stack&lt;<a href="x509/mod.rs.html#362-370">X509</a>&gt;, <a href="error.rs.html#32">ErrorStack</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Stack&lt;<a href="x509/mod.rs.html#362-370">X509</a>&gt;, <a href="error.rs.html#39">ErrorStack</a>&gt; {
         <span class="kw">unsafe </span>{
             <span class="kw">let </span>ptr = cvt_p(ffi::PKCS7_get0_signers(
                 <span class="self">self</span>.as_ptr(),
@@ -883,4 +883,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

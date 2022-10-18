@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/body.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>body.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.3/src/filters/body.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>body.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -363,18 +363,18 @@
 <span class="kw">use </span><a href="../../../serde_urlencoded/index.html">serde_urlencoded</a>;
 
 <span class="kw">use </span><span class="kw">crate</span>::filter::{<a href="../filter/mod.rs.html#448-453">filter_fn</a>, <a href="../filter/mod.rs.html#458-465">filter_fn_one</a>, <a href="../filter/mod.rs.html#93">Filter</a>, <a href="../filter/mod.rs.html#39">FilterBase</a>};
-<span class="kw">use </span><span class="kw">crate</span>::reject::{<a class="self" href="../lib.rs.html#95">self</a>, <a href="../reject.rs.html#210">Rejection</a>};
+<span class="kw">use </span><span class="kw">crate</span>::reject::{<a class="self" href="../lib.rs.html#95">self</a>, <a href="../reject.rs.html#205">Rejection</a>};
 
 <span class="kw">type </span>BoxError = Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">StdError</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a>&gt;;
 
 <span class="comment">// Extracts the `Body` Stream from the route.
 //
 // Does not consume any of it.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>body() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (<a href="../../../hyper/body/body/struct.Body.html">Body</a>,), Error = <a href="../reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>body() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (<a href="../../../hyper/body/body/struct.Body.html">Body</a>,), Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
     <a href="../filter/mod.rs.html#458-465">filter_fn_one</a>(|route| {
         future::ready(<a href="#29">route</a>.<a href="../route.rs.html#130">take_body</a>().ok_or_else(|| {
             <a class="macro" href="../../../tracing/tracing/macro.error.html">tracing::error!</a>(<span class="string">&quot;request body already taken in previous filter&quot;</span>);
-            <a href="../reject.rs.html#203">reject::known</a>(<a href="#343-345">BodyConsumedMultipleTimes</a> { _p: () })
+            <a href="../reject.rs.html#198">reject::known</a>(<a href="#343-345">BodyConsumedMultipleTimes</a> { _p: () })
         }))
     })
 }
@@ -393,18 +393,18 @@
 /// let upload = warp::body::content_length_limit(4096)
 ///     .and(warp::body::aggregate());
 /// ```
-</span><span class="kw">pub fn </span>content_length_limit(limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = <a href="../reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+</span><span class="kw">pub fn </span>content_length_limit(limit: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
     <a href="header.rs.html#52-53"><span class="kw">crate</span>::filters::header::header2</a>()
         .<a href="../filter/mod.rs.html#46-50">map_err</a>(<a href="../filter/mod.rs.html#70"><span class="kw">crate</span>::filter::Internal</a>, |<span class="kw">_</span>| {
             <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;content-length missing&quot;</span>);
-            <a href="../reject.rs.html#124">reject::length_required</a>()
+            <a href="../reject.rs.html#119">reject::length_required</a>()
         })
         .<a href="../filter/mod.rs.html#255-260">and_then</a>(<span class="kw">move </span>|ContentLength(length)| {
             <span class="kw">if </span>length &lt;= limit {
                 future::ok(())
             } <span class="kw">else </span>{
                 <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;content-length: {} is over limit {}&quot;</span>, length, limit);
-                future::err(<a href="../reject.rs.html#130">reject::payload_too_large</a>())
+                future::err(<a href="../reject.rs.html#125">reject::payload_too_large</a>())
             }
         })
         .<a href="../filter/mod.rs.html#370-373">untuple_one</a>()
@@ -420,7 +420,7 @@
 /// This does not have a default size limit, it would be wise to use one to
 /// prevent a overly large request from using too much memory.
 </span><span class="kw">pub fn </span>stream(
-) -&gt; <span class="kw">impl </span>Filter&lt;Extract = (<span class="kw">impl </span>Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span><a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../error.rs.html#8"><span class="kw">crate</span>::Error</a>&gt;&gt;,), Error = <a href="../reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>
+) -&gt; <span class="kw">impl </span>Filter&lt;Extract = (<span class="kw">impl </span>Stream&lt;Item = <span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span><a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a href="../error.rs.html#8"><span class="kw">crate</span>::Error</a>&gt;&gt;,), Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a>
 {
     <a href="#28">body</a>().<a href="../filter/mod.rs.html#191-194">map</a>(|body: <a href="../../../hyper/body/body/struct.Body.html">Body</a>| <a href="#291">BodyStream</a> { <a href="#80">body</a> })
 }
@@ -448,11 +448,11 @@
 ///         println!(&quot;bytes = {:?}&quot;, bytes);
 ///     });
 /// ```
-</span><span class="kw">pub fn </span>bytes() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>,), Error = <a href="../reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+</span><span class="kw">pub fn </span>bytes() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (<a href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>,), Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
     <a href="#28">body</a>().<a href="../filter/mod.rs.html#255-260">and_then</a>(|body: <a href="../../../hyper/body/body/struct.Body.html">hyper::Body</a>| {
         hyper::body::to_bytes(<a href="#107">body</a>).<a href="../../../futures_util/future/try_future/trait.TryFutureExt.html">map_err</a>(|err| {
             <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;to_bytes error: {}&quot;</span>, err);
-            <a href="../reject.rs.html#203">reject::known</a>(<a href="#333">BodyReadError</a>(<a href="#108">err</a>))
+            <a href="../reject.rs.html#198">reject::known</a>(<a href="#333">BodyReadError</a>(<a href="#108">err</a>))
         })
     })
 }
@@ -486,11 +486,11 @@
 ///     .and(warp::body::aggregate())
 ///     .map(full_body);
 /// ```
-</span><span class="kw">pub fn </span>aggregate() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (<span class="kw">impl </span><a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,), Error = <a href="../reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+</span><span class="kw">pub fn </span>aggregate() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (<span class="kw">impl </span><a href="../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>,), Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
     <a href="#28">body</a>().<a href="../filter/mod.rs.html#255-260">and_then</a>(|body: <a href="../../../hyper/body/body/struct.Body.html">::hyper::Body</a>| {
         hyper::body::aggregate(<a href="#145">body</a>).<a href="../../../futures_util/future/try_future/trait.TryFutureExt.html">map_err</a>(|err| {
             <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;aggregate error: {}&quot;</span>, err);
-            <a href="../reject.rs.html#203">reject::known</a>(<a href="#333">BodyReadError</a>(<a href="#146">err</a>))
+            <a href="../reject.rs.html#198">reject::known</a>(<a href="#333">BodyReadError</a>(<a href="#146">err</a>))
         })
     })
 }
@@ -515,13 +515,13 @@
 ///         &quot;Got a JSON body!&quot;
 ///     });
 /// ```
-</span><span class="kw">pub fn </span>json&lt;T: <a href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (T,), Error = <a href="../reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+</span><span class="kw">pub fn </span>json&lt;T: <a href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (T,), Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
     is_content_type::&lt;<a href="#228">Json</a>&gt;()
         .<a href="../filter/mod.rs.html#113-118">and</a>(<a href="#106">bytes</a>())
         .<a href="../filter/mod.rs.html#255-260">and_then</a>(|buf| <span class="kw">async move </span>{
             Json::decode(<a href="#176">buf</a>).map_err(|err| {
                 <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;request json body error: {}&quot;</span>, err);
-                <a href="../reject.rs.html#203">reject::known</a>(<a href="#316">BodyDeserializeError</a> { cause: <a href="#177">err</a> })
+                <a href="../reject.rs.html#198">reject::known</a>(<a href="#316">BodyDeserializeError</a> { cause: <a href="#177">err</a> })
             })
         })
 }
@@ -550,13 +550,13 @@
 ///         &quot;Got a urlencoded body!&quot;
 ///     });
 /// ```
-</span><span class="kw">pub fn </span>form&lt;T: <a href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (T,), Error = <a href="../reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+</span><span class="kw">pub fn </span>form&lt;T: <a href="../../../serde/de/trait.DeserializeOwned.html">DeserializeOwned</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>&gt;() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (T,), Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
     is_content_type::&lt;<a href="#239">Form</a>&gt;()
         .<a href="../filter/mod.rs.html#113-118">and</a>(<a href="#144">aggregate</a>())
         .<a href="../filter/mod.rs.html#255-260">and_then</a>(|buf| <span class="kw">async move </span>{
             Form::decode(<a href="#211">buf</a>).map_err(|err| {
                 <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;request form body error: {}&quot;</span>, err);
-                <a href="../reject.rs.html#203">reject::known</a>(<a href="#316">BodyDeserializeError</a> { cause: <a href="#212">err</a> })
+                <a href="../reject.rs.html#198">reject::known</a>(<a href="#316">BodyDeserializeError</a> { cause: <a href="#212">err</a> })
             })
         })
 }
@@ -595,7 +595,7 @@
 
 <span class="comment">// Require the `content-type` header to be this type (or, if there&#39;s no `content-type`
 // header at all, optimistically hope it&#39;s the right type).
-</span><span class="kw">fn </span>is_content_type&lt;D: <a href="#221">Decode</a>&gt;() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = <a href="../reject.rs.html#210">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
+</span><span class="kw">fn </span>is_content_type&lt;D: <a href="#221">Decode</a>&gt;() -&gt; <span class="kw">impl </span>Filter&lt;Extract = (), Error = <a href="../reject.rs.html#205">Rejection</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a> {
     <a href="../filter/mod.rs.html#448-453">filter_fn</a>(<span class="kw">move </span>|route| {
         <span class="kw">let </span>(type_, subtype) = D::MIME;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <a href="#254">route</a>.<a href="../route.rs.html#65">headers</a>().get(<a href="../../../http/header/name/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>) {
@@ -614,11 +614,11 @@
                         type_,
                         subtype
                     );
-                    future::err(<a href="../reject.rs.html#139">reject::unsupported_media_type</a>())
+                    future::err(<a href="../reject.rs.html#134">reject::unsupported_media_type</a>())
                 }
             } <span class="kw">else </span>{
                 <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;content-type {:?} couldn&#39;t be parsed&quot;</span>, value);
-                future::err(<a href="../reject.rs.html#139">reject::unsupported_media_type</a>())
+                future::err(<a href="../reject.rs.html#134">reject::unsupported_media_type</a>())
             }
         } <span class="kw">else if </span>D::WITH_NO_CONTENT_TYPE {
             <span class="comment">// Optimistically assume its correct!
@@ -626,7 +626,7 @@
             future::ok(())
         } <span class="kw">else </span>{
             <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;no content-type found&quot;</span>);
-            future::err(<a href="../reject.rs.html#139">reject::unsupported_media_type</a>())
+            future::err(<a href="../reject.rs.html#134">reject::unsupported_media_type</a>())
         }
     })
 }
@@ -689,4 +689,4 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) BodyConsumedMultipleTimes: <span class="string">&quot;Request body consumed multiple times&quot;
 </span>}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

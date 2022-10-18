@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.144/src/de/value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../serde/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.145/src/de/value.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../serde/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1704,8 +1704,8 @@
 
 <span class="kw">use </span><span class="self">self</span>::private::{<a href="#1677">First</a>, <a href="#1678">Second</a>};
 <span class="kw">use </span><a href="../private/mod.rs.html#6">__private::size_hint</a>;
-<span class="kw">use </span>de::{<a class="self" href="../lib.rs.html#260">self</a>, <a href="mod.rs.html#906">Deserializer</a>, <a href="mod.rs.html#471">Expected</a>, <a href="mod.rs.html#2261">IntoDeserializer</a>, <a href="mod.rs.html#1708">SeqAccess</a>, <a href="mod.rs.html#1283">Visitor</a>};
-<span class="kw">use </span><a href="../lib.rs.html#261">ser</a>;
+<span class="kw">use </span>de::{<a class="self" href="../lib.rs.html#273">self</a>, <a href="mod.rs.html#906">Deserializer</a>, <a href="mod.rs.html#471">Expected</a>, <a href="mod.rs.html#2261">IntoDeserializer</a>, <a href="mod.rs.html#1708">SeqAccess</a>, <a href="mod.rs.html#1283">Visitor</a>};
+<span class="kw">use </span><a href="../lib.rs.html#274">ser</a>;
 
 <span class="comment">////////////////////////////////////////////////////////////////////////////////
 
@@ -2616,8 +2616,8 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">let </span>v = <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.try.html">try!</a>(visitor.visit_seq(<span class="kw-2">&amp;mut </span><span class="self">self</span>));
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.try.html">try!</a>(<span class="self">self</span>.end());
+        <span class="kw">let </span>v = <a class="macro" href="../lib.rs.html#256-263">try!</a>(visitor.visit_seq(<span class="kw-2">&amp;mut </span><span class="self">self</span>));
+        <a class="macro" href="../lib.rs.html#256-263">try!</a>(<span class="self">self</span>.end());
         <span class="prelude-val">Ok</span>(<a href="#940">v</a>)
     }
 
@@ -2841,8 +2841,8 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">let </span>value = <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.try.html">try!</a>(visitor.visit_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>));
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.try.html">try!</a>(<span class="self">self</span>.end());
+        <span class="kw">let </span>value = <a class="macro" href="../lib.rs.html#256-263">try!</a>(visitor.visit_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>));
+        <a class="macro" href="../lib.rs.html#256-263">try!</a>(<span class="self">self</span>.end());
         <span class="prelude-val">Ok</span>(<a href="#1165">value</a>)
     }
 
@@ -2850,8 +2850,8 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">let </span>value = <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.try.html">try!</a>(visitor.visit_seq(<span class="kw-2">&amp;mut </span><span class="self">self</span>));
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.try.html">try!</a>(<span class="self">self</span>.end());
+        <span class="kw">let </span>value = <a class="macro" href="../lib.rs.html#256-263">try!</a>(visitor.visit_seq(<span class="kw-2">&amp;mut </span><span class="self">self</span>));
+        <a class="macro" href="../lib.rs.html#256-263">try!</a>(<span class="self">self</span>.end());
         <span class="prelude-val">Ok</span>(<a href="#1174">value</a>)
     }
 
@@ -2915,8 +2915,8 @@
     {
         <span class="kw">match </span><a class="self" href="#1229">self</a>.<a href="#1140">next_pair</a>() {
             <span class="prelude-val">Some</span>((key, value)) =&gt; {
-                <span class="kw">let </span>key = <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.try.html">try!</a>(kseed.deserialize(key.into_deserializer()));
-                <span class="kw">let </span>value = <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.try.html">try!</a>(vseed.deserialize(value.into_deserializer()));
+                <span class="kw">let </span>key = <a class="macro" href="../lib.rs.html#256-263">try!</a>(kseed.deserialize(key.into_deserializer()));
+                <span class="kw">let </span>value = <a class="macro" href="../lib.rs.html#256-263">try!</a>(vseed.deserialize(value.into_deserializer()));
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<a href="#1239">key</a>, <a href="#1240">value</a>)))
             }
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
@@ -3020,7 +3020,7 @@
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>pair_visitor = <a href="#1369">PairVisitor</a>(<span class="prelude-val">Some</span>(<a class="self" href="#1339">self</a>.<span class="number">0</span>), <span class="prelude-val">Some</span>(<a class="self" href="#1339">self</a>.<span class="number">1</span>), PhantomData);
-        <span class="kw">let </span>pair = <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.try.html">try!</a>(visitor.visit_seq(<span class="kw-2">&amp;mut </span>pair_visitor));
+        <span class="kw">let </span>pair = <a class="macro" href="../lib.rs.html#256-263">try!</a>(visitor.visit_seq(<span class="kw-2">&amp;mut </span>pair_visitor));
         <span class="kw">if </span>pair_visitor.<span class="number">1</span>.is_none() {
             <span class="prelude-val">Ok</span>(<a href="#1344">pair</a>)
         } <span class="kw">else </span>{
@@ -3180,7 +3180,7 @@
     <span class="kw">where
         </span>T: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="self">self</span>.map.next_key_seed(seed)<span class="question-mark">? </span>{
+        <span class="kw">match </span><a class="macro" href="../lib.rs.html#256-263">try!</a>(<span class="self">self</span>.map.next_key_seed(seed)) {
             <span class="prelude-val">Some</span>(key) =&gt; <span class="prelude-val">Ok</span>((<a href="#1505">key</a>, <a href="#1580">private::map_as_enum</a>(<a class="self" href="#1500">self</a>.map))),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="mod.rs.html#299">de::Error::invalid_type</a>(<a href="mod.rs.html#371">de::Unexpected::Map</a>, <span class="kw-2">&amp;</span><span class="string">&quot;enum&quot;</span>)),
         }
@@ -3192,7 +3192,7 @@
 </span><span class="kw">mod </span>private {
     <span class="kw">use </span><a href="../lib.rs.html#151">lib</a>::<span class="kw-2">*</span>;
 
-    <span class="kw">use </span>de::{<a class="self" href="../lib.rs.html#260">self</a>, <a href="mod.rs.html#770">DeserializeSeed</a>, <a href="mod.rs.html#906">Deserializer</a>, <a href="mod.rs.html#1790">MapAccess</a>, <a href="mod.rs.html#333">Unexpected</a>, <a href="mod.rs.html#2029">VariantAccess</a>, <a href="mod.rs.html#1283">Visitor</a>};
+    <span class="kw">use </span>de::{<a class="self" href="../lib.rs.html#273">self</a>, <a href="mod.rs.html#770">DeserializeSeed</a>, <a href="mod.rs.html#906">Deserializer</a>, <a href="mod.rs.html#1790">MapAccess</a>, <a href="mod.rs.html#333">Unexpected</a>, <a href="mod.rs.html#2029">VariantAccess</a>, <a href="mod.rs.html#1283">Visitor</a>};
 
     <span class="kw">pub struct </span>UnitOnly&lt;E&gt; {
         marker: PhantomData&lt;E&gt;,
@@ -3357,4 +3357,4 @@
     <span class="kw">pub type </span>Second&lt;T&gt; = &lt;T <span class="kw">as </span>Pair&gt;::Second;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

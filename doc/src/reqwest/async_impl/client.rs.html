@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.11/src/async_impl/client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../reqwest/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.12/src/async_impl/client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../reqwest/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -2072,6 +2072,19 @@
 <span id="2072">2072</span>
 <span id="2073">2073</span>
 <span id="2074">2074</span>
+<span id="2075">2075</span>
+<span id="2076">2076</span>
+<span id="2077">2077</span>
+<span id="2078">2078</span>
+<span id="2079">2079</span>
+<span id="2080">2080</span>
+<span id="2081">2081</span>
+<span id="2082">2082</span>
+<span id="2083">2083</span>
+<span id="2084">2084</span>
+<span id="2085">2085</span>
+<span id="2086">2086</span>
+<span id="2087">2087</span>
 </pre><pre class="rust"><code><span class="attribute">#[cfg(any(feature = <span class="string">&quot;native-tls&quot;</span>, feature = <span class="string">&quot;__rustls&quot;</span>,))]
 </span><span class="kw">use </span>std::any::Any;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/ip_addr/enum.IpAddr.html">std::net::IpAddr</a>;
@@ -2107,14 +2120,14 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::cookie;
 <span class="kw">use </span><a href="../lib.rs.html#227"><span class="kw">crate</span>::error</a>;
 <span class="kw">use </span><span class="kw">crate</span>::into_url::{<a href="../into_url.rs.html#67">expect_uri</a>, <a href="../into_url.rs.html#73">try_uri</a>};
-<span class="kw">use </span><span class="kw">crate</span>::redirect::{<a class="self" href="../lib.rs.html#318">self</a>, <a href="../redirect.rs.html#234">remove_sensitive_headers</a>};
+<span class="kw">use </span><span class="kw">crate</span>::redirect::{<a class="self" href="../lib.rs.html#315">self</a>, <a href="../redirect.rs.html#234">remove_sensitive_headers</a>};
 <span class="attribute">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
-</span><span class="kw">use </span><span class="kw">crate</span>::tls::{<a class="self" href="../lib.rs.html#320">self</a>, <a href="../tls.rs.html#344">TlsBackend</a>};
+</span><span class="kw">use </span><span class="kw">crate</span>::tls::{<a class="self" href="../lib.rs.html#317">self</a>, <a href="../tls.rs.html#344">TlsBackend</a>};
 <span class="attribute">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
 </span><span class="kw">use </span><a href="../tls.rs.html#23"><span class="kw">crate</span>::Certificate</a>;
 <span class="attribute">#[cfg(any(feature = <span class="string">&quot;native-tls&quot;</span>, feature = <span class="string">&quot;__rustls&quot;</span>))]
 </span><span class="kw">use </span><span class="kw">crate</span>::Identity;
-<span class="kw">use crate</span>::{<a href="../into_url.rs.html#7">IntoUrl</a>, <a href="../../../reqwest/struct.Method.html">Method</a>, <a href="../proxy.rs.html#53">Proxy</a>, <a href="../../../reqwest/struct.StatusCode.html">StatusCode</a>, <a href="../../../reqwest/struct.Url.html">Url</a>};
+<span class="kw">use crate</span>::{<a href="../into_url.rs.html#7">IntoUrl</a>, <a href="../../../reqwest/struct.Method.html">Method</a>, <a href="../proxy.rs.html#54">Proxy</a>, <a href="../../../reqwest/struct.StatusCode.html">StatusCode</a>, <a href="../../../reqwest/struct.Url.html">Url</a>};
 
 <span class="doccomment">/// An asynchronous `Client` to make Requests with.
 ///
@@ -2131,7 +2144,7 @@
 /// [`Rc`]: std::rc::Rc
 </span><span class="attribute">#[derive(Clone)]
 </span><span class="kw">pub struct </span>Client {
-    inner: Arc&lt;<a href="#1695">ClientRef</a>&gt;,
+    inner: Arc&lt;<a href="#1709">ClientRef</a>&gt;,
 }
 
 <span class="doccomment">/// A `ClientBuilder` can be used to create a `Client` with custom configuration.
@@ -2161,7 +2174,7 @@
     tcp_keepalive: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;,
     <span class="attribute">#[cfg(any(feature = <span class="string">&quot;native-tls&quot;</span>, feature = <span class="string">&quot;__rustls&quot;</span>))]
     </span>identity: <span class="prelude-ty">Option</span>&lt;Identity&gt;,
-    proxies: Vec&lt;<a href="../proxy.rs.html#53">Proxy</a>&gt;,
+    proxies: Vec&lt;<a href="../proxy.rs.html#54">Proxy</a>&gt;,
     auto_sys_proxy: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     redirect_policy: <a href="../redirect.rs.html#24">redirect::Policy</a>,
     referer: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -2194,7 +2207,7 @@
     trust_dns: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     error: <span class="prelude-ty">Option</span>&lt;<a href="../error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;,
     https_only: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    dns_overrides: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt;,
+    dns_overrides: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>&gt;&gt;,
 }
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#65">ClientBuilder</a> {
@@ -2584,10 +2597,10 @@
 
         <span class="kw">let </span>hyper_client = <a href="#466">builder</a>.build(<a href="#214">connector</a>);
 
-        <span class="kw">let </span>proxies_maybe_http_auth = <a href="#212">proxies</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|p| <a href="#513">p</a>.<a href="../proxy.rs.html#304">maybe_has_http_auth</a>());
+        <span class="kw">let </span>proxies_maybe_http_auth = <a href="#212">proxies</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|p| <a href="#513">p</a>.<a href="../proxy.rs.html#306">maybe_has_http_auth</a>());
 
         <span class="prelude-val">Ok</span>(<a href="#59">Client</a> {
-            inner: Arc::new(<a href="#1695">ClientRef</a> {
+            inner: Arc::new(<a href="#1709">ClientRef</a> {
                 accepts: <a href="#202">config</a>.accepts,
                 <span class="attribute">#[cfg(feature = <span class="string">&quot;cookies&quot;</span>)]
                 </span>cookie_store: config.cookie_store,
@@ -2635,7 +2648,7 @@
                 <a class="self" href="#554">self</a>.config.headers.insert(<a href="../../../reqwest/header/constant.USER_AGENT.html">USER_AGENT</a>, <a href="#560">value</a>);
             }
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <a class="self" href="#554">self</a>.config.error = <span class="prelude-val">Some</span>(<a href="../error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<a href="#563">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
+                <a class="self" href="#554">self</a>.config.error = <span class="prelude-val">Some</span>(<a href="../error.rs.html#245"><span class="kw">crate</span>::error::builder</a>(<a href="#563">e</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
             }
         };
         <span class="self"><a href="#554">self</a>
@@ -2877,7 +2890,7 @@
     /// # Note
     ///
     /// Adding a proxy will disable the automatic usage of the &quot;system&quot; proxy.
-    </span><span class="kw">pub fn </span>proxy(<span class="kw-2">mut </span><span class="self">self</span>, proxy: <a href="../proxy.rs.html#53">Proxy</a>) -&gt; <a href="#65">ClientBuilder</a> {
+    </span><span class="kw">pub fn </span>proxy(<span class="kw-2">mut </span><span class="self">self</span>, proxy: <a href="../proxy.rs.html#54">Proxy</a>) -&gt; <a href="#65">ClientBuilder</a> {
         <a class="self" href="#806">self</a>.config.proxies.push(<a href="#806">proxy</a>);
         <a class="self" href="#806">self</a>.config.auto_sys_proxy = <span class="bool-val">false</span>;
         <span class="self"><a href="#806">self</a>
@@ -3388,7 +3401,7 @@
         <span class="self"><a href="#1312">self</a>
     </span>}
 
-    <span class="doccomment">/// Override DNS resolution for specific domains to particular IP addresses.
+    <span class="doccomment">/// Override DNS resolution for specific domains to a particular IP address.
     ///
     /// Warning
     ///
@@ -3396,9 +3409,23 @@
     /// traffic to a particular port you must include this port in the URL
     /// itself, any port in the overridden addr will be ignored and traffic sent
     /// to the conventional port for the given scheme (e.g. 80 for http).
-    </span><span class="kw">pub fn </span>resolve(<span class="kw-2">mut </span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, addr: <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; <a href="#65">ClientBuilder</a> {
-        <a class="self" href="#1325">self</a>.config.dns_overrides.insert(<a href="#1325">domain</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#1325">addr</a>);
-        <span class="self"><a href="#1325">self</a>
+    </span><span class="kw">pub fn </span>resolve(<span class="self">self</span>, domain: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, addr: <a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; <a href="#65">ClientBuilder</a> {
+        <a class="self" href="#1325">self</a>.<a href="#1337">resolve_to_addrs</a>(<a href="#1325">domain</a>, <span class="kw-2">&amp;</span>[<a href="#1325">addr</a>])
+    }
+
+    <span class="doccomment">/// Override DNS resolution for specific domains to particular IP addresses.
+    ///
+    /// Warning
+    ///
+    /// Since the DNS protocol has no notion of ports, if you wish to send
+    /// traffic to a particular port you must include this port in the URL
+    /// itself, any port in the overridden addresses will be ignored and traffic sent
+    /// to the conventional port for the given scheme (e.g. 80 for http).
+    </span><span class="kw">pub fn </span>resolve_to_addrs(<span class="kw-2">mut </span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, addrs: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/net/socket_addr/enum.SocketAddr.html">SocketAddr</a>]) -&gt; <a href="#65">ClientBuilder</a> {
+        <a class="self" href="#1337">self</a>.config
+            .dns_overrides
+            .insert(<a href="#1337">domain</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#1337">addrs</a>.to_vec());
+        <span class="self"><a href="#1337">self</a>
     </span>}
 }
 
@@ -3437,7 +3464,7 @@
     ///
     /// This method fails whenever the supplied `Url` cannot be parsed.
     </span><span class="kw">pub fn </span>get&lt;U: <a href="../into_url.rs.html#7">IntoUrl</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, url: U) -&gt; <a href="request.rs.html#37">RequestBuilder</a> {
-        <a class="self" href="#1365">self</a>.<a href="#1422">request</a>(Method::GET, <a href="#1365">url</a>)
+        <a class="self" href="#1379">self</a>.<a href="#1436">request</a>(Method::GET, <a href="#1379">url</a>)
     }
 
     <span class="doccomment">/// Convenience method to make a `POST` request to a URL.
@@ -3446,7 +3473,7 @@
     ///
     /// This method fails whenever the supplied `Url` cannot be parsed.
     </span><span class="kw">pub fn </span>post&lt;U: <a href="../into_url.rs.html#7">IntoUrl</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, url: U) -&gt; <a href="request.rs.html#37">RequestBuilder</a> {
-        <a class="self" href="#1374">self</a>.<a href="#1422">request</a>(Method::POST, <a href="#1374">url</a>)
+        <a class="self" href="#1388">self</a>.<a href="#1436">request</a>(Method::POST, <a href="#1388">url</a>)
     }
 
     <span class="doccomment">/// Convenience method to make a `PUT` request to a URL.
@@ -3455,7 +3482,7 @@
     ///
     /// This method fails whenever the supplied `Url` cannot be parsed.
     </span><span class="kw">pub fn </span>put&lt;U: <a href="../into_url.rs.html#7">IntoUrl</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, url: U) -&gt; <a href="request.rs.html#37">RequestBuilder</a> {
-        <a class="self" href="#1383">self</a>.<a href="#1422">request</a>(Method::PUT, <a href="#1383">url</a>)
+        <a class="self" href="#1397">self</a>.<a href="#1436">request</a>(Method::PUT, <a href="#1397">url</a>)
     }
 
     <span class="doccomment">/// Convenience method to make a `PATCH` request to a URL.
@@ -3464,7 +3491,7 @@
     ///
     /// This method fails whenever the supplied `Url` cannot be parsed.
     </span><span class="kw">pub fn </span>patch&lt;U: <a href="../into_url.rs.html#7">IntoUrl</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, url: U) -&gt; <a href="request.rs.html#37">RequestBuilder</a> {
-        <a class="self" href="#1392">self</a>.<a href="#1422">request</a>(Method::PATCH, <a href="#1392">url</a>)
+        <a class="self" href="#1406">self</a>.<a href="#1436">request</a>(Method::PATCH, <a href="#1406">url</a>)
     }
 
     <span class="doccomment">/// Convenience method to make a `DELETE` request to a URL.
@@ -3473,7 +3500,7 @@
     ///
     /// This method fails whenever the supplied `Url` cannot be parsed.
     </span><span class="kw">pub fn </span>delete&lt;U: <a href="../into_url.rs.html#7">IntoUrl</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, url: U) -&gt; <a href="request.rs.html#37">RequestBuilder</a> {
-        <a class="self" href="#1401">self</a>.<a href="#1422">request</a>(Method::DELETE, <a href="#1401">url</a>)
+        <a class="self" href="#1415">self</a>.<a href="#1436">request</a>(Method::DELETE, <a href="#1415">url</a>)
     }
 
     <span class="doccomment">/// Convenience method to make a `HEAD` request to a URL.
@@ -3482,7 +3509,7 @@
     ///
     /// This method fails whenever the supplied `Url` cannot be parsed.
     </span><span class="kw">pub fn </span>head&lt;U: <a href="../into_url.rs.html#7">IntoUrl</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, url: U) -&gt; <a href="request.rs.html#37">RequestBuilder</a> {
-        <a class="self" href="#1410">self</a>.<a href="#1422">request</a>(Method::HEAD, <a href="#1410">url</a>)
+        <a class="self" href="#1424">self</a>.<a href="#1436">request</a>(Method::HEAD, <a href="#1424">url</a>)
     }
 
     <span class="doccomment">/// Start building a `Request` with the `Method` and `Url`.
@@ -3494,8 +3521,8 @@
     ///
     /// This method fails whenever the supplied `Url` cannot be parsed.
     </span><span class="kw">pub fn </span>request&lt;U: <a href="../into_url.rs.html#7">IntoUrl</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, method: <a href="../../../reqwest/struct.Method.html">Method</a>, url: U) -&gt; <a href="request.rs.html#37">RequestBuilder</a> {
-        <span class="kw">let </span>req = <a href="#1422">url</a>.<a href="../into_url.rs.html#17">into_url</a>().map(<span class="kw">move </span>|url| Request::new(<a href="#1422">method</a>, <a href="#1423">url</a>));
-        RequestBuilder::new(<a class="self" href="#1422">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1423">req</a>)
+        <span class="kw">let </span>req = <a href="#1436">url</a>.<a href="../into_url.rs.html#17">into_url</a>().map(<span class="kw">move </span>|url| Request::new(<a href="#1436">method</a>, <a href="#1437">url</a>));
+        RequestBuilder::new(<a class="self" href="#1436">self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1437">req</a>)
     }
 
     <span class="doccomment">/// Executes a `Request`.
@@ -3514,18 +3541,18 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         request: <a href="request.rs.html#24">Request</a>,
     ) -&gt; <span class="kw">impl </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;<a href="response.rs.html#26">Response</a>, <a href="../error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;&gt; {
-        <a class="self" href="#1440">self</a>.<a href="#1446">execute_request</a>(<a href="#1441">request</a>)
+        <a class="self" href="#1454">self</a>.<a href="#1460">execute_request</a>(<a href="#1455">request</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>execute_request(<span class="kw-2">&amp;</span><span class="self">self</span>, req: <a href="request.rs.html#24">Request</a>) -&gt; <a href="#1743-1748">Pending</a> {
-        <span class="kw">let </span>(method, url, <span class="kw-2">mut </span>headers, body, timeout, version) = <a href="#1446">req</a>.<a href="request.rs.html#144-153">pieces</a>();
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>execute_request(<span class="kw-2">&amp;</span><span class="self">self</span>, req: <a href="request.rs.html#24">Request</a>) -&gt; <a href="#1757-1762">Pending</a> {
+        <span class="kw">let </span>(method, url, <span class="kw-2">mut </span>headers, body, timeout, version) = <a href="#1460">req</a>.<a href="request.rs.html#144-153">pieces</a>();
         <span class="kw">if </span>url.scheme() != <span class="string">&quot;http&quot; </span>&amp;&amp; url.scheme() != <span class="string">&quot;https&quot; </span>{
-            <span class="kw">return </span>Pending::new_err(<a href="../error.rs.html#267">error::url_bad_scheme</a>(<a href="#1447">url</a>));
+            <span class="kw">return </span>Pending::new_err(<a href="../error.rs.html#269">error::url_bad_scheme</a>(<a href="#1461">url</a>));
         }
 
         <span class="comment">// check if we&#39;re in https_only mode and check the scheme of the current URL
         </span><span class="kw">if </span><span class="self">self</span>.inner.https_only &amp;&amp; url.scheme() != <span class="string">&quot;https&quot; </span>{
-            <span class="kw">return </span>Pending::new_err(<a href="../error.rs.html#267">error::url_bad_scheme</a>(<a href="#1447">url</a>));
+            <span class="kw">return </span>Pending::new_err(<a href="../error.rs.html#269">error::url_bad_scheme</a>(<a href="#1461">url</a>));
         }
 
         <span class="comment">// insert default headers in the request headers
@@ -3546,57 +3573,57 @@
             }
         }
 
-        <span class="kw">let </span>accept_encoding = <a class="self" href="#1446">self</a>.inner.accepts.<a href="decoder.rs.html#357">as_str</a>();
+        <span class="kw">let </span>accept_encoding = <a class="self" href="#1460">self</a>.inner.accepts.<a href="decoder.rs.html#357">as_str</a>();
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(accept_encoding) = <a href="#1475">accept_encoding</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(accept_encoding) = <a href="#1489">accept_encoding</a> {
             <span class="kw">if </span>!headers.contains_key(ACCEPT_ENCODING) &amp;&amp; !headers.contains_key(RANGE) {
-                <a href="#1447">headers</a>.insert(<a href="../../../reqwest/header/constant.ACCEPT_ENCODING.html">ACCEPT_ENCODING</a>, HeaderValue::from_static(<a href="#1477">accept_encoding</a>));
+                <a href="#1461">headers</a>.insert(<a href="../../../reqwest/header/constant.ACCEPT_ENCODING.html">ACCEPT_ENCODING</a>, HeaderValue::from_static(<a href="#1491">accept_encoding</a>));
             }
         }
 
-        <span class="kw">let </span>uri = <a href="../into_url.rs.html#67">expect_uri</a>(<span class="kw-2">&amp;</span><a href="#1447">url</a>);
+        <span class="kw">let </span>uri = <a href="../into_url.rs.html#67">expect_uri</a>(<span class="kw-2">&amp;</span><a href="#1461">url</a>);
 
-        <span class="kw">let </span>(reusable, body) = <span class="kw">match </span><a href="#1447">body</a> {
+        <span class="kw">let </span>(reusable, body) = <span class="kw">match </span><a href="#1461">body</a> {
             <span class="prelude-val">Some</span>(body) =&gt; {
-                <span class="kw">let </span>(reusable, body) = <a href="#1486">body</a>.<a href="body.rs.html#140">try_reuse</a>();
-                (<span class="prelude-val">Some</span>(<a href="#1487">reusable</a>), <a href="#1487">body</a>)
+                <span class="kw">let </span>(reusable, body) = <a href="#1500">body</a>.<a href="body.rs.html#140">try_reuse</a>();
+                (<span class="prelude-val">Some</span>(<a href="#1501">reusable</a>), <a href="#1501">body</a>)
             }
             <span class="prelude-val">None </span>=&gt; (<span class="prelude-val">None</span>, Body::empty()),
         };
 
-        <a class="self" href="#1446">self</a>.<a href="#1530">proxy_auth</a>(<span class="kw-2">&amp;</span><a href="#1483">uri</a>, <span class="kw-2">&amp;mut </span><a href="#1447">headers</a>);
+        <a class="self" href="#1460">self</a>.<a href="#1544">proxy_auth</a>(<span class="kw-2">&amp;</span><a href="#1497">uri</a>, <span class="kw-2">&amp;mut </span><a href="#1461">headers</a>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>req = hyper::Request::builder()
-            .method(<a href="#1447">method</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
-            .uri(<a href="#1483">uri</a>)
-            .version(<a href="#1447">version</a>)
-            .body(<a href="#1485">body</a>.<a href="body.rs.html#156">into_stream</a>())
+            .method(<a href="#1461">method</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+            .uri(<a href="#1497">uri</a>)
+            .version(<a href="#1461">version</a>)
+            .body(<a href="#1499">body</a>.<a href="body.rs.html#156">into_stream</a>())
             .expect(<span class="string">&quot;valid request parts&quot;</span>);
 
-        <span class="kw">let </span>timeout = <a href="#1447">timeout</a>
-            .or(<a class="self" href="#1446">self</a>.inner.request_timeout)
+        <span class="kw">let </span>timeout = <a href="#1461">timeout</a>
+            .or(<a class="self" href="#1460">self</a>.inner.request_timeout)
             .map(tokio::time::sleep)
             .map(Box::pin);
 
-        <span class="kw-2">*</span><a href="#1495">req</a>.headers_mut() = <a href="#1447">headers</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw-2">*</span><a href="#1509">req</a>.headers_mut() = <a href="#1461">headers</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-        <span class="kw">let </span>in_flight = <a class="self" href="#1446">self</a>.inner.hyper.request(<a href="#1495">req</a>);
+        <span class="kw">let </span>in_flight = <a class="self" href="#1460">self</a>.inner.hyper.request(<a href="#1509">req</a>);
 
-        <a href="#1743-1748">Pending</a> {
-            inner: <a href="#1751">PendingInner::Request</a>(<a href="#1755-1773">PendingRequest</a> {
-                <a href="#1447">method</a>,
-                <a href="#1447">url</a>,
-                <a href="#1447">headers</a>,
-                body: <a href="#1485">reusable</a>,
+        <a href="#1757-1762">Pending</a> {
+            inner: <a href="#1765">PendingInner::Request</a>(<a href="#1769-1787">PendingRequest</a> {
+                <a href="#1461">method</a>,
+                <a href="#1461">url</a>,
+                <a href="#1461">headers</a>,
+                body: <a href="#1499">reusable</a>,
 
                 urls: Vec::new(),
 
                 retry_count: <span class="number">0</span>,
 
-                client: <a class="self" href="#1446">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                client: <a class="self" href="#1460">self</a>.inner.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
 
-                <a href="#1509">in_flight</a>,
-                <a href="#1502">timeout</a>,
+                <a href="#1523">in_flight</a>,
+                <a href="#1516">timeout</a>,
             }),
         }
     }
@@ -3631,45 +3658,45 @@
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#59">Client</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>builder = <a href="#1559">f</a>.debug_struct(<span class="string">&quot;Client&quot;</span>);
-        <a class="self" href="#1559">self</a>.inner.<a href="#1710">fmt_fields</a>(<span class="kw-2">&amp;mut </span><a href="#1560">builder</a>);
-        <a href="#1560">builder</a>.finish()
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = <a href="#1573">f</a>.debug_struct(<span class="string">&quot;Client&quot;</span>);
+        <a class="self" href="#1573">self</a>.inner.<a href="#1724">fmt_fields</a>(<span class="kw-2">&amp;mut </span><a href="#1574">builder</a>);
+        <a href="#1574">builder</a>.finish()
     }
 }
 
 <span class="kw">impl </span>tower_service::Service&lt;<a href="request.rs.html#24">Request</a>&gt; <span class="kw">for </span><a href="#59">Client</a> {
     <span class="kw">type </span>Response = <a href="response.rs.html#26">Response</a>;
     <span class="kw">type </span>Error = <a href="../error.rs.html#16"><span class="kw">crate</span>::Error</a>;
-    <span class="kw">type </span>Future = <a href="#1743-1748">Pending</a>;
+    <span class="kw">type </span>Future = <a href="#1757-1762">Pending</a>;
 
     <span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 
     <span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, req: <a href="request.rs.html#24">Request</a>) -&gt; <span class="self">Self</span>::Future {
-        <a class="self" href="#1575">self</a>.<a href="#1446">execute_request</a>(<a href="#1575">req</a>)
+        <a class="self" href="#1589">self</a>.<a href="#1460">execute_request</a>(<a href="#1589">req</a>)
     }
 }
 
 <span class="kw">impl </span>tower_service::Service&lt;<a href="request.rs.html#24">Request</a>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><a href="#59">Client</a> {
     <span class="kw">type </span>Response = <a href="response.rs.html#26">Response</a>;
     <span class="kw">type </span>Error = <a href="../error.rs.html#16"><span class="kw">crate</span>::Error</a>;
-    <span class="kw">type </span>Future = <a href="#1743-1748">Pending</a>;
+    <span class="kw">type </span>Future = <a href="#1757-1762">Pending</a>;
 
     <span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; {
         Poll::Ready(<span class="prelude-val">Ok</span>(()))
     }
 
     <span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, req: <a href="request.rs.html#24">Request</a>) -&gt; <span class="self">Self</span>::Future {
-        <a class="self" href="#1589">self</a>.<a href="#1446">execute_request</a>(<a href="#1589">req</a>)
+        <a class="self" href="#1603">self</a>.<a href="#1460">execute_request</a>(<a href="#1603">req</a>)
     }
 }
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#65">ClientBuilder</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>builder = <a href="#1595">f</a>.debug_struct(<span class="string">&quot;ClientBuilder&quot;</span>);
-        <a class="self" href="#1595">self</a>.config.<a href="#1603">fmt_fields</a>(<span class="kw-2">&amp;mut </span><a href="#1596">builder</a>);
-        <a href="#1596">builder</a>.finish()
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = <a href="#1609">f</a>.debug_struct(<span class="string">&quot;ClientBuilder&quot;</span>);
+        <a class="self" href="#1609">self</a>.config.<a href="#1617">fmt_fields</a>(<span class="kw-2">&amp;mut </span><a href="#1610">builder</a>);
+        <a href="#1610">builder</a>.finish()
     }
 }
 
@@ -3685,52 +3712,52 @@
             }
         }
 
-        <a href="#1603">f</a>.field(<span class="string">&quot;accepts&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1603">self</a>.accepts);
+        <a href="#1617">f</a>.field(<span class="string">&quot;accepts&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1617">self</a>.accepts);
 
         <span class="kw">if </span>!<span class="self">self</span>.proxies.is_empty() {
-            <a href="#1603">f</a>.field(<span class="string">&quot;proxies&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1603">self</a>.proxies);
+            <a href="#1617">f</a>.field(<span class="string">&quot;proxies&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1617">self</a>.proxies);
         }
 
         <span class="kw">if </span>!<span class="self">self</span>.redirect_policy.is_default() {
-            <a href="#1603">f</a>.field(<span class="string">&quot;redirect_policy&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1603">self</a>.redirect_policy);
+            <a href="#1617">f</a>.field(<span class="string">&quot;redirect_policy&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1617">self</a>.redirect_policy);
         }
 
         <span class="kw">if </span><span class="self">self</span>.referer {
-            <a href="#1603">f</a>.field(<span class="string">&quot;referer&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
+            <a href="#1617">f</a>.field(<span class="string">&quot;referer&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
-        <a href="#1603">f</a>.field(<span class="string">&quot;default_headers&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1603">self</a>.headers);
+        <a href="#1617">f</a>.field(<span class="string">&quot;default_headers&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1617">self</a>.headers);
 
         <span class="kw">if </span><span class="self">self</span>.http1_title_case_headers {
-            <a href="#1603">f</a>.field(<span class="string">&quot;http1_title_case_headers&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
+            <a href="#1617">f</a>.field(<span class="string">&quot;http1_title_case_headers&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
         <span class="kw">if </span><span class="self">self</span>.http1_allow_obsolete_multiline_headers_in_responses {
-            <a href="#1603">f</a>.field(<span class="string">&quot;http1_allow_obsolete_multiline_headers_in_responses&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
+            <a href="#1617">f</a>.field(<span class="string">&quot;http1_allow_obsolete_multiline_headers_in_responses&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
         <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.http_version_pref, HttpVersionPref::Http1) {
-            <a href="#1603">f</a>.field(<span class="string">&quot;http1_only&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
+            <a href="#1617">f</a>.field(<span class="string">&quot;http1_only&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
         <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.http_version_pref, HttpVersionPref::Http2) {
-            <a href="#1603">f</a>.field(<span class="string">&quot;http2_prior_knowledge&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
+            <a href="#1617">f</a>.field(<span class="string">&quot;http2_prior_knowledge&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>d) = <a class="self" href="#1603">self</a>.connect_timeout {
-            <a href="#1603">f</a>.field(<span class="string">&quot;connect_timeout&quot;</span>, <a href="#1646">d</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>d) = <a class="self" href="#1617">self</a>.connect_timeout {
+            <a href="#1617">f</a>.field(<span class="string">&quot;connect_timeout&quot;</span>, <a href="#1660">d</a>);
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>d) = <a class="self" href="#1603">self</a>.timeout {
-            <a href="#1603">f</a>.field(<span class="string">&quot;timeout&quot;</span>, <a href="#1650">d</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>d) = <a class="self" href="#1617">self</a>.timeout {
+            <a href="#1617">f</a>.field(<span class="string">&quot;timeout&quot;</span>, <a href="#1664">d</a>);
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>v) = <a class="self" href="#1603">self</a>.local_address {
-            <a href="#1603">f</a>.field(<span class="string">&quot;local_address&quot;</span>, <a href="#1654">v</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>v) = <a class="self" href="#1617">self</a>.local_address {
+            <a href="#1617">f</a>.field(<span class="string">&quot;local_address&quot;</span>, <a href="#1668">v</a>);
         }
 
         <span class="kw">if </span><span class="self">self</span>.nodelay {
-            <a href="#1603">f</a>.field(<span class="string">&quot;tcp_nodelay&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
+            <a href="#1617">f</a>.field(<span class="string">&quot;tcp_nodelay&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
         <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
@@ -3743,15 +3770,15 @@
         <span class="attribute">#[cfg(feature = <span class="string">&quot;__tls&quot;</span>)]
         </span>{
             <span class="kw">if </span>!<span class="self">self</span>.certs_verification {
-                <a href="#1603">f</a>.field(<span class="string">&quot;danger_accept_invalid_certs&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
+                <a href="#1617">f</a>.field(<span class="string">&quot;danger_accept_invalid_certs&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
             }
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>min_tls_version) = <a class="self" href="#1603">self</a>.min_tls_version {
-                <a href="#1603">f</a>.field(<span class="string">&quot;min_tls_version&quot;</span>, <a href="#1675">min_tls_version</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>min_tls_version) = <a class="self" href="#1617">self</a>.min_tls_version {
+                <a href="#1617">f</a>.field(<span class="string">&quot;min_tls_version&quot;</span>, <a href="#1689">min_tls_version</a>);
             }
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>max_tls_version) = <a class="self" href="#1603">self</a>.max_tls_version {
-                <a href="#1603">f</a>.field(<span class="string">&quot;max_tls_version&quot;</span>, <a href="#1679">max_tls_version</a>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>max_tls_version) = <a class="self" href="#1617">self</a>.max_tls_version {
+                <a href="#1617">f</a>.field(<span class="string">&quot;max_tls_version&quot;</span>, <a href="#1693">max_tls_version</a>);
             }
         }
 
@@ -3761,7 +3788,7 @@
         }
 
         <span class="kw">if </span>!<span class="self">self</span>.dns_overrides.is_empty() {
-            <a href="#1603">f</a>.field(<span class="string">&quot;dns_overrides&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1603">self</a>.dns_overrides);
+            <a href="#1617">f</a>.field(<span class="string">&quot;dns_overrides&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1617">self</a>.dns_overrides);
         }
     }
 }
@@ -3771,16 +3798,16 @@
     <span class="attribute">#[cfg(feature = <span class="string">&quot;cookies&quot;</span>)]
     </span>cookie_store: <span class="prelude-ty">Option</span>&lt;Arc&lt;<span class="kw">dyn </span>cookie::CookieStore&gt;&gt;,
     headers: <a href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>,
-    hyper: <a href="#1331">HyperClient</a>,
+    hyper: <a href="#1345">HyperClient</a>,
     redirect_policy: <a href="../redirect.rs.html#24">redirect::Policy</a>,
     referer: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     request_timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;,
-    proxies: Arc&lt;Vec&lt;<a href="../proxy.rs.html#53">Proxy</a>&gt;&gt;,
+    proxies: Arc&lt;Vec&lt;<a href="../proxy.rs.html#54">Proxy</a>&gt;&gt;,
     proxies_maybe_http_auth: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     https_only: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl </span><a href="#1695">ClientRef</a> {
+<span class="kw">impl </span><a href="#1709">ClientRef</a> {
     <span class="kw">fn </span>fmt_fields(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::DebugStruct&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;) {
         <span class="comment">// Instead of deriving Debug, only print fields when their output
         // would provide relevant or interesting data.
@@ -3792,24 +3819,24 @@
             }
         }
 
-        <a href="#1710">f</a>.field(<span class="string">&quot;accepts&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1710">self</a>.accepts);
+        <a href="#1724">f</a>.field(<span class="string">&quot;accepts&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1724">self</a>.accepts);
 
         <span class="kw">if </span>!<span class="self">self</span>.proxies.is_empty() {
-            <a href="#1710">f</a>.field(<span class="string">&quot;proxies&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1710">self</a>.proxies);
+            <a href="#1724">f</a>.field(<span class="string">&quot;proxies&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1724">self</a>.proxies);
         }
 
         <span class="kw">if </span>!<span class="self">self</span>.redirect_policy.is_default() {
-            <a href="#1710">f</a>.field(<span class="string">&quot;redirect_policy&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1710">self</a>.redirect_policy);
+            <a href="#1724">f</a>.field(<span class="string">&quot;redirect_policy&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1724">self</a>.redirect_policy);
         }
 
         <span class="kw">if </span><span class="self">self</span>.referer {
-            <a href="#1710">f</a>.field(<span class="string">&quot;referer&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
+            <a href="#1724">f</a>.field(<span class="string">&quot;referer&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
-        <a href="#1710">f</a>.field(<span class="string">&quot;default_headers&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1710">self</a>.headers);
+        <a href="#1724">f</a>.field(<span class="string">&quot;default_headers&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1724">self</a>.headers);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>d) = <a class="self" href="#1710">self</a>.request_timeout {
-            <a href="#1710">f</a>.field(<span class="string">&quot;timeout&quot;</span>, <a href="#1737">d</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>d) = <a class="self" href="#1724">self</a>.request_timeout {
+            <a href="#1724">f</a>.field(<span class="string">&quot;timeout&quot;</span>, <a href="#1751">d</a>);
         }
     }
 }
@@ -3817,12 +3844,12 @@
 <a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project! </a>{
     <span class="kw">pub struct </span>Pending {
         <span class="attribute">#[pin]
-        </span>inner: <a href="#1750">PendingInner</a>,
+        </span>inner: <a href="#1764">PendingInner</a>,
     }
 }
 
 <span class="kw">enum </span>PendingInner {
-    Request(<a href="#1755-1773">PendingRequest</a>),
+    Request(<a href="#1769-1787">PendingRequest</a>),
     Error(<span class="prelude-ty">Option</span>&lt;<a href="../error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;),
 }
 
@@ -3837,7 +3864,7 @@
 
         retry_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 
-        client: Arc&lt;<a href="#1695">ClientRef</a>&gt;,
+        client: Arc&lt;<a href="#1709">ClientRef</a>&gt;,
 
         <span class="attribute">#[pin]
         </span>in_flight: <a href="../../../hyper/client/client/struct.ResponseFuture.html">ResponseFuture</a>,
@@ -3846,21 +3873,21 @@
     }
 }
 
-<span class="kw">impl </span><a href="#1755-1773">PendingRequest</a> {
+<span class="kw">impl </span><a href="#1769-1787">PendingRequest</a> {
     <span class="kw">fn </span>in_flight(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span><a href="../../../hyper/client/client/struct.ResponseFuture.html">ResponseFuture</a>&gt; {
-        <a class="self" href="#1776">self</a>.<a href="#1755-1773">project</a>().in_flight
+        <a class="self" href="#1790">self</a>.<a href="#1769-1787">project</a>().in_flight
     }
 
     <span class="kw">fn </span>timeout(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Pin&lt;Box&lt;<a href="../../../tokio/time/driver/sleep/struct.Sleep.html">Sleep</a>&gt;&gt;&gt;&gt; {
-        <a class="self" href="#1780">self</a>.<a href="#1755-1773">project</a>().timeout
+        <a class="self" href="#1794">self</a>.<a href="#1769-1787">project</a>().timeout
     }
 
     <span class="kw">fn </span>urls(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span>Vec&lt;<a href="../../../reqwest/struct.Url.html">Url</a>&gt; {
-        <a class="self" href="#1784">self</a>.<a href="#1755-1773">project</a>().urls
+        <a class="self" href="#1798">self</a>.<a href="#1769-1787">project</a>().urls
     }
 
     <span class="kw">fn </span>headers(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; <span class="kw-2">&amp;mut </span><a href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a> {
-        <a class="self" href="#1788">self</a>.<a href="#1755-1773">project</a>().headers
+        <a class="self" href="#1802">self</a>.<a href="#1769-1787">project</a>().headers
     }
 
     <span class="kw">fn </span>retry_error(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, err: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> + <span class="lifetime">&#39;static</span>)) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
@@ -3870,8 +3897,8 @@
 
         <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;can retry {:?}&quot;</span>, err);
 
-        <span class="kw">let </span>body = <span class="kw">match </span><a class="self" href="#1792">self</a>.body {
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>body)) =&gt; Body::reusable(<a href="#1800">body</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+        <span class="kw">let </span>body = <span class="kw">match </span><a class="self" href="#1806">self</a>.body {
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>body)) =&gt; Body::reusable(<a href="#1814">body</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
             <span class="prelude-val">Some</span>(<span class="prelude-val">None</span>) =&gt; {
                 <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;error was retryable, but body not reusable&quot;</span>);
                 <span class="kw">return </span><span class="bool-val">false</span>;
@@ -3883,82 +3910,82 @@
             <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;retry count too high&quot;</span>);
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
-        <a class="self" href="#1792">self</a>.retry_count += <span class="number">1</span>;
+        <a class="self" href="#1806">self</a>.retry_count += <span class="number">1</span>;
 
-        <span class="kw">let </span>uri = <a href="../into_url.rs.html#67">expect_uri</a>(<span class="kw-2">&amp;</span><a class="self" href="#1792">self</a>.url);
+        <span class="kw">let </span>uri = <a href="../into_url.rs.html#67">expect_uri</a>(<span class="kw-2">&amp;</span><a class="self" href="#1806">self</a>.url);
         <span class="kw">let </span><span class="kw-2">mut </span>req = hyper::Request::builder()
-            .method(<a class="self" href="#1792">self</a>.method.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
-            .uri(<a href="#1814">uri</a>)
-            .body(<a href="#1799">body</a>.<a href="body.rs.html#156">into_stream</a>())
+            .method(<a class="self" href="#1806">self</a>.method.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+            .uri(<a href="#1828">uri</a>)
+            .body(<a href="#1813">body</a>.<a href="body.rs.html#156">into_stream</a>())
             .expect(<span class="string">&quot;valid request parts&quot;</span>);
 
-        <span class="kw-2">*</span><a href="#1815">req</a>.headers_mut() = <a class="self" href="#1792">self</a>.headers.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw-2">*</span><a href="#1829">req</a>.headers_mut() = <a class="self" href="#1806">self</a>.headers.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
-        <span class="kw-2">*</span><a class="self" href="#1792">self</a>.as_mut().<a href="#1776">in_flight</a>().get_mut() = <a class="self" href="#1792">self</a>.client.hyper.request(<a href="#1815">req</a>);
+        <span class="kw-2">*</span><a class="self" href="#1806">self</a>.as_mut().<a href="#1790">in_flight</a>().get_mut() = <a class="self" href="#1806">self</a>.client.hyper.request(<a href="#1829">req</a>);
 
         <span class="bool-val">true
     </span>}
 }
 
 <span class="kw">fn </span>is_retryable_error(err: <span class="kw-2">&amp;</span>(<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> + <span class="lifetime">&#39;static</span>)) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(cause) = <a href="#1829">err</a>.<a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">source</a>() {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = <a href="#1830">cause</a>.downcast_ref::&lt;<a href="../../../h2/error/struct.Error.html">h2::Error</a>&gt;() {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(cause) = <a href="#1843">err</a>.<a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">source</a>() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = <a href="#1844">cause</a>.downcast_ref::&lt;<a href="../../../h2/error/struct.Error.html">h2::Error</a>&gt;() {
             <span class="comment">// They sent us a graceful shutdown, try with a new connection!
-            </span><span class="kw">return </span><a href="#1831">err</a>.is_go_away()
-                &amp;&amp; <a href="#1831">err</a>.is_remote()
-                &amp;&amp; <a href="#1831">err</a>.reason() == <span class="prelude-val">Some</span>(h2::Reason::NO_ERROR);
+            </span><span class="kw">return </span><a href="#1845">err</a>.is_go_away()
+                &amp;&amp; <a href="#1845">err</a>.is_remote()
+                &amp;&amp; <a href="#1845">err</a>.reason() == <span class="prelude-val">Some</span>(h2::Reason::NO_ERROR);
         }
     }
     <span class="bool-val">false
 </span>}
 
-<span class="kw">impl </span><a href="#1743-1748">Pending</a> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_err(err: <a href="../error.rs.html#16"><span class="kw">crate</span>::Error</a>) -&gt; <a href="#1743-1748">Pending</a> {
-        <a href="#1743-1748">Pending</a> {
-            inner: <a href="#1752">PendingInner::Error</a>(<span class="prelude-val">Some</span>(<a href="#1842">err</a>)),
+<span class="kw">impl </span><a href="#1757-1762">Pending</a> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new_err(err: <a href="../error.rs.html#16"><span class="kw">crate</span>::Error</a>) -&gt; <a href="#1757-1762">Pending</a> {
+        <a href="#1757-1762">Pending</a> {
+            inner: <a href="#1766">PendingInner::Error</a>(<span class="prelude-val">Some</span>(<a href="#1856">err</a>)),
         }
     }
 
-    <span class="kw">fn </span>inner(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span><a href="#1750">PendingInner</a>&gt; {
-        <a class="self" href="#1848">self</a>.<a href="#1743-1748">project</a>().inner
+    <span class="kw">fn </span>inner(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; Pin&lt;<span class="kw-2">&amp;mut </span><a href="#1764">PendingInner</a>&gt; {
+        <a class="self" href="#1862">self</a>.<a href="#1757-1762">project</a>().inner
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="#1743-1748">Pending</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="#1757-1762">Pending</a> {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;<a href="response.rs.html#26">Response</a>, <a href="../error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;;
 
     <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>inner = <a class="self" href="#1856">self</a>.<a href="#1848">inner</a>();
-        <span class="kw">match </span><a href="#1857">inner</a>.get_mut() {
-            <a href="#1751">PendingInner::Request</a>(<span class="kw-2">ref mut </span>req) =&gt; Pin::new(<a href="#1859">req</a>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#1856">cx</a>),
-            <a href="#1752">PendingInner::Error</a>(<span class="kw-2">ref mut </span>err) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="#1860">err</a>
+        <span class="kw">let </span>inner = <a class="self" href="#1870">self</a>.<a href="#1862">inner</a>();
+        <span class="kw">match </span><a href="#1871">inner</a>.get_mut() {
+            <a href="#1765">PendingInner::Request</a>(<span class="kw-2">ref mut </span>req) =&gt; Pin::new(<a href="#1873">req</a>).<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#1870">cx</a>),
+            <a href="#1766">PendingInner::Error</a>(<span class="kw-2">ref mut </span>err) =&gt; Poll::Ready(<span class="prelude-val">Err</span>(<a href="#1874">err</a>
                 .take()
                 .expect(<span class="string">&quot;Pending error polled more than once&quot;</span>))),
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="#1755-1773">PendingRequest</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="kw">for </span><a href="#1769-1787">PendingRequest</a> {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;<a href="response.rs.html#26">Response</a>, <a href="../error.rs.html#16"><span class="kw">crate</span>::Error</a>&gt;;
 
     <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(delay) = <a class="self" href="#1870">self</a>.as_mut().<a href="#1780">timeout</a>().as_mut().as_pin_mut() {
-            <span class="kw">if let </span>Poll::Ready(()) = <a href="#1871">delay</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#1870">cx</a>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(delay) = <a class="self" href="#1884">self</a>.as_mut().<a href="#1794">timeout</a>().as_mut().as_pin_mut() {
+            <span class="kw">if let </span>Poll::Ready(()) = <a href="#1885">delay</a>.<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#1884">cx</a>) {
                 <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(
-                    <a href="../error.rs.html#255"><span class="kw">crate</span>::error::request</a>(<a href="../error.rs.html#299"><span class="kw">crate</span>::error::TimedOut</a>).<a href="../error.rs.html#73">with_url</a>(<a class="self" href="#1870">self</a>.url.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+                    <a href="../error.rs.html#257"><span class="kw">crate</span>::error::request</a>(<a href="../error.rs.html#305"><span class="kw">crate</span>::error::TimedOut</a>).<a href="../error.rs.html#73">with_url</a>(<a class="self" href="#1884">self</a>.url.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
                 ));
             }
         }
 
         <span class="kw">loop </span>{
-            <span class="kw">let </span>res = <span class="kw">match </span><a class="self" href="#1870">self</a>.as_mut().<a href="#1776">in_flight</a>().as_mut().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#1870">cx</a>) {
+            <span class="kw">let </span>res = <span class="kw">match </span><a class="self" href="#1884">self</a>.as_mut().<a href="#1790">in_flight</a>().as_mut().<a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a href="#1884">cx</a>) {
                 Poll::Ready(<span class="prelude-val">Err</span>(e)) =&gt; {
                     <span class="kw">if </span><span class="self">self</span>.as_mut().retry_error(<span class="kw-2">&amp;</span>e) {
                         <span class="kw">continue</span>;
                     }
-                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../error.rs.html#255"><span class="kw">crate</span>::error::request</a>(<a href="#1881">e</a>).<a href="../error.rs.html#73">with_url</a>(<a class="self" href="#1870">self</a>.url.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())));
+                    <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../error.rs.html#257"><span class="kw">crate</span>::error::request</a>(<a href="#1895">e</a>).<a href="../error.rs.html#73">with_url</a>(<a class="self" href="#1884">self</a>.url.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())));
                 }
-                Poll::Ready(<span class="prelude-val">Ok</span>(res)) =&gt; <a href="#1887">res</a>,
+                Poll::Ready(<span class="prelude-val">Ok</span>(res)) =&gt; <a href="#1901">res</a>,
                 Poll::Pending =&gt; <span class="kw">return </span>Poll::Pending,
             };
 
@@ -3972,9 +3999,9 @@
                     }
                 }
             }
-            <span class="kw">let </span>should_redirect = <span class="kw">match </span><a href="#1880">res</a>.status() {
+            <span class="kw">let </span>should_redirect = <span class="kw">match </span><a href="#1894">res</a>.status() {
                 StatusCode::MOVED_PERMANENTLY | StatusCode::FOUND | StatusCode::SEE_OTHER =&gt; {
-                    <a class="self" href="#1870">self</a>.body = <span class="prelude-val">None</span>;
+                    <a class="self" href="#1884">self</a>.body = <span class="prelude-val">None</span>;
                     <span class="kw">for </span>header <span class="kw">in </span><span class="kw-2">&amp;</span>[
                         TRANSFER_ENCODING,
                         CONTENT_ENCODING,
@@ -3984,16 +4011,16 @@
                         <span class="self">self</span>.headers.remove(header);
                     }
 
-                    <span class="kw">match </span><a class="self" href="#1870">self</a>.method {
+                    <span class="kw">match </span><a class="self" href="#1884">self</a>.method {
                         Method::GET | Method::HEAD =&gt; {}
                         <span class="kw">_ </span>=&gt; {
-                            <a class="self" href="#1870">self</a>.method = Method::GET;
+                            <a class="self" href="#1884">self</a>.method = Method::GET;
                         }
                     }
                     <span class="bool-val">true
                 </span>}
                 StatusCode::TEMPORARY_REDIRECT | StatusCode::PERMANENT_REDIRECT =&gt; {
-                    <span class="kw">match </span><a class="self" href="#1870">self</a>.body {
+                    <span class="kw">match </span><a class="self" href="#1884">self</a>.body {
                         <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) | <span class="prelude-val">None </span>=&gt; <span class="bool-val">true</span>,
                         <span class="prelude-val">Some</span>(<span class="prelude-val">None</span>) =&gt; <span class="bool-val">false</span>,
                     }
@@ -4001,20 +4028,20 @@
                 <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
             };
             <span class="kw">if </span>should_redirect {
-                <span class="kw">let </span>loc = <a href="#1880">res</a>.headers().get(<a href="../../../reqwest/header/constant.LOCATION.html">LOCATION</a>).and_then(|val| {
+                <span class="kw">let </span>loc = <a href="#1894">res</a>.headers().get(<a href="../../../reqwest/header/constant.LOCATION.html">LOCATION</a>).and_then(|val| {
                     <span class="kw">let </span>loc = (|| -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../reqwest/struct.Url.html">Url</a>&gt; {
                         <span class="comment">// Some sites may send a utf-8 Location header,
                         // even though we&#39;re supposed to treat those bytes
                         // as opaque, we&#39;ll check specifically for utf8.
-                        </span><a class="self" href="#1870">self</a>.url.join(str::from_utf8(val.as_bytes()).ok()<span class="question-mark">?</span>).ok()
+                        </span><a class="self" href="#1884">self</a>.url.join(str::from_utf8(val.as_bytes()).ok()<span class="question-mark">?</span>).ok()
                     })();
 
                     <span class="comment">// Check that the `url` is also a valid `http::Uri`.
                     //
                     // If not, just log it and skip the redirect.
-                    </span><span class="kw">let </span>loc = <a href="#1931">loc</a>.and_then(|url| {
+                    </span><span class="kw">let </span>loc = <a href="#1945">loc</a>.and_then(|url| {
                         <span class="kw">if </span>try_uri(<span class="kw-2">&amp;</span>url).is_some() {
-                            <span class="prelude-val">Some</span>(<a href="#1941">url</a>)
+                            <span class="prelude-val">Some</span>(<a href="#1955">url</a>)
                         } <span class="kw">else </span>{
                             <span class="prelude-val">None
                         </span>}
@@ -4023,46 +4050,46 @@
                     <span class="kw">if </span>loc.is_none() {
                         <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Location header had invalid URI: {:?}&quot;</span>, val);
                     }
-                    <a href="#1941">loc</a>
+                    <a href="#1955">loc</a>
                 });
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(loc) = <a href="#1930">loc</a> {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(loc) = <a href="#1944">loc</a> {
                     <span class="kw">if </span><span class="self">self</span>.client.referer {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(referer) = <a href="#2042">make_referer</a>(<span class="kw-2">&amp;</span><a href="#1954">loc</a>, <span class="kw-2">&amp;</span><a class="self" href="#1870">self</a>.url) {
-                            <a class="self" href="#1870">self</a>.headers.insert(<a href="../../../reqwest/header/constant.REFERER.html">REFERER</a>, <a href="#1956">referer</a>);
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(referer) = <a href="#2055">make_referer</a>(<span class="kw-2">&amp;</span><a href="#1968">loc</a>, <span class="kw-2">&amp;</span><a class="self" href="#1884">self</a>.url) {
+                            <a class="self" href="#1884">self</a>.headers.insert(<a href="../../../reqwest/header/constant.REFERER.html">REFERER</a>, <a href="#1970">referer</a>);
                         }
                     }
-                    <span class="kw">let </span>url = <a class="self" href="#1870">self</a>.url.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                    <a class="self" href="#1870">self</a>.as_mut().<a href="#1784">urls</a>().push(<a href="#1960">url</a>);
-                    <span class="kw">let </span>action = <span class="self"><a href="#1870">self</a>
+                    <span class="kw">let </span>url = <a class="self" href="#1884">self</a>.url.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                    <a class="self" href="#1884">self</a>.as_mut().<a href="#1798">urls</a>().push(<a href="#1974">url</a>);
+                    <span class="kw">let </span>action = <span class="self"><a href="#1884">self</a>
                         </span>.client
                         .redirect_policy
-                        .<a href="../redirect.rs.html#141">check</a>(<a href="#1880">res</a>.status(), <span class="kw-2">&amp;</span><a href="#1954">loc</a>, <span class="kw-2">&amp;</span><a class="self" href="#1870">self</a>.urls);
+                        .<a href="../redirect.rs.html#141">check</a>(<a href="#1894">res</a>.status(), <span class="kw-2">&amp;</span><a href="#1968">loc</a>, <span class="kw-2">&amp;</span><a class="self" href="#1884">self</a>.urls);
 
-                    <span class="kw">match </span><a href="#1962">action</a> {
+                    <span class="kw">match </span><a href="#1976">action</a> {
                         <a href="../redirect.rs.html#229">redirect::ActionKind::Follow</a> =&gt; {
                             <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;redirecting &#39;{}&#39; to &#39;{}&#39;&quot;</span>, <span class="self">self</span>.url, loc);
 
                             <span class="kw">if </span><span class="self">self</span>.client.https_only &amp;&amp; loc.scheme() != <span class="string">&quot;https&quot; </span>{
-                                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../error.rs.html#259">error::redirect</a>(
-                                    <a href="../error.rs.html#267">error::url_bad_scheme</a>(<a href="#1954">loc</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-                                    <a href="#1954">loc</a>,
+                                <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../error.rs.html#261">error::redirect</a>(
+                                    <a href="../error.rs.html#269">error::url_bad_scheme</a>(<a href="#1968">loc</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                                    <a href="#1968">loc</a>,
                                 )));
                             }
 
-                            <a class="self" href="#1870">self</a>.url = <a href="#1954">loc</a>;
+                            <a class="self" href="#1884">self</a>.url = <a href="#1968">loc</a>;
                             <span class="kw">let </span><span class="kw-2">mut </span>headers =
-                                std::mem::replace(<a class="self" href="#1870">self</a>.as_mut().<a href="#1788">headers</a>(), HeaderMap::new());
+                                std::mem::replace(<a class="self" href="#1884">self</a>.as_mut().<a href="#1802">headers</a>(), HeaderMap::new());
 
-                            <a href="../redirect.rs.html#234">remove_sensitive_headers</a>(<span class="kw-2">&amp;mut </span><a href="#1979">headers</a>, <span class="kw-2">&amp;</span><a class="self" href="#1870">self</a>.url, <span class="kw-2">&amp;</span><a class="self" href="#1870">self</a>.urls);
-                            <span class="kw">let </span>uri = <a href="../into_url.rs.html#67">expect_uri</a>(<span class="kw-2">&amp;</span><a class="self" href="#1870">self</a>.url);
-                            <span class="kw">let </span>body = <span class="kw">match </span><a class="self" href="#1870">self</a>.body {
-                                <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>body)) =&gt; Body::reusable(<a href="#1985">body</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                            <a href="../redirect.rs.html#234">remove_sensitive_headers</a>(<span class="kw-2">&amp;mut </span><a href="#1993">headers</a>, <span class="kw-2">&amp;</span><a class="self" href="#1884">self</a>.url, <span class="kw-2">&amp;</span><a class="self" href="#1884">self</a>.urls);
+                            <span class="kw">let </span>uri = <a href="../into_url.rs.html#67">expect_uri</a>(<span class="kw-2">&amp;</span><a class="self" href="#1884">self</a>.url);
+                            <span class="kw">let </span>body = <span class="kw">match </span><a class="self" href="#1884">self</a>.body {
+                                <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>body)) =&gt; Body::reusable(<a href="#1999">body</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
                                 <span class="kw">_ </span>=&gt; Body::empty(),
                             };
                             <span class="kw">let </span><span class="kw-2">mut </span>req = hyper::Request::builder()
-                                .method(<a class="self" href="#1870">self</a>.method.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
-                                .uri(<a href="#1983">uri</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
-                                .body(<a href="#1984">body</a>.<a href="body.rs.html#156">into_stream</a>())
+                                .method(<a class="self" href="#1884">self</a>.method.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+                                .uri(<a href="#1997">uri</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+                                .body(<a href="#1998">body</a>.<a href="body.rs.html#156">into_stream</a>())
                                 .expect(<span class="string">&quot;valid request parts&quot;</span>);
 
                             <span class="comment">// Add cookies from the cookie store.
@@ -4073,42 +4100,41 @@
                                 }
                             }
 
-                            <span class="kw-2">*</span><a href="#1988">req</a>.headers_mut() = <a href="#1979">headers</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                            std::mem::swap(<a class="self" href="#1870">self</a>.as_mut().<a href="#1788">headers</a>(), <span class="kw-2">&amp;mut </span><a href="#1979">headers</a>);
-                            <span class="kw-2">*</span><a class="self" href="#1870">self</a>.as_mut().<a href="#1776">in_flight</a>().get_mut() = <a class="self" href="#1870">self</a>.client.hyper.request(<a href="#1988">req</a>);
+                            <span class="kw-2">*</span><a href="#2002">req</a>.headers_mut() = <a href="#1993">headers</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+                            std::mem::swap(<a class="self" href="#1884">self</a>.as_mut().<a href="#1802">headers</a>(), <span class="kw-2">&amp;mut </span><a href="#1993">headers</a>);
+                            <span class="kw-2">*</span><a class="self" href="#1884">self</a>.as_mut().<a href="#1790">in_flight</a>().get_mut() = <a class="self" href="#1884">self</a>.client.hyper.request(<a href="#2002">req</a>);
                             <span class="kw">continue</span>;
                         }
                         <a href="../redirect.rs.html#230">redirect::ActionKind::Stop</a> =&gt; {
                             <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;redirect policy disallowed redirection to &#39;{}&#39;&quot;</span>, loc);
                         }
                         <a href="../redirect.rs.html#231">redirect::ActionKind::Error</a>(err) =&gt; {
-                            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../error.rs.html#259"><span class="kw">crate</span>::error::redirect</a>(<a href="#2010">err</a>, <a class="self" href="#1870">self</a>.url.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())));
+                            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(<a href="../error.rs.html#261"><span class="kw">crate</span>::error::redirect</a>(<a href="#2024">err</a>, <a class="self" href="#1884">self</a>.url.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())));
                         }
                     }
                 }
             }
 
-            <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;response &#39;{}&#39; for {}&quot;</span>, res.status(), <span class="self">self</span>.url);
             <span class="kw">let </span>res = Response::new(
-                <a href="#1880">res</a>,
-                <a class="self" href="#1870">self</a>.url.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                <a class="self" href="#1870">self</a>.client.accepts,
-                <a class="self" href="#1870">self</a>.timeout.take(),
+                <a href="#1894">res</a>,
+                <a class="self" href="#1884">self</a>.url.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                <a class="self" href="#1884">self</a>.client.accepts,
+                <a class="self" href="#1884">self</a>.timeout.take(),
             );
-            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#2018">res</a>));
+            <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(<a href="#2031">res</a>));
         }
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#1743-1748">Pending</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#1757-1762">Pending</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><a class="self" href="#2030">self</a>.inner {
-            <a href="#1751">PendingInner::Request</a>(<span class="kw-2">ref </span>req) =&gt; <a href="#2030">f</a>
+        <span class="kw">match </span><a class="self" href="#2043">self</a>.inner {
+            <a href="#1765">PendingInner::Request</a>(<span class="kw-2">ref </span>req) =&gt; <a href="#2043">f</a>
                 .debug_struct(<span class="string">&quot;Pending&quot;</span>)
-                .field(<span class="string">&quot;method&quot;</span>, <span class="kw-2">&amp;</span><a href="#2032">req</a>.method)
-                .field(<span class="string">&quot;url&quot;</span>, <span class="kw-2">&amp;</span><a href="#2032">req</a>.url)
+                .field(<span class="string">&quot;method&quot;</span>, <span class="kw-2">&amp;</span><a href="#2045">req</a>.method)
+                .field(<span class="string">&quot;url&quot;</span>, <span class="kw-2">&amp;</span><a href="#2045">req</a>.url)
                 .finish(),
-            <a href="#1752">PendingInner::Error</a>(<span class="kw-2">ref </span>err) =&gt; <a href="#2030">f</a>.debug_struct(<span class="string">&quot;Pending&quot;</span>).field(<span class="string">&quot;error&quot;</span>, <a href="#2037">err</a>).finish(),
+            <a href="#1766">PendingInner::Error</a>(<span class="kw-2">ref </span>err) =&gt; <a href="#2043">f</a>.debug_struct(<span class="string">&quot;Pending&quot;</span>).field(<span class="string">&quot;error&quot;</span>, <a href="#2050">err</a>).finish(),
         }
     }
 }
@@ -4118,11 +4144,11 @@
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>referer = <a href="#2042">previous</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-    <span class="kw">let _ </span>= <a href="#2047">referer</a>.set_username(<span class="string">&quot;&quot;</span>);
-    <span class="kw">let _ </span>= <a href="#2047">referer</a>.set_password(<span class="prelude-val">None</span>);
-    <a href="#2047">referer</a>.set_fragment(<span class="prelude-val">None</span>);
-    <a href="#2047">referer</a>.as_str().parse().ok()
+    <span class="kw">let </span><span class="kw-2">mut </span>referer = <a href="#2055">previous</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">let _ </span>= <a href="#2060">referer</a>.set_username(<span class="string">&quot;&quot;</span>);
+    <span class="kw">let _ </span>= <a href="#2060">referer</a>.set_password(<span class="prelude-val">None</span>);
+    <a href="#2060">referer</a>.set_fragment(<span class="prelude-val">None</span>);
+    <a href="#2060">referer</a>.as_str().parse().ok()
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;cookies&quot;</span>)]
@@ -4147,4 +4173,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

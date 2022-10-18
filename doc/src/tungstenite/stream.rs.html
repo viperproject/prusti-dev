@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.14.0/src/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tungstenite/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tungstenite-0.17.3/src/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../tungstenite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tungstenite/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -89,19 +89,78 @@
 <span id="89">89</span>
 <span id="90">90</span>
 <span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Convenience wrapper for streams to switch between plain TCP and TLS at runtime.
 //!
 //!  There is no dependency on actual TLS implementations. Everything like
 //! `native_tls` or `openssl` will work as long as there is a TLS stream supporting standard
 //! `Read + Write` traits.
 
-</span><span class="kw">use </span>std::io::{<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <span class="prelude-ty">Result </span><span class="kw">as </span>IoResult, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls-tls&quot;</span>)]
+</span><span class="kw">use </span>std::ops::Deref;
+<span class="kw">use </span>std::{
+    fmt::{<a class="self" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>},
+    io::{<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, <span class="prelude-ty">Result </span><span class="kw">as </span>IoResult, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>},
+};
 
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">std::net::TcpStream</a>;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
 </span><span class="kw">use </span>native_tls_crate::TlsStream;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;rustls-tls&quot;</span>)]
+<span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls-tls&quot;</span>)]
 </span><span class="kw">use </span>rustls::StreamOwned;
 
 <span class="doccomment">/// Stream mode, either plain TCP or TLS.
@@ -119,9 +178,9 @@
     </span><span class="kw">fn </span>set_nodelay(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nodelay: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; IoResult&lt;()&gt;;
 }
 
-<span class="kw">impl </span><a href="#26">NoDelay</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a> {
+<span class="kw">impl </span><a href="#31">NoDelay</a> <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/std/net/tcp/struct.TcpStream.html">TcpStream</a> {
     <span class="kw">fn </span>set_nodelay(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nodelay: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; IoResult&lt;()&gt; {
-        TcpStream::set_nodelay(<a class="self" href="#32">self</a>, <a href="#32">nodelay</a>)
+        TcpStream::set_nodelay(<a class="self" href="#37">self</a>, <a href="#37">nodelay</a>)
     }
 }
 
@@ -132,53 +191,102 @@
     }
 }
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;rustls-tls&quot;</span>)]
-</span><span class="kw">impl</span>&lt;S: rustls::Session, T: Read + Write + NoDelay&gt; NoDelay <span class="kw">for </span>StreamOwned&lt;S, T&gt; {
+<span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls-tls&quot;</span>)]
+</span><span class="kw">impl</span>&lt;S, SD, T&gt; NoDelay <span class="kw">for </span>StreamOwned&lt;S, T&gt;
+<span class="kw">where
+    </span>S: Deref&lt;Target = rustls::ConnectionCommon&lt;SD&gt;&gt;,
+    SD: rustls::SideData,
+    T: Read + Write + NoDelay,
+{
     <span class="kw">fn </span>set_nodelay(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nodelay: bool) -&gt; IoResult&lt;()&gt; {
         <span class="self">self</span>.sock.set_nodelay(nodelay)
     }
 }
 
-<span class="doccomment">/// Stream, either plain TCP or TLS.
-</span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub enum </span>Stream&lt;S, T&gt; {
+<span class="doccomment">/// A stream that might be protected with TLS.
+</span><span class="attribute">#[non_exhaustive]
+</span><span class="kw">pub enum </span>MaybeTlsStream&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; {
     <span class="doccomment">/// Unencrypted socket stream.
     </span>Plain(S),
-    <span class="doccomment">/// Encrypted socket stream.
-    </span>Tls(T),
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
+    </span><span class="doccomment">/// Encrypted socket stream using `native-tls`.
+    </span>NativeTls(native_tls_crate::TlsStream&lt;S&gt;),
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls-tls&quot;</span>)]
+    </span><span class="doccomment">/// Encrypted socket stream using `rustls`.
+    </span>Rustls(rustls::StreamOwned&lt;rustls::ClientConnection, S&gt;),
 }
 
-<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>, T: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>Stream&lt;S, T&gt; {
+<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> + <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a>&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for </span>MaybeTlsStream&lt;S&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <span class="kw">match </span><span class="self"><a href="#75">self</a> </span>{
+            <span class="self">Self</span>::Plain(s) =&gt; <a href="#75">f</a>.debug_tuple(<span class="string">&quot;MaybeTlsStream::Plain&quot;</span>).field(<a href="#77">s</a>).finish(),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
+            </span><span class="self">Self</span>::NativeTls(s) =&gt; f.debug_tuple(<span class="string">&quot;MaybeTlsStream::NativeTls&quot;</span>).field(s).finish(),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls-tls&quot;</span>)]
+            </span><span class="self">Self</span>::Rustls(s) =&gt; {
+                <span class="kw">struct </span>RustlsStreamDebug&lt;<span class="lifetime">&#39;a</span>, S: Read + Write&gt;(
+                    <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>rustls::StreamOwned&lt;rustls::ClientConnection, S&gt;,
+                );
+
+                <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, S: Read + Write + Debug&gt; Debug <span class="kw">for </span>RustlsStreamDebug&lt;<span class="lifetime">&#39;a</span>, S&gt; {
+                    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+                        f.debug_struct(<span class="string">&quot;StreamOwned&quot;</span>)
+                            .field(<span class="string">&quot;conn&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.conn)
+                            .field(<span class="string">&quot;sock&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.sock)
+                            .finish()
+                    }
+                }
+
+                f.debug_tuple(<span class="string">&quot;MaybeTlsStream::Rustls&quot;</span>).field(<span class="kw-2">&amp;</span>RustlsStreamDebug(s)).finish()
+            }
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> <span class="kw">for </span>MaybeTlsStream&lt;S&gt; {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; IoResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#61">self</a> </span>{
-            <a href="#55">Stream::Plain</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="#63">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#61">buf</a>),
-            <a href="#57">Stream::Tls</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="#64">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#61">buf</a>),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#102">self</a> </span>{
+            <a href="#65">MaybeTlsStream::Plain</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="#104">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read</a>(<a href="#102">buf</a>),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
+            </span>MaybeTlsStream::NativeTls(<span class="kw-2">ref mut </span>s) =&gt; s.read(buf),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls-tls&quot;</span>)]
+            </span>MaybeTlsStream::Rustls(<span class="kw-2">ref mut </span>s) =&gt; s.read(buf),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>, T: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>Stream&lt;S, T&gt; {
+<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>&gt; <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for </span>MaybeTlsStream&lt;S&gt; {
     <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; IoResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#70">self</a> </span>{
-            <a href="#55">Stream::Plain</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="#72">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#70">buf</a>),
-            <a href="#57">Stream::Tls</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="#73">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#70">buf</a>),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#114">self</a> </span>{
+            <a href="#65">MaybeTlsStream::Plain</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="#116">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write</a>(<a href="#114">buf</a>),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
+            </span>MaybeTlsStream::NativeTls(<span class="kw-2">ref mut </span>s) =&gt; s.write(buf),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls-tls&quot;</span>)]
+            </span>MaybeTlsStream::Rustls(<span class="kw-2">ref mut </span>s) =&gt; s.write(buf),
         }
     }
+
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; IoResult&lt;()&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#76">self</a> </span>{
-            <a href="#55">Stream::Plain</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="#78">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
-            <a href="#57">Stream::Tls</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="#79">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#124">self</a> </span>{
+            <a href="#65">MaybeTlsStream::Plain</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="#126">s</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">flush</a>(),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
+            </span>MaybeTlsStream::NativeTls(<span class="kw-2">ref mut </span>s) =&gt; s.flush(),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls-tls&quot;</span>)]
+            </span>MaybeTlsStream::Rustls(<span class="kw-2">ref mut </span>s) =&gt; s.flush(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;S: <a href="#26">NoDelay</a>, T: <a href="#26">NoDelay</a>&gt; <a href="#26">NoDelay</a> <span class="kw">for </span>Stream&lt;S, T&gt; {
+<span class="kw">impl</span>&lt;S: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a> + <a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> + <a href="#31">NoDelay</a>&gt; <a href="#31">NoDelay</a> <span class="kw">for </span>MaybeTlsStream&lt;S&gt; {
     <span class="kw">fn </span>set_nodelay(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nodelay: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; IoResult&lt;()&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#85">self</a> </span>{
-            <a href="#55">Stream::Plain</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="#87">s</a>.<a href="#28">set_nodelay</a>(<a href="#85">nodelay</a>),
-            <a href="#57">Stream::Tls</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="#88">s</a>.<a href="#28">set_nodelay</a>(<a href="#85">nodelay</a>),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#136">self</a> </span>{
+            <a href="#65">MaybeTlsStream::Plain</a>(<span class="kw-2">ref mut </span>s) =&gt; <a href="#138">s</a>.<a href="#33">set_nodelay</a>(<a href="#136">nodelay</a>),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;native-tls&quot;</span>)]
+            </span>MaybeTlsStream::NativeTls(<span class="kw-2">ref mut </span>s) =&gt; s.set_nodelay(nodelay),
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;__rustls-tls&quot;</span>)]
+            </span>MaybeTlsStream::Rustls(<span class="kw-2">ref mut </span>s) =&gt; s.set_nodelay(nodelay),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tungstenite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

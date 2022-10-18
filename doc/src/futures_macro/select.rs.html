@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-macro-0.3.24/src/select.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>select.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../futures_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_macro/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-macro-0.3.24/src/select.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>select.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../futures_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_macro/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -331,31 +331,31 @@
 </pre><pre class="rust"><code><span class="doccomment">//! The futures-rs `select! macro implementation.
 
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">proc_macro::TokenStream</a>;
-<span class="kw">use </span><a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Span.html">proc_macro2::Span</a>;
+<span class="kw">use </span><a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Span.html">proc_macro2::Span</a>;
 <span class="kw">use </span>quote::{<a href="https://docs.rs/quote/1.0.21/quote/macro.format_ident.html">format_ident</a>, <a href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote</a>};
-<span class="kw">use </span>syn::parse::{<a href="https://docs.rs/syn/1.0.100/syn/parse/trait.Parse.html">Parse</a>, <a href="https://docs.rs/syn/1.0.100/syn/parse/type.ParseStream.html">ParseStream</a>};
-<span class="kw">use </span>syn::{<a href="https://docs.rs/syn/1.0.100/syn/macro.parse_quote.html">parse_quote</a>, <a href="https://docs.rs/syn/1.0.100/syn/expr/enum.Expr.html">Expr</a>, Ident, <a href="https://docs.rs/syn/1.0.100/syn/pat/enum.Pat.html">Pat</a>, <a href="https://docs.rs/syn/1.0.100/syn/macro.Token.html">Token</a>};
+<span class="kw">use </span>syn::parse::{<a href="https://docs.rs/syn/1.0.102/syn/parse/trait.Parse.html">Parse</a>, <a href="https://docs.rs/syn/1.0.102/syn/parse/type.ParseStream.html">ParseStream</a>};
+<span class="kw">use </span>syn::{<a href="https://docs.rs/syn/1.0.102/syn/macro.parse_quote.html">parse_quote</a>, <a href="https://docs.rs/syn/1.0.102/syn/expr/enum.Expr.html">Expr</a>, Ident, <a href="https://docs.rs/syn/1.0.102/syn/pat/enum.Pat.html">Pat</a>, <a href="https://docs.rs/syn/1.0.102/syn/macro.Token.html">Token</a>};
 
 <span class="kw">mod </span>kw {
-    <a class="macro" href="https://docs.rs/syn/1.0.100/syn/macro.custom_keyword.html">syn::custom_keyword!</a>(complete);
+    <a class="macro" href="https://docs.rs/syn/1.0.102/syn/macro.custom_keyword.html">syn::custom_keyword!</a>(complete);
 }
 
 <span class="kw">struct </span>Select {
     <span class="comment">// span of `complete`, then expression after `=&gt; ...`
-    </span>complete: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.100/syn/expr/enum.Expr.html">Expr</a>&gt;,
-    default: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.100/syn/expr/enum.Expr.html">Expr</a>&gt;,
-    normal_fut_exprs: Vec&lt;<a href="https://docs.rs/syn/1.0.100/syn/expr/enum.Expr.html">Expr</a>&gt;,
-    normal_fut_handlers: Vec&lt;(<a href="https://docs.rs/syn/1.0.100/syn/pat/enum.Pat.html">Pat</a>, <a href="https://docs.rs/syn/1.0.100/syn/expr/enum.Expr.html">Expr</a>)&gt;,
+    </span>complete: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.102/syn/expr/enum.Expr.html">Expr</a>&gt;,
+    default: <span class="prelude-ty">Option</span>&lt;<a href="https://docs.rs/syn/1.0.102/syn/expr/enum.Expr.html">Expr</a>&gt;,
+    normal_fut_exprs: Vec&lt;<a href="https://docs.rs/syn/1.0.102/syn/expr/enum.Expr.html">Expr</a>&gt;,
+    normal_fut_handlers: Vec&lt;(<a href="https://docs.rs/syn/1.0.102/syn/pat/enum.Pat.html">Pat</a>, <a href="https://docs.rs/syn/1.0.102/syn/expr/enum.Expr.html">Expr</a>)&gt;,
 }
 
 <span class="attribute">#[allow(clippy::large_enum_variant)]
 </span><span class="kw">enum </span>CaseKind {
     Complete,
     Default,
-    Normal(<a href="https://docs.rs/syn/1.0.100/syn/pat/enum.Pat.html">Pat</a>, <a href="https://docs.rs/syn/1.0.100/syn/expr/enum.Expr.html">Expr</a>),
+    Normal(<a href="https://docs.rs/syn/1.0.102/syn/pat/enum.Pat.html">Pat</a>, <a href="https://docs.rs/syn/1.0.102/syn/expr/enum.Expr.html">Expr</a>),
 }
 
-<span class="kw">impl </span><a href="https://docs.rs/syn/1.0.100/syn/parse/trait.Parse.html">Parse</a> <span class="kw">for </span><a href="#13">Select</a> {
+<span class="kw">impl </span><a href="https://docs.rs/syn/1.0.102/syn/parse/trait.Parse.html">Parse</a> <span class="kw">for </span><a href="#13">Select</a> {
     <span class="kw">fn </span>parse(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; syn::Result&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>select = <span class="self">Self </span>{
             complete: <span class="prelude-val">None</span>,
@@ -422,13 +422,13 @@
 //
 // `enum __PrivResult&lt;_1, _2, ...&gt; { _1(_1), _2(_2), ..., Complete }`
 </span><span class="kw">fn </span>declare_result_enum(
-    result_ident: <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Ident.html">Ident</a>,
+    result_ident: <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Ident.html">Ident</a>,
     variants: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     complete: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    span: <a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Span.html">Span</a>,
-) -&gt; (Vec&lt;<a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Ident.html">Ident</a>&gt;, <a href="https://docs.rs/syn/1.0.100/syn/item/struct.ItemEnum.html">syn::ItemEnum</a>) {
+    span: <a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Span.html">Span</a>,
+) -&gt; (Vec&lt;<a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Ident.html">Ident</a>&gt;, <a href="https://docs.rs/syn/1.0.102/syn/item/struct.ItemEnum.html">syn::ItemEnum</a>) {
     <span class="comment">// &quot;_0&quot;, &quot;_1&quot;, &quot;_2&quot;
-    </span><span class="kw">let </span>variant_names: Vec&lt;<a href="https://docs.rs/proc-macro2/1.0.43/proc_macro2/struct.Ident.html">Ident</a>&gt; =
+    </span><span class="kw">let </span>variant_names: Vec&lt;<a href="https://docs.rs/proc-macro2/1.0.47/proc_macro2/struct.Ident.html">Ident</a>&gt; =
         (<span class="number">0</span>..<a href="#96">variants</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|num| <a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;_{}&quot;</span>, num, span = span)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
     <span class="kw">let </span>type_parameters = <span class="kw-2">&amp;</span><a href="#101">variant_names</a>;
@@ -436,7 +436,7 @@
 
     <span class="kw">let </span>complete_variant = <span class="kw">if </span>complete { <span class="prelude-val">Some</span>(<a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote!</a>(Complete)) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
 
-    <span class="kw">let </span>enum_item = <a class="macro" href="https://docs.rs/syn/1.0.100/syn/macro.parse_quote.html">parse_quote! </a>{
+    <span class="kw">let </span>enum_item = <a class="macro" href="https://docs.rs/syn/1.0.102/syn/macro.parse_quote.html">parse_quote! </a>{
         <span class="kw">enum </span>#result_ident&lt;#(#type_parameters,)<span class="kw-2">*</span>&gt; {
             #(
                 #variants(#type_parameters),
@@ -459,7 +459,7 @@
 }
 
 <span class="kw">fn </span>select_inner(input: <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a>, random: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">let </span>parsed = <a class="macro" href="https://docs.rs/syn/1.0.100/syn/macro.parse_macro_input.html">syn::parse_macro_input!</a>(input <span class="kw">as </span>Select);
+    <span class="kw">let </span>parsed = <a class="macro" href="https://docs.rs/syn/1.0.102/syn/macro.parse_macro_input.html">syn::parse_macro_input!</a>(input <span class="kw">as </span>Select);
 
     <span class="comment">// should be def_site, but that&#39;s unstable
     </span><span class="kw">let </span>span = Span::call_site();
@@ -509,7 +509,7 @@
                     </span><a href="#147">future_let_bindings</a>.push(<a class="macro" href="https://docs.rs/quote/1.0.21/quote/macro.quote.html">quote! </a>{
                         <span class="kw">let </span><span class="kw-2">mut </span>#variant_name = #expr;
                     });
-                    <a class="macro" href="https://docs.rs/syn/1.0.100/syn/macro.parse_quote.html">parse_quote! </a>{ #variant_name }
+                    <a class="macro" href="https://docs.rs/syn/1.0.102/syn/macro.parse_quote.html">parse_quote! </a>{ #variant_name }
                 }
             }
         })
@@ -659,4 +659,4 @@
     } })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

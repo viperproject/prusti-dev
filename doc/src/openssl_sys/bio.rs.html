@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.75/src/bio.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bio.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl_sys/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.76/src/./bio.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bio.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl_sys/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -74,13 +74,13 @@
 
 <span class="kw">use </span><span class="kw-2">*</span>;
 
-<span class="kw">pub const </span>BIO_TYPE_NONE: <a href="../../libc/unix/type.c_int.html">c_int</a> = <span class="number">0</span>;
+<span class="kw">pub const </span>BIO_TYPE_NONE: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0</span>;
 
-<span class="kw">pub const </span>BIO_CTRL_EOF: <a href="../../libc/unix/type.c_int.html">c_int</a> = <span class="number">2</span>;
-<span class="kw">pub const </span>BIO_CTRL_INFO: <a href="../../libc/unix/type.c_int.html">c_int</a> = <span class="number">3</span>;
-<span class="kw">pub const </span>BIO_CTRL_FLUSH: <a href="../../libc/unix/type.c_int.html">c_int</a> = <span class="number">11</span>;
-<span class="kw">pub const </span>BIO_CTRL_DGRAM_QUERY_MTU: <a href="../../libc/unix/type.c_int.html">c_int</a> = <span class="number">40</span>;
-<span class="kw">pub const </span>BIO_C_SET_BUF_MEM_EOF_RETURN: <a href="../../libc/unix/type.c_int.html">c_int</a> = <span class="number">130</span>;
+<span class="kw">pub const </span>BIO_CTRL_EOF: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">2</span>;
+<span class="kw">pub const </span>BIO_CTRL_INFO: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">3</span>;
+<span class="kw">pub const </span>BIO_CTRL_FLUSH: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">11</span>;
+<span class="kw">pub const </span>BIO_CTRL_DGRAM_QUERY_MTU: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">40</span>;
+<span class="kw">pub const </span>BIO_C_SET_BUF_MEM_EOF_RETURN: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">130</span>;
 
 <span class="kw">pub unsafe fn </span>BIO_set_retry_read(b: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#18">BIO</a>) {
     <a href="handwritten/bio.rs.html#5">BIO_set_flags</a>(<a href="#13">b</a>, <a href="#25">BIO_FLAGS_READ</a> | <a href="#29">BIO_FLAGS_SHOULD_RETRY</a>)
@@ -94,14 +94,14 @@
     <a href="handwritten/bio.rs.html#6">BIO_clear_flags</a>(<a href="#21">b</a>, <a href="#28">BIO_FLAGS_RWS</a> | <a href="#29">BIO_FLAGS_SHOULD_RETRY</a>)
 }
 
-<span class="kw">pub const </span>BIO_FLAGS_READ: <a href="../../libc/unix/type.c_int.html">c_int</a> = <span class="number">0x01</span>;
-<span class="kw">pub const </span>BIO_FLAGS_WRITE: <a href="../../libc/unix/type.c_int.html">c_int</a> = <span class="number">0x02</span>;
-<span class="kw">pub const </span>BIO_FLAGS_IO_SPECIAL: <a href="../../libc/unix/type.c_int.html">c_int</a> = <span class="number">0x04</span>;
-<span class="kw">pub const </span>BIO_FLAGS_RWS: <a href="../../libc/unix/type.c_int.html">c_int</a> = <a href="#25">BIO_FLAGS_READ</a> | <a href="#26">BIO_FLAGS_WRITE</a> | <a href="#27">BIO_FLAGS_IO_SPECIAL</a>;
-<span class="kw">pub const </span>BIO_FLAGS_SHOULD_RETRY: <a href="../../libc/unix/type.c_int.html">c_int</a> = <span class="number">0x08</span>;
+<span class="kw">pub const </span>BIO_FLAGS_READ: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0x01</span>;
+<span class="kw">pub const </span>BIO_FLAGS_WRITE: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0x02</span>;
+<span class="kw">pub const </span>BIO_FLAGS_IO_SPECIAL: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0x04</span>;
+<span class="kw">pub const </span>BIO_FLAGS_RWS: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <a href="#25">BIO_FLAGS_READ</a> | <a href="#26">BIO_FLAGS_WRITE</a> | <a href="#27">BIO_FLAGS_IO_SPECIAL</a>;
+<span class="kw">pub const </span>BIO_FLAGS_SHOULD_RETRY: <a href="../../openssl_sys/type.c_int.html">c_int</a> = <span class="number">0x08</span>;
 
-<span class="kw">pub unsafe fn </span>BIO_get_mem_data(b: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#18">BIO</a>, pp: <span class="kw-2">*mut *mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>) -&gt; <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a> {
-    <a href="handwritten/bio.rs.html#49">BIO_ctrl</a>(<a href="#31">b</a>, <a href="#8">BIO_CTRL_INFO</a>, <span class="number">0</span>, <a href="#31">pp</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>)
+<span class="kw">pub unsafe fn </span>BIO_get_mem_data(b: <span class="kw-2">*mut </span><a href="handwritten/types.rs.html#18">BIO</a>, pp: <span class="kw-2">*mut *mut </span><a href="../../openssl_sys/type.c_char.html">c_char</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a> {
+    <a href="handwritten/bio.rs.html#49">BIO_ctrl</a>(<a href="#31">b</a>, <a href="#8">BIO_CTRL_INFO</a>, <span class="number">0</span>, <a href="#31">pp</a> <span class="kw">as </span><span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>)
 }
 
 <span class="kw">extern </span><span class="string">&quot;C&quot; </span>{
@@ -109,38 +109,38 @@
     #[cfg(any(ossl110, libressl273))]
     </span><span class="kw">pub fn </span>BIO_meth_set_write(
         biom: <span class="kw-2">*mut </span><a href="handwritten/bio.rs.html#14">BIO_METHOD</a>,
-        write: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="handwritten/types.rs.html#18">BIO</a>, <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a>;
+        write: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="handwritten/types.rs.html#18">BIO</a>, <span class="kw-2">*const </span><a href="../../openssl_sys/type.c_char.html">c_char</a>, <a href="../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a>,
+    ) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a>;
     <span class="attribute">#[deprecated(note = <span class="string">&quot;use BIO_meth_set_read__fixed_rust instead&quot;</span>)]
     #[cfg(any(ossl110, libressl273))]
     </span><span class="kw">pub fn </span>BIO_meth_set_read(
         biom: <span class="kw-2">*mut </span><a href="handwritten/bio.rs.html#14">BIO_METHOD</a>,
-        read: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="handwritten/types.rs.html#18">BIO</a>, <span class="kw-2">*mut </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>, <a href="../../libc/unix/type.c_int.html">c_int</a>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a>;
+        read: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="handwritten/types.rs.html#18">BIO</a>, <span class="kw-2">*mut </span><a href="../../openssl_sys/type.c_char.html">c_char</a>, <a href="../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a>,
+    ) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a>;
     <span class="attribute">#[deprecated(note = <span class="string">&quot;use BIO_meth_set_puts__fixed_rust instead&quot;</span>)]
     #[cfg(any(ossl110, libressl273))]
     </span><span class="kw">pub fn </span>BIO_meth_set_puts(
         biom: <span class="kw-2">*mut </span><a href="handwritten/bio.rs.html#14">BIO_METHOD</a>,
-        read: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="handwritten/types.rs.html#18">BIO</a>, <span class="kw-2">*const </span><a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a>;
+        read: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="handwritten/types.rs.html#18">BIO</a>, <span class="kw-2">*const </span><a href="../../openssl_sys/type.c_char.html">c_char</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a>,
+    ) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a>;
     <span class="attribute">#[deprecated(note = <span class="string">&quot;use BIO_meth_set_ctrl__fixed_rust instead&quot;</span>)]
     #[cfg(any(ossl110, libressl273))]
     </span><span class="kw">pub fn </span>BIO_meth_set_ctrl(
         biom: <span class="kw-2">*mut </span><a href="handwritten/bio.rs.html#14">BIO_METHOD</a>,
-        read: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="handwritten/types.rs.html#18">BIO</a>, <a href="../../libc/unix/type.c_int.html">c_int</a>, <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>, <span class="kw-2">*mut </span><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a>) -&gt; <a href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
-    ) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a>;
+        read: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="handwritten/types.rs.html#18">BIO</a>, <a href="../../openssl_sys/type.c_int.html">c_int</a>, <a href="../../openssl_sys/type.c_long.html">c_long</a>, <span class="kw-2">*mut </span><a href="../../openssl_sys/enum.c_void.html">c_void</a>) -&gt; <a href="../../openssl_sys/type.c_long.html">c_long</a>,
+    ) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a>;
     <span class="attribute">#[deprecated(note = <span class="string">&quot;use BIO_meth_set_create__fixed_rust instead&quot;</span>)]
     #[cfg(any(ossl110, libressl273))]
     </span><span class="kw">pub fn </span>BIO_meth_set_create(
         biom: <span class="kw-2">*mut </span><a href="handwritten/bio.rs.html#14">BIO_METHOD</a>,
-        create: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="handwritten/types.rs.html#18">BIO</a>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a>;
+        create: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="handwritten/types.rs.html#18">BIO</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a>,
+    ) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a>;
     <span class="attribute">#[deprecated(note = <span class="string">&quot;use BIO_meth_set_destroy__fixed_rust instead&quot;</span>)]
     #[cfg(any(ossl110, libressl273))]
     </span><span class="kw">pub fn </span>BIO_meth_set_destroy(
         biom: <span class="kw-2">*mut </span><a href="handwritten/bio.rs.html#14">BIO_METHOD</a>,
-        destroy: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="handwritten/types.rs.html#18">BIO</a>) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a>,
-    ) -&gt; <a href="../../libc/unix/type.c_int.html">c_int</a>;
+        destroy: <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut </span><a href="handwritten/types.rs.html#18">BIO</a>) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a>,
+    ) -&gt; <a href="../../openssl_sys/type.c_int.html">c_int</a>;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

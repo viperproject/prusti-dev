@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.75/src/handwritten/ec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.76/src/./handwritten/ec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../openssl_sys/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../openssl_sys/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -280,13 +280,13 @@
         group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>,
         order: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
         ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_GROUP_get_cofactor(
         group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>,
         cofactor: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
         ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_GROUP_get0_generator(group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>) -&gt; <span class="kw-2">*const </span><a href="#14">EC_POINT</a>;
 
@@ -295,11 +295,11 @@
         generator: <span class="kw-2">*const </span><a href="#14">EC_POINT</a>,
         order: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
         cofactor: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
-    <span class="kw">pub fn </span>EC_GROUP_get_curve_name(group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EC_GROUP_get_curve_name(group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
-    <span class="kw">pub fn </span>EC_GROUP_set_asn1_flag(key: <span class="kw-2">*mut </span><a href="#13">EC_GROUP</a>, flag: <a href="../../../libc/unix/type.c_int.html">c_int</a>);
+    <span class="kw">pub fn </span>EC_GROUP_set_asn1_flag(key: <span class="kw-2">*mut </span><a href="#13">EC_GROUP</a>, flag: <a href="../../../openssl_sys/type.c_int.html">c_int</a>);
 
     <span class="kw">pub fn </span>EC_GROUP_get_curve_GFp(
         group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>,
@@ -307,7 +307,7 @@
         a: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
         b: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
         ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_EC2M&quot;</span>))]
     </span><span class="kw">pub fn </span>EC_GROUP_get_curve_GF2m(
@@ -316,12 +316,12 @@
         a: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
         b: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
         ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
-    <span class="kw">pub fn </span>EC_GROUP_get_degree(group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EC_GROUP_get_degree(group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="attribute">#[cfg(ossl110)]
-    </span><span class="kw">pub fn </span>EC_GROUP_order_bits(group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>EC_GROUP_order_bits(group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_GROUP_new_curve_GFp(
         p: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
@@ -338,15 +338,15 @@
         ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
     ) -&gt; <span class="kw-2">*mut </span><a href="#13">EC_GROUP</a>;
 
-    <span class="kw">pub fn </span>EC_GROUP_new_by_curve_name(nid: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="#13">EC_GROUP</a>;
+    <span class="kw">pub fn </span>EC_GROUP_new_by_curve_name(nid: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="#13">EC_GROUP</a>;
 
-    <span class="kw">pub fn </span>EC_POINT_is_at_infinity(group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>, point: <span class="kw-2">*const </span><a href="#14">EC_POINT</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EC_POINT_is_at_infinity(group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>, point: <span class="kw-2">*const </span><a href="#14">EC_POINT</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_POINT_is_on_curve(
         group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>,
         point: <span class="kw-2">*const </span><a href="#14">EC_POINT</a>,
         ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_POINT_new(group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>) -&gt; <span class="kw-2">*mut </span><a href="#14">EC_POINT</a>;
 
@@ -361,7 +361,7 @@
         x: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
         y: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
         ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_POINT_get_affine_coordinates_GFp(
         group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>,
@@ -369,7 +369,7 @@
         x: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
         y: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
         ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_POINT_set_affine_coordinates_GFp(
         group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>,
@@ -377,7 +377,7 @@
         x: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
         y: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
         ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="attribute">#[cfg(not(osslconf = <span class="string">&quot;OPENSSL_NO_EC2M&quot;</span>))]
     </span><span class="kw">pub fn </span>EC_POINT_get_affine_coordinates_GF2m(
@@ -386,24 +386,24 @@
         x: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
         y: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
         ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_POINT_point2oct(
         group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>,
         p: <span class="kw-2">*const </span><a href="#14">EC_POINT</a>,
         form: <a href="#6">point_conversion_form_t</a>,
-        buf: <span class="kw-2">*mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        len: <a href="../../../libc/unix/type.size_t.html">size_t</a>,
+        buf: <span class="kw-2">*mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
+        len: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
         ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../libc/unix/type.size_t.html">size_t</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.size_t.html">size_t</a>;
 
     <span class="kw">pub fn </span>EC_POINT_oct2point(
         group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>,
         p: <span class="kw-2">*mut </span><a href="#14">EC_POINT</a>,
-        buf: <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        len: <a href="../../../libc/unix/type.size_t.html">size_t</a>,
+        buf: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
+        len: <a href="../../../openssl_sys/type.size_t.html">size_t</a>,
         ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_POINT_add(
         group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>,
@@ -411,16 +411,16 @@
         a: <span class="kw-2">*const </span><a href="#14">EC_POINT</a>,
         b: <span class="kw-2">*const </span><a href="#14">EC_POINT</a>,
         ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
-    <span class="kw">pub fn </span>EC_POINT_invert(group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>, r: <span class="kw-2">*mut </span><a href="#14">EC_POINT</a>, ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EC_POINT_invert(group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>, r: <span class="kw-2">*mut </span><a href="#14">EC_POINT</a>, ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_POINT_cmp(
         group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>,
         a: <span class="kw-2">*const </span><a href="#14">EC_POINT</a>,
         b: <span class="kw-2">*const </span><a href="#14">EC_POINT</a>,
         ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_POINT_mul(
         group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>,
@@ -429,39 +429,39 @@
         q: <span class="kw-2">*const </span><a href="#14">EC_POINT</a>,
         m: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>,
         ctx: <span class="kw-2">*mut </span><a href="types.rs.html#59">BN_CTX</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_KEY_new() -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>;
 
-    <span class="kw">pub fn </span>EC_KEY_new_by_curve_name(nid: <a href="../../../libc/unix/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>;
+    <span class="kw">pub fn </span>EC_KEY_new_by_curve_name(nid: <a href="../../../openssl_sys/type.c_int.html">c_int</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>;
 
     <span class="kw">pub fn </span>EC_KEY_free(key: <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>);
 
     <span class="kw">pub fn </span>EC_KEY_dup(key: <span class="kw-2">*const </span><a href="types.rs.html#253">EC_KEY</a>) -&gt; <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>;
 
-    <span class="kw">pub fn </span>EC_KEY_up_ref(key: <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EC_KEY_up_ref(key: <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_KEY_get0_group(key: <span class="kw-2">*const </span><a href="types.rs.html#253">EC_KEY</a>) -&gt; <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>;
 
-    <span class="kw">pub fn </span>EC_KEY_set_group(key: <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>, group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EC_KEY_set_group(key: <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>, group: <span class="kw-2">*const </span><a href="#13">EC_GROUP</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_KEY_get0_private_key(key: <span class="kw-2">*const </span><a href="types.rs.html#253">EC_KEY</a>) -&gt; <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>;
 
-    <span class="kw">pub fn </span>EC_KEY_set_private_key(key: <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>, key: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EC_KEY_set_private_key(key: <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>, key: <span class="kw-2">*const </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_KEY_get0_public_key(key: <span class="kw-2">*const </span><a href="types.rs.html#253">EC_KEY</a>) -&gt; <span class="kw-2">*const </span><a href="#14">EC_POINT</a>;
 
-    <span class="kw">pub fn </span>EC_KEY_set_public_key(key: <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>, key: <span class="kw-2">*const </span><a href="#14">EC_POINT</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EC_KEY_set_public_key(key: <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>, key: <span class="kw-2">*const </span><a href="#14">EC_POINT</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
-    <span class="kw">pub fn </span>EC_KEY_generate_key(key: <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EC_KEY_generate_key(key: <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
-    <span class="kw">pub fn </span>EC_KEY_check_key(key: <span class="kw-2">*const </span><a href="types.rs.html#253">EC_KEY</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>EC_KEY_check_key(key: <span class="kw-2">*const </span><a href="types.rs.html#253">EC_KEY</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>EC_KEY_set_public_key_affine_coordinates(
         key: <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>,
         x: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
         y: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 }
 
 <span class="macro">cfg_if! </span>{
@@ -485,28 +485,28 @@
     </span><span class="kw">pub fn </span>ECDSA_SIG_get0(sig: <span class="kw-2">*const </span><a href="#214">ECDSA_SIG</a>, pr: <span class="kw-2">*mut *const </span><a href="types.rs.html#44">BIGNUM</a>, ps: <span class="kw-2">*mut *const </span><a href="types.rs.html#44">BIGNUM</a>);
 
     <span class="attribute">#[cfg(any(ossl110, libressl273))]
-    </span><span class="kw">pub fn </span>ECDSA_SIG_set0(sig: <span class="kw-2">*mut </span><a href="#214">ECDSA_SIG</a>, pr: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, ps: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    </span><span class="kw">pub fn </span>ECDSA_SIG_set0(sig: <span class="kw-2">*mut </span><a href="#214">ECDSA_SIG</a>, pr: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>, ps: <span class="kw-2">*mut </span><a href="types.rs.html#44">BIGNUM</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>ECDSA_do_sign(
-        dgst: <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        dgst_len: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        dgst: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
+        dgst_len: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
         eckey: <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>,
     ) -&gt; <span class="kw-2">*mut </span><a href="#214">ECDSA_SIG</a>;
 
     <span class="kw">pub fn </span>ECDSA_do_verify(
-        dgst: <span class="kw-2">*const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        dgst_len: <a href="../../../libc/unix/type.c_int.html">c_int</a>,
+        dgst: <span class="kw-2">*const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
+        dgst_len: <a href="../../../openssl_sys/type.c_int.html">c_int</a>,
         sig: <span class="kw-2">*const </span><a href="#214">ECDSA_SIG</a>,
         eckey: <span class="kw-2">*mut </span><a href="types.rs.html#253">EC_KEY</a>,
-    ) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    ) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 
     <span class="kw">pub fn </span>d2i_ECDSA_SIG(
         sig: <span class="kw-2">*mut *mut </span><a href="#214">ECDSA_SIG</a>,
-        inp: <span class="kw-2">*mut *const </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>,
-        length: <a href="../../../libc/unix/linux_like/linux/gnu/b64/x86_64/not_x32/type.c_long.html">c_long</a>,
+        inp: <span class="kw-2">*mut *const </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>,
+        length: <a href="../../../openssl_sys/type.c_long.html">c_long</a>,
     ) -&gt; <span class="kw-2">*mut </span><a href="#214">ECDSA_SIG</a>;
 
-    <span class="kw">pub fn </span>i2d_ECDSA_SIG(sig: <span class="kw-2">*const </span><a href="#214">ECDSA_SIG</a>, out: <span class="kw-2">*mut *mut </span><a href="../../../libc/unix/type.c_uchar.html">c_uchar</a>) -&gt; <a href="../../../libc/unix/type.c_int.html">c_int</a>;
+    <span class="kw">pub fn </span>i2d_ECDSA_SIG(sig: <span class="kw-2">*const </span><a href="#214">ECDSA_SIG</a>, out: <span class="kw-2">*mut *mut </span><a href="../../../openssl_sys/type.c_uchar.html">c_uchar</a>) -&gt; <a href="../../../openssl_sys/type.c_int.html">c_int</a>;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl_sys" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="openssl_sys" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

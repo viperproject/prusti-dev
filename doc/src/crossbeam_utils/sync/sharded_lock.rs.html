@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crossbeam-utils-0.8.11/src/sync/sharded_lock.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sharded_lock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../crossbeam_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../crossbeam_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../crossbeam_utils/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crossbeam-utils-0.8.12/src/sync/sharded_lock.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sharded_lock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../crossbeam_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../crossbeam_utils/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -628,6 +628,10 @@
 <span id="628">628</span>
 <span id="629">629</span>
 <span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
@@ -639,8 +643,8 @@
 <span class="kw">use </span>std::sync::{<a href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLock.html">RwLock</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLockReadGuard.html">RwLockReadGuard</a>, <a href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLockWriteGuard.html">RwLockWriteGuard</a>};
 <span class="kw">use </span>std::thread::{<a class="self" href="https://doc.rust-lang.org/nightly/std/thread/index.html">self</a>, <a href="https://doc.rust-lang.org/nightly/std/thread/struct.ThreadId.html">ThreadId</a>};
 
+<span class="kw">use </span><a href="once_lock.rs.html#10"><span class="kw">crate</span>::sync::once_lock::OnceLock</a>;
 <span class="kw">use </span><a href="../cache_padded.rs.html#128"><span class="kw">crate</span>::CachePadded</a>;
-<span class="kw">use </span><a href="../../../once_cell/sync/struct.Lazy.html">once_cell::sync::Lazy</a>;
 
 <span class="doccomment">/// The number of shards per sharded lock. Must be a power of two.
 </span><span class="kw">const </span>NUM_SHARDS: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = <span class="number">8</span>;
@@ -1198,7 +1202,7 @@
 /// tearing down.
 </span><span class="attribute">#[inline]
 </span><span class="kw">fn </span>current_index() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <a href="#610-630">REGISTRATION</a>.try_with(|reg| <a href="#571">reg</a>.index).ok()
+    <a href="#614-634">REGISTRATION</a>.try_with(|reg| <a href="#571">reg</a>.index).ok()
 }
 
 <span class="doccomment">/// The global registry keeping track of registered threads and indices.
@@ -1213,13 +1217,17 @@
     </span>next_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">static </span>THREAD_INDICES: Lazy&lt;Mutex&lt;<a href="#575">ThreadIndices</a>&gt;&gt; = Lazy::new(|| {
-    Mutex::new(<a href="#575">ThreadIndices</a> {
-        mapping: HashMap::new(),
-        free_list: Vec::new(),
-        next_index: <span class="number">0</span>,
-    })
-});
+<span class="kw">fn </span>thread_indices() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Mutex&lt;<a href="#575">ThreadIndices</a>&gt; {
+    <span class="kw">static </span>THREAD_INDICES: OnceLock&lt;Mutex&lt;<a href="#575">ThreadIndices</a>&gt;&gt; = OnceLock::new();
+    <span class="kw">fn </span>init() -&gt; Mutex&lt;<a href="#575">ThreadIndices</a>&gt; {
+        Mutex::new(<a href="#575">ThreadIndices</a> {
+            mapping: HashMap::new(),
+            free_list: Vec::new(),
+            next_index: <span class="number">0</span>,
+        })
+    }
+    <a href="#587">THREAD_INDICES</a>.<a href="once_lock.rs.html#48-50">get_or_init</a>(<a href="#588">init</a>)
+}
 
 <span class="doccomment">/// A registration of a thread with an index.
 ///
@@ -1229,18 +1237,18 @@
     thread_id: <a href="https://doc.rust-lang.org/nightly/std/thread/struct.ThreadId.html">ThreadId</a>,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#597">Registration</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span><a href="#601">Registration</a> {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>indices = <a href="#586">THREAD_INDICES</a>.lock().unwrap();
-        <a href="#604">indices</a>.mapping.remove(<span class="kw-2">&amp;</span><a class="self" href="#603">self</a>.thread_id);
-        <a href="#604">indices</a>.free_list.push(<a class="self" href="#603">self</a>.index);
+        <span class="kw">let </span><span class="kw-2">mut </span>indices = <a href="#586">thread_indices</a>().lock().unwrap();
+        <a href="#608">indices</a>.mapping.remove(<span class="kw-2">&amp;</span><a class="self" href="#607">self</a>.thread_id);
+        <a href="#608">indices</a>.free_list.push(<a class="self" href="#607">self</a>.index);
     }
 }
 
 <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local! </a>{
     <span class="kw">static </span>REGISTRATION: Registration = {
         <span class="kw">let </span>thread_id = thread::current().id();
-        <span class="kw">let </span><span class="kw-2">mut </span>indices = THREAD_INDICES.lock().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>indices = thread_indices().lock().unwrap();
 
         <span class="kw">let </span>index = <span class="kw">match </span>indices.free_list.pop() {
             <span class="prelude-val">Some</span>(i) =&gt; i,
@@ -1259,4 +1267,4 @@
     };
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (98ad6a551 2022-09-17)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>
