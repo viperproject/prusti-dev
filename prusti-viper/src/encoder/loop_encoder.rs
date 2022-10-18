@@ -142,32 +142,43 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
 
         let loop_body: Vec<BasicBlockIndex> = loop_info
             .get_loop_body(loop_head)
-            .iter()
-            .filter(|&&bb| !self.procedure.is_spec_block(bb))
-            .cloned()
+            .iter().copied()
+            .filter(|&bb| !self.procedure.is_spec_block(bb))
             .collect();
 
-        let loop_exit_blocks = loop_info.get_loop_exit_blocks(loop_head);
-        let before_invariant_block: BasicBlockIndex = loop_body
-            .iter()
-            .find(|&&bb| {
+        let opt_before_invariant_block: Option<BasicBlockIndex> = loop_body
+            .iter().copied()
+            .find(|&bb| {
+                // Find the user-defined invariant
                 loop_info.get_loop_depth(bb) == loop_depth
                     && self.mir()[bb].terminator().successors().any(|succ_bb| {
                         self.procedure.is_reachable_block(succ_bb)
                             && self.procedure.is_spec_block(succ_bb)
                     })
-            })
-            .cloned()
-            .unwrap_or_else(|| loop_exit_blocks.get(0).cloned().unwrap_or(loop_head));
+            });
 
-        if loop_info.is_conditional_branch(loop_head, before_invariant_block) {
-            debug!(
-                "{:?} is conditional branch in loop {:?}",
-                before_invariant_block, loop_head
-            );
-            return Err(LoopEncoderError::LoopInvariantInBranch(loop_head));
+        if let Some(before_invariant_block) = opt_before_invariant_block {
+            // The invariant is defined by the user
+            if loop_info.is_conditional_branch(loop_head, before_invariant_block) {
+                debug!(
+                    "{:?} is conditional branch in loop {:?}",
+                    before_invariant_block, loop_head
+                );
+                Err(LoopEncoderError::LoopInvariantInBranch(loop_head))
+            } else {
+                Ok(before_invariant_block)
+            }
+        } else {
+            // HEURISTIC: place the invariant after the first boolean exit block in a
+            // non-conditional branch. If there is none, place the invariant at the loop head.
+            let loop_exit_blocks = loop_info.get_loop_exit_blocks(loop_head);
+            let before_invariant_block = loop_exit_blocks.iter().copied()
+                .find(|&bb| {
+                    self.procedure.successors(bb).len() == 2
+                    && !loop_info.is_conditional_branch(loop_head, bb)
+                })
+                .unwrap_or(loop_head);
+            Ok(before_invariant_block)
         }
-
-        Ok(before_invariant_block)
     }
 }

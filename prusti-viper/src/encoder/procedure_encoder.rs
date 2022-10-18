@@ -798,10 +798,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let loop_body: Vec<BasicBlockIndex> = loop_info
             .get_loop_body(loop_head)
             .iter()
+            .copied()
             .filter(
-                |&&bb| self.procedure.is_reachable_block(bb) && !self.procedure.is_spec_block(bb)
+                |&bb| self.procedure.is_reachable_block(bb) && !self.procedure.is_spec_block(bb)
             )
-            .cloned()
             .collect();
 
         // Identify important blocks
@@ -809,18 +809,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let loop_exit_blocks_set: FxHashSet<_> = loop_exit_blocks.iter().cloned().collect();
         let before_invariant_block: BasicBlockIndex = self.cached_loop_invariant_block[&loop_head];
         let before_inv_block_pos = loop_body
-            .iter()
-            .position(|&bb| bb == before_invariant_block)
+            .iter().copied()
+            .position(|bb| bb == before_invariant_block)
             .unwrap();
         let after_inv_block_pos = 1 + before_inv_block_pos;
-        let exit_blocks_before_inv: Vec<_> = loop_body[0..after_inv_block_pos]
-            .iter()
-            .filter(|&bb| loop_exit_blocks_set.contains(bb))
-            .cloned()
+        // Find boolean switch exit blocks before the invariant
+        let boolean_exit_blocks_before_inv: Vec<_> = loop_body[0..after_inv_block_pos]
+            .iter().copied()
+            .filter(|bb| loop_exit_blocks_set.contains(bb))
+            .filter(|&bb| self.procedure.successors(bb).len() == 2)
             .collect();
-        // HEURISTIC: pick the last exit block before the invariant.
+        // HEURISTIC: pick the last boolean exit block before the invariant.
         // An infinite loop will have no exit blocks, so we have to use an Option here
-        let opt_loop_guard_switch = exit_blocks_before_inv.last().cloned();
+        let opt_loop_guard_switch = boolean_exit_blocks_before_inv.last().cloned();
         let after_guard_block_pos = opt_loop_guard_switch
             .and_then(|loop_guard_switch| {
                 loop_body
