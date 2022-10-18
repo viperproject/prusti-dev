@@ -1223,7 +1223,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                     mir::Rvalue::Cast(unsupported_kind, _, _) => {
                         return Err(SpannedEncodingError::unsupported(
-                            format!("unsupported cast of kind '{:?}", unsupported_kind),
+                            format!("unsupported cast of kind '{:?}'", unsupported_kind),
                             span,
                         ));
                     }
