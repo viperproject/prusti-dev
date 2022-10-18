@@ -220,7 +220,8 @@ pub fn expand_one_level<'tcx>(
         | mir::ProjectionElem::Index(..)
         | mir::ProjectionElem::ConstantIndex { .. }
         | mir::ProjectionElem::Subslice { .. }
-        | mir::ProjectionElem::Downcast(..) => vec![],
+        | mir::ProjectionElem::Downcast(..)
+        | mir::ProjectionElem::OpaqueCast(..) => vec![],
     };
     (new_current_place, other_places)
 }
@@ -326,21 +327,23 @@ pub fn is_copy<'tcx>(
         // `type_implements_trait` doesn't consider that.
         matches!(mutability, mir::Mutability::Not)
     } else if let Some(copy_trait) = tcx.lang_items().copy_trait() {
-        tcx.infer_ctxt().enter(|infcx| {
-            // If `ty` has any inference variables (e.g. a region variable), then using it with
-            // the freshly-created `InferCtxt` (i.e. `tcx.infer_ctxt().enter(..)`) will cause
-            // a panic, since those inference variables don't exist in the new `InferCtxt`.
-            // See: https://rust-lang.zulipchat.com/#narrow/stream/182449-t-compiler.2Fhelp/topic/.E2.9C.94.20Panic.20in.20is_copy_modulo_regions
-            let fresh_ty = infcx.freshen(ty);
-            infcx
-                .type_implements_trait(copy_trait, fresh_ty, ty::List::empty(), param_env)
-                .must_apply_considering_regions()
-        })
+        let infcx = tcx.infer_ctxt().build();
+        // If `ty` has any inference variables (e.g. a region variable), then using it with
+        // the freshly-created `InferCtxt` (i.e. `tcx.infer_ctxt().enter(..)`) will cause
+        // a panic, since those inference variables don't exist in the new `InferCtxt`.
+        // See: https://rust-lang.zulipchat.com/#narrow/stream/182449-t-compiler.2Fhelp/topic/.E2.9C.94.20Panic.20in.20is_copy_modulo_regions
+        let fresh_ty = infcx.freshen(ty);
+        infcx
+            .type_implements_trait(copy_trait, fresh_ty, ty::List::empty(), param_env)
+            .must_apply_considering_regions()
     } else {
         false
     }
 }
 
+/// Given an assignment `let _ = & <borrowed_place>`, this function returns the place that is
+/// blocked by the loan.
+/// For example, `let _ = &x.f.g` blocks just `x.f.g`, but `let _ = &x.f[0].g` blocks `x.f`.
 pub fn get_blocked_place<'tcx>(tcx: TyCtxt<'tcx>, borrowed: Place<'tcx>) -> Place<'tcx> {
     for (place_ref, place_elem) in borrowed.iter_projections() {
         match place_elem {
@@ -354,7 +357,9 @@ pub fn get_blocked_place<'tcx>(tcx: TyCtxt<'tcx>, borrowed: Place<'tcx>) -> Plac
                 })
                 .into();
             }
-            mir::ProjectionElem::Field(..) | mir::ProjectionElem::Downcast(..) => {
+            mir::ProjectionElem::Field(..)
+            | mir::ProjectionElem::Downcast(..)
+            | mir::ProjectionElem::OpaqueCast(..) => {
                 // Continue
             }
         }

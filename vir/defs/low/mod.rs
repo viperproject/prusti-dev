@@ -1,6 +1,8 @@
 //! Monomorphic IR that is very close to Viper and can be directly converted
 //! into it.
 
+#![allow(clippy::write_with_newline)]
+
 pub mod ast;
 pub mod cfg;
 pub mod domain;
