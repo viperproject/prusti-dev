@@ -28,16 +28,7 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for IllegalPredicateUsagesChecker {
             self.collect_illegal_predicate_usages(collected_predicates.predicates, env.query);
         debug!("Predicate usages: {:?}", illegal_pred_usages);
 
-        let body_errors = collected_predicates
-            .abstract_predicate_with_bodies
-            .into_iter()
-            .map(|def_id| {
-                let span = env.query.get_def_span(def_id);
-                PrustiError::incorrect(
-                    "abstract predicates must not have bodies".to_string(),
-                    MultiSpan::from_span(span),
-                )
-            });
+        // TODO: check behavioral subtyping of implemented predicates against default implementation
 
         let illegal_usage_errors = illegal_pred_usages
             .into_iter()
@@ -52,7 +43,7 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for IllegalPredicateUsagesChecker {
                 )
             });
 
-        body_errors.chain(illegal_usage_errors).collect()
+        illegal_usage_errors.collect()
     }
 }
 

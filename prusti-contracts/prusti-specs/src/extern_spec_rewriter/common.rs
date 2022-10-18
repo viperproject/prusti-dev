@@ -1,6 +1,6 @@
 use crate::{ExternSpecKind, extract_prusti_attributes, generate_spec_and_assertions, RewritableReceiver, SelfTypeRewriter};
 use quote::{quote, ToTokens};
-use syn::{Expr, FnArg, parse_quote_spanned, Pat, PatType, Token};
+use syn::{Expr, FnArg, GenericParam, GenericArgument, parse_quote_spanned, Pat, PatType, Token};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use crate::common::{HasAttributes, HasSignature};
@@ -112,21 +112,17 @@ fn with_explicit_lifetimes(sig: &syn::Signature) -> Option<syn::Signature> {
 /// ```ignore
 /// // spec functions with "self" rewritten to "_self: SomeStruct"
 /// fn the_trait_method(_self: SomeStruct, arg: <SomeStruct as SomeTrait::AssocType> -> Bar {
-///     <SomeStruct as SomeTrait>::the_trait_method(_self, arg);
-///     unimplemented!()
+///     <SomeStruct as SomeTrait>::the_trait_method(_self, arg)
 /// }
 /// ```
 ///
 pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes + Spanned>(
     method: &T,
-    self_type: &syn::TypePath,
+    self_type: &syn::Type,
     self_type_trait: Option<&syn::TypePath>,
     extern_spec_kind: ExternSpecKind,
 ) -> syn::Result<(syn::ImplItemMethod, Vec<syn::ImplItemMethod>)> {
-    let base_sig = method.sig();
-
-    // Make elided lifetimes explicit, if necessary.
-    let method_sig = with_explicit_lifetimes(base_sig).unwrap_or_else(|| base_sig.clone());
+    let method_sig = method.sig();
     let method_sig_span = method_sig.span();
     let method_ident = &method_sig.ident;
 
@@ -141,20 +137,9 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
     };
 
     // Build the method stub
-    let method_attrs = method.attrs().clone();
-    let method_args = &method_sig.params_as_call_args();
-    let extern_spec_kind_string: String = extern_spec_kind.into();
-    let stub_method: syn::ImplItemMethod = parse_quote_spanned! {method.span()=>
-        #[trusted]
-        #[prusti::extern_spec = #extern_spec_kind_string]
-        #(#method_attrs)*
-        #[allow(unused, dead_code)]
-        #method_sig {
-            #method_path ( #method_args );
-            unimplemented!()
-        }
-    };
-
+    let stub_method: syn::ImplItemMethod =
+        generate_extern_spec_function_stub(method, &method_path, extern_spec_kind);
+    
     // Eagerly extract and process specifications
     let mut stub_method = AnyFnItem::ImplMethod(stub_method);
     let prusti_attributes = extract_prusti_attributes(&mut stub_method);
@@ -164,12 +149,10 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
     // In the generated spec items and the stub method:
     // - Rewrite associated types
     // - Rewrite "self" to "_self"
-    let self_type_path = parse_quote_spanned! {self_type.span()=> #self_type };
-
     let mut stub_method = stub_method.expect_impl_item();
     stub_method.attrs.extend(generated_attributes);
-    stub_method.rewrite_self_type(&self_type_path, self_type_trait);
-    stub_method.rewrite_receiver(&self_type_path);
+    stub_method.rewrite_self_type(self_type, self_type_trait);
+    stub_method.rewrite_receiver(self_type);
 
     // Set span of generated method to externally specified method for better error reporting
     syn::visit_mut::visit_impl_item_method_mut(&mut SpanOverrider::new(method_sig_span), &mut stub_method);
@@ -180,8 +163,8 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
                 let mut spec_item_fn: syn::ImplItemMethod = parse_quote_spanned! {spec_item_fn.span()=>
                     #spec_item_fn
                 };
-                spec_item_fn.rewrite_self_type(&self_type_path, self_type_trait);
-                spec_item_fn.rewrite_receiver(&self_type_path);
+                spec_item_fn.rewrite_self_type(self_type, self_type_trait);
+                spec_item_fn.rewrite_receiver(self_type);
 
                 spec_item_fn
             }
@@ -190,6 +173,30 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
     }).collect::<Vec<_>>();
 
     Ok((stub_method, rewritten_spec_items))
+}
+
+pub(crate) fn generate_extern_spec_function_stub<Input: HasSignature + HasAttributes + Spanned, Output: syn::parse::Parse>(
+    function: &Input,
+    fn_path: &syn::ExprPath,
+    extern_spec_kind: ExternSpecKind,
+) -> Output {
+    let signature = function.sig();
+    // Make elided lifetimes explicit, if necessary.
+    let signature = with_explicit_lifetimes(signature).unwrap_or_else(|| signature.clone());
+    let attrs = function.attrs().clone();
+    let generic_params = &signature.generic_params_as_call_args();
+    let args = &signature.params_as_call_args();
+    let extern_spec_kind_string: String = extern_spec_kind.into();
+    
+    parse_quote_spanned! {function.span()=>
+        #[trusted]
+        #[prusti::extern_spec = #extern_spec_kind_string]
+        #(#attrs)*
+        #[allow(unused, dead_code)]
+        #signature {
+            #fn_path :: < #generic_params > ( #args )
+        }
+    }
 }
 
 /// Given a method signature with parameters, this function returns all typed parameters
@@ -211,17 +218,46 @@ impl MethodParamsAsCallArguments for Punctuated<FnArg, Token![,]> {
     fn params_as_call_args(&self) -> Punctuated<Expr, Token!(,)> {
         Punctuated::from_iter(
             self.iter()
-                .map(|param| {
+                .map(|param| -> Expr {
                     let span = param.span();
-                    let call_arg: Expr = match param {
+                    match param {
                         FnArg::Typed(PatType { pat: box Pat::Ident(ident), .. }) =>
                             parse_quote_spanned! {span=>#ident },
                         FnArg::Receiver(_) =>
                             parse_quote_spanned! {span=>self},
                         _ =>
                             unimplemented!(),
-                    };
-                    call_arg
+                    }
+                })
+        )
+    }
+}
+
+pub trait GenericParamsAsCallArguments {
+    fn generic_params_as_call_args(&self) -> Punctuated<GenericArgument, Token![,]>;
+}
+
+impl<H: HasSignature> GenericParamsAsCallArguments for H {
+    fn generic_params_as_call_args(&self) -> Punctuated<GenericArgument, Token!(,)> {
+        self.sig().generics.params.generic_params_as_call_args()
+    }
+}
+
+impl GenericParamsAsCallArguments for Punctuated<GenericParam, Token![,]> {
+    fn generic_params_as_call_args(&self) -> Punctuated<GenericArgument, Token!(,)> {
+        use syn::*;
+        Punctuated::from_iter(
+            self.iter()
+                .flat_map(|param| -> Option<GenericArgument> {
+                    let span = param.span();
+                    match param {
+                        GenericParam::Type(TypeParam { ident, .. }) =>
+                            Some(parse_quote_spanned! {span=>#ident }),
+                        GenericParam::Lifetime(_) =>
+                            None,
+                        GenericParam::Const(ConstParam { ident, .. }) =>
+                            Some(parse_quote_spanned! {span=>#ident }),
+                    }
                 })
         )
     }

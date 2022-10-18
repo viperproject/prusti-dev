@@ -82,12 +82,6 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
         }
     }
 
-    let item_ty_path = if let syn::Type::Path(ref type_path) = **item_ty {
-        type_path.clone()
-    } else {
-        unreachable!("expected type path in extern spec trait impl");
-    };
-
     let mut rewritten_items = Vec::new();
     for item in impl_item.items.iter_mut() {
         match item {
@@ -100,7 +94,7 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
             syn::ImplItem::Method(method) => {
                 let (rewritten_method, spec_items) = generate_extern_spec_method_stub(
                     method,
-                    &item_ty_path,
+                    item_ty,
                     None,
                     ExternSpecKind::InherentImpl,
                 )?;
@@ -135,11 +129,6 @@ fn rewrite_trait_impl(
     new_ty: Box<syn::Type>,
 ) -> syn::Result<syn::ItemImpl> {
     let item_ty = impl_item.self_ty.clone();
-    let item_ty_path = if let syn::Type::Path(ref type_path) = *item_ty {
-        type_path.clone()
-    } else {
-        unreachable!("expected type path in extern spec trait impl");
-    };
 
     // Create new impl
     let mut new_impl = impl_item.clone();
@@ -162,7 +151,7 @@ fn rewrite_trait_impl(
             syn::ImplItem::Method(method) => {
                 let (rewritten_method, spec_items) = generate_extern_spec_method_stub(
                     &method,
-                    &item_ty_path,
+                    &item_ty,
                     Some(&item_trait_typath),
                     ExternSpecKind::TraitImpl,
                 )?;
@@ -251,22 +240,19 @@ mod tests {
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn foo(_self: &MyStruct) {
-                        <MyStruct> :: foo(_self);
-                        unimplemented!()
+                        <MyStruct> :: foo :: <>(_self)
                     }
                     #[prusti::extern_spec = "inherent_impl"]
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn bar(_self: &mut MyStruct) {
-                        <MyStruct> :: bar(_self);
-                        unimplemented!()
+                        <MyStruct> :: bar :: <>(_self)
                     }
                     #[prusti::extern_spec = "inherent_impl"]
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn baz(_self: MyStruct) {
-                        <MyStruct> :: baz(_self);
-                        unimplemented!()
+                        <MyStruct> :: baz :: <>(_self)
                     }
                 }
             };
@@ -291,8 +277,32 @@ mod tests {
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn foo(_self: &MyStruct::<I,O, i32>, arg1: I, arg2: i32) -> O {
-                        <MyStruct::<I,O,i32>> :: foo(_self, arg1, arg2);
-                        unimplemented!()
+                        <MyStruct::<I,O,i32>> :: foo :: <>(_self, arg1, arg2)
+                    }
+                }
+            };
+
+            assert_eq_tokenizable(rewritten.generated_impl.clone(), expected);
+        }
+
+        #[test]
+        fn impl_forwarded_generics() {
+            let mut inp_impl: syn::ItemImpl = parse_quote!(
+                impl MyStruct {
+                    fn foo<T: Copy>(&self) -> bool;
+                }
+            );
+
+            let rewritten = rewrite_extern_spec_internal(&mut inp_impl).unwrap();
+
+            let newtype_ident = &rewritten.generated_struct.ident;
+            let expected: syn::ItemImpl = parse_quote! {
+                impl #newtype_ident <> {
+                    #[prusti::extern_spec = "inherent_impl"]
+                    #[allow(unused, dead_code)]
+                    #[prusti::trusted]
+                    fn foo<T: Copy>(_self: &MyStruct) -> bool {
+                        <MyStruct> :: foo :: <T>(_self)
                     }
                 }
             };
@@ -321,8 +331,7 @@ mod tests {
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
                     fn foo(_self: &mut MyStruct) -> <MyStruct as MyTrait> :: Result {
-                        <MyStruct as MyTrait> :: foo(_self);
-                        unimplemented!()
+                        <MyStruct as MyTrait> :: foo :: <>(_self)
                     }
                 }
             };
