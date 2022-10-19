@@ -171,6 +171,17 @@
 <span id="171">171</span>
 <span id="172">172</span>
 <span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -181,7 +192,7 @@
     <a href="../../../prusti_interface/environment/mir_analyses/initialization/fn.compute_definitely_initialized.html">compute_definitely_initialized</a>, <a href="../../../prusti_interface/environment/mir_analyses/initialization/type.DefinitelyInitializedAnalysisResult.html">DefinitelyInitializedAnalysisResult</a>,
 };
 <span class="kw">use </span><a href="../../../prusti_interface/environment/mir_sets/place_set/struct.PlaceSet.html">prusti_interface::environment::mir_sets::PlaceSet</a>;
-<span class="kw">use </span>prusti_interface::environment::{<a href="../../../prusti_interface/environment/procedure/type.BasicBlockIndex.html">BasicBlockIndex</a>, <a href="../../../prusti_interface/environment/loops_utils/struct.PermissionForest.html">PermissionForest</a>, <a href="../../../prusti_interface/environment/loops/struct.ProcedureLoops.html">ProcedureLoops</a>, <a href="../../../prusti_interface/environment/procedure/struct.Procedure.html">Procedure</a>};
+<span class="kw">use </span>prusti_interface::environment::{<a href="../../../prusti_interface/environment/procedure/type.BasicBlockIndex.html">BasicBlockIndex</a>, <a href="../../../prusti_interface/environment/loops/enum.LoopAnalysisError.html">LoopAnalysisError</a>, <a href="../../../prusti_interface/environment/loops_utils/struct.PermissionForest.html">PermissionForest</a>, <a href="../../../prusti_interface/environment/loops/struct.ProcedureLoops.html">ProcedureLoops</a>, <a href="../../../prusti_interface/environment/procedure/struct.Procedure.html">Procedure</a>};
 <span class="kw">use </span><a href="../../../prusti_interface/utils/index.html">prusti_interface::utils</a>;
 <span class="kw">use </span>prusti_rustc_interface::middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">ty</a>};
 <span class="kw">use </span>log::{<a href="../../../log/macro.trace.html">trace</a>, <a href="../../../log/macro.debug.html">debug</a>};
@@ -246,7 +257,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         bb: <a href="../../../prusti_interface/environment/procedure/type.BasicBlockIndex.html">BasicBlockIndex</a>,
         bb_inv: <a href="../../../prusti_interface/environment/procedure/type.BasicBlockIndex.html">BasicBlockIndex</a>
-    ) -&gt; PermissionForest&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PermissionForest&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>&gt;, <a href="../../../prusti_interface/environment/loops/enum.LoopAnalysisError.html">LoopAnalysisError</a>&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.is_loop_head(bb));
 
         <span class="comment">// 1.  Let ``A1`` be a set of pairs ``(p, t)`` where ``p`` is a prefix
@@ -271,11 +282,11 @@
 
         // Paths accessed inside the loop body.
         </span><span class="kw">let </span>(write_leaves, mut_borrow_leaves, read_leaves) =
-            <a class="self" href="#73">self</a>.<a href="#46">loops</a>().compute_read_and_write_leaves(
-                <a href="#74">bb</a>,
-                <a class="self" href="#73">self</a>.<a href="#42">mir</a>(),
-                <span class="prelude-val">Some</span>(<a class="self" href="#73">self</a>.initialization.get_before_block(<a href="#75">bb_inv</a>)),
-            );
+            <span class="self">self</span>.loops().compute_read_and_write_leaves(
+                bb,
+                <span class="self">self</span>.mir(),
+                <span class="prelude-val">Some</span>(<span class="self">self</span>.initialization.get_before_block(bb_inv)),
+            )<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>all_places = PlaceSet::new();
         <span class="kw">for </span>place <span class="kw">in </span><span class="kw-2">&amp;</span>read_leaves {
@@ -292,7 +303,7 @@
         </span><span class="kw">let </span>forest =
             PermissionForest::new(<a class="self" href="#73">self</a>.procedure.get_mir(), <a class="self" href="#73">self</a>.tcx, <span class="kw-2">&amp;</span><a href="#100">write_leaves</a>, <span class="kw-2">&amp;</span><a href="#100">mut_borrow_leaves</a>, <span class="kw-2">&amp;</span><a href="#100">read_leaves</a>, <span class="kw-2">&amp;</span><a href="#107">all_places</a>);
 
-        <a href="#119">forest</a>
+        <span class="prelude-val">Ok</span>(<a href="#119">forest</a>)
     }
 
     <span class="doccomment">/// Is the ``place`` definitely initialised at the beginning of ``bbi``?
@@ -315,33 +326,44 @@
 
         <span class="kw">let </span>loop_body: Vec&lt;<a href="../../../prusti_interface/environment/procedure/type.BasicBlockIndex.html">BasicBlockIndex</a>&gt; = <a href="#139">loop_info</a>
             .get_loop_body(<a href="#136">loop_head</a>)
-            .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|&amp;&amp;bb| !<a class="self" href="#135">self</a>.procedure.is_spec_block(<a href="#146">bb</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
+            .iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">copied</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|<span class="kw-2">&amp;</span>bb| !<a class="self" href="#135">self</a>.procedure.is_spec_block(<a href="#146">bb</a>))
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
-        <span class="kw">let </span>loop_exit_blocks = <a href="#139">loop_info</a>.get_loop_exit_blocks(<a href="#136">loop_head</a>);
-        <span class="kw">let </span>before_invariant_block: <a href="../../../prusti_interface/environment/procedure/type.BasicBlockIndex.html">BasicBlockIndex</a> = <a href="#143">loop_body</a>
-            .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|&amp;&amp;bb| {
-                <a href="#139">loop_info</a>.get_loop_depth(<a href="#153">bb</a>) == <a href="#141">loop_depth</a>
-                    &amp;&amp; <a class="self" href="#135">self</a>.<a href="#42">mir</a>()[<a href="#153">bb</a>].terminator().successors().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|succ_bb| {
-                        <a class="self" href="#135">self</a>.procedure.is_reachable_block(<a href="#155">succ_bb</a>)
-                            &amp;&amp; <a class="self" href="#135">self</a>.procedure.is_spec_block(<a href="#155">succ_bb</a>)
+        <span class="kw">let </span>opt_before_invariant_block: <span class="prelude-ty">Option</span>&lt;<a href="../../../prusti_interface/environment/procedure/type.BasicBlockIndex.html">BasicBlockIndex</a>&gt; = <a href="#143">loop_body</a>
+            .iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">copied</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|<span class="kw-2">&amp;</span>bb| {
+                <span class="comment">// Find the user-defined invariant
+                </span><a href="#139">loop_info</a>.get_loop_depth(<a href="#151">bb</a>) == <a href="#141">loop_depth</a>
+                    &amp;&amp; <a class="self" href="#135">self</a>.<a href="#42">mir</a>()[<a href="#151">bb</a>].terminator().successors().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|succ_bb| {
+                        <a class="self" href="#135">self</a>.procedure.is_reachable_block(<a href="#154">succ_bb</a>)
+                            &amp;&amp; <a class="self" href="#135">self</a>.procedure.is_spec_block(<a href="#154">succ_bb</a>)
                     })
-            })
-            .cloned()
-            .unwrap_or_else(|| <a href="#150">loop_exit_blocks</a>.get(<span class="number">0</span>).cloned().unwrap_or(<a href="#136">loop_head</a>));
+            });
 
-        <span class="kw">if </span>loop_info.is_conditional_branch(loop_head, before_invariant_block) {
-            <a class="macro" href="../../../log/macro.debug.html">debug!</a>(
-                <span class="string">&quot;{:?} is conditional branch in loop {:?}&quot;</span>,
-                before_invariant_block, loop_head
-            );
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#17">LoopEncoderError::LoopInvariantInBranch</a>(<a href="#136">loop_head</a>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(before_invariant_block) = <a href="#149">opt_before_invariant_block</a> {
+            <span class="comment">// The invariant is defined by the user
+            </span><span class="kw">if </span>loop_info.is_conditional_branch(loop_head, before_invariant_block) {
+                <a class="macro" href="../../../log/macro.debug.html">debug!</a>(
+                    <span class="string">&quot;{:?} is conditional branch in loop {:?}&quot;</span>,
+                    before_invariant_block, loop_head
+                );
+                <span class="prelude-val">Err</span>(<a href="#17">LoopEncoderError::LoopInvariantInBranch</a>(<a href="#136">loop_head</a>))
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Ok</span>(<a href="#160">before_invariant_block</a>)
+            }
+        } <span class="kw">else </span>{
+            <span class="comment">// HEURISTIC: place the invariant after the first boolean exit block in a
+            // non-conditional branch. If there is none, place the invariant at the loop head.
+            </span><span class="kw">let </span>loop_exit_blocks = <a href="#139">loop_info</a>.get_loop_exit_blocks(<a href="#136">loop_head</a>);
+            <span class="kw">let </span>before_invariant_block = <a href="#174">loop_exit_blocks</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">copied</a>()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(|<span class="kw-2">&amp;</span>bb| {
+                    <a class="self" href="#135">self</a>.procedure.successors(<a href="#176">bb</a>).len() == <span class="number">2
+                    </span>&amp;&amp; !<a href="#139">loop_info</a>.is_conditional_branch(<a href="#136">loop_head</a>, <a href="#176">bb</a>)
+                })
+                .unwrap_or(<a href="#136">loop_head</a>);
+            <span class="prelude-val">Ok</span>(<a href="#175">before_invariant_block</a>)
         }
-
-        <span class="prelude-val">Ok</span>(<a href="#151">before_invariant_block</a>)
     }
 }
 </code></pre></div>
