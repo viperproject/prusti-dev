@@ -134,4 +134,13 @@ impl SyntacticEvaluation for Expression {
             })
         )
     }
+    fn is_zero(&self) -> bool {
+        matches!(
+            self,
+            Self::Constant(Constant {
+                value: ConstantValue::Int(0),
+                ..
+            })
+        )
+    }
 }

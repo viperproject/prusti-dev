@@ -13,6 +13,7 @@ use super::{
     ty::Typed,
 };
 use std::collections::BTreeMap;
+use crate::common::expression::SyntacticEvaluation;
 
 impl From<VariableDecl> for Expression {
     fn from(variable: VariableDecl) -> Self {
@@ -466,6 +467,17 @@ impl Expression {
                     right,
                     position,
                 }),
+                Expression::BinaryOp(BinaryOp {
+                    op_kind: BinaryOpKind::Add,
+                    left:
+                        box Expression::BuiltinFuncApp(BuiltinFuncApp {
+                            function: BuiltinFunc::NewInt,
+                            arguments,
+                            ..
+                        }),
+                    right,
+                    ..
+                }) if arguments[0].is_zero() => *right,
                 Expression::UnaryOp(UnaryOp {
                     op_kind: op_kind_outer,
                     argument:
