@@ -6,8 +6,7 @@ use crate::encoder::{
         specifications::SpecificationsInterface, type_layouts::MirTypeLayoutsEncoderInterface,
     },
 };
-use prusti_interface::environment::LoopAnalysisError;
-use prusti_interface::specs::typed::LoopSpecification;
+use prusti_interface::{environment::LoopAnalysisError, specs::typed::LoopSpecification};
 use prusti_rustc_interface::middle::mir;
 use vir_crate::high::{self as vir_high};
 
