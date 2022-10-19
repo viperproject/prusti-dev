@@ -7,8 +7,7 @@ use prusti_contracts::*;
 #[terminates]
 fn main() {
     let mut x = 0;
-    while x < 10 {
-        //~ ERROR: this loop might not terminate
+    while x < 10 { //~ ERROR: this loop might not terminate
         x += 1;
     }
 }
@@ -33,8 +32,7 @@ fn terminating_calls_nonterminating() {
 }
 
 #[pure]
-fn pure_fns_need_to_terminate() {
-    //~ ERROR: Pure functions need to terminate
+fn pure_fns_need_to_terminate() { //~ ERROR: Pure functions need to terminate
 }
 
 #[terminates]
@@ -89,8 +87,7 @@ fn invalid_nested_inner_loop(mut a: i64) {
     while a > 0 {
         body_variant!(Int::new(a));
         let mut b = a;
-        while b > 0 {
-            //~ ERROR: this loop might not terminate
+        while b > 0 { //~ ERROR: this loop might not terminate
             b -= 1;
         }
         a -= 1;
@@ -99,8 +96,7 @@ fn invalid_nested_inner_loop(mut a: i64) {
 
 #[terminates]
 fn invalid_nested_outer_loop(mut a: i64) {
-    while a > 0 {
-        //~ ERROR: this loop might not terminate
+    while a > 0 { //~ ERROR: this loop might not terminate
         let mut b = a;
         while b > 0 {
             body_variant!(Int::new(b));
