@@ -113,10 +113,15 @@ mod private {
     use core::{marker::PhantomData, ops::*};
 
     /// A macro for defining a closure with a specification.
-    pub use prusti_contracts_proc_macros::closure;
+    pub use prusti_contracts_proc_macros::{closure, pure, trusted};
 
     pub fn prusti_set_union_active_field<T>(_arg: T) {
         unreachable!();
+    }
+
+    #[pure]
+    pub fn prusti_terminates_trusted() -> Int {
+        Int::new(1)
     }
 
     /// a mathematical (unbounded) integer type

@@ -244,6 +244,14 @@ fn generate_for_assert_on_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -
 fn generate_for_terminates(mut attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     if attr.is_empty() {
         attr = quote! { Int::new(1) };
+    } else {
+        let mut attr_iter = attr.clone().into_iter();
+        let first = attr_iter.next();
+        if let Some(TokenTree::Ident(ident)) = first {
+            if attr_iter.next().is_none() && ident == "trusted" {
+                attr = quote! { prusti_terminates_trusted() }
+            }
+        }
     }
 
     let mut rewriter = rewriter::AstRewriter::new();
@@ -518,7 +526,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
             "Can refine trait specifications only on trait implementation blocks"
         ))),
     };
-    
+
     let self_type: &syn::Type = &impl_block.self_ty;
 
     let mut new_items = Vec::new();
