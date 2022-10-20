@@ -23,8 +23,7 @@ fn ghost_terminates() {
 
 fn ghost_nontermination_error() {
     ghost! {
-        loop {
-            //~ ERROR: the code might not terminate
+        loop { //~ ERROR: this loop might not terminate
         }
     };
 }
@@ -94,5 +93,5 @@ fn mutual_recursion_disallowed2() {
 //thread 'rustc' panicked at 'internal error: entered unreachable code: cannot convert abstract type into a memory block: impl_Fn()$0', prusti-viper/src/encoder/middle/core_proof/builtin_methods/interface.rs:2527:62
 //#[terminates]
 //fn closures_disallowed(x: impl Fn()) {
-//    x(); //~ ERROR
+//    x(); //FIXME ERROR
 //}

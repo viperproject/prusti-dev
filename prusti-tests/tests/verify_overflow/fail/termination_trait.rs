@@ -26,3 +26,10 @@ fn foo<T: Trait>(t: &T, x: i64) {
         t.fun(x - 1);
     }
 }
+
+#[terminates(Int::new(x))]
+fn foo2<T: Trait>(t: &T, x: i64) {
+    if x > -5 {
+        t.fun(x - 1); //~ ERROR: the termination measure of this call might become negative
+    }
+}
