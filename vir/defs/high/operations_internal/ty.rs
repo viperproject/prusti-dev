@@ -254,7 +254,7 @@ impl super::super::ast::type_decl::Union {
 impl LifetimeConst {
     pub fn erased() -> Self {
         LifetimeConst {
-            name: String::from("pure_erased"),
+            name: String::from("lft_erased"),
         }
     }
 }
