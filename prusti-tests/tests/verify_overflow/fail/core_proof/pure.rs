@@ -48,10 +48,4 @@ fn count(n: usize) -> usize {
 #[ensures(count(3) == 3)]
 fn test5() {}
 
-// This is expected to fail because the gas is set to 2 and proving this
-// requires unfolding 3 times. If this succeeded, then it would indicate
-// that we have a matching loop.
-#[ensures(count(3) == 3)] //~ ERROR postcondition might not hold.
-fn test6() {}
-
 fn main() {}
