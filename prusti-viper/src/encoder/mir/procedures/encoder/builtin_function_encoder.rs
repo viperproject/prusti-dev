@@ -238,6 +238,9 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
             "prusti_contracts::Ghost::<T>::new" => {
                 make_manual_assign(self, block_builder, &mut |_, args, _| args[0].clone())?
             }
+            "prusti_contracts::snapshot_equality" => {
+                unreachable!();
+            }
             "std::ops::Index::index" | "core::ops::Index::index" => {
                 let lhs = self
                     .encode_statement_operand(location, &args[0])?

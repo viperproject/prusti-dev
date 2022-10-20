@@ -459,7 +459,9 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             self.expression_vec_to_snapshot(lowerer, &app.arguments, expect_math_bool)?;
         if !app.arguments.is_empty() {
             let first_arg_type = app.arguments[0].get_type();
-            if first_arg_type.is_reference() {
+            if first_arg_type.is_reference()
+                && app.function != vir_mid::BuiltinFunc::SnapshotEquality
+            {
                 // The first argument is a reference, dereference it.
                 args[0] = lowerer.reference_target_current_snapshot(
                     first_arg_type,
@@ -650,6 +652,20 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
                 // FIXME: Remove duplication with SeqLen.
                 let value = seq(ContainerOpKind::SeqLen)?;
                 lowerer.construct_constant_snapshot(app.get_type(), value, app.position)
+            }
+            BuiltinFunc::SnapshotEquality => {
+                assert_eq!(app.arguments[0].get_type(), app.arguments[1].get_type());
+                let value = vir_low::Expression::binary_op(
+                    vir_low::BinaryOpKind::EqCmp,
+                    args[0].clone(),
+                    args[1].clone(),
+                    app.position,
+                );
+                if expect_math_bool {
+                    Ok(value)
+                } else {
+                    lowerer.construct_constant_snapshot(&vir_mid::Type::Bool, value, app.position)
+                }
             }
         }
     }

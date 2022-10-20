@@ -49,6 +49,7 @@ struct BoxWrapper<T> {
 
 impl<T> BoxWrapper<T> {
     #[trusted]
+    #[ensures(result.deref() === &value)]
     fn new(value: T) -> Self {
         Self { value: Box::new(value) }
     }
@@ -74,12 +75,6 @@ struct LinkedList {
 }
 
 impl LinkedList {
-    fn prepend(self, value: i64) -> Self {
-        Self {
-            val: value,
-            next: Some(BoxWrapper::new(self)),
-        }
-    }
     #[pure]
     #[terminates(trusted)]
     // FIXME: This function should be “predicate!”.
@@ -92,6 +87,24 @@ impl LinkedList {
             }
         }
     }
+    #[ensures((old(self.len()) + Int::new(1)) === result.len())]
+    fn prepend(self, value: i64) -> Self {
+        let len = self.len();
+        let b = BoxWrapper::new(self);
+        prusti_assert!(b.deref().len() == len);
+        Self {
+            val: value,
+            next: Some(b),
+        }
+    }
+    #[ensures((old(self.len()) + Int::new(1)) === result.len())]
+    fn prepend2(self, value: i64) -> Self {
+        let len = self.len();
+        Self {
+            val: value,
+            next: Some(BoxWrapper::new(self)),
+        }
+    }
     #[pure]
     #[terminates(trusted)]
     #[ensures(Int::new_usize(result) == self.len())]
@@ -99,12 +112,10 @@ impl LinkedList {
         match &self.next {
             None => 1,
             Some(tail) => {
-                prusti_assume!(tail.deref().len() + Int::new(1) < Int::new(10));
-                prusti_assert!(Int::new_usize(tail.deref().len_shared() + 1) == self.len());
+                prusti_assume!(tail.deref().len() + Int::new(1) < Int::new(10));    // Avoid overflow check.
+                prusti_assert!(Int::new_usize(tail.deref().len_shared() + 1) === self.len());
                 let result = tail.deref().len_shared() + 1;
-
-                // FIXME: This is a bug, this function should verify.
-                prusti_assert!(Int::new_usize(result) == self.len());   //~ ERROR: the asserted expression might not hold
+                prusti_assert!(Int::new_usize(result) === self.len());
                 result
             }
         }
@@ -117,21 +128,6 @@ impl LinkedList {
             }
         }
     }
-// FIXME
-//  #[ensures(Int::new_usize(result) == self.len())]
-//  fn len_mut(&mut self) -> usize {
-//      match &mut self.next {
-//          None => 1,
-//          Some(tail) => {
-//              prusti_assume!(tail.deref().len() + Int::new(1) < Int::new(10));
-//              let result = tail.deref_mut().len_mut() + 1;
-
-//              // FIXME: This is a bug, this function should verify.
-//              prusti_assert!(Int::new_usize(result) == self.len());   //: the asserted expression might not hold
-//              result
-//          }
-//      }
-//  }
     fn len_mut2(&mut self) -> usize {
         match &mut self.next {
             None => 1,

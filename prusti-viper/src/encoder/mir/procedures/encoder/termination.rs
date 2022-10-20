@@ -12,7 +12,7 @@ use prusti_rustc_interface::{
     span::Span,
 };
 use vir_crate::{
-    common::expression::BinaryOperationHelpers,
+    common::{check_mode::CheckMode, expression::BinaryOperationHelpers},
     high::{self as vir_high, builders::procedure::BasicBlockBuilder},
 };
 
@@ -80,7 +80,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
             arguments.push(self.encode_local(local)?.into());
         }
 
-        if self.encoder.terminates(self.def_id, None) {
+        if self.encoder.terminates(self.def_id, None) && self.check_mode != CheckMode::CoreProof {
             let termination_expr = self.encode_termination_expression(
                 &procedure_contract,
                 mir_span,
