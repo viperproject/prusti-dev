@@ -9,7 +9,7 @@
 #![deny(unused_doc_comments)]
 
 #[rustfmt::skip]
-#[path = "../gen/vir_gen.rs"]
+#[path = "../gen/mod.rs"]
 mod gen;
 
 pub mod common;
