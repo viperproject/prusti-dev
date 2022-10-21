@@ -30,7 +30,7 @@ Getting Prusti
 The easiest way to try out Prusti is by using the ["Prusti Assistant"](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant) extension for VS Code. See the **requirements** and the troubleshooting section in its [readme](https://github.com/viperproject/prusti-assistant/blob/master/README.md).
 
 Alternatively, if you wish to use Prusti from the command line there are three options:
-* Download the precompiled binaries for Ubuntu, Windows, or MacOS from a [GitHub release](https://github.com/viperproject/prusti-dev/releases).
+* Download the precompiled binaries for Ubuntu, Windows, or macOS x64 from a [GitHub release](https://github.com/viperproject/prusti-dev/releases).
 * Compile from the source code, by installing [rustup](https://rustup.rs/), running `./x.py setup` and then `./x.py build --release`.
 * (unmaintained) Build a Docker image from this [`Dockerfile`](Dockerfile).
 
