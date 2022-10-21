@@ -6,9 +6,8 @@
 
 use crate::ast::Declarations;
 use proc_macro2::TokenStream;
-use std::collections::HashMap;
-use std::io::Write;
 use quote::{quote, ToTokens, TokenStreamExt};
+use std::{collections::HashMap, io::Write};
 
 /// A tree of modules.
 /// The tokens of each module correspond to a `mod.rs` file, and the submodules to subfolders.
@@ -35,25 +34,24 @@ fn declare_item_mod(item: &syn::ItemMod, tokens: &mut TokenStream) {
 
 impl ToModulesTree for Declarations {
     fn to_modules_tree(&self) -> ModulesTree {
-        let mut tokens = quote!{};
+        let mut tokens = quote! {};
         for ir in &self.irs {
             // Generate tokens in the `mod.rs` file
             declare_item_mod(ir, &mut tokens);
         }
         // Generate subfolders
-        let submodules = self.irs.iter()
+        let submodules = self
+            .irs
+            .iter()
             .map(|ir| (ir.ident.to_string(), ir.to_modules_tree()))
             .collect();
-        ModulesTree {
-            tokens,
-            submodules
-        }
+        ModulesTree { tokens, submodules }
     }
 }
 
 impl ToModulesTree for syn::ItemMod {
     fn to_modules_tree(&self) -> ModulesTree {
-        let mut tokens = quote!{};
+        let mut tokens = quote! {};
         let mut submodules = HashMap::new();
         if let Some((_, items)) = &self.content {
             for attr in &self.attrs {
@@ -67,20 +65,14 @@ impl ToModulesTree for syn::ItemMod {
                     // Generate tokens in the `mod.rs` file
                     declare_item_mod(submodule, &mut tokens);
                     // Generate a subfolder
-                    submodules.insert(
-                        submodule.ident.to_string(),
-                        submodule.to_modules_tree(),
-                    );
+                    submodules.insert(submodule.ident.to_string(), submodule.to_modules_tree());
                 } else {
                     append_later.push(item);
                 }
             }
             tokens.append_all(append_later);
         }
-        ModulesTree {
-            tokens,
-            submodules
-        }
+        ModulesTree { tokens, submodules }
     }
 }
 
@@ -101,14 +93,17 @@ impl ModulesTree {
             file_path = dir_path.join("mod.rs");
             curr_path = dir_path.to_owned();
         };
-        std::fs::create_dir_all(&curr_path)
-            .unwrap_or_else(|err| panic!("Failed to crate folder '{}': {}", dir_path.display(), err));
-        let mut file = std::fs::File::create(&file_path)
-            .unwrap_or_else(|err| panic!("Failed to create file '{}': {}", file_path.display(), err));
+        std::fs::create_dir_all(&curr_path).unwrap_or_else(|err| {
+            panic!("Failed to crate folder '{}': {}", dir_path.display(), err)
+        });
+        let mut file = std::fs::File::create(&file_path).unwrap_or_else(|err| {
+            panic!("Failed to create file '{}': {}", file_path.display(), err)
+        });
         let gen_code = self.tokens.to_string();
-        file.write_all(gen_code.as_bytes())
-            .unwrap_or_else(|err| panic!("Failed to write to file '{}': {}", file_path.display(), err));
-        
+        file.write_all(gen_code.as_bytes()).unwrap_or_else(|err| {
+            panic!("Failed to write to file '{}': {}", file_path.display(), err)
+        });
+
         // Write submodules
         for (submodule_name, submodule) in &self.submodules {
             submodule.write_to_disk(&curr_path, Some(submodule_name));
