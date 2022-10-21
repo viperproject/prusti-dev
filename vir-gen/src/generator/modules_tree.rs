@@ -59,7 +59,6 @@ impl ToModulesTree for syn::ItemMod {
                     attr.to_tokens(&mut tokens);
                 }
             }
-            let mut append_later = vec![];
             for item in items {
                 if let syn::Item::Mod(submodule) = item {
                     // Generate tokens in the `mod.rs` file
@@ -67,10 +66,9 @@ impl ToModulesTree for syn::ItemMod {
                     // Generate a subfolder
                     submodules.insert(submodule.ident.to_string(), submodule.to_modules_tree());
                 } else {
-                    append_later.push(item);
+                    item.to_tokens(&mut tokens);
                 }
             }
-            tokens.append_all(append_later);
         }
         ModulesTree { tokens, submodules }
     }
