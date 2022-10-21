@@ -8,15 +8,10 @@
 #![feature(exit_status_error)]
 #![allow(clippy::iter_with_drain)]
 
-use std::{
-    fs::File,
-    io::Read,
-    mem,
-};
-use syn::{parse_quote, parse_str};
 use crate::generator::ToModulesTree;
 use quote::ToTokens;
-use std::process::Command;
+use std::{fs::File, io::Read, mem, process::Command};
+use syn::{parse_quote, parse_str};
 
 mod ast;
 mod deriver;
