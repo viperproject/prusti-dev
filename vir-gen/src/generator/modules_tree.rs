@@ -6,7 +6,7 @@
 
 use crate::ast::Declarations;
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens, TokenStreamExt};
+use quote::{quote, ToTokens};
 use std::{collections::HashMap, io::Write};
 
 /// A tree of modules.
