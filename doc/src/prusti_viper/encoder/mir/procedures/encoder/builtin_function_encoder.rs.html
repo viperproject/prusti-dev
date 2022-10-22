@@ -282,6 +282,9 @@
 <span id="282">282</span>
 <span id="283">283</span>
 <span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
 </pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait </span>BuiltinFuncAppEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
@@ -328,7 +331,7 @@
                 <span class="kw">let </span>position = <a href="#39">encoder</a>
                     .encoder
                     .<a href="../../../encoder.rs.html#227">error_manager</a>()
-                    .<a href="../../../errors/error_manager.rs.html#231">register_error</a>(<a href="#24">span</a>, <a href="../../../errors/error_manager.rs.html#102">ErrorCtxt::WritePlace</a>, <a href="#39">encoder</a>.def_id)
+                    .<a href="../../../errors/error_manager.rs.html#247">register_error</a>(<a href="#24">span</a>, <a href="../../../errors/error_manager.rs.html#118">ErrorCtxt::WritePlace</a>, <a href="#39">encoder</a>.def_id)
                     .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
                 <span class="kw">let </span>encoded_target_place = encoder
                     .encoder
@@ -403,7 +406,7 @@
                     encoder.def_id,
                 )<span class="question-mark">?</span>);
                 encoder.encode_lft_for_block(target_block, location, block_builder)<span class="question-mark">?</span>;
-                <span class="kw">let </span>target_label = <a href="#39">encoder</a>.<a href="mod.rs.html#1809">encode_basic_block_label</a>(<a href="#43">target_block</a>);
+                <span class="kw">let </span>target_label = <a href="#39">encoder</a>.<a href="mod.rs.html#1852">encode_basic_block_label</a>(<a href="#43">target_block</a>);
                 <span class="kw">let </span>successor = vir_high::Successor::Goto(<a href="#122">target_label</a>);
                 <a href="#40">block_builder</a>.set_successor_jump(<a href="#123">successor</a>);
                 <span class="prelude-val">Ok</span>(())
@@ -477,7 +480,7 @@
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(target.is_none());
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(cleanup) = <a href="#30">cleanup</a> {
                     <span class="kw">let </span>successor =
-                        vir_high::Successor::Goto(<a class="self" href="#21">self</a>.<a href="mod.rs.html#1809">encode_basic_block_label</a>(<span class="kw-2">*</span><a href="#194">cleanup</a>));
+                        vir_high::Successor::Goto(<a class="self" href="#21">self</a>.<a href="mod.rs.html#1852">encode_basic_block_label</a>(<span class="kw-2">*</span><a href="#194">cleanup</a>));
                     <a href="#22">block_builder</a>.set_successor_jump(<a href="#195">successor</a>);
                 } <span class="kw">else </span>{
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>();
@@ -522,17 +525,20 @@
             <span class="string">&quot;prusti_contracts::Ghost::&lt;T&gt;::new&quot; </span>=&gt; {
                 make_manual_assign(<span class="self">self</span>, block_builder, <span class="kw-2">&amp;mut </span>|<span class="kw">_</span>, args, <span class="kw">_</span>| args[<span class="number">0</span>].clone())<span class="question-mark">?
             </span>}
+            <span class="string">&quot;prusti_contracts::snapshot_equality&quot; </span>=&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
+            }
             <span class="string">&quot;std::ops::Index::index&quot; </span>| <span class="string">&quot;core::ops::Index::index&quot; </span>=&gt; {
                 <span class="kw">let </span>lhs = <span class="self">self
                     </span>.encode_statement_operand(location, <span class="kw-2">&amp;</span>args[<span class="number">0</span>])<span class="question-mark">?
                     </span>.expression;
-                <span class="kw">let </span>typ = <span class="kw">match </span><a href="#242">lhs</a>.<a href="../../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">get_type</a>() {
+                <span class="kw">let </span>typ = <span class="kw">match </span><a href="#245">lhs</a>.<a href="../../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">get_type</a>() {
                     vir_high::Type::Reference(<a href="../../../../../../vir/gen/high/ast/ty/struct.Reference.html">vir_high::ty::Reference</a> { target_type, .. }) =&gt; {
-                        <span class="kw-2">&amp;**</span><a href="#246">target_type</a>
+                        <span class="kw-2">&amp;**</span><a href="#249">target_type</a>
                     }
                     <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
                 };
-                <span class="kw">match </span><a href="#245">typ</a> {
+                <span class="kw">match </span><a href="#248">typ</a> {
                     vir_high::Type::Sequence(..) =&gt; {
                         make_builtin_call(<span class="self">self</span>, block_builder, vir_high::BuiltinFunc::LookupSeq)<span class="question-mark">?
                     </span>}

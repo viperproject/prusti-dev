@@ -423,6 +423,10 @@
 <span id="423">423</span>
 <span id="424">424</span>
 <span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -432,7 +436,7 @@
 </span><span class="kw">use super</span>::{<a href="body.rs.html#19">body::MirBody</a>, <a href="mod.rs.html#18">loops</a>, <a href="name.rs.html#8">EnvName</a>, <a href="query.rs.html#29">EnvQuery</a>};
 <span class="kw">use crate</span>::{
     <a href="../data.rs.html#13">data::ProcedureDefId</a>,
-    environment::{<a href="debug_utils/to_text.rs.html#5">debug_utils::to_text::ToText</a>, <a href="mir_utils/real_edges.rs.html#12">mir_utils::RealEdges</a>, <a href="mod.rs.html#51">Environment</a>},
+    environment::{<a href="debug_utils/to_text.rs.html#5">debug_utils::to_text::ToText</a>, <a href="mir_utils/real_edges.rs.html#12">mir_utils::RealEdges</a>, <a href="mod.rs.html#52">Environment</a>},
 };
 <span class="kw">use </span>log::{<a href="../../../log/macro.debug.html">debug</a>, <a href="../../../log/macro.trace.html">trace</a>};
 <span class="kw">use </span>prusti_rustc_interface::{
@@ -470,11 +474,11 @@
             .<a href="body.rs.html#184">get_impure_fn_body_identity</a>(<a href="#41">proc_def_id</a>.expect_local());
         <span class="kw">let </span>real_edges = RealEdges::new(<span class="kw-2">&amp;</span><a href="#43">mir</a>);
         <span class="kw">let </span>reachable_basic_blocks = <a href="#203">build_reachable_basic_blocks</a>(<span class="kw-2">&amp;</span><a href="#43">mir</a>, <span class="kw-2">&amp;</span><a href="#46">real_edges</a>);
-        <span class="kw">let </span>nonspec_basic_blocks = <a href="#367-371">build_nonspec_basic_blocks</a>(<a href="#41">env</a>.query, <span class="kw-2">&amp;</span><a href="#43">mir</a>, <span class="kw-2">&amp;</span><a href="#46">real_edges</a>);
+        <span class="kw">let </span>nonspec_basic_blocks = <a href="#371-375">build_nonspec_basic_blocks</a>(<a href="#41">env</a>.query, <span class="kw-2">&amp;</span><a href="#43">mir</a>, <span class="kw-2">&amp;</span><a href="#46">real_edges</a>);
         <span class="kw">let </span>loop_info = loops::ProcedureLoops::new(<span class="kw-2">&amp;</span><a href="#43">mir</a>, <span class="kw-2">&amp;</span><a href="#46">real_edges</a>);
 
         <span class="self">Self </span>{
-            tcx: <a href="#41">env</a>.<a href="mod.rs.html#72">tcx</a>(),
+            tcx: <a href="#41">env</a>.<a href="mod.rs.html#73">tcx</a>(),
             env_name: <a href="#41">env</a>.name,
             <a href="#41">proc_def_id</a>,
             <a href="#43">mir</a>,
@@ -699,12 +703,16 @@
     <a href="#247-253">get_loop_invariant</a>(<a href="#273">env_query</a>, <a href="#273">bb_data</a>).is_some()
 }
 
+<span class="kw">pub fn </span>is_loop_variant_block&lt;<span class="lifetime">&#39;tcx</span>&gt;(env_query: <a href="query.rs.html#29">EnvQuery</a>, bb: <span class="kw-2">&amp;</span>BasicBlockData&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <a href="#289">is_spec_block_kind</a>(<a href="#277">env_query</a>, <a href="#277">bb</a>, <span class="string">&quot;loop_body_variant_spec&quot;</span>)
+}
+
 <span class="kw">pub fn </span>is_ghost_begin_marker&lt;<span class="lifetime">&#39;tcx</span>&gt;(env_query: <a href="query.rs.html#29">EnvQuery</a>, bb: <span class="kw-2">&amp;</span>BasicBlockData&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#285">is_spec_block_kind</a>(<a href="#277">env_query</a>, <a href="#277">bb</a>, <span class="string">&quot;ghost_begin&quot;</span>)
+    <a href="#289">is_spec_block_kind</a>(<a href="#281">env_query</a>, <a href="#281">bb</a>, <span class="string">&quot;ghost_begin&quot;</span>)
 }
 
 <span class="kw">pub fn </span>is_ghost_end_marker&lt;<span class="lifetime">&#39;tcx</span>&gt;(env_query: <a href="query.rs.html#29">EnvQuery</a>, bb: <span class="kw-2">&amp;</span>BasicBlockData&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#285">is_spec_block_kind</a>(<a href="#281">env_query</a>, <a href="#281">bb</a>, <span class="string">&quot;ghost_end&quot;</span>)
+    <a href="#289">is_spec_block_kind</a>(<a href="#285">env_query</a>, <a href="#285">bb</a>, <span class="string">&quot;ghost_end&quot;</span>)
 }
 
 <span class="kw">fn </span>is_spec_block_kind(env_query: <a href="query.rs.html#29">EnvQuery</a>, bb_data: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlockData.html">BasicBlockData</a>, kind: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
@@ -731,7 +739,7 @@
 }
 
 <span class="kw">fn </span>_blocks_definitely_leading_to&lt;<span class="lifetime">&#39;a</span>&gt;(
-    bb_graph: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>HashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, <a href="#303">BasicBlockNode</a>&gt;,
+    bb_graph: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>HashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, <a href="#307">BasicBlockNode</a>&gt;,
     target: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>,
     blocks: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>HashSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>&gt;,
 ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>HashSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>&gt; {
@@ -743,32 +751,32 @@
             _blocks_definitely_leading_to(bb_graph, <span class="kw-2">*</span>pred, blocks);
         }
     }
-    <a href="#311">blocks</a>
+    <a href="#315">blocks</a>
 }
 
 <span class="kw">fn </span>blocks_definitely_leading_to(
-    bb_graph: <span class="kw-2">&amp;</span>HashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, <a href="#303">BasicBlockNode</a>&gt;,
+    bb_graph: <span class="kw-2">&amp;</span>HashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, <a href="#307">BasicBlockNode</a>&gt;,
     target: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>,
 ) -&gt; HashSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>blocks = HashSet::new();
-    <a href="#308-312">_blocks_definitely_leading_to</a>(<a href="#325">bb_graph</a>, <a href="#326">target</a>, <span class="kw-2">&amp;mut </span><a href="#328">blocks</a>);
-    <a href="#328">blocks</a>
+    <a href="#312-316">_blocks_definitely_leading_to</a>(<a href="#329">bb_graph</a>, <a href="#330">target</a>, <span class="kw-2">&amp;mut </span><a href="#332">blocks</a>);
+    <a href="#332">blocks</a>
 }
 
 <span class="kw">fn </span>blocks_dominated_by(mir: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Body.html">Body</a>, dominator: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>) -&gt; HashSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>&gt; {
-    <span class="kw">let </span>dominators = <a href="#333">mir</a>.basic_blocks.dominators();
+    <span class="kw">let </span>dominators = <a href="#337">mir</a>.basic_blocks.dominators();
     <span class="kw">let </span><span class="kw-2">mut </span>blocks = HashSet::new();
     <span class="kw">for </span>bb <span class="kw">in </span>mir.basic_blocks.indices() {
         <span class="kw">if </span>dominators.is_dominated_by(bb, dominator) {
             blocks.insert(bb);
         }
     }
-    <a href="#335">blocks</a>
+    <a href="#339">blocks</a>
 }
 
 <span class="kw">fn </span>get_nonspec_basic_blocks(
     env_query: <a href="query.rs.html#29">EnvQuery</a>,
-    bb_graph: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, <a href="#303">BasicBlockNode</a>&gt;,
+    bb_graph: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, <a href="#307">BasicBlockNode</a>&gt;,
     mir: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Body.html">Body</a>,
 ) -&gt; HashSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>spec_basic_blocks: HashSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>&gt; = HashSet::new();
@@ -781,9 +789,9 @@
     }
     <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;spec basic blocks: {:#?}&quot;</span>, spec_basic_blocks);
 
-    <span class="kw">let </span>all_basic_blocks: HashSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>&gt; = <a href="#346">bb_graph</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-    <a href="#359">all_basic_blocks</a>
-        .difference(<span class="kw-2">&amp;</span><a href="#349">spec_basic_blocks</a>)
+    <span class="kw">let </span>all_basic_blocks: HashSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>&gt; = <a href="#350">bb_graph</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    <a href="#363">all_basic_blocks</a>
+        .difference(<span class="kw-2">&amp;</span><a href="#353">spec_basic_blocks</a>)
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
 }
@@ -794,7 +802,7 @@
     mir: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Body.html">Body</a>,
     real_edges: <span class="kw-2">&amp;</span><a href="mir_utils/real_edges.rs.html#12">RealEdges</a>,
 ) -&gt; HashSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>&gt; {
-    <span class="kw">let </span>dominators = <a href="#369">mir</a>.basic_blocks.dominators();
+    <span class="kw">let </span>dominators = <a href="#373">mir</a>.basic_blocks.dominators();
     <span class="kw">let </span><span class="kw-2">mut </span>loop_heads: HashSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>&gt; = HashSet::new();
 
     <span class="kw">for </span>source <span class="kw">in </span>mir.basic_blocks.indices() {
@@ -808,7 +816,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>visited: HashSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>&gt; = HashSet::new();
     <span class="kw">let </span><span class="kw-2">mut </span>to_visit: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[mir.basic_blocks.indices().next().unwrap()];
 
-    <span class="kw">let </span><span class="kw-2">mut </span>bb_graph: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, <a href="#303">BasicBlockNode</a>&gt; = HashMap::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>bb_graph: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>, <a href="#307">BasicBlockNode</a>&gt; = HashMap::new();
 
     <span class="kw">while </span>!to_visit.is_empty() {
         <span class="kw">let </span>source = to_visit.pop().unwrap();
@@ -846,7 +854,7 @@
         }
     }
 
-    <a href="#344-348">get_nonspec_basic_blocks</a>(<a href="#368">env_query</a>, <a href="#386">bb_graph</a>, <a href="#369">mir</a>)
+    <a href="#348-352">get_nonspec_basic_blocks</a>(<a href="#372">env_query</a>, <a href="#390">bb_graph</a>, <a href="#373">mir</a>)
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

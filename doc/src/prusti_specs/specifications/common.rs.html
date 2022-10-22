@@ -128,6 +128,7 @@
 <span id="128">128</span>
 <span id="129">129</span>
 <span id="130">130</span>
+<span id="131">131</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Data structures for storing information about specifications.
 //!
 //! Please see the `parser.rs` file for more information about
@@ -191,12 +192,13 @@
         rhs: <a href="#52">SpecificationId</a>,
     },
     Predicate(<a href="#52">SpecificationId</a>),
+    Terminates(<a href="#52">SpecificationId</a>),
 }
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span><a href="#52">SpecificationId</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(
-            <a href="#67">f</a>,
+            <a href="#68">f</a>,
             <span class="string">&quot;{}&quot;</span>,
             <span class="self">self</span>.<span class="number">0</span>.simple().encode_lower(<span class="kw-2">&amp;mut </span>Uuid::encode_buffer()),
         )
@@ -206,7 +208,7 @@
 <span class="kw">impl </span>std::convert::TryFrom&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="#52">SpecificationId</a> {
     <span class="kw">type </span>Error = <a href="../../../uuid/error/struct.Error.html">uuid::Error</a>;
     <span class="kw">fn </span>try_from(value: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
-        Uuid::parse_str(<span class="kw-2">&amp;</span><a href="#78">value</a>).map(<span class="self">Self</span>)
+        Uuid::parse_str(<span class="kw-2">&amp;</span><a href="#79">value</a>).map(<span class="self">Self</span>)
     }
 }
 
@@ -218,7 +220,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SpecificationIdGenerator {}
 
-<span class="kw">impl </span><a href="#89">SpecificationIdGenerator</a> {
+<span class="kw">impl </span><a href="#90">SpecificationIdGenerator</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{}
     }
@@ -229,7 +231,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>generate_struct_name(item: <span class="kw-2">&amp;</span><a href="../../../syn/item/struct.ItemImpl.html">syn::ItemImpl</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="kw">let </span>uuid = Uuid::new_v4().simple();
-    <span class="kw">let </span>name_ty = <a href="#116">generate_name_for_type</a>(<span class="kw-2">&amp;</span><a href="#100">item</a>.self_ty).unwrap_or_default();
+    <span class="kw">let </span>name_ty = <a href="#117">generate_name_for_type</a>(<span class="kw-2">&amp;</span><a href="#101">item</a>.self_ty).unwrap_or_default();
     <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;PrustiStruct{}_{}&quot;</span>, name_ty, uuid)
 }
 
@@ -244,13 +246,13 @@
 }
 
 <span class="kw">fn </span>generate_name_for_type(ty: <span class="kw-2">&amp;</span><a href="../../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-    <span class="kw">match </span><a href="#116">ty</a> {
+    <span class="kw">match </span><a href="#117">ty</a> {
         syn::Type::Path(ty_path) =&gt; {
-            <span class="prelude-val">Some</span>(String::from_iter(<a href="#118">ty_path</a>.path.segments.iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|seg| <a href="#120">seg</a>.ident.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())))
+            <span class="prelude-val">Some</span>(String::from_iter(<a href="#119">ty_path</a>.path.segments.iter()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|seg| <a href="#121">seg</a>.ident.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())))
         },
         syn::Type::Slice(ty_slice) =&gt; {
-            <span class="kw">let </span>ty = <span class="kw-2">&amp;*</span><a href="#122">ty_slice</a>.elem;
+            <span class="kw">let </span>ty = <span class="kw-2">&amp;*</span><a href="#123">ty_slice</a>.elem;
             <span class="prelude-val">Some</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Slice{}&quot;</span>, generate_name_for_type(ty)<span class="question-mark">?</span>.as_str()))
         },
         <span class="kw">_ </span>=&gt; {

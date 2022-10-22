@@ -90,6 +90,20 @@
 <span id="90">90</span>
 <span id="91">91</span>
 <span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="context.rs.html#10"><span class="kw">crate</span>::context::Context</a>;
 <span class="kw">use </span>async_std::{
     io::{<a href="../../async_std/io/buf_read/trait.BufReadExt.html">prelude::BufReadExt</a>, <a href="../../async_std/io/buf_reader/struct.BufReader.html">BufReader</a>, <a href="../../async_std/io/write/trait.WriteExt.html">WriteExt</a>},
@@ -162,6 +176,20 @@
         context.check(<span class="kw-2">&amp;</span>command, <span class="kw-2">&amp;</span>response).<span class="kw">await</span><span class="question-mark">?</span>;
     }
 
+    <span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>get_version(
+    context: <span class="kw-2">&amp;</span><a href="context.rs.html#10">Context</a>,
+    solver_stdout: <a href="../../async_process/struct.ChildStdout.html">ChildStdout</a>,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>stdout = async_std::io::stdout();
+    <span class="kw">let </span><span class="kw-2">mut </span>solver_stdout = BufReader::new(solver_stdout);
+    <span class="kw">let </span><span class="kw-2">mut </span>response = String::new();
+    <span class="kw">while </span>solver_stdout.read_line(<span class="kw-2">&amp;mut </span>response).<span class="kw">await</span><span class="question-mark">? </span>&gt; <span class="number">0 </span>{}
+    context.write_to_log(<span class="string">&quot;out&quot;</span>, <span class="kw-2">&amp;</span>response).<span class="kw">await</span><span class="question-mark">?</span>;
+    stdout.write_all(response.as_bytes()).<span class="kw">await</span><span class="question-mark">?</span>;
+    stdout.flush().<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 

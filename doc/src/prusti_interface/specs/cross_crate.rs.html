@@ -120,7 +120,7 @@
 <span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/fs/index.html">fs</a>, <a href="https://doc.rust-lang.org/nightly/std/io/index.html">io</a>, <a href="https://doc.rust-lang.org/nightly/std/path/index.html">path</a>};
 
 <span class="kw">use crate</span>::{
-    environment::{<a href="../environment/body.rs.html#332">body::CrossCrateBodies</a>, <a href="../environment/mod.rs.html#51">Environment</a>},
+    environment::{<a href="../environment/body.rs.html#332">body::CrossCrateBodies</a>, <a href="../environment/mod.rs.html#52">Environment</a>},
     <a href="typed.rs.html#15">specs::typed::DefSpecificationMap</a>,
     <a href="../prusti_error.rs.html#22">PrustiError</a>,
 };
@@ -130,13 +130,13 @@
 <span class="kw">pub struct </span>CrossCrateSpecs;
 
 <span class="kw">impl </span><a href="#17">CrossCrateSpecs</a> {
-    <span class="kw">pub fn </span>import_export_cross_crate(env: <span class="kw-2">&amp;mut </span><a href="../environment/mod.rs.html#51">Environment</a>, def_spec: <span class="kw-2">&amp;mut </span><a href="typed.rs.html#15">DefSpecificationMap</a>) {
+    <span class="kw">pub fn </span>import_export_cross_crate(env: <span class="kw-2">&amp;mut </span><a href="../environment/mod.rs.html#52">Environment</a>, def_spec: <span class="kw-2">&amp;mut </span><a href="typed.rs.html#15">DefSpecificationMap</a>) {
         <span class="self">Self</span>::export_specs(<a href="#20">env</a>, <a href="#20">def_spec</a>);
         <span class="self">Self</span>::import_specs(<a href="#20">env</a>, <a href="#20">def_spec</a>);
     }
 
-    <span class="kw">fn </span>export_specs(env: <span class="kw-2">&amp;</span><a href="../environment/mod.rs.html#51">Environment</a>, def_spec: <span class="kw-2">&amp;</span><a href="typed.rs.html#15">DefSpecificationMap</a>) {
-        <span class="kw">let </span>outputs = <a href="#25">env</a>.<a href="../environment/mod.rs.html#72">tcx</a>().output_filenames(());
+    <span class="kw">fn </span>export_specs(env: <span class="kw-2">&amp;</span><a href="../environment/mod.rs.html#52">Environment</a>, def_spec: <span class="kw-2">&amp;</span><a href="typed.rs.html#15">DefSpecificationMap</a>) {
+        <span class="kw">let </span>outputs = <a href="#25">env</a>.<a href="../environment/mod.rs.html#73">tcx</a>().output_filenames(());
         <span class="comment">// If we run `rustc` without the `--out-dir` flag set, then don&#39;t export specs
         </span><span class="kw">if </span>outputs.out_directory.to_string_lossy() == <span class="string">&quot;&quot; </span>{
             <span class="kw">return</span>;
@@ -157,8 +157,8 @@
         }
     }
 
-    <span class="kw">fn </span>import_specs(env: <span class="kw-2">&amp;mut </span><a href="../environment/mod.rs.html#51">Environment</a>, def_spec: <span class="kw-2">&amp;mut </span><a href="typed.rs.html#15">DefSpecificationMap</a>) {
-        <span class="kw">let </span>cstore = CStore::from_tcx(<a href="#47">env</a>.<a href="../environment/mod.rs.html#72">tcx</a>());
+    <span class="kw">fn </span>import_specs(env: <span class="kw-2">&amp;mut </span><a href="../environment/mod.rs.html#52">Environment</a>, def_spec: <span class="kw-2">&amp;mut </span><a href="typed.rs.html#15">DefSpecificationMap</a>) {
+        <span class="kw">let </span>cstore = CStore::from_tcx(<a href="#47">env</a>.<a href="../environment/mod.rs.html#73">tcx</a>());
         <span class="comment">// TODO: atm one needs to write `extern crate extern_spec_lib` to import the specs
         // from a crate which is not used in the current crate (e.g. an `#[extern_spec]` only crate)
         // Otherwise the crate doesn&#39;t show up in `tcx.crates()`.  Is there some better way
@@ -189,12 +189,12 @@
     }
 
     <span class="kw">fn </span>write_into_file(
-        env: <span class="kw-2">&amp;</span><a href="../environment/mod.rs.html#51">Environment</a>,
+        env: <span class="kw-2">&amp;</span><a href="../environment/mod.rs.html#52">Environment</a>,
         def_spec: <span class="kw-2">&amp;</span><a href="typed.rs.html#15">DefSpecificationMap</a>,
         path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">path::PathBuf</a>,
     ) -&gt; io::Result&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
         <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write</a>;
-        <span class="kw">let </span><span class="kw-2">mut </span>encoder = DefSpecsEncoder::new(<a href="#79">env</a>.<a href="../environment/mod.rs.html#72">tcx</a>());
+        <span class="kw">let </span><span class="kw-2">mut </span>encoder = DefSpecsEncoder::new(<a href="#79">env</a>.<a href="../environment/mod.rs.html#73">tcx</a>());
         <a href="#80">def_spec</a>.proc_specs.<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_serialize/serialize/trait.Encodable.html">encode</a>(<span class="kw-2">&amp;mut </span><a href="#84">encoder</a>);
         <a href="#80">def_spec</a>.type_specs.<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_serialize/serialize/trait.Encodable.html">encode</a>(<span class="kw-2">&amp;mut </span><a href="#84">encoder</a>);
         CrossCrateBodies::from(<span class="kw-2">&amp;</span><a href="#79">env</a>.body).<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_serialize/serialize/trait.Encodable.html">encode</a>(<span class="kw-2">&amp;mut </span><a href="#84">encoder</a>);
@@ -206,7 +206,7 @@
     }
 
     <span class="kw">fn </span>import_from_file(
-        env: <span class="kw-2">&amp;mut </span><a href="../environment/mod.rs.html#51">Environment</a>,
+        env: <span class="kw-2">&amp;mut </span><a href="../environment/mod.rs.html#52">Environment</a>,
         def_spec: <span class="kw-2">&amp;mut </span><a href="typed.rs.html#15">DefSpecificationMap</a>,
         path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">path::PathBuf</a>,
     ) -&gt; io::Result&lt;()&gt; {
@@ -214,12 +214,12 @@
         <span class="kw">let </span><span class="kw-2">mut </span>data = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>file = fs::File::open(path)<span class="question-mark">?</span>;
         file.read_to_end(<span class="kw-2">&amp;mut </span>data)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>decoder = DefSpecsDecoder::new(<a href="#96">env</a>.<a href="../environment/mod.rs.html#72">tcx</a>(), <span class="kw-2">&amp;</span><a href="#101">data</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>decoder = DefSpecsDecoder::new(<a href="#96">env</a>.<a href="../environment/mod.rs.html#73">tcx</a>(), <span class="kw-2">&amp;</span><a href="#101">data</a>);
 
         <span class="kw">let </span>proc_specs = FxHashMap::decode(<span class="kw-2">&amp;mut </span><a href="#104">decoder</a>);
         <span class="kw">let </span>type_specs = FxHashMap::decode(<span class="kw-2">&amp;mut </span><a href="#104">decoder</a>);
         <span class="kw">let </span>mirs_of_specs = CrossCrateBodies::decode(<span class="kw-2">&amp;mut </span><a href="#104">decoder</a>);
-        <a href="#97">def_spec</a>.<a href="typed.rs.html#106-111">import_external</a>(<a href="#106">proc_specs</a>, <a href="#107">type_specs</a>, <a href="#96">env</a>);
+        <a href="#97">def_spec</a>.<a href="typed.rs.html#109-114">import_external</a>(<a href="#106">proc_specs</a>, <a href="#107">type_specs</a>, <a href="#96">env</a>);
         <a href="#96">env</a>.body.<a href="../environment/body.rs.html#324">import_external_bodies</a>(<a href="#108">mirs_of_specs</a>);
         <span class="prelude-val">Ok</span>(())
     }

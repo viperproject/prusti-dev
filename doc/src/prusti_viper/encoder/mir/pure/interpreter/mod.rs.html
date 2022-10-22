@@ -1059,6 +1059,17 @@
 <span id="1059">1059</span>
 <span id="1060">1060</span>
 <span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A MIR interpreter that translates MIR into vir_high expressions.
 
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span><a href="state.rs.html#1-81">state</a>;
@@ -1553,12 +1564,12 @@
                         // args[1]: position of failing assertions
 
                         </span><span class="kw">let </span>panic_cause = <a class="self" href="#426">self</a>.mir_encoder.<a href="../../../mir_encoder/mod.rs.html#833">encode_panic_cause</a>(<a href="#432">span</a>);
-                        <a href="../../../errors/error_manager.rs.html#123">ErrorCtxt::PanicInPureFunction</a>(<a href="#494">panic_cause</a>)
+                        <a href="../../../errors/error_manager.rs.html#139">ErrorCtxt::PanicInPureFunction</a>(<a href="#494">panic_cause</a>)
                     }
 
-                    <span class="kw">_ </span>=&gt; <a href="../../../errors/error_manager.rs.html#121">ErrorCtxt::DivergingCallInPureFunction</a>,
+                    <span class="kw">_ </span>=&gt; <a href="../../../errors/error_manager.rs.html#137">ErrorCtxt::DivergingCallInPureFunction</a>,
                 };
-                <span class="kw">let </span>pos = <a class="self" href="#426">self</a>.encoder.<a href="../../../encoder.rs.html#227">error_manager</a>().<a href="../../../errors/error_manager.rs.html#231">register_error</a>(
+                <span class="kw">let </span>pos = <a class="self" href="#426">self</a>.encoder.<a href="../../../encoder.rs.html#227">error_manager</a>().<a href="../../../errors/error_manager.rs.html#247">register_error</a>(
                     <a href="#432">span</a>,
                     <a href="#485">error_ctxt</a>,
                     <a class="self" href="#426">self</a>.caller_def_id,
@@ -1721,6 +1732,17 @@
                 );
                 <a href="#540">subst_with</a>(<a href="#656">encoded_rhs</a>)
             }
+            <span class="string">&quot;prusti_contracts::snapshot_equality&quot; </span>=&gt; {
+                <span class="kw">let </span>position = <a href="#529">encoded_args</a>[<span class="number">0</span>].<a href="../../../../../../vir/common/position/trait.Positioned.html">position</a>();
+                <span class="kw">let </span>encoded_rhs = vir_high::Expression::builtin_func_app(
+                    vir_high::BuiltinFunc::SnapshotEquality,
+                    Vec::new(),
+                    <a href="#529">encoded_args</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                    vir_high::Type::Bool,
+                    <a href="#664">position</a>,
+                );
+                <a href="#540">subst_with</a>(<a href="#665">encoded_rhs</a>)
+            }
             <span class="string">&quot;prusti_contracts::before_expiry&quot; </span>=&gt; {
                 <span class="comment">// self.encode_call_before_expiry()?
                 </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>();
@@ -1731,7 +1753,7 @@
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(encoded_args.len(), <span class="number">2</span>);
                 <span class="kw">let </span>encoded_rhs =
                     vir_high::Expression::equals(<a href="#529">encoded_args</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#529">encoded_args</a>[<span class="number">1</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                <a href="#540">subst_with</a>(<a href="#671">encoded_rhs</a>)
+                <a href="#540">subst_with</a>(<a href="#682">encoded_rhs</a>)
             }
             <span class="string">&quot;std::cmp::PartialEq::ne&quot; </span>| <span class="string">&quot;core::cmp::PartialEq::ne&quot;
                 </span><span class="kw">if </span><span class="self">self</span>.has_structural_eq_impl(<span class="kw-2">&amp;</span>args[<span class="number">0</span>]).with_span(span)<span class="question-mark">? </span>=&gt;
@@ -1741,11 +1763,11 @@
                     <a href="#529">encoded_args</a>[<span class="number">0</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     <a href="#529">encoded_args</a>[<span class="number">1</span>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 );
-                <a href="#540">subst_with</a>(<a href="#679">encoded_rhs</a>)
+                <a href="#540">subst_with</a>(<a href="#690">encoded_rhs</a>)
             }
             <span class="string">&quot;core::slice::&lt;impl [T]&gt;::len&quot; </span>=&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(encoded_args.len(), <span class="number">1</span>);
-                <a class="self" href="#522">self</a>.<a href="#748-755">encode_call_len</a>(
+                <a class="self" href="#522">self</a>.<a href="#759-766">encode_call_len</a>(
                     <span class="kw-2">*</span><a href="#525">target_block</a>,
                     <a href="#526">states</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     <a href="#527">encoded_lhs</a>,
@@ -1765,17 +1787,17 @@
                         ..
                     }) =&gt; {
                         <span class="kw">let </span>ref_type = <a href="#527">encoded_lhs</a>.<a href="../../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">get_type</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                        <a href="#546">builtin</a>((LookupMap, <a href="#706">ref_type</a>))
+                        <a href="#546">builtin</a>((LookupMap, <a href="#717">ref_type</a>))
                     }
                     Type::Reference(<a href="../../../../../../vir/gen/high/ast/ty/struct.Reference.html">Reference</a> {
                         target_type: <span class="kw">box </span>Type::Sequence(<span class="kw">_</span>),
                         ..
                     }) =&gt; {
                         <span class="kw">let </span>ref_type = <a href="#527">encoded_lhs</a>.<a href="../../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">get_type</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                        <a href="#546">builtin</a>((LookupSeq, <a href="#713">ref_type</a>))
+                        <a href="#546">builtin</a>((LookupSeq, <a href="#724">ref_type</a>))
                     }
                     <span class="kw">_ </span>=&gt; <span class="self"><a href="#522">self</a>
-                        </span>.<a href="#762-770">encode_call_index</a>(
+                        </span>.<a href="#773-781">encode_call_index</a>(
                             <span class="kw-2">*</span><a href="#525">target_block</a>,
                             <a href="#526">states</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                             <a href="#527">encoded_lhs</a>,
@@ -1800,7 +1822,7 @@
                     <span class="self">self</span>.caller_def_id,
                     substs,
                 )<span class="question-mark">?</span>;
-                <a href="#540">subst_with</a>(<a href="#735">expr</a>)
+                <a href="#540">subst_with</a>(<a href="#746">expr</a>)
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
@@ -1815,9 +1837,9 @@
         span: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="state.rs.html#13">ExprBackwardInterpreterState</a>&gt; {
         <span class="kw">let </span>expr = <span class="self">self</span>.encoder.encode_len_call(arg).with_span(span)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="#751">states</a>[<span class="kw-2">&amp;</span><a href="#750">target_block</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="#757">state</a>.<a href="state.rs.html#54-58">substitute_value</a>(<span class="kw-2">&amp;</span><a href="#752">lhs</a>, <a href="#756">expr</a>);
-        <span class="prelude-val">Ok</span>(<a href="#757">state</a>)
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="#762">states</a>[<span class="kw-2">&amp;</span><a href="#761">target_block</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="#768">state</a>.<a href="state.rs.html#54-58">substitute_value</a>(<span class="kw-2">&amp;</span><a href="#763">lhs</a>, <a href="#767">expr</a>);
+        <span class="prelude-val">Ok</span>(<a href="#768">state</a>)
     }
 
     <span class="kw">fn </span>encode_call_index(
@@ -1833,9 +1855,9 @@
             </span>.encoder
             .encode_subslice_call(container, index)
             .with_span(span)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="#765">states</a>[<span class="kw-2">&amp;</span><a href="#764">target_block</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="#775">state</a>.<a href="state.rs.html#54-58">substitute_value</a>(<span class="kw-2">&amp;</span><a href="#766">lhs</a>, <a href="#771">expr</a>);
-        <span class="prelude-val">Ok</span>(<a href="#775">state</a>)
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="#776">states</a>[<span class="kw-2">&amp;</span><a href="#775">target_block</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="#786">state</a>.<a href="state.rs.html#54-58">substitute_value</a>(<span class="kw-2">&amp;</span><a href="#777">lhs</a>, <a href="#782">expr</a>);
+        <span class="prelude-val">Ok</span>(<a href="#786">state</a>)
     }
 
     <span class="attribute">#[allow(clippy::too_many_arguments)]
@@ -1854,21 +1876,21 @@
             .encode_pure_function_use_high(def_id, <span class="self">self</span>.caller_def_id, substs)
             .with_span(span)<span class="question-mark">?</span>;
         <a class="macro" href="../../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Encoding pure function call &#39;{}&#39;&quot;</span>, function_name);
-        <span class="kw">let </span>pos = <a class="self" href="#782">self</a>.encoder.<a href="../../../encoder.rs.html#227">error_manager</a>().<a href="../../../errors/error_manager.rs.html#231">register_error</a>(
-            <a href="#788">span</a>,
-            <a href="../../../errors/error_manager.rs.html#109">ErrorCtxt::PureFunctionCall</a>,
-            <a class="self" href="#782">self</a>.caller_def_id,
+        <span class="kw">let </span>pos = <a class="self" href="#793">self</a>.encoder.<a href="../../../encoder.rs.html#227">error_manager</a>().<a href="../../../errors/error_manager.rs.html#247">register_error</a>(
+            <a href="#799">span</a>,
+            <a href="../../../errors/error_manager.rs.html#125">ErrorCtxt::PureFunctionCall</a>,
+            <a class="self" href="#793">self</a>.caller_def_id,
         );
         <span class="kw">let </span>type_arguments = <span class="self">self
             </span>.encoder
             .encode_generic_arguments_high(def_id, substs)
             .with_span(span)<span class="question-mark">?</span>;
         <span class="kw">let </span>encoded_rhs =
-            vir_high::Expression::function_call(<a href="#791">function_name</a>, <a href="#801">type_arguments</a>, <a href="#787">args</a>, <a href="#791">return_type</a>)
-                .set_default_position(<a href="#796">pos</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="#784">states</a>[<span class="kw-2">&amp;</span><a href="#783">target_block</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a href="#808">state</a>.<a href="state.rs.html#54-58">substitute_value</a>(<span class="kw-2">&amp;</span><a href="#785">lhs</a>, <a href="#805">encoded_rhs</a>);
-        <span class="prelude-val">Ok</span>(<a href="#808">state</a>)
+            vir_high::Expression::function_call(<a href="#802">function_name</a>, <a href="#812">type_arguments</a>, <a href="#798">args</a>, <a href="#802">return_type</a>)
+                .set_default_position(<a href="#807">pos</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="#795">states</a>[<span class="kw-2">&amp;</span><a href="#794">target_block</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a href="#819">state</a>.<a href="state.rs.html#54-58">substitute_value</a>(<span class="kw-2">&amp;</span><a href="#796">lhs</a>, <a href="#816">encoded_rhs</a>);
+        <span class="prelude-val">Ok</span>(<a href="#819">state</a>)
     }
 
     <span class="kw">fn </span>unreachable_expr(
@@ -1881,12 +1903,12 @@
             </span>.encoder
             .encode_builtin_function_use_high(BuiltinFunctionHighKind::Unreachable(encoded_type))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(vir_high::Expression::func_app(
-            <a href="#819">function_name</a>,
-            <a href="#819">type_arguments</a>,
+            <a href="#830">function_name</a>,
+            <a href="#830">type_arguments</a>,
             Vec::new(),
             Vec::new(),
-            <a href="#817">ty</a>,
-            <a href="#815">position</a>,
+            <a href="#828">ty</a>,
+            <a href="#826">position</a>,
         ))
     }
 
@@ -1897,18 +1919,18 @@
             </span>.encoder
             .encode_builtin_function_use_high(BuiltinFunctionHighKind::Undefined(encoded_type))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(vir_high::Expression::func_app(
-            <a href="#835">function_name</a>,
-            <a href="#835">type_arguments</a>,
+            <a href="#846">function_name</a>,
+            <a href="#846">type_arguments</a>,
             Vec::new(),
             Vec::new(),
-            <a href="#833">ty</a>,
-            <a href="#832">position</a>,
+            <a href="#844">ty</a>,
+            <a href="#843">position</a>,
         ))
     }
 
     <span class="kw">fn </span>has_structural_eq_impl(<span class="kw-2">&amp;</span><span class="self">self</span>, operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; EncodingResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
         <span class="kw">let </span>ty = <span class="self">self</span>.encoder.get_operand_type(<span class="self">self</span>.mir, operand)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="#848">self</a>.encoder.<a href="../../../encoder.rs.html#581">has_structural_eq_impl</a>(<a href="#849">ty</a>))
+        <span class="prelude-val">Ok</span>(<a class="self" href="#859">self</a>.encoder.<a href="../../../encoder.rs.html#581">has_structural_eq_impl</a>(<a href="#860">ty</a>))
     }
 }
 
@@ -1925,14 +1947,14 @@
         states: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <span class="kw-2">&amp;</span><span class="self">Self</span>::State&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::State, <span class="self">Self</span>::Error&gt; {
         <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">prusti_rustc_interface::middle::mir::TerminatorKind</a>;
-        <span class="kw">let </span>span = <a href="#863">terminator</a>.source_info.span;
-        <span class="kw">let </span>state = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#863">terminator</a>.kind {
+        <span class="kw">let </span>span = <a href="#874">terminator</a>.source_info.span;
+        <span class="kw">let </span>state = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#874">terminator</a>.kind {
             TerminatorKind::Unreachable =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(states.is_empty());
-                <span class="kw">let </span>pos = <a class="self" href="#861">self</a>.encoder.<a href="../../../encoder.rs.html#227">error_manager</a>().<a href="../../../errors/error_manager.rs.html#231">register_error</a>(
-                    <a href="#867">span</a>,
-                    <a href="../../../errors/error_manager.rs.html#90">ErrorCtxt::Unexpected</a>,
-                    <a class="self" href="#861">self</a>.caller_def_id,
+                <span class="kw">let </span>pos = <a class="self" href="#872">self</a>.encoder.<a href="../../../encoder.rs.html#227">error_manager</a>().<a href="../../../errors/error_manager.rs.html#247">register_error</a>(
+                    <a href="#878">span</a>,
+                    <a href="../../../errors/error_manager.rs.html#106">ErrorCtxt::Unexpected</a>,
+                    <a class="self" href="#872">self</a>.caller_def_id,
                 );
                 ExprBackwardInterpreterState::new_defined(
                     <span class="self">self</span>.undefined_expr(pos.into()).with_span(span)<span class="question-mark">?</span>,
@@ -1941,10 +1963,10 @@
 
             TerminatorKind::Abort | <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Resume</a> { .. } =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(states.is_empty());
-                <span class="kw">let </span>pos = <span class="self"><a href="#861">self</a>
+                <span class="kw">let </span>pos = <span class="self"><a href="#872">self</a>
                     </span>.encoder
                     .<a href="../../../encoder.rs.html#227">error_manager</a>()
-                    .<a href="../../../errors/error_manager.rs.html#231">register_error</a>(<a href="#867">span</a>, <a href="../../../errors/error_manager.rs.html#90">ErrorCtxt::Unexpected</a>, <a class="self" href="#861">self</a>.caller_def_id)
+                    .<a href="../../../errors/error_manager.rs.html#247">register_error</a>(<a href="#878">span</a>, <a href="../../../errors/error_manager.rs.html#106">ErrorCtxt::Unexpected</a>, <a class="self" href="#872">self</a>.caller_def_id)
                     .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
                 ExprBackwardInterpreterState::new_defined(
                     <span class="self">self</span>.unreachable_expr(pos).with_span(span)<span class="question-mark">?</span>,
@@ -1953,22 +1975,22 @@
 
             <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Drop</a> { target, .. } =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!states.is_empty() &amp;&amp; states.len() &lt;= <span class="number">2</span>);
-                <a href="#864">states</a>[<a href="#893">target</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                <a href="#875">states</a>[<a href="#904">target</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
             }
 
             <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Goto</a> { <span class="kw-2">ref </span>target } =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(states.len(), <span class="number">1</span>);
-                <a href="#864">states</a>[<a href="#898">target</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                <a href="#875">states</a>[<a href="#909">target</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
             }
 
             <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::FalseEdge</a> { real_target, .. } =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(states.len(), <span class="number">2</span>);
-                <a href="#864">states</a>[<a href="#903">real_target</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                <a href="#875">states</a>[<a href="#914">real_target</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
             }
 
             <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::FalseUnwind</a> { real_target, .. } =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(states.len(), <span class="number">1</span>);
-                <a href="#864">states</a>[<a href="#908">real_target</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                <a href="#875">states</a>[<a href="#919">real_target</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
             }
 
             TerminatorKind::Return =&gt; {
@@ -1980,7 +2002,7 @@
                     .with_span(span)<span class="question-mark">?</span>;
                 <span class="kw">let </span>return_var = <a class="macro" href="../../../../../../prusti_common/macro.vir_high_local.html">vir_high_local! </a>{ _0: {return_type} };
                 ExprBackwardInterpreterState::new_defined(vir_high::Expression::local_no_pos(
-                    <a href="#920">return_var</a>,
+                    <a href="#931">return_var</a>,
                 ))
             }
 
@@ -2005,7 +2027,7 @@
             <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.TerminatorKind.html">TerminatorKind::Call</a> { .. } =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(SpannedEncodingError::unsupported(
                     <span class="string">&quot;unsupported kind of call&quot;</span>,
-                    <a href="#867">span</a>,
+                    <a href="#878">span</a>,
                 ));
             }
 
@@ -2018,37 +2040,37 @@
             } =&gt; {
                 <span class="kw">let </span>encoded_condition = <span class="self">self</span>.encode_operand(cond, span)<span class="question-mark">?</span>;
                 <span class="kw">let </span>guard = <span class="kw">if </span><span class="kw-2">*</span>expected {
-                    <a href="#958">encoded_condition</a>
+                    <a href="#969">encoded_condition</a>
                 } <span class="kw">else </span>{
-                    vir_high::Expression::not(<a href="#958">encoded_condition</a>)
+                    vir_high::Expression::not(<a href="#969">encoded_condition</a>)
                 };
 
-                <span class="kw">let </span>error_ctxt = <span class="kw">if let </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.AssertKind.html">mir::AssertKind::BoundsCheck</a> { .. } = <a href="#955">msg</a> {
-                    <a href="../../../errors/error_manager.rs.html#81">ErrorCtxt::BoundsCheckAssert</a>
+                <span class="kw">let </span>error_ctxt = <span class="kw">if let </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.AssertKind.html">mir::AssertKind::BoundsCheck</a> { .. } = <a href="#966">msg</a> {
+                    <a href="../../../errors/error_manager.rs.html#97">ErrorCtxt::BoundsCheckAssert</a>
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>assert_msg = <a href="#955">msg</a>.description().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-                    <a href="../../../errors/error_manager.rs.html#115">ErrorCtxt::PureFunctionAssertTerminator</a>(<a href="#968">assert_msg</a>)
+                    <span class="kw">let </span>assert_msg = <a href="#966">msg</a>.description().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+                    <a href="../../../errors/error_manager.rs.html#131">ErrorCtxt::PureFunctionAssertTerminator</a>(<a href="#979">assert_msg</a>)
                 };
 
-                <span class="kw">let </span>pos = <a class="self" href="#861">self</a>.encoder.<a href="../../../encoder.rs.html#227">error_manager</a>().<a href="../../../errors/error_manager.rs.html#231">register_error</a>(
-                    <a href="#863">terminator</a>.source_info.span,
-                    <a href="#965">error_ctxt</a>,
-                    <a class="self" href="#861">self</a>.caller_def_id,
+                <span class="kw">let </span>pos = <a class="self" href="#872">self</a>.encoder.<a href="../../../encoder.rs.html#227">error_manager</a>().<a href="../../../errors/error_manager.rs.html#247">register_error</a>(
+                    <a href="#874">terminator</a>.source_info.span,
+                    <a href="#976">error_ctxt</a>,
+                    <a class="self" href="#872">self</a>.caller_def_id,
                 );
 
-                <span class="kw">match </span><a class="self" href="#861">self</a>.pure_encoding_context {
+                <span class="kw">match </span><a class="self" href="#872">self</a>.pure_encoding_context {
                     <a href="../pure_functions/interface.rs.html#85">PureEncodingContext::Trigger</a> =&gt; {
                         <span class="comment">// We are encoding a trigger, so all panic branches must be stripped.
-                        </span><a href="#864">states</a>[<a href="#954">target</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                        </span><a href="#875">states</a>[<a href="#965">target</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
                     }
                     <a href="../pure_functions/interface.rs.html#79">PureEncodingContext::Assertion</a> =&gt; {
                         <span class="comment">// We are encoding an assertion, so all failures should be equivalent to false.
                         </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="macro">matches!</span>(<span class="self">self</span>.mir.return_ty().kind(), ty::TyKind::Bool));
-                        ExprBackwardInterpreterState::new(<a href="#864">states</a>[<a href="#954">target</a>].<a href="state.rs.html#46">expr</a>().map(
+                        ExprBackwardInterpreterState::new(<a href="#875">states</a>[<a href="#965">target</a>].<a href="state.rs.html#46">expr</a>().map(
                             |target_expr| {
                                 vir_high::Expression::conditional_no_pos(
-                                    <a href="#959">guard</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                                    <a href="#987">target_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                                    <a href="#970">guard</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                                    <a href="#998">target_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                                     <span class="bool-val">false</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
                                 )
                             },
@@ -2057,12 +2079,12 @@
                     <a href="../pure_functions/interface.rs.html#74">PureEncodingContext::Code</a> =&gt; {
                         <span class="comment">// We are encoding a pure function, so all failures should be unreachable.
                         </span><span class="kw">let </span>failure_encoding = <span class="self">self</span>.unreachable_expr(pos.into()).with_span(span)<span class="question-mark">?</span>;
-                        ExprBackwardInterpreterState::new(<a href="#864">states</a>[<a href="#954">target</a>].<a href="state.rs.html#46">expr</a>().map(
+                        ExprBackwardInterpreterState::new(<a href="#875">states</a>[<a href="#965">target</a>].<a href="state.rs.html#46">expr</a>().map(
                             |target_expr| {
                                 vir_high::Expression::conditional_no_pos(
-                                    <a href="#959">guard</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                                    <a href="#1000">target_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                                    <a href="#998">failure_encoding</a>,
+                                    <a href="#970">guard</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                                    <a href="#1011">target_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                                    <a href="#1009">failure_encoding</a>,
                                 )
                             },
                         ))
@@ -2078,14 +2100,14 @@
                         <span class="string">&quot;unsupported terminator kind inside a pure expression: {:?}&quot;</span>,
                         terminator.kind
                     ),
-                    <a href="#867">span</a>,
+                    <a href="#878">span</a>,
                 ))
             }
         };
 
         <span class="comment">// self.apply_downcasts(&amp;mut state, location)?; FIXME: Is this needed?
 
-        </span><span class="prelude-val">Ok</span>(<a href="#868">state</a>)
+        </span><span class="prelude-val">Ok</span>(<a href="#879">state</a>)
     }
 
     <span class="kw">fn </span>apply_statement(
@@ -2096,12 +2118,12 @@
         state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::State,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <a class="macro" href="../../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;apply_statement {:?}, state: {}&quot;</span>, statement, state);
-        <span class="kw">let </span>span = <a href="#1034">statement</a>.source_info.span;
+        <span class="kw">let </span>span = <a href="#1045">statement</a>.source_info.span;
         <span class="kw">let </span>location = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            block: <a href="#1032">bb</a>,
-            statement_index: <a href="#1033">stmt_index</a>,
+            block: <a href="#1043">bb</a>,
+            statement_index: <a href="#1044">stmt_index</a>,
         };
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#1034">statement</a>.kind {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#1045">statement</a>.kind {
             mir::StatementKind::StorageLive(..)
             | mir::StatementKind::StorageDead(..)
             | mir::StatementKind::FakeRead(..) =&gt; {

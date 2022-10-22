@@ -241,6 +241,11 @@
 <span id="241">241</span>
 <span id="242">242</span>
 <span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     error::{<a href="error.rs.html#10">Error</a>, <a href="error.rs.html#3">ErrorKind</a>},
     types::{<a href="types.rs.html#6">Fingerprint</a>, <a href="types.rs.html#1">Id</a>, <a href="types.rs.html#4">TermId</a>},
@@ -449,7 +454,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a href="error.rs.html#10">Error</a>&gt; {
         <a class="self" href="#206">self</a>.<a href="#117">skip_whitespace</a>();
         <span class="kw">fn </span>is_valid_name(c: <a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            <a href="#208">c</a>.is_alphanumeric() || <span class="string">&quot;$.&lt;&gt;=!%@-[]_&quot;</span>.contains(<a href="#208">c</a>)
+            <a href="#208">c</a>.is_alphanumeric() || <span class="string">&quot;$.&lt;&gt;=!%@-[]_#&quot;</span>.contains(<a href="#208">c</a>)
         }
         <span class="prelude-val">Ok</span>(<a class="self" href="#206">self</a>.<a href="#85-88">consume_while_predicate</a>(<a href="#208">is_valid_name</a>))
     }
@@ -477,11 +482,16 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_number(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <a href="error.rs.html#10">Error</a>&gt; {
         <a class="self" href="#235">self</a>.<a href="#117">skip_whitespace</a>();
-        <span class="kw">let </span>number = <span class="self"><a href="#235">self</a>
-            </span>.<a href="#85-88">consume_while_predicate</a>(|c| <a href="#238">c</a>.is_ascii_hexdigit())
-            .parse()
-            .unwrap();
-        <span class="prelude-val">Ok</span>(<a href="#237">number</a>)
+        <span class="kw">let </span>s = <a class="self" href="#235">self</a>.<a href="#85-88">consume_while_predicate</a>(|c| <a href="#237">c</a>.is_ascii_hexdigit());
+        <span class="kw">match </span><a href="#237">s</a>.parse() {
+            <span class="prelude-val">Ok</span>(number) =&gt; <span class="prelude-val">Ok</span>(<a href="#239">number</a>),
+            <span class="prelude-val">Err</span>(error) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.eprintln.html">eprintln!</a>(<span class="string">&quot;error: {}&quot;</span>, error);
+                <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.eprintln.html">eprintln!</a>(<span class="string">&quot;string: {}&quot;</span>, s);
+                <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.eprintln.html">eprintln!</a>(<span class="string">&quot;line: {}&quot;</span>, <span class="self">self</span>.line);
+                <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>();
+            }
+        }
     }
 }
 </code></pre></div>

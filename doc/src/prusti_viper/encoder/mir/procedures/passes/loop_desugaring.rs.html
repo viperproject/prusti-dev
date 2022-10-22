@@ -212,6 +212,80 @@
 <span id="212">212</span>
 <span id="213">213</span>
 <span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
     errors::{<a href="../../../errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
     <a href="../../errors/interface.rs.html#13">mir::errors::ErrorInterface</a>,
@@ -219,7 +293,7 @@
 };
 <span class="kw">use </span>std::collections::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
 <span class="kw">use </span>vir_crate::{
-    <a href="../../../../../../vir/common/cfg/trait.Cfg.html">common::cfg::Cfg</a>,
+    common::{<a href="../../../../../../vir/common/cfg/trait.Cfg.html">cfg::Cfg</a>, <a href="../../../../../../vir/common/expression/trait.BinaryOperationHelpers.html">expression::BinaryOperationHelpers</a>},
     high::{
         <span class="self"><a href="../../../../../../vir/high/index.html">self</a> </span><span class="kw">as </span>vir_high,
         ast::{<a href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFolder.html">expression::visitors::ExpressionFolder</a>, <a href="../../../../../../vir/gen/high/ast/statement/visitors/trait.StatementFolder.html">statement::visitors::StatementFolder</a>},
@@ -266,6 +340,18 @@
             .unwrap()
             .unwrap_loop_invariant();
 
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = <span class="kw-2">&amp;</span>loop_invariant.variant {
+            <span class="kw">let </span>stmt = encoder.set_surrounding_error_context_for_statement(
+                vir_high::Statement::ghost_assign_no_pos(
+                    vir_high::Expression::local_no_pos(variant.var.clone()),
+                    variant.expr.clone(),
+                ),
+                loop_invariant.position,
+                ErrorCtxt::LoopVariant,
+            )<span class="question-mark">?</span>;
+            invariant_block.statements.push(stmt);
+        }
+
         invariant_block
             .statements
             .push(vir_high::Statement::comment(
@@ -278,6 +364,21 @@
                 ErrorCtxt::AssertLoopInvariantOnEntry,
             )<span class="question-mark">?</span>;
             invariant_block.statements.push(statement);
+        }
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = <span class="kw-2">&amp;</span>loop_invariant.variant {
+            <span class="kw">let </span>stmt = encoder.set_surrounding_error_context_for_statement(
+                vir_high::Statement::assert_no_pos(vir_high::Expression::greater_than(
+                    vir_high::Expression::local_no_pos(variant.var.clone()),
+                    vir_high::Expression::constant_no_pos(
+                        vir_high::expression::ConstantValue::Int(<span class="number">0</span>),
+                        variant.var.ty.clone(),
+                    ),
+                )),
+                loop_invariant.position,
+                ErrorCtxt::LoopVariantOnEntry,
+            )<span class="question-mark">?</span>;
+            invariant_block.statements.push(stmt);
         }
 
         <span class="comment">// Note: It is important for soundness that we havoc here everything
@@ -298,6 +399,15 @@
             invariant_block.statements.push(statement);
         }
 
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = <span class="kw-2">&amp;</span>loop_invariant.variant {
+            <span class="kw">let </span>stmt = encoder.set_surrounding_error_context_for_statement(
+                vir_high::Statement::ghost_havoc_no_pos(variant.var.clone()),
+                loop_invariant.position,
+                ErrorCtxt::LoopVariant,
+            )<span class="question-mark">?</span>;
+            invariant_block.statements.push(stmt);
+        }
+
         <span class="kw">for </span>assertion <span class="kw">in </span>loop_invariant.functional_specifications {
             <span class="kw">let </span>statement = encoder.set_surrounding_error_context_for_statement(
                 vir_high::Statement::assume_no_pos(assertion),
@@ -305,6 +415,18 @@
                 ErrorCtxt::UnexpectedAssumeLoopInvariantOnEntry,
             )<span class="question-mark">?</span>;
             invariant_block.statements.push(statement);
+        }
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = <span class="kw-2">&amp;</span>loop_invariant.variant {
+            <span class="kw">let </span>stmt = encoder.set_surrounding_error_context_for_statement(
+                vir_high::Statement::assume_no_pos(vir_high::Expression::equals(
+                    vir_high::Expression::local_no_pos(variant.var.clone()),
+                    variant.expr.clone(),
+                )),
+                loop_invariant.position,
+                ErrorCtxt::LoopVariant,
+            )<span class="question-mark">?</span>;
+            invariant_block.statements.push(stmt);
         }
     }
     <span class="prelude-val">Ok</span>(<a href="#17">procedure</a>)
@@ -328,7 +450,7 @@
     loop_head: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>,
 ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>&gt; {
     <span class="kw">let </span>(blocks_to_duplicate, old_labels_remap) = {
-        <span class="kw">let </span>predecessors = <a href="#112">procedure</a>.<a href="../../../../../../vir/common/cfg/trait.Cfg.html">predecessors</a>();
+        <span class="kw">let </span>predecessors = <a href="#160">procedure</a>.<a href="../../../../../../vir/common/cfg/trait.Cfg.html">predecessors</a>();
         <span class="kw">let </span><span class="kw-2">mut </span>old_labels_remap = BTreeMap::new();
         <span class="kw">let </span><span class="kw-2">mut </span>blocks_to_duplicate = BTreeSet::new();
         <span class="kw">let </span><span class="kw-2">mut </span>work_queue = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[invariant_block];
@@ -348,16 +470,16 @@
                 work_queue.extend(<span class="kw-2">&amp;</span>predecessors[block]);
             }
         }
-        (<a href="#119">blocks_to_duplicate</a>, <a href="#118">old_labels_remap</a>)
+        (<a href="#167">blocks_to_duplicate</a>, <a href="#166">old_labels_remap</a>)
     };
     <span class="kw">let </span>new_label = |bb: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a>| {
         <span class="kw">if </span>blocks_to_duplicate.contains(bb) {
             vir_high::BasicBlockId::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;loop__{}__{}&quot;</span>, loop_head, bb))
         } <span class="kw">else </span>{
-            <a href="#139">bb</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+            <a href="#187">bb</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
         }
     };
-    <span class="kw">let </span><span class="kw-2">mut </span>updater = <a href="#186">OldLabelUpdater</a> { <a href="#116">old_labels_remap</a> };
+    <span class="kw">let </span><span class="kw-2">mut </span>updater = <a href="#260">OldLabelUpdater</a> { <a href="#164">old_labels_remap</a> };
     <span class="kw">for </span>bb <span class="kw">in </span><span class="kw-2">&amp;</span>blocks_to_duplicate {
         <span class="kw">let </span><span class="kw-2">mut </span>block = procedure.basic_blocks[bb].clone();
         <span class="kw">if </span>bb == invariant_block {
@@ -369,6 +491,32 @@
                     ErrorCtxt::AssertLoopInvariantAfterIteration,
                 )<span class="question-mark">?</span>;
                 block.statements.push(statement);
+            }
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(variant) = <span class="kw-2">&amp;</span>loop_invariant.variant {
+                block
+                    .statements
+                    .push(encoder.set_surrounding_error_context_for_statement(
+                        vir_high::Statement::assert_no_pos(vir_high::Expression::less_than(
+                            variant.expr.clone(),
+                            vir_high::Expression::local_no_pos(variant.var.clone()),
+                        )),
+                        loop_invariant.position,
+                        ErrorCtxt::LoopVariantNonDecreased,
+                    )<span class="question-mark">?</span>);
+
+                block
+                    .statements
+                    .push(encoder.set_surrounding_error_context_for_statement(
+                        vir_high::Statement::assert_no_pos(vir_high::Expression::greater_equals(
+                            variant.expr.clone(),
+                            vir_high::Expression::constant_no_pos(
+                                vir_high::expression::ConstantValue::Int(<span class="number">0</span>),
+                                variant.var.ty.clone(),
+                            ),
+                        )),
+                        loop_invariant.position,
+                        ErrorCtxt::LoopVariantAfterIteration,
+                    )<span class="question-mark">?</span>);
             }
             <span class="kw">let </span>statement = encoder.set_surrounding_error_context_for_statement(
                 vir_high::Statement::assume_no_pos(<span class="bool-val">false</span>.into()),
@@ -390,7 +538,7 @@
             .insert(new_label(bb), block)
             .is_none())
     }
-    <span class="prelude-val">Ok</span>(<a href="#139">new_label</a>(<a href="#114">loop_head</a>))
+    <span class="prelude-val">Ok</span>(<a href="#187">new_label</a>(<a href="#162">loop_head</a>))
 }
 
 <span class="kw">fn </span>construct_magic_label() -&gt; <a href="../../../../../../vir/gen/high/cfg/procedure/struct.BasicBlockId.html">vir_high::BasicBlockId</a> {
@@ -401,29 +549,29 @@
     old_labels_remap: BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../../../../vir/gen/high/ast/statement/visitors/trait.StatementFolder.html">StatementFolder</a> <span class="kw">for </span><a href="#186">OldLabelUpdater</a> {
+<span class="kw">impl </span><a href="../../../../../../vir/gen/high/ast/statement/visitors/trait.StatementFolder.html">StatementFolder</a> <span class="kw">for </span><a href="#260">OldLabelUpdater</a> {
     <span class="kw">fn </span>fold_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expression: <a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>) -&gt; <a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a> {
-        <a href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFolder.html">ExpressionFolder::fold_expression</a>(<a class="self" href="#191">self</a>, <a href="#191">expression</a>)
+        <a href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFolder.html">ExpressionFolder::fold_expression</a>(<a class="self" href="#265">self</a>, <a href="#265">expression</a>)
     }
     <span class="kw">fn </span>fold_old_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="../../../../../../vir/gen/high/ast/statement/struct.OldLabel.html">vir_high::OldLabel</a>) -&gt; <a href="../../../../../../vir/gen/high/ast/statement/struct.OldLabel.html">vir_high::OldLabel</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_label) = <a class="self" href="#194">self</a>.old_labels_remap.get(<span class="kw-2">&amp;</span><a href="#194">statement</a>.name) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_label) = <a class="self" href="#268">self</a>.old_labels_remap.get(<span class="kw-2">&amp;</span><a href="#268">statement</a>.name) {
             <a href="../../../../../../vir/gen/high/ast/statement/struct.OldLabel.html">vir_high::OldLabel</a> {
-                name: <a href="#195">new_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                ..<a href="#194">statement</a>
+                name: <a href="#269">new_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                ..<a href="#268">statement</a>
             }
         } <span class="kw">else </span>{
-            <a href="#194">statement</a>
+            <a href="#268">statement</a>
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFolder.html">ExpressionFolder</a> <span class="kw">for </span><a href="#186">OldLabelUpdater</a> {
+<span class="kw">impl </span><a href="../../../../../../vir/gen/high/ast/expression/visitors/trait.ExpressionFolder.html">ExpressionFolder</a> <span class="kw">for </span><a href="#260">OldLabelUpdater</a> {
     <span class="kw">fn </span>fold_labelled_old(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expression: <a href="../../../../../../vir/gen/high/ast/expression/struct.LabelledOld.html">vir_high::LabelledOld</a>) -&gt; <a href="../../../../../../vir/gen/high/ast/expression/struct.LabelledOld.html">vir_high::LabelledOld</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>expression = vir_high::visitors::default_fold_labelled_old(<a class="self" href="#207">self</a>, <a href="#207">expression</a>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_label) = <a class="self" href="#207">self</a>.old_labels_remap.get(<span class="kw-2">&amp;</span><a href="#208">expression</a>.label) {
-            <a href="#208">expression</a>.label = <a href="#209">new_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>expression = vir_high::visitors::default_fold_labelled_old(<a class="self" href="#281">self</a>, <a href="#281">expression</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(new_label) = <a class="self" href="#281">self</a>.old_labels_remap.get(<span class="kw-2">&amp;</span><a href="#282">expression</a>.label) {
+            <a href="#282">expression</a>.label = <a href="#283">new_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         }
-        <a href="#208">expression</a>
+        <a href="#282">expression</a>
     }
 }
 </code></pre></div>

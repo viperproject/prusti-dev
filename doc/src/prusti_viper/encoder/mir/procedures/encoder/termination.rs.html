@@ -1,0 +1,346 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/mir/procedures/encoder/termination.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>termination.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../../normalize.css"><link rel="stylesheet" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
+    errors::{<a href="../../../errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../../../errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="../../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>, <a href="../../../errors/with_span.rs.html#13">WithSpan</a>},
+    mir::{
+        contracts::{<a href="../../contracts/interface.rs.html#22">ContractsEncoderInterface</a>, <a href="../../contracts/contracts.rs.html#139">ProcedureContractMirDef</a>},
+        <a href="../../errors/interface.rs.html#13">errors::ErrorInterface</a>,
+        <a href="../../pure/specifications/interface.rs.html#36">pure::SpecificationEncoderInterface</a>,
+        <a href="../../specifications/interface.rs.html#72">specifications::SpecificationsInterface</a>,
+    },
+};
+<span class="kw">use </span>prusti_rustc_interface::{
+    middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/type.SubstsRef.html">ty::subst::SubstsRef</a>},
+    <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">span::Span</a>,
+};
+<span class="kw">use </span>vir_crate::{
+    common::{<a href="../../../../../../vir/common/check_mode/enum.CheckMode.html">check_mode::CheckMode</a>, <a href="../../../../../../vir/common/expression/trait.BinaryOperationHelpers.html">expression::BinaryOperationHelpers</a>},
+    high::{<span class="self"><a href="../../../../../../vir/high/index.html">self</a> </span><span class="kw">as </span>vir_high, <a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">builders::procedure::BasicBlockBuilder</a>},
+};
+
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>TerminationMeasure {
+    <span class="doccomment">/// A termination measure of type Int.
+    </span>Int(<a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>),
+    <span class="doccomment">/// The annotated item is trusted to always terminate.
+    </span>Trusted,
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <span class="kw">super</span>::ProcedureEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>needs_termination(<span class="kw-2">&amp;</span><span class="self">self</span>, bb: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">BasicBlock</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let </span>function_termination = <a class="self" href="#27">self</a>.encoder.<a href="../../specifications/interface.rs.html#86">terminates</a>(<a class="self" href="#27">self</a>.def_id, <span class="prelude-val">None</span>);
+        <span class="kw">let </span>ghost_block = <a class="self" href="#27">self</a>.specification_blocks.<a href="specification_blocks.rs.html#183">is_ghost_block</a>(<a href="#27">bb</a>);
+        <a href="#28">function_termination</a> || <a href="#29">ghost_block</a>
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>encode_termination_expression(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        procedure_contract: <span class="kw-2">&amp;</span>ProcedureContractMirDef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        span: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>,
+        call_substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        arguments: <span class="kw-2">&amp;</span>[<a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>],
+    ) -&gt; SpannedEncodingResult&lt;<a href="#19">TerminationMeasure</a>&gt; {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.encoder.terminates(<span class="self">self</span>.def_id, <span class="prelude-val">None</span>));
+
+        <span class="kw">let </span>(expr, expr_substs) = procedure_contract
+            .functional_termination_measure(<span class="self">self</span>.encoder.env(), call_substs)
+            .ok_or_else(|| {
+                SpannedEncodingError::incorrect(
+                    <span class="string">&quot;Terminating function calls nonterminating function&quot;</span>,
+                    span,
+                )
+            })<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>expression = <span class="self">self</span>.encoder.encode_assertion_high(
+            expr.to_def_id(),
+            <span class="prelude-val">None</span>,
+            arguments,
+            <span class="prelude-val">None</span>,
+            <span class="self">self</span>.def_id,
+            expr_substs,
+        )<span class="question-mark">?</span>;
+        <span class="kw">if let </span>vir_high::Expression::FuncApp(<a href="../../../../../../vir/gen/high/ast/expression/struct.FuncApp.html">vir_high::FuncApp</a> { function_name, .. }) = <span class="kw-2">&amp;</span><a href="#51">expression</a>
+        {
+            <span class="kw">if </span>function_name == <span class="string">&quot;m_prusti_contracts$$prusti_terminates_trusted&quot; </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#23">TerminationMeasure::Trusted</a>);
+            }
+        }
+        <span class="prelude-val">Ok</span>(<a href="#21">TerminationMeasure::Int</a>(<a href="#51">expression</a>))
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>encode_termination_initialization(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+    ) -&gt; SpannedEncodingResult&lt;Vec&lt;<a href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a>&gt;&gt; {
+        <span class="kw">let </span>mir_span = <a class="self" href="#69">self</a>.mir.span;
+        <span class="kw">let </span>substs = <a class="self" href="#69">self</a>.encoder.<a href="../../../encoder.rs.html#223">env</a>().query.identity_substs(<a class="self" href="#69">self</a>.def_id);
+        <span class="comment">// Retrieve the contract
+        </span><span class="kw">let </span>procedure_contract = <span class="self">self
+            </span>.encoder
+            .get_mir_procedure_contract_for_def(<span class="self">self</span>.def_id, substs)
+            .with_span(mir_span)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>arguments: Vec&lt;<a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>&gt; = Vec::new();
+        <span class="kw">for </span>local <span class="kw">in </span><span class="self">self</span>.mir.args_iter() {
+            arguments.push(<span class="self">self</span>.encode_local(local)<span class="question-mark">?</span>.into());
+        }
+
+        <span class="kw">if </span><span class="self">self</span>.encoder.terminates(<span class="self">self</span>.def_id, <span class="prelude-val">None</span>) &amp;&amp; <span class="self">self</span>.check_mode != CheckMode::CoreProof {
+            <span class="kw">let </span>termination_expr = <span class="self">self</span>.encode_termination_expression(
+                <span class="kw-2">&amp;</span>procedure_contract,
+                mir_span,
+                substs,
+                <span class="kw-2">&amp;</span>arguments,
+            )<span class="question-mark">?</span>;
+            <span class="kw">if let </span><a href="#21">TerminationMeasure::Int</a>(termination_expr) = <a href="#84">termination_expr</a> {
+                <span class="kw">let </span>term_var = <a class="self" href="#69">self</a>.<a href="mod.rs.html#1869-1873">fresh_ghost_variable</a>(
+                    <span class="string">&quot;termination_var&quot;</span>,
+                    vir_high::Type::Int(vir_high::ty::Int::Unbounded),
+                );
+                <a class="self" href="#69">self</a>.termination_variable = <span class="prelude-val">Some</span>(<a href="#91">term_var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <span class="kw">let </span>assign_stmt =
+                    vir_high::Statement::ghost_assign_no_pos(<a href="#91">term_var</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#90">termination_expr</a>);
+                <span class="kw">let </span>assign_stmt = <span class="self">self</span>.encoder.set_statement_error_ctxt(
+                    assign_stmt,
+                    mir_span,
+                    ErrorCtxt::UnexpectedAssignMethodTerminationMeasure,
+                    <span class="self">self</span>.def_id,
+                )<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[assign_stmt])
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[])
+            }
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[])
+        }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>encode_termination_measure_call_assertion(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        block_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../vir/high/builders/procedure/struct.BasicBlockBuilder.html">BasicBlockBuilder</a>,
+        span: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>,
+        procedure_contract: <span class="kw-2">&amp;</span>ProcedureContractMirDef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        call_substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        arguments: <span class="kw-2">&amp;</span>[<a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>],
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <span class="kw">let </span>called_fun = <a href="#117">procedure_contract</a>.def_id;
+
+        <span class="kw">if </span>!<span class="self">self</span>.encoder.terminates(called_fun, <span class="prelude-val">Some</span>(call_substs)) {
+            <a href="#115">block_builder</a>.add_statement(<span class="self">self</span>.encoder.set_statement_error_ctxt(
+                vir_high::Statement::assert_no_pos(<span class="bool-val">false</span>.into()),
+                span,
+                ErrorCtxt::UnexpectedReachableCall,
+                <span class="self">self</span>.def_id,
+            )<span class="question-mark">?</span>);
+        }
+
+        <span class="kw">if </span>!<span class="self">self
+            </span>.encoder
+            .env()
+            .callee_reaches_caller(<span class="self">self</span>.def_id, called_fun, call_substs)
+        {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+        }
+
+        <span class="kw">let </span><span class="prelude-val">Some</span>(term_var) = <a class="self" href="#114">self</a>.termination_variable.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+        };
+        <span class="kw">let </span>term_ty = vir_high::Type::Int(vir_high::ty::Int::Unbounded);
+
+        <span class="comment">// called termination measure is lower
+        </span><span class="kw">let </span>call_expr =
+            <span class="self">self</span>.encode_termination_expression(procedure_contract, span, call_substs, arguments)<span class="question-mark">?</span>;
+        <span class="kw">if let </span><a href="#21">TerminationMeasure::Int</a>(call_expr) = <a href="#146">call_expr</a> {
+            <span class="kw">let </span>cond = vir_high::Expression::greater_than(<a href="#140">term_var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#148">call_expr</a>);
+            <span class="kw">let </span>assert_statement = <span class="self">self</span>.encoder.set_statement_error_ctxt(
+                vir_high::Statement::assert_no_pos(cond),
+                span,
+                ErrorCtxt::CallTerminationMeasureLower,
+                <span class="self">self</span>.def_id,
+            )<span class="question-mark">?</span>;
+            <a href="#115">block_builder</a>.add_statement(<a href="#150">assert_statement</a>);
+        }
+
+        <span class="comment">// called termination measure should be non-negative
+        </span><span class="kw">let </span>zero = vir_high::Expression::constant_no_pos(<span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#143">term_ty</a>);
+        <span class="kw">let </span>cond = vir_high::Expression::greater_equals(<a href="#140">term_var</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#160">zero</a>);
+        <span class="kw">let </span>assert_statement = <span class="self">self</span>.encoder.set_statement_error_ctxt(
+            vir_high::Statement::assert_no_pos(cond),
+            span,
+            ErrorCtxt::CallTerminationMeasureNonNegative,
+            <span class="self">self</span>.def_id,
+        )<span class="question-mark">?</span>;
+        <a href="#115">block_builder</a>.add_statement(<a href="#162">assert_statement</a>);
+
+        <span class="prelude-val">Ok</span>(())
+    }
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

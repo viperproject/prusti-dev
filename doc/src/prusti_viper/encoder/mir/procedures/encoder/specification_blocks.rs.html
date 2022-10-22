@@ -189,8 +189,11 @@
 <span id="189">189</span>
 <span id="190">190</span>
 <span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
 </pre><pre class="rust"><code><span class="kw">use </span>prusti_interface::environment::{
-    <a href="../../../../../../prusti_interface/environment/procedure/fn.is_ghost_begin_marker.html">is_ghost_begin_marker</a>, <a href="../../../../../../prusti_interface/environment/procedure/fn.is_ghost_end_marker.html">is_ghost_end_marker</a>, <a href="../../../../../../prusti_interface/environment/procedure/fn.is_loop_invariant_block.html">is_loop_invariant_block</a>,
+    <a href="../../../../../../prusti_interface/environment/procedure/fn.is_ghost_begin_marker.html">is_ghost_begin_marker</a>, <a href="../../../../../../prusti_interface/environment/procedure/fn.is_ghost_end_marker.html">is_ghost_end_marker</a>, <a href="../../../../../../prusti_interface/environment/procedure/fn.is_loop_invariant_block.html">is_loop_invariant_block</a>, <a href="../../../../../../prusti_interface/environment/procedure/fn.is_loop_variant_block.html">is_loop_variant_block</a>,
     <a href="../../../../../../prusti_interface/environment/procedure/fn.is_marked_specification_block.html">is_marked_specification_block</a>, <a href="../../../../../../prusti_interface/environment/query/struct.EnvQuery.html">EnvQuery</a>, <a href="../../../../../../prusti_interface/environment/procedure/struct.Procedure.html">Procedure</a>,
 };
 <span class="kw">use </span>prusti_rustc_interface::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_data_structures/graph/trait.WithSuccessors.html">data_structures::graph::WithSuccessors</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">middle::mir</a>};
@@ -271,7 +274,7 @@
         </span><span class="kw">let </span>loop_info = <a href="#35">procedure</a>.loop_info();
         <span class="kw">let </span>predecessors = <a href="#34">body</a>.basic_blocks.predecessors();
         <span class="kw">let </span><span class="kw-2">mut </span>loop_invariant_blocks = BTreeMap::&lt;<span class="kw">_</span>, <a href="#24">LoopInvariantBlocks</a>&gt;::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>loop_invariant_blocks_flat = BTreeSet::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>loop_spec_blocks_flat = BTreeSet::new();
         <span class="kw">if </span>collect_loop_invariants {
             <span class="comment">// We use reverse_postorder here because we need to make sure that we
             // preserve the order of invariants in which they were specified by the
@@ -279,7 +282,10 @@
             </span><span class="kw">for </span>(bb, data) <span class="kw">in
                 </span>prusti_rustc_interface::middle::mir::traversal::reverse_postorder(body)
             {
-                <span class="kw">if </span>specification_blocks.contains(<span class="kw-2">&amp;</span>bb) &amp;&amp; is_loop_invariant_block(env_query, data) {
+                <span class="kw">if </span>specification_blocks.contains(<span class="kw-2">&amp;</span>bb)
+                    &amp;&amp; (is_loop_invariant_block(env_query, data)
+                        || is_loop_variant_block(env_query, data))
+                {
                     <span class="kw">let </span>loop_head = loop_info.get_loop_head(bb).unwrap();
                     <span class="kw">let </span>loop_blocks = loop_invariant_blocks.entry(loop_head).or_insert_with(|| {
                         <span class="macro">assert_eq!</span>(
@@ -293,7 +299,7 @@
                         }
                     });
                     loop_blocks.specification_blocks.push(bb);
-                    loop_invariant_blocks_flat.insert(bb);
+                    loop_spec_blocks_flat.insert(bb);
                 }
             }
         }
@@ -304,7 +310,7 @@
             <span class="kw">if </span>!specification_blocks.contains(<span class="kw-2">&amp;</span>bb) {
                 <span class="kw">for </span>successor <span class="kw">in </span>body.basic_blocks.successors(bb) {
                     <span class="kw">if </span>specification_blocks.contains(<span class="kw-2">&amp;</span>successor)
-                        &amp;&amp; !loop_invariant_blocks_flat.contains(<span class="kw-2">&amp;</span>successor)
+                        &amp;&amp; !loop_spec_blocks_flat.contains(<span class="kw-2">&amp;</span>successor)
                     {
                         specification_entry_blocks.insert(successor);
                     }
@@ -354,30 +360,30 @@
 
         <span class="self">Self </span>{
             <a href="#46">specification_blocks</a>,
-            <a href="#111">specification_entry_blocks</a>,
+            <a href="#114">specification_entry_blocks</a>,
             <a href="#82">loop_invariant_blocks</a>,
-            <a href="#127">ghost_blocks</a>,
+            <a href="#130">ghost_blocks</a>,
         }
     }
 
     <span class="kw">pub fn </span>entry_points(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>&gt; + <span class="lifetime">&#39;_ </span>{
-        <a class="self" href="#172">self</a>.specification_entry_blocks.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
+        <a class="self" href="#175">self</a>.specification_entry_blocks.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_specification_block(<span class="kw-2">&amp;</span><span class="self">self</span>, bb: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#176">self</a>.specification_blocks.contains(<span class="kw-2">&amp;</span><a href="#176">bb</a>)
+        <a class="self" href="#179">self</a>.specification_blocks.contains(<span class="kw-2">&amp;</span><a href="#179">bb</a>)
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>is_ghost_block(<span class="kw-2">&amp;</span><span class="self">self</span>, bb: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#180">self</a>.ghost_blocks.contains(<span class="kw-2">&amp;</span><a href="#180">bb</a>)
+        <a class="self" href="#183">self</a>.ghost_blocks.contains(<span class="kw-2">&amp;</span><a href="#183">bb</a>)
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>loop_invariant_blocks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <a href="#24">LoopInvariantBlocks</a>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#184">self</a>.loop_invariant_blocks
+        <span class="kw-2">&amp;</span><a class="self" href="#187">self</a>.loop_invariant_blocks
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>ghost_blocks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BTreeSet&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#188">self</a>.ghost_blocks
+        <span class="kw-2">&amp;</span><a class="self" href="#191">self</a>.ghost_blocks
     }
 }
 </code></pre></div>

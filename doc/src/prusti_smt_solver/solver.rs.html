@@ -38,14 +38,20 @@
 <span id="38">38</span>
 <span id="39">39</span>
 <span id="40">40</span>
-</pre><pre class="rust"><code><span class="kw">use </span>async_std::process::{<a href="../../async_process/struct.Command.html">Command</a>, <a href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a>};
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::subprocess::{<a href="subprocess.rs.html#37-41">communicate</a>, <a href="subprocess.rs.html#76-79">get_version</a>, <a href="subprocess.rs.html#90-93">pass_error</a>};
+<span class="kw">use </span>async_std::process::{<a href="../../async_process/struct.Command.html">Command</a>, <a href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a>};
 <span class="kw">use </span><a href="context.rs.html#10">context::Context</a>;
 <span class="kw">use </span><a href="../../futures_util/macro.try_join.html">futures::try_join</a>;
 
-<span class="kw">use </span>subprocess::{<a href="subprocess.rs.html#37-41">communicate</a>, <a href="subprocess.rs.html#76-79">pass_error</a>};
-
 <span class="kw">mod </span><a href="context.rs.html#1-118">context</a>;
-<span class="kw">mod </span><a href="subprocess.rs.html#1-92">subprocess</a>;
+<span class="kw">mod </span><a href="subprocess.rs.html#1-106">subprocess</a>;
 
 <span class="attribute">#[async_std::main]
 </span><span class="kw">async fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a>&gt; {
@@ -57,7 +63,7 @@
     context.write_config_to_log().<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span>args: Vec&lt;<span class="kw">_</span>&gt; = std::env::args().skip(<span class="number">1</span>).collect();
     <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(z3_path);
-    cmd.args(args)
+    cmd.args(<span class="kw-2">&amp;</span>args)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
@@ -73,9 +79,17 @@
     <span class="kw">let </span>solver_stdin = solver.stdin.expect(<span class="string">&quot;failed to create stdin pipe with Z3&quot;</span>);
     <span class="kw">let </span>solver_stdout = solver.stdout.expect(<span class="string">&quot;failed to create stdout pipe with Z3&quot;</span>);
     <span class="kw">let </span>solver_stderr = solver.stderr.expect(<span class="string">&quot;failed to create stderr pipe with Z3&quot;</span>);
-    <span class="kw">let </span>communicate = communicate(<span class="kw-2">&amp;</span>context, solver_stdin, solver_stdout);
     <span class="kw">let </span>error = pass_error(<span class="kw-2">&amp;</span>context, solver_stderr);
-    <span class="macro">try_join!</span>(communicate, error)<span class="question-mark">?</span>;
+    <span class="kw">if </span>args
+        .iter()
+        .any(|arg| arg == <span class="string">&quot;--version&quot; </span>|| arg == <span class="string">&quot;-version&quot;</span>)
+    {
+        <span class="kw">let </span>communicate = get_version(<span class="kw-2">&amp;</span>context, solver_stdout);
+        <span class="macro">try_join!</span>(communicate, error)<span class="question-mark">?</span>;
+    } <span class="kw">else </span>{
+        <span class="kw">let </span>communicate = communicate(<span class="kw-2">&amp;</span>context, solver_stdin, solver_stdout);
+        <span class="macro">try_join!</span>(communicate, error)<span class="question-mark">?</span>;
+    };
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>

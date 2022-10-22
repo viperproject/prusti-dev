@@ -1013,6 +1013,26 @@
 <span id="1013">1013</span>
 <span id="1014">1014</span>
 <span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="mod.rs.html#6"><span class="kw">super</span>::IntoLow</a>;
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
     <a href="../../../errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>,
@@ -1098,6 +1118,15 @@
                 )<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<a href="#78">statements</a>)
             }
+            <span class="self">Self</span>::GhostHavoc(statement) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>statements = Vec::new();
+                lowerer.encode_ghost_havoc_method_call(
+                    <span class="kw-2">&amp;mut </span>statements,
+                    statement.variable,
+                    statement.position,
+                )<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(<a href="#87">statements</a>)
+            }
             <span class="self">Self</span>::Assume(statement) =&gt; <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[Statement::assume(
                 statement.expression.to_procedure_bool_expression(lowerer)<span class="question-mark">?</span>,
                 statement.position,
@@ -1105,18 +1134,18 @@
             <span class="self">Self</span>::Assert(statement) =&gt; {
                 <span class="kw">let </span>assert = Statement::assert(
                     statement.expression.to_procedure_bool_expression(lowerer)<span class="question-mark">?</span>,
-                    <a href="#90">statement</a>.position,
+                    <a href="#99">statement</a>.position,
                 );
-                <span class="kw">let </span>low_statement = <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#90">statement</a>.condition {
+                <span class="kw">let </span>low_statement = <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#99">statement</a>.condition {
                     <span class="kw">let </span>low_condition = lowerer.lower_block_marker_condition(condition)<span class="question-mark">?</span>;
                     Statement::conditional(
-                        <a href="#96">low_condition</a>,
+                        <a href="#105">low_condition</a>,
                         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[assert],
                         Vec::new(),
-                        <a href="#90">statement</a>.position,
+                        <a href="#99">statement</a>.position,
                     )
                 } <span class="kw">else </span>{
-                    <a href="#91">assert</a>
+                    <a href="#100">assert</a>
                 };
                 <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[low_statement])
             }
@@ -1124,7 +1153,7 @@
             // statements `Fold` and `Unfold` that would take a predicate as an
             // argument.
             </span><span class="self">Self</span>::FoldOwned(statement) =&gt; {
-                <span class="kw">let </span>ty = <a href="#111">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>ty = <a href="#120">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 lowerer.mark_owned_non_aliased_as_unfolded(ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>place = lowerer.encode_expression_as_place(<span class="kw-2">&amp;</span>statement.place)<span class="question-mark">?</span>;
                 <span class="kw">let </span>root_address = lowerer.extract_root_address(<span class="kw-2">&amp;</span>statement.place)<span class="question-mark">?</span>;
@@ -1138,11 +1167,11 @@
                     snapshot,
                     <span class="prelude-val">None</span>,
                 )<span class="question-mark">?</span>;
-                <span class="kw">let </span><span class="kw-2">mut </span>low_statement = vir_low::Statement::fold_no_pos(<a href="#117">predicate</a>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#111">statement</a>.condition {
+                <span class="kw">let </span><span class="kw-2">mut </span>low_statement = vir_low::Statement::fold_no_pos(<a href="#126">predicate</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#120">statement</a>.condition {
                     <span class="kw">let </span>low_condition = lowerer.lower_block_marker_condition(condition)<span class="question-mark">?</span>;
-                    <a href="#126">low_statement</a> = vir_low::Statement::conditional_no_pos(
-                        <a href="#128">low_condition</a>,
+                    <a href="#135">low_statement</a> = vir_low::Statement::conditional_no_pos(
+                        <a href="#137">low_condition</a>,
                         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[low_statement],
                         Vec::new(),
                     );
@@ -1150,7 +1179,7 @@
                 <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[low_statement.set_default_position(statement.position)])
             }
             <span class="self">Self</span>::UnfoldOwned(statement) =&gt; {
-                <span class="kw">let </span>ty = <a href="#137">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>ty = <a href="#146">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 lowerer.mark_owned_non_aliased_as_unfolded(ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>place = lowerer.encode_expression_as_place(<span class="kw-2">&amp;</span>statement.place)<span class="question-mark">?</span>;
                 <span class="kw">let </span>root_address = lowerer.extract_root_address(<span class="kw-2">&amp;</span>statement.place)<span class="question-mark">?</span>;
@@ -1164,11 +1193,11 @@
                     snapshot,
                     <span class="prelude-val">None</span>,
                 )<span class="question-mark">?</span>;
-                <span class="kw">let </span><span class="kw-2">mut </span>low_statement = vir_low::Statement::unfold_no_pos(<a href="#143">predicate</a>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#137">statement</a>.condition {
+                <span class="kw">let </span><span class="kw-2">mut </span>low_statement = vir_low::Statement::unfold_no_pos(<a href="#152">predicate</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#146">statement</a>.condition {
                     <span class="kw">let </span>low_condition = lowerer.lower_block_marker_condition(condition)<span class="question-mark">?</span>;
-                    <a href="#152">low_statement</a> = vir_low::Statement::conditional_no_pos(
-                        <a href="#154">low_condition</a>,
+                    <a href="#161">low_statement</a> = vir_low::Statement::conditional_no_pos(
+                        <a href="#163">low_condition</a>,
                         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[low_statement],
                         Vec::new(),
                     );
@@ -1176,7 +1205,7 @@
                 <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[low_statement.set_default_position(statement.position)])
             }
             <span class="self">Self</span>::FoldRef(statement) =&gt; {
-                <span class="kw">let </span>ty = <a href="#163">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>ty = <a href="#172">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 lowerer.mark_owned_non_aliased_as_unfolded(ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>lifetime =
                     lowerer.encode_lifetime_const_into_procedure_variable(statement.lifetime)<span class="question-mark">?</span>;
@@ -1206,11 +1235,11 @@
                         lifetime.into(),
                     )<span class="question-mark">?
                 </span>};
-                <span class="kw">let </span><span class="kw-2">mut </span>low_statement = vir_low::Statement::fold_no_pos(<a href="#171">predicate</a>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#163">statement</a>.condition {
+                <span class="kw">let </span><span class="kw-2">mut </span>low_statement = vir_low::Statement::fold_no_pos(<a href="#180">predicate</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#172">statement</a>.condition {
                     <span class="kw">let </span>low_condition = lowerer.lower_block_marker_condition(condition)<span class="question-mark">?</span>;
-                    <a href="#194">low_statement</a> = vir_low::Statement::conditional_no_pos(
-                        <a href="#196">low_condition</a>,
+                    <a href="#203">low_statement</a> = vir_low::Statement::conditional_no_pos(
+                        <a href="#205">low_condition</a>,
                         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[low_statement],
                         Vec::new(),
                     );
@@ -1218,7 +1247,7 @@
                 <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[low_statement.set_default_position(statement.position)])
             }
             <span class="self">Self</span>::UnfoldRef(statement) =&gt; {
-                <span class="kw">let </span>ty = <a href="#205">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>ty = <a href="#214">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 lowerer.mark_owned_non_aliased_as_unfolded(ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>lifetime =
                     lowerer.encode_lifetime_const_into_procedure_variable(statement.lifetime)<span class="question-mark">?</span>;
@@ -1248,11 +1277,11 @@
                         lifetime.into(),
                     )<span class="question-mark">?
                 </span>};
-                <span class="kw">let </span><span class="kw-2">mut </span>low_statement = vir_low::Statement::unfold_no_pos(<a href="#213">predicate</a>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#205">statement</a>.condition {
+                <span class="kw">let </span><span class="kw-2">mut </span>low_statement = vir_low::Statement::unfold_no_pos(<a href="#222">predicate</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#214">statement</a>.condition {
                     <span class="kw">let </span>low_condition = lowerer.lower_block_marker_condition(condition)<span class="question-mark">?</span>;
-                    <a href="#236">low_statement</a> = vir_low::Statement::conditional_no_pos(
-                        <a href="#238">low_condition</a>,
+                    <a href="#245">low_statement</a> = vir_low::Statement::conditional_no_pos(
+                        <a href="#247">low_condition</a>,
                         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[low_statement],
                         Vec::new(),
                     );
@@ -1260,24 +1289,24 @@
                 <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[low_statement.set_default_position(statement.position)])
             }
             <span class="self">Self</span>::JoinBlock(statement) =&gt; {
-                <span class="kw">let </span>ty = <a href="#247">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>ty = <a href="#256">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 lowerer.encode_memory_block_join_method(ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>address = lowerer.encode_expression_as_place_address(<span class="kw-2">&amp;</span>statement.place)<span class="question-mark">?</span>;
-                <span class="kw">let </span>discriminant = <span class="kw">if let </span><span class="prelude-val">Some</span>(variant_index) = <span class="kw-2">&amp;</span><a href="#247">statement</a>.enum_variant {
+                <span class="kw">let </span>discriminant = <span class="kw">if let </span><span class="prelude-val">Some</span>(variant_index) = <span class="kw-2">&amp;</span><a href="#256">statement</a>.enum_variant {
                     <span class="comment">// TODO: Remove code duplication with SplitBlock variant.
                     </span><span class="kw">let </span>type_decl = lowerer.encoder.get_type_decl_mid(ty)<span class="question-mark">?</span>;
-                    <span class="kw">match </span><a href="#253">type_decl</a> {
+                    <span class="kw">match </span><a href="#262">type_decl</a> {
                         vir_mid::TypeDecl::Enum(decl) =&gt; {
-                            <span class="prelude-val">Some</span>(<a href="#255">decl</a>.get_discriminant(<a href="#251">variant_index</a>).unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                            <span class="prelude-val">Some</span>(<a href="#264">decl</a>.get_discriminant(<a href="#260">variant_index</a>).unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
                         }
                         <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;type: {}&quot;</span>, type_decl),
                     }
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>};
-                <span class="kw">let </span>low_statement = <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#247">statement</a>.condition {
+                <span class="kw">let </span>low_statement = <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#256">statement</a>.condition {
                     <span class="kw">let </span>low_condition = lowerer.lower_block_marker_condition(condition)<span class="question-mark">?</span>;
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(discriminant) = <a href="#251">discriminant</a> {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(discriminant) = <a href="#260">discriminant</a> {
                         <a class="macro" href="../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp! </a>{
                             statement.position =&gt;
                             call&lt;low_condition&gt; memory_block_join&lt;ty&gt;(
@@ -1292,7 +1321,7 @@
                             )
                         }
                     }
-                } <span class="kw">else if let </span><span class="prelude-val">Some</span>(discriminant) = <a href="#251">discriminant</a> {
+                } <span class="kw">else if let </span><span class="prelude-val">Some</span>(discriminant) = <a href="#260">discriminant</a> {
                     <a class="macro" href="../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp! </a>{
                         statement.position =&gt;
                         call memory_block_join&lt;ty&gt;(
@@ -1310,24 +1339,24 @@
                 <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[low_statement])
             }
             <span class="self">Self</span>::SplitBlock(statement) =&gt; {
-                <span class="kw">let </span>ty = <a href="#297">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>ty = <a href="#306">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 lowerer.encode_memory_block_split_method(ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>address = lowerer.encode_expression_as_place_address(<span class="kw-2">&amp;</span>statement.place)<span class="question-mark">?</span>;
-                <span class="kw">let </span>discriminant = <span class="kw">if let </span><span class="prelude-val">Some</span>(variant_index) = <span class="kw-2">&amp;</span><a href="#297">statement</a>.enum_variant {
+                <span class="kw">let </span>discriminant = <span class="kw">if let </span><span class="prelude-val">Some</span>(variant_index) = <span class="kw-2">&amp;</span><a href="#306">statement</a>.enum_variant {
                     <span class="comment">// TODO: Remove code duplication with JoinBlock variant.
                     </span><span class="kw">let </span>type_decl = lowerer.encoder.get_type_decl_mid(ty)<span class="question-mark">?</span>;
-                    <span class="kw">match </span><a href="#303">type_decl</a> {
+                    <span class="kw">match </span><a href="#312">type_decl</a> {
                         vir_mid::TypeDecl::Enum(decl) =&gt; {
-                            <span class="prelude-val">Some</span>(<a href="#305">decl</a>.get_discriminant(<a href="#301">variant_index</a>).unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                            <span class="prelude-val">Some</span>(<a href="#314">decl</a>.get_discriminant(<a href="#310">variant_index</a>).unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
                         }
                         <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;type: {}&quot;</span>, type_decl),
                     }
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
                 </span>};
-                <span class="kw">let </span>low_statement = <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#297">statement</a>.condition {
+                <span class="kw">let </span>low_statement = <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#306">statement</a>.condition {
                     <span class="kw">let </span>low_condition = lowerer.lower_block_marker_condition(condition)<span class="question-mark">?</span>;
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(discriminant) = <a href="#301">discriminant</a> {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(discriminant) = <a href="#310">discriminant</a> {
                         <a class="macro" href="../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp! </a>{
                             statement.position =&gt;
                             call&lt;low_condition&gt; memory_block_split&lt;ty&gt;(
@@ -1342,7 +1371,7 @@
                             )
                         }
                     }
-                } <span class="kw">else if let </span><span class="prelude-val">Some</span>(discriminant) = <a href="#301">discriminant</a> {
+                } <span class="kw">else if let </span><span class="prelude-val">Some</span>(discriminant) = <a href="#310">discriminant</a> {
                     <a class="macro" href="../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp! </a>{
                         statement.position =&gt;
                         call memory_block_split&lt;ty&gt;(
@@ -1360,7 +1389,7 @@
                 <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[low_statement])
             }
             <span class="self">Self</span>::ConvertOwnedIntoMemoryBlock(statement) =&gt; {
-                <span class="kw">let </span>ty = <a href="#347">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>ty = <a href="#356">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 lowerer.encode_into_memory_block_method(ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>place = lowerer.encode_expression_as_place(<span class="kw-2">&amp;</span>statement.place)<span class="question-mark">?</span>;
                 <span class="kw">let </span>root_address = lowerer.extract_root_address(<span class="kw-2">&amp;</span>statement.place)<span class="question-mark">?</span>;
@@ -1382,7 +1411,7 @@
                 <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[low_statement.set_default_position(statement.position)])
             }
             <span class="self">Self</span>::RestoreMutBorrowed(statement) =&gt; {
-                <span class="kw">let </span>ty = <a href="#369">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>ty = <a href="#378">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 lowerer.encode_into_memory_block_method(ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>place = lowerer.encode_expression_as_place(<span class="kw-2">&amp;</span>statement.place)<span class="question-mark">?</span>;
                 <span class="kw">let </span>root_address = lowerer.extract_root_address(<span class="kw-2">&amp;</span>statement.place)<span class="question-mark">?</span>;
@@ -1392,7 +1421,7 @@
                 <span class="kw">let </span>validity =
                     lowerer.encode_snapshot_valid_call_for_type(current_snapshot.clone(), ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>restored_predicate = <span class="kw">if let </span><span class="prelude-val">Some</span>((deref_lifetime, uniqueness)) =
-                    <a href="#369">statement</a>.place.get_dereference_kind()
+                    <a href="#378">statement</a>.place.get_dereference_kind()
                 {
                     <span class="kw">let </span>deref_lifetime = lowerer
                         .encode_lifetime_const_into_procedure_variable(deref_lifetime)<span class="question-mark">?
@@ -1432,7 +1461,7 @@
                         <span class="prelude-val">None</span>,
                     )<span class="question-mark">?
                 </span>};
-                <span class="kw">let </span>low_statement = <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#369">statement</a>.condition {
+                <span class="kw">let </span>low_statement = <span class="kw">if let </span><span class="prelude-val">Some</span>(condition) = <a href="#378">statement</a>.condition {
                     <span class="kw">let </span>low_condition = lowerer.lower_block_marker_condition(condition)<span class="question-mark">?</span>;
                     <a class="macro" href="../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp! </a>{
                         statement.position =&gt;
@@ -1456,10 +1485,10 @@
             }
             <span class="self">Self</span>::MovePlace(statement) =&gt; {
                 <span class="comment">// TODO: Remove code duplication with Self::CopyPlace
-                </span><span class="kw">let </span>target_ty = <a href="#442">statement</a>.target.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
-                <span class="kw">let </span>source_ty = <a href="#442">statement</a>.source.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
-                <span class="kw">let </span>target_ty_without_lifetime = <a href="#444">target_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().erase_lifetimes();
-                <span class="kw">let </span>source_ty_without_lifetime = <a href="#445">source_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().erase_lifetimes();
+                </span><span class="kw">let </span>target_ty = <a href="#451">statement</a>.target.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>source_ty = <a href="#451">statement</a>.source.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>target_ty_without_lifetime = <a href="#453">target_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().erase_lifetimes();
+                <span class="kw">let </span>source_ty_without_lifetime = <a href="#454">source_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().erase_lifetimes();
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(target_ty_without_lifetime, source_ty_without_lifetime);
                 lowerer.encode_move_place_method(target_ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>target_place = lowerer.encode_expression_as_place(<span class="kw-2">&amp;</span>statement.target)<span class="question-mark">?</span>;
@@ -1484,12 +1513,12 @@
                     source_snapshot,
                     statement.position,
                 )<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#455">statements</a>)
+                <span class="prelude-val">Ok</span>(<a href="#464">statements</a>)
             }
             <span class="self">Self</span>::CopyPlace(statement) =&gt; {
                 <span class="comment">// TODO: Remove code duplication with Self::MovePlace
-                </span><span class="kw">let </span>target_ty = <a href="#474">statement</a>.target.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
-                <span class="kw">let </span>source_ty = <a href="#474">statement</a>.source.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                </span><span class="kw">let </span>target_ty = <a href="#483">statement</a>.target.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>source_ty = <a href="#483">statement</a>.source.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(target_ty, source_ty);
                 lowerer.encode_copy_place_method(target_ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>target_place = lowerer.encode_expression_as_place(<span class="kw-2">&amp;</span>statement.target)<span class="question-mark">?</span>;
@@ -1497,7 +1526,7 @@
                 <span class="kw">let </span>source_place = lowerer.encode_expression_as_place(<span class="kw-2">&amp;</span>statement.source)<span class="question-mark">?</span>;
                 <span class="kw">let </span>source_root_address = lowerer.extract_root_address(<span class="kw-2">&amp;</span>statement.source)<span class="question-mark">?</span>;
                 <span class="kw">let </span>source_permission_amount =
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(source_permission) = <a href="#474">statement</a>.source_permission {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(source_permission) = <a href="#483">statement</a>.source_permission {
                         source_permission.to_procedure_snapshot(lowerer)<span class="question-mark">?</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
                     } <span class="kw">else </span>{
                         vir_low::Expression::full_permission()
@@ -1521,11 +1550,11 @@
                     source_snapshot,
                     statement.position,
                 )<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#491">statements</a>)
+                <span class="prelude-val">Ok</span>(<a href="#500">statements</a>)
             }
             <span class="self">Self</span>::WritePlace(statement) =&gt; {
-                <span class="kw">let </span>target_ty = <a href="#511">statement</a>.target.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
-                <span class="kw">let </span>source_ty = <a href="#511">statement</a>.value.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>target_ty = <a href="#520">statement</a>.target.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>source_ty = <a href="#520">statement</a>.value.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(target_ty, source_ty);
                 lowerer.encode_write_place_constant_method(target_ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>target_place = lowerer.encode_expression_as_place(<span class="kw-2">&amp;</span>statement.target)<span class="question-mark">?</span>;
@@ -1546,11 +1575,11 @@
                     source_snapshot,
                     statement.position,
                 )<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#519">statements</a>)
+                <span class="prelude-val">Ok</span>(<a href="#528">statements</a>)
             }
             <span class="self">Self</span>::WriteAddress(statement) =&gt; {
-                <span class="kw">let </span>target_ty = <a href="#536">statement</a>.target.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
-                <span class="kw">let </span>source_ty = <a href="#536">statement</a>.value.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>target_ty = <a href="#545">statement</a>.target.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>source_ty = <a href="#545">statement</a>.value.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(target_ty, source_ty);
                 lowerer.encode_write_address_constant_method(target_ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>target_address =
@@ -1562,7 +1591,7 @@
                         [value]
                     )
                 }];
-                <span class="prelude-val">Ok</span>(<a href="#544">statements</a>)
+                <span class="prelude-val">Ok</span>(<a href="#553">statements</a>)
             }
             <span class="self">Self</span>::Assign(statement) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>statements = Vec::new();
@@ -1572,13 +1601,13 @@
                     statement.value,
                     statement.position,
                 )<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<a href="#553">statements</a>)
+                <span class="prelude-val">Ok</span>(<a href="#562">statements</a>)
             }
             <span class="self">Self</span>::SetUnionVariant(statement) =&gt; {
-                <span class="kw">let </span>variant_place = <a href="#562">statement</a>.variant_place.get_parent_ref().unwrap();
+                <span class="kw">let </span>variant_place = <a href="#571">statement</a>.variant_place.get_parent_ref().unwrap();
                 <span class="comment">// FIXME: Implement a macro that takes a reference to avoid clonning.
-                </span><span class="kw">let </span>variant_index = <a href="#563">variant_place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap_variant().variant_index;
-                <span class="kw">let </span>union_place = <a href="#563">variant_place</a>.get_parent_ref().unwrap();
+                </span><span class="kw">let </span>variant_index = <a href="#572">variant_place</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap_variant().variant_index;
+                <span class="kw">let </span>union_place = <a href="#572">variant_place</a>.get_parent_ref().unwrap();
                 <span class="kw">let </span><span class="kw-2">mut </span>statements = Vec::new();
                 lowerer.encode_snapshot_havoc(<span class="kw-2">&amp;mut </span>statements, union_place, statement.position)<span class="question-mark">?</span>;
                 <span class="kw">let </span>snapshot = union_place.to_procedure_snapshot(lowerer)<span class="question-mark">?</span>;
@@ -1588,13 +1617,24 @@
                     statement.position,
                 )<span class="question-mark">?</span>;
                 <span class="kw">let </span>type_decl = lowerer.encoder.get_type_decl_mid(union_place.get_type())<span class="question-mark">?</span>;
-                <span class="kw">let </span>union_decl = <a href="#575">type_decl</a>.unwrap_enum();
+                <span class="kw">let </span>union_decl = <a href="#584">type_decl</a>.unwrap_enum();
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(union_decl.safety.is_union());
                 <span class="kw">let </span>discriminant_value =
-                    <a href="#576">union_decl</a>.get_discriminant(<span class="kw-2">&amp;</span><a href="#565">variant_index</a>).unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                <a href="#567">statements</a>.push(<a class="macro" href="../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp! </a>{ statement.position =&gt;
+                    <a href="#585">union_decl</a>.get_discriminant(<span class="kw-2">&amp;</span><a href="#574">variant_index</a>).unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+                <a href="#576">statements</a>.push(<a class="macro" href="../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp! </a>{ statement.position =&gt;
                 assume ([discriminant] == [discriminant_value]) });
-                <span class="prelude-val">Ok</span>(<a href="#567">statements</a>)
+                <span class="prelude-val">Ok</span>(<a href="#576">statements</a>)
+            }
+            <span class="self">Self</span>::GhostAssign(statement) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>stmts = Vec::new();
+                <span class="kw">let </span>value = statement.value.to_procedure_snapshot(lowerer)<span class="question-mark">?</span>;
+                lowerer.encode_snapshot_update(
+                    <span class="kw-2">&amp;mut </span>stmts,
+                    <span class="kw-2">&amp;</span>statement.target,
+                    value,
+                    statement.position,
+                )<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(<a href="#594">stmts</a>)
             }
             <span class="self">Self</span>::NewLft(statement) =&gt; {
                 <span class="kw">let </span>targets = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[vir_low::Expression::local_no_pos(
@@ -1621,15 +1661,15 @@
                 )])
             }
             <span class="self">Self</span>::DeadReference(statement) =&gt; {
-                <span class="kw">let </span>ty = <a href="#608">statement</a>.target.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
-                <span class="kw">let </span>(lifetime, uniqueness) = <a href="#608">statement</a>.target.get_dereference_kind().unwrap();
+                <span class="kw">let </span>ty = <a href="#628">statement</a>.target.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>(lifetime, uniqueness) = <a href="#628">statement</a>.target.get_dereference_kind().unwrap();
                 <span class="kw">let </span>lifetime = lowerer.encode_lifetime_const_into_procedure_variable(lifetime)<span class="question-mark">?</span>;
                 <span class="kw">let </span>place = lowerer.encode_expression_as_place(<span class="kw-2">&amp;</span>statement.target)<span class="question-mark">?</span>;
                 <span class="kw">let </span>root_address = lowerer.extract_root_address(<span class="kw-2">&amp;</span>statement.target)<span class="question-mark">?</span>;
                 <span class="kw">let </span>current_snapshot = statement.target.to_procedure_snapshot(lowerer)<span class="question-mark">?</span>;
                 <span class="kw">let </span><span class="kw-2">mut </span>statements = Vec::new();
                 <span class="comment">// TODO: These should be method calls.
-                </span><span class="kw">match </span><a href="#610">uniqueness</a> {
+                </span><span class="kw">match </span><a href="#630">uniqueness</a> {
                     vir_mid::ty::Uniqueness::Unique =&gt; {
                         <span class="kw">let </span>final_snapshot =
                             statement.target.to_procedure_final_snapshot(lowerer)<span class="question-mark">?</span>;
@@ -1644,15 +1684,15 @@
                             lifetime.into(),
                         )<span class="question-mark">?</span>;
                         lowerer.mark_unique_ref_as_used(ty)<span class="question-mark">?</span>;
-                        <a href="#615">statements</a>.push(vir_low::Statement::comment(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                        <a href="#635">statements</a>.push(vir_low::Statement::comment(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                             <span class="string">&quot;dead reference: {}&quot;</span>,
                             statement.target
                         )));
-                        <a href="#615">statements</a>.push(
-                            vir_low::Statement::exhale_no_pos(<a href="#621">predicate</a>)
-                                .set_default_position(<a href="#608">statement</a>.position),
+                        <a href="#635">statements</a>.push(
+                            vir_low::Statement::exhale_no_pos(<a href="#641">predicate</a>)
+                                .set_default_position(<a href="#628">statement</a>.position),
                         );
-                        <a href="#615">statements</a>.push(<a class="macro" href="../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp! </a>{
+                        <a href="#635">statements</a>.push(<a class="macro" href="../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp! </a>{
                             statement.position =&gt;
                             assume ([current_snapshot] == [final_snapshot])
                         });
@@ -1667,20 +1707,20 @@
                             current_snapshot,
                             lifetime.into(),
                         )<span class="question-mark">?</span>;
-                        <a href="#615">statements</a>.push(
-                            vir_low::Statement::exhale_no_pos(<a href="#646">predicate</a>)
-                                .set_default_position(<a href="#608">statement</a>.position),
+                        <a href="#635">statements</a>.push(
+                            vir_low::Statement::exhale_no_pos(<a href="#666">predicate</a>)
+                                .set_default_position(<a href="#628">statement</a>.position),
                         );
                     }
                 }
-                <span class="prelude-val">Ok</span>(<a href="#615">statements</a>)
+                <span class="prelude-val">Ok</span>(<a href="#635">statements</a>)
             }
             <span class="self">Self</span>::DeadLifetime(_statement) =&gt; {
                 <span class="comment">// TODO: This should resolve the lifetime for statement.target
                 // instead of just marking the lifetime as dead. Once that is
                 // done, we can mark the lifetime as not alive anymore.
                 </span><span class="kw">let </span>statements = Vec::new();
-                <span class="prelude-val">Ok</span>(<a href="#667">statements</a>)
+                <span class="prelude-val">Ok</span>(<a href="#687">statements</a>)
             }
             <span class="self">Self</span>::DeadInclusion(statement) =&gt; {
                 lowerer.encode_dead_inclusion_method()<span class="question-mark">?</span>;
@@ -1709,7 +1749,7 @@
                         value,
                         statement.position,
                     )];
-                    <span class="prelude-val">Ok</span>(<a href="#691">statements</a>)
+                    <span class="prelude-val">Ok</span>(<a href="#711">statements</a>)
                 } <span class="kw">else </span>{
                     lowerer.encode_lft_tok_sep_take_method(statement.value.len())<span class="question-mark">?</span>;
                     <span class="kw">let </span><span class="kw-2">mut </span>arguments: Vec&lt;<a href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
@@ -1721,7 +1761,7 @@
                     <span class="kw">let </span>perm_amount = statement
                         .lifetime_token_permission
                         .to_procedure_snapshot(lowerer)<span class="question-mark">?</span>;
-                    <a href="#700">arguments</a>.push(<a href="#706">perm_amount</a>);
+                    <a href="#720">arguments</a>.push(<a href="#726">perm_amount</a>);
                     <span class="kw">let </span>statements = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[Statement::method_call(
                         <span class="macro">format!</span>(<span class="string">&quot;lft_tok_sep_take${}&quot;</span>, statement.value.len()),
                         arguments.clone(),
@@ -1730,7 +1770,7 @@
                             </span>.into()],
                         statement.position,
                     )];
-                    <span class="prelude-val">Ok</span>(<a href="#710">statements</a>)
+                    <span class="prelude-val">Ok</span>(<a href="#730">statements</a>)
                 }
             }
             <span class="self">Self</span>::LifetimeReturn(statement) =&gt; {
@@ -1748,7 +1788,7 @@
                     <span class="kw">let </span>perm_amount = statement
                         .lifetime_token_permission
                         .to_procedure_snapshot(lowerer)<span class="question-mark">?</span>;
-                    <a href="#724">arguments</a>.push(<a href="#733">perm_amount</a>);
+                    <a href="#744">arguments</a>.push(<a href="#753">perm_amount</a>);
                     <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[Statement::method_call(
                         <span class="macro">format!</span>(<span class="string">&quot;lft_tok_sep_return${}&quot;</span>, statement.value.len()),
                         arguments,
@@ -1760,7 +1800,7 @@
                 }
             }
             <span class="self">Self</span>::OpenFracRef(statement) =&gt; {
-                <span class="kw">let </span>ty = <a href="#747">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>ty = <a href="#767">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 lowerer.encode_open_frac_bor_atomic_method(ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>lifetime =
                     lowerer.encode_lifetime_const_into_procedure_variable(statement.lifetime)<span class="question-mark">?</span>;
@@ -1788,7 +1828,7 @@
                 )])
             }
             <span class="self">Self</span>::CloseFracRef(statement) =&gt; {
-                <span class="kw">let </span>ty = <a href="#775">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>ty = <a href="#795">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 <span class="kw">let </span>lifetime =
                     lowerer.encode_lifetime_const_into_procedure_variable(statement.lifetime)<span class="question-mark">?</span>;
                 <span class="kw">let </span>perm_amount = statement
@@ -1829,7 +1869,7 @@
                 }])
             }
             <span class="self">Self</span>::OpenMutRef(statement) =&gt; {
-                <span class="kw">let </span>ty = <a href="#816">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>ty = <a href="#836">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 lowerer.encode_open_close_mut_ref_methods(ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>lifetime =
                     lowerer.encode_lifetime_const_into_procedure_variable(statement.lifetime)<span class="question-mark">?</span>;
@@ -1850,10 +1890,10 @@
                         [final_snapshot]
                     )
                 }];
-                <span class="prelude-val">Ok</span>(<a href="#828">statements</a>)
+                <span class="prelude-val">Ok</span>(<a href="#848">statements</a>)
             }
             <span class="self">Self</span>::CloseMutRef(statement) =&gt; {
-                <span class="kw">let </span>ty = <a href="#840">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>ty = <a href="#860">statement</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 lowerer.encode_open_close_mut_ref_methods(ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>lifetime =
                     lowerer.encode_lifetime_const_into_procedure_variable(statement.lifetime)<span class="question-mark">?</span>;
@@ -1874,10 +1914,10 @@
                         [final_snapshot]
                     )
                 }];
-                <span class="prelude-val">Ok</span>(<a href="#852">statements</a>)
+                <span class="prelude-val">Ok</span>(<a href="#872">statements</a>)
             }
             <span class="self">Self</span>::BorShorten(statement) =&gt; {
-                <span class="kw">let </span>ty = <a href="#864">statement</a>.value.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>ty = <a href="#884">statement</a>.value.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 lowerer.encode_bor_shorten_method(ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>perm_amount = statement
                     .lifetime_token_permission
@@ -1899,7 +1939,7 @@
                     statement.position,
                 )<span class="question-mark">?</span>;
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(ty.is_reference(), <span class="string">&quot;{:?}&quot;</span>, ty);
-                <span class="kw">let </span>reference = <a href="#865">ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap_reference();
+                <span class="kw">let </span>reference = <a href="#885">ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap_reference();
                 <span class="kw">let </span>final_snapshot = <span class="kw">if </span>reference.uniqueness.is_unique() {
                     <span class="prelude-val">Some</span>(lowerer.reference_target_final_snapshot(
                         ty,
@@ -1922,7 +1962,7 @@
                     old_lifetime.into(),
                     perm_amount,
                 )<span class="question-mark">?</span>];
-                <span class="prelude-val">Ok</span>(<a href="#897">statements</a>)
+                <span class="prelude-val">Ok</span>(<a href="#917">statements</a>)
             }
         }
     }
@@ -1936,20 +1976,20 @@
     ) -&gt; SpannedEncodingResult&lt;<span class="self">Self</span>::Target&gt; {
         <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
         <span class="kw">use </span><a href="../../../../../../vir/gen/middle/ast/predicate/enum.Predicate.html">vir_mid::Predicate</a>;
-        <span class="kw">let </span>result = <span class="kw">match </span><span class="self"><a href="#919">self</a> </span>{
+        <span class="kw">let </span>result = <span class="kw">match </span><span class="self"><a href="#939">self</a> </span>{
             Predicate::LifetimeToken(predicate) =&gt; {
                 lowerer.encode_lifetime_token_predicate()<span class="question-mark">?</span>;
                 <span class="kw">let </span>lifetime =
                     lowerer.encode_lifetime_const_into_procedure_variable(predicate.lifetime)<span class="question-mark">?</span>;
                 <span class="kw">let </span>permission = predicate.permission.to_procedure_snapshot(lowerer)<span class="question-mark">?</span>;
                 <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{ acc(LifetimeToken([lifetime.into()]), [permission])}
-                    .set_default_position(<a href="#925">predicate</a>.position)
+                    .set_default_position(<a href="#945">predicate</a>.position)
             }
             Predicate::MemoryBlockStack(predicate) =&gt; {
                 lowerer.encode_memory_block_predicate()<span class="question-mark">?</span>;
                 <span class="kw">let </span>place = lowerer.encode_expression_as_place_address(<span class="kw-2">&amp;</span>predicate.place)<span class="question-mark">?</span>;
                 <span class="kw">let </span>size = predicate.size.to_procedure_snapshot(lowerer)<span class="question-mark">?</span>;
-                <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{ acc(MemoryBlock([place], [size]))}.set_default_position(<a href="#933">predicate</a>.position)
+                <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{ acc(MemoryBlock([place], [size]))}.set_default_position(<a href="#953">predicate</a>.position)
             }
             Predicate::MemoryBlockStackDrop(predicate) =&gt; {
                 <span class="kw">let </span>place = lowerer.encode_expression_as_place_address(<span class="kw-2">&amp;</span>predicate.place)<span class="question-mark">?</span>;
@@ -1966,7 +2006,7 @@
                 <span class="kw">let </span>place = lowerer.encode_expression_as_place(<span class="kw-2">&amp;</span>predicate.place)<span class="question-mark">?</span>;
                 <span class="kw">let </span>root_address = lowerer.extract_root_address(<span class="kw-2">&amp;</span>predicate.place)<span class="question-mark">?</span>;
                 <span class="kw">let </span>snapshot = predicate.place.to_procedure_snapshot(lowerer)<span class="question-mark">?</span>;
-                <span class="kw">let </span>ty = <a href="#950">predicate</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
+                <span class="kw">let </span>ty = <a href="#970">predicate</a>.place.<a href="../../../../../../vir/gen/middle/operations_internal/ty/trait.Typed.html">get_type</a>();
                 <span class="kw">let </span>valid = lowerer.encode_snapshot_valid_call_for_type(snapshot.clone(), ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>low_predicate = lowerer.owned_non_aliased(
                     CallContext::Procedure,
@@ -1984,7 +2024,7 @@
                 }
             }
         };
-        <span class="prelude-val">Ok</span>(<a href="#924">result</a>)
+        <span class="prelude-val">Ok</span>(<a href="#944">result</a>)
     }
 }
 
@@ -1994,7 +2034,7 @@
         <span class="self">self</span>,
         _lowerer: <span class="kw-2">&amp;mut </span>Lowerer&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; SpannedEncodingResult&lt;<span class="self">Self</span>::Target&gt; {
-        <span class="prelude-val">Ok</span>(<a href="../../../../../../vir/gen/low/cfg/procedure/struct.Label.html">vir_low::Label</a> { name: <a class="self" href="#979">self</a>.name })
+        <span class="prelude-val">Ok</span>(<a href="../../../../../../vir/gen/low/cfg/procedure/struct.Label.html">vir_low::Label</a> { name: <a class="self" href="#999">self</a>.name })
     }
 }
 
@@ -2004,7 +2044,7 @@
         <span class="self">self</span>,
         lowerer: <span class="kw-2">&amp;mut </span>Lowerer&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; SpannedEncodingResult&lt;<span class="self">Self</span>::Target&gt; {
-        <span class="kw">match </span><span class="self"><a href="#989">self</a> </span>{
+        <span class="kw">match </span><span class="self"><a href="#1009">self</a> </span>{
             vir_mid::Successor::Exit =&gt; <span class="prelude-val">Ok</span>(vir_low::Successor::Return),
             vir_mid::Successor::Goto(target) =&gt; {
                 <span class="prelude-val">Ok</span>(vir_low::Successor::Goto(target.into_low(lowerer)<span class="question-mark">?</span>))
@@ -2015,7 +2055,7 @@
                     <span class="kw">let </span>test_low = test.to_procedure_bool_expression(lowerer)<span class="question-mark">?</span>;
                     new_targets.push((test_low, target.into_low(lowerer)<span class="question-mark">?</span>))
                 }
-                <span class="prelude-val">Ok</span>(vir_low::Successor::GotoSwitch(<a href="#998">new_targets</a>))
+                <span class="prelude-val">Ok</span>(vir_low::Successor::GotoSwitch(<a href="#1018">new_targets</a>))
             }
             vir_mid::Successor::NonDetChoice(first, second) =&gt; {
                 <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;

@@ -143,6 +143,24 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
     errors::{<a href="../../../errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../../../errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="../../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
     mir::{
@@ -151,23 +169,25 @@
         <a href="../../specifications/interface.rs.html#72">specifications::SpecificationsInterface</a>, <a href="../../type_layouts/interface.rs.html#5">type_layouts::MirTypeLayoutsEncoderInterface</a>,
     },
 };
-<span class="kw">use </span><a href="../../../../../../prusti_interface/environment/loops/enum.LoopAnalysisError.html">prusti_interface::environment::LoopAnalysisError</a>;
+<span class="kw">use </span>prusti_interface::{<a href="../../../../../../prusti_interface/environment/loops/enum.LoopAnalysisError.html">environment::LoopAnalysisError</a>, <a href="../../../../../../prusti_interface/specs/typed/enum.LoopSpecification.html">specs::typed::LoopSpecification</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">prusti_rustc_interface::middle::mir</a>;
 <span class="kw">use </span>vir_crate::high::{<span class="self"><a href="../../../../../../vir/high/index.html">self</a> </span><span class="kw">as </span>vir_high};
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <span class="kw">super</span>::ProcedureEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>encode_loop_invariant(
+    <span class="doccomment">/// Encode loop invariants and loop variants
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>encode_loop_specs(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         loop_head: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
         invariant_block: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>,
         specification_blocks: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>&gt;,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a>&gt; {
         <span class="kw">let </span>invariant_location = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a> {
-            block: <a href="#17">invariant_block</a>,
-            statement_index: <a class="self" href="#15">self</a>.mir[<a href="#17">invariant_block</a>].statements.len(),
+            block: <a href="#18">invariant_block</a>,
+            statement_index: <a class="self" href="#16">self</a>.mir[<a href="#18">invariant_block</a>].statements.len(),
         };
         <span class="comment">// Encode functional specification.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>encoded_specs = Vec::new();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>encoded_invariant_specs = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>encoded_variant_specs = Vec::new();
         <span class="kw">for </span>block <span class="kw">in </span>specification_blocks {
             <span class="kw">for </span>statement <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.mir[block].statements {
                 <span class="kw">if let </span>mir::StatementKind::Assign(<span class="kw">box </span>(
@@ -179,38 +199,44 @@
                 )) = statement.kind
                 {
                     <span class="kw">let </span>specification = <span class="self">self</span>.encoder.get_loop_specs(cl_def_id.to_def_id()).unwrap();
-                    <span class="kw">let </span>span = <span class="self">self
-                        </span>.encoder
-                        .get_definition_span(specification.invariant.to_def_id());
+                    <span class="kw">let </span>(spec, encoding_vec, err_ctxt) = <span class="kw">match </span>specification {
+                        LoopSpecification::Invariant(inv) =&gt; {
+                            (inv, <span class="kw-2">&amp;mut </span>encoded_invariant_specs, ErrorCtxt::LoopInvariant)
+                        }
+                        LoopSpecification::Variant(var) =&gt; {
+                            (var, <span class="kw-2">&amp;mut </span>encoded_variant_specs, ErrorCtxt::LoopVariant)
+                        }
+                    };
+                    <span class="kw">let </span>span = <span class="self">self</span>.encoder.get_definition_span(spec.to_def_id());
                     <span class="kw">let </span>encoded_specification = <span class="self">self</span>.encoder.set_expression_error_ctxt(
-                        <span class="self">self</span>.encoder.encode_invariant_high(
+                        <span class="self">self</span>.encoder.encode_loop_spec_high(
                             <span class="self">self</span>.mir,
                             block,
                             <span class="self">self</span>.def_id,
                             cl_substs,
                         )<span class="question-mark">?</span>,
                         span,
-                        ErrorCtxt::LoopInvariant,
+                        err_ctxt,
                         <span class="self">self</span>.def_id,
                     );
-                    encoded_specs.push(encoded_specification);
+                    encoding_vec.push(encoded_specification);
                 }
             }
         }
         <span class="kw">let </span>encoded_back_edges = {
-            <span class="kw">let </span>predecessors = <a class="self" href="#15">self</a>.mir.basic_blocks.predecessors();
-            <span class="kw">let </span>dominators = <a class="self" href="#15">self</a>.mir.basic_blocks.dominators();
-            <a href="#56">predecessors</a>[<a href="#16">loop_head</a>]
+            <span class="kw">let </span>predecessors = <a class="self" href="#16">self</a>.mir.basic_blocks.predecessors();
+            <span class="kw">let </span>dominators = <a class="self" href="#16">self</a>.mir.basic_blocks.dominators();
+            <a href="#64">predecessors</a>[<a href="#17">loop_head</a>]
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|predecessor| <a href="#57">dominators</a>.is_dominated_by(<span class="kw-2">**</span><a href="#60">predecessor</a>, <a href="#16">loop_head</a>))
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|back_edge| <a class="self" href="#15">self</a>.<a href="mod.rs.html#1809">encode_basic_block_label</a>(<span class="kw-2">*</span><a href="#61">back_edge</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|predecessor| <a href="#65">dominators</a>.is_dominated_by(<span class="kw-2">**</span><a href="#68">predecessor</a>, <a href="#17">loop_head</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|back_edge| <a class="self" href="#16">self</a>.<a href="mod.rs.html#1852">encode_basic_block_label</a>(<span class="kw-2">*</span><a href="#69">back_edge</a>))
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
         };
-        <a class="self" href="#15">self</a>.init_data.<a href="initialisation.rs.html#42">seek_before</a>(<a href="#20">invariant_location</a>);
+        <a class="self" href="#16">self</a>.init_data.<a href="initialisation.rs.html#42">seek_before</a>(<a href="#21">invariant_location</a>);
 
         <span class="comment">// Encode permissions.
-        </span><span class="kw">let </span>initialized_places = <a class="self" href="#15">self</a>.initialization.get_after_statement(<a href="#20">invariant_location</a>);
-        <span class="kw">let </span>allocated_locals = <a class="self" href="#15">self</a>.allocation.get_after_statement(<a href="#20">invariant_location</a>);
+        </span><span class="kw">let </span>initialized_places = <a class="self" href="#16">self</a>.initialization.get_after_statement(<a href="#21">invariant_location</a>);
+        <span class="kw">let </span>allocated_locals = <a class="self" href="#16">self</a>.allocation.get_after_statement(<a href="#21">invariant_location</a>);
         <span class="kw">let </span>(written_places, mutably_borrowed_places, <span class="kw">_</span>) = <span class="self">self
             </span>.procedure
             .loop_info()
@@ -241,9 +267,9 @@
         }
 
         <span class="comment">// Encode Lifetime Relations
-        </span><span class="kw">let </span>derived_lifetimes = <span class="self"><a href="#15">self</a>
+        </span><span class="kw">let </span>derived_lifetimes = <span class="self"><a href="#16">self</a>
             </span>.lifetimes
-            .get_origin_contains_loan_at_mid(<a href="#20">invariant_location</a>);
+            .get_origin_contains_loan_at_mid(<a href="#21">invariant_location</a>);
         <span class="kw">for </span>(derived_lifetime, derived_from) <span class="kw">in </span>derived_lifetimes {
             <span class="kw">let </span>derived_from_args: Vec&lt;vir_high::Expression&gt; = derived_from
                 .iter()
@@ -270,22 +296,32 @@
                 .into(),
                 intersect_expr,
             );
-            encoded_specs.push(equality_expr);
+            encoded_invariant_specs.push(equality_expr);
         }
 
-        <span class="comment">// Construct the info.
+        <span class="comment">// Construct the variant info.
+        </span><span class="kw">let </span>loop_variant = <a href="#27">encoded_variant_specs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(|spec| {
+            <span class="kw">let </span>var = <a class="self" href="#16">self</a>.<a href="mod.rs.html#1869-1873">fresh_ghost_variable</a>(
+                <span class="string">&quot;loop_variant&quot;</span>,
+                vir_high::Type::Int(vir_high::ty::Int::Unbounded),
+            );
+            <a href="../../../../../../vir/gen/high/ast/statement/struct.LoopVariant.html">vir_high::ast::statement::LoopVariant</a> { <a href="#141">var</a>, expr: <a href="#140">spec</a> }
+        });
+
+        <span class="comment">// Construct the invariant info.
         </span><span class="kw">let </span>loop_invariant = vir_high::Statement::loop_invariant_no_pos(
-            <a class="self" href="#15">self</a>.<a href="mod.rs.html#1809">encode_basic_block_label</a>(<a href="#16">loop_head</a>),
-            <a href="#55">encoded_back_edges</a>,
-            <a href="#82">maybe_modified_places</a>,
-            <a href="#25">encoded_specs</a>,
+            <a class="self" href="#16">self</a>.<a href="mod.rs.html#1852">encode_basic_block_label</a>(<a href="#17">loop_head</a>),
+            <a href="#63">encoded_back_edges</a>,
+            <a href="#90">maybe_modified_places</a>,
+            <a href="#26">encoded_invariant_specs</a>,
+            <a href="#140">loop_variant</a>,
         );
         <span class="kw">let </span>statement = <span class="self">self</span>.set_statement_error(
             invariant_location,
             ErrorCtxt::UnexpectedStorageLive,
             loop_invariant,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a href="#138">statement</a>)
+        <span class="prelude-val">Ok</span>(<a href="#156">statement</a>)
     }
 }
 </code></pre></div>

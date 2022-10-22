@@ -217,11 +217,40 @@
 <span id="217">217</span>
 <span id="218">218</span>
 <span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="borrows.rs.html#23"><span class="kw">super</span>::borrows::BorrowInfo</a>;
 <span class="kw">use </span><a href="../../mod.rs.html#20"><span class="kw">crate</span>::encoder::places</a>;
 <span class="kw">use </span>prusti_interface::{<a href="../../../../../prusti_interface/environment/struct.Environment.html">environment::Environment</a>, <a href="../../../../../prusti_interface/specs/typed/index.html">specs::typed</a>};
 <span class="kw">use </span>prusti_rustc_interface::{
-    hir::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">def_id::DefId</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>},
+    hir::{
+        def_id::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>},
+        <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>,
+    },
     middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/type.SubstsRef.html">ty::subst::SubstsRef</a>},
 };
 <span class="kw">use </span><a href="../../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
@@ -265,26 +294,26 @@
         env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; Vec&lt;(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#45">self</a>.specification.pres {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#48">self</a>.specification.pres {
             typed::SpecificationItem::Empty =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             typed::SpecificationItem::Inherent(pres)
-            | typed::SpecificationItem::Refined(<span class="kw">_</span>, pres) =&gt; <a href="#51">pres</a>
+            | typed::SpecificationItem::Refined(<span class="kw">_</span>, pres) =&gt; <a href="#54">pres</a>
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|inherent_def_id| (<span class="kw-2">*</span><a href="#54">inherent_def_id</a>, <a href="#47">substs</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|inherent_def_id| (<span class="kw-2">*</span><a href="#57">inherent_def_id</a>, <a href="#50">substs</a>))
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            typed::SpecificationItem::Inherited(pres) =&gt; <a href="#56">pres</a>
+            typed::SpecificationItem::Inherited(pres) =&gt; <a href="#59">pres</a>
                 .iter()
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|inherited_def_id| {
                     (
-                        <span class="kw-2">*</span><a href="#58">inherited_def_id</a>,
+                        <span class="kw-2">*</span><a href="#61">inherited_def_id</a>,
                         <span class="comment">// This uses the substs of the current method and
                         // resolves them to the substs of the trait; however,
                         // we are actually resolving to a specification item.
                         // This works because the generics of the specification
                         // items are the same as the generics of the method on
                         // which they are declared.
-                        </span><a href="#46">env</a>.query
-                            .find_trait_method_substs(<a class="self" href="#45">self</a>.def_id, <a href="#47">substs</a>)
+                        </span><a href="#49">env</a>.query
+                            .find_trait_method_substs(<a class="self" href="#48">self</a>.def_id, <a href="#50">substs</a>)
                             .unwrap()
                             .<span class="number">1</span>,
                     )
@@ -298,21 +327,21 @@
         env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; Vec&lt;(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#78">self</a>.specification.posts {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><a class="self" href="#81">self</a>.specification.posts {
             typed::SpecificationItem::Empty =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             typed::SpecificationItem::Inherent(posts)
-            | typed::SpecificationItem::Refined(<span class="kw">_</span>, posts) =&gt; <a href="#84">posts</a>
+            | typed::SpecificationItem::Refined(<span class="kw">_</span>, posts) =&gt; <a href="#87">posts</a>
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|inherent_def_id| (<span class="kw-2">*</span><a href="#87">inherent_def_id</a>, <a href="#80">substs</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|inherent_def_id| (<span class="kw-2">*</span><a href="#90">inherent_def_id</a>, <a href="#83">substs</a>))
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            typed::SpecificationItem::Inherited(posts) =&gt; <a href="#89">posts</a>
+            typed::SpecificationItem::Inherited(posts) =&gt; <a href="#92">posts</a>
                 .iter()
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|inherited_def_id| {
                     (
-                        <span class="kw-2">*</span><a href="#91">inherited_def_id</a>,
+                        <span class="kw-2">*</span><a href="#94">inherited_def_id</a>,
                         <span class="comment">// Same comment as `functional_precondition` applies.
-                        </span><a href="#79">env</a>.query
-                            .find_trait_method_substs(<a class="self" href="#78">self</a>.def_id, <a href="#80">substs</a>)
+                        </span><a href="#82">env</a>.query
+                            .find_trait_method_substs(<a class="self" href="#81">self</a>.def_id, <a href="#83">substs</a>)
                             .unwrap()
                             .<span class="number">1</span>,
                     )
@@ -321,8 +350,31 @@
         }
     }
 
+    <span class="kw">pub fn </span>functional_termination_measure&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+        env: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+        substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>, SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;)&gt; {
+        <span class="kw">match </span><a class="self" href="#109">self</a>.specification.terminates {
+            typed::SpecificationItem::Empty =&gt; <span class="prelude-val">None</span>,
+            typed::SpecificationItem::Inherent(t) | typed::SpecificationItem::Refined(<span class="kw">_</span>, t) =&gt; {
+                <a href="#115">t</a>.map(|inherent_def_id| (<a href="#116">inherent_def_id</a>, <a href="#111">substs</a>))
+            }
+            typed::SpecificationItem::Inherited(t) =&gt; <a href="#118">t</a>.map(|inherited_def_id| {
+                (
+                    <a href="#118">inherited_def_id</a>,
+                    <span class="comment">// Same comment as `functional_precondition` applies.
+                    </span><a href="#110">env</a>.query
+                        .find_trait_method_substs(<a class="self" href="#109">self</a>.def_id, <a href="#111">substs</a>)
+                        .unwrap()
+                        .<span class="number">1</span>,
+                )
+            }),
+        }
+    }
+
     <span class="kw">pub fn </span>pledges(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><a href="../../../../../prusti_interface/specs/typed/struct.Pledge.html">typed::Pledge</a>&gt; + <span class="lifetime">&#39;_ </span>{
-        <a class="self" href="#105">self</a>.specification
+        <a class="self" href="#131">self</a>.specification
             .pledges
             .extract_with_selective_replacement_iter()
     }
@@ -349,7 +401,7 @@
         <span class="kw">for </span>borrow_info <span class="kw">in </span><span class="self">self</span>.borrow_infos.iter() {
             <span class="macro">writeln!</span>(f, <span class="string">&quot;{}&quot;</span>, borrow_info)<span class="question-mark">?</span>;
         }
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="#119">f</a>, <span class="string">&quot;}}&quot;</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a href="#145">f</a>, <span class="string">&quot;}}&quot;</span>)
     }
 }
 
@@ -359,40 +411,40 @@
     //     &amp;mir::Place::Projection(ref projection) =&gt; get_place_root(&amp;projection.base),
     //     _ =&gt; unimplemented!(),
     // }
-    </span><a href="#137">place</a>.local
+    </span><a href="#163">place</a>.local
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;tcx</span>&gt; ProcedureContractMirDef&lt;<span class="lifetime">&#39;tcx</span>&gt; {
     <span class="doccomment">/// Specialize to the definition site contract.
     </span><span class="kw">pub fn </span>to_def_site_contract(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ProcedureContract&lt;<span class="lifetime">&#39;tcx</span>&gt; {
-        <span class="kw">let </span>borrow_infos = <span class="self"><a href="#148">self</a>
+        <span class="kw">let </span>borrow_infos = <span class="self"><a href="#174">self</a>
             </span>.borrow_infos
             .iter()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|info| <a href="borrows.rs.html#23">BorrowInfo</a> {
-                region: <a href="#152">info</a>.region,
-                blocking_paths: <a href="#152">info</a>
+                region: <a href="#178">info</a>.region,
+                blocking_paths: <a href="#178">info</a>
                     .blocking_paths
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(p, m)| (<a href="#157">p</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">*</span><a href="#157">m</a>))
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(p, m)| (<a href="#183">p</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">*</span><a href="#183">m</a>))
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                blocked_paths: <a href="#152">info</a>
+                blocked_paths: <a href="#178">info</a>
                     .blocked_paths
                     .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(p, m)| (<a href="#162">p</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">*</span><a href="#162">m</a>))
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(p, m)| (<a href="#188">p</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">*</span><a href="#188">m</a>))
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#116">ProcedureContract</a> {
-            def_id: <a class="self" href="#148">self</a>.def_id,
-            args: <a class="self" href="#148">self</a>.args.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw-2">&amp;</span>a| <a href="#168">a</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            returned_refs: <span class="self"><a href="#148">self</a>
+        <a href="#142">ProcedureContract</a> {
+            def_id: <a class="self" href="#174">self</a>.def_id,
+            args: <a class="self" href="#174">self</a>.args.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw-2">&amp;</span>a| <a href="#194">a</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            returned_refs: <span class="self"><a href="#174">self</a>
                 </span>.returned_refs
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(r, m)| (<a href="#172">r</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">*</span><a href="#172">m</a>))
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(r, m)| (<a href="#198">r</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">*</span><a href="#198">m</a>))
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            returned_value: <a class="self" href="#148">self</a>.returned_value.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#149">borrow_infos</a>,
-            specification: <a class="self" href="#148">self</a>.specification.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            returned_value: <a class="self" href="#174">self</a>.returned_value.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a href="#175">borrow_infos</a>,
+            specification: <a class="self" href="#174">self</a>.specification.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 
@@ -404,35 +456,35 @@
     ) -&gt; ProcedureContract&lt;<span class="lifetime">&#39;tcx</span>&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.args.len(), args.len());
         <span class="kw">let </span><span class="kw-2">mut </span>substitutions = FxHashMap::default();
-        <a href="#187">substitutions</a>.insert(<a class="self" href="#182">self</a>.returned_value, <a href="#184">target</a>);
+        <a href="#213">substitutions</a>.insert(<a class="self" href="#208">self</a>.returned_value, <a href="#210">target</a>);
         <span class="kw">for </span>(from, to) <span class="kw">in </span><span class="self">self</span>.args.iter().zip(args) {
             substitutions.insert(<span class="kw-2">*</span>from, <span class="kw-2">*</span>to);
         }
         <span class="kw">let </span>substitute = |(place, mutability): <span class="kw-2">&amp;</span>(<span class="kw">_</span>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/enum.Mutability.html">Mutability</a>)| {
-            <span class="kw">let </span>root = <a href="#137">get_place_root</a>(<span class="kw-2">*</span><a href="#192">place</a>);
+            <span class="kw">let </span>root = <a href="#163">get_place_root</a>(<span class="kw-2">*</span><a href="#218">place</a>);
             <span class="kw">let </span>substitute_place = <a href="../../places.rs.html#109">places::Place::SubstitutedPlace</a> {
-                substituted_root: <span class="kw-2">*</span><a href="#187">substitutions</a>.get(<span class="kw-2">&amp;</span><a href="#193">root</a>).unwrap(),
-                place: <span class="kw-2">*</span><a href="#192">place</a>,
+                substituted_root: <span class="kw-2">*</span><a href="#213">substitutions</a>.get(<span class="kw-2">&amp;</span><a href="#219">root</a>).unwrap(),
+                place: <span class="kw-2">*</span><a href="#218">place</a>,
             };
-            (<a href="#194">substitute_place</a>, <span class="kw-2">*</span><a href="#192">mutability</a>)
+            (<a href="#220">substitute_place</a>, <span class="kw-2">*</span><a href="#218">mutability</a>)
         };
-        <span class="kw">let </span>borrow_infos = <span class="self"><a href="#182">self</a>
+        <span class="kw">let </span>borrow_infos = <span class="self"><a href="#208">self</a>
             </span>.borrow_infos
             .iter()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|info| <a href="borrows.rs.html#23">BorrowInfo</a> {
-                region: <a href="#203">info</a>.region,
-                blocking_paths: <a href="#203">info</a>.blocking_paths.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw-2">&amp;</span><a href="#192">substitute</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                blocked_paths: <a href="#203">info</a>.blocked_paths.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw-2">&amp;</span><a href="#192">substitute</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                region: <a href="#229">info</a>.region,
+                blocking_paths: <a href="#229">info</a>.blocking_paths.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw-2">&amp;</span><a href="#218">substitute</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+                blocked_paths: <a href="#229">info</a>.blocked_paths.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw-2">&amp;</span><a href="#218">substitute</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let </span>returned_refs = <a class="self" href="#182">self</a>.returned_refs.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw-2">&amp;</span><a href="#192">substitute</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#116">ProcedureContract</a> {
-            def_id: <a class="self" href="#182">self</a>.def_id,
-            args: <a href="#183">args</a>.to_vec(),
-            <a href="#209">returned_refs</a>,
-            returned_value: <a href="#184">target</a>,
-            <a href="#200">borrow_infos</a>,
-            specification: <a class="self" href="#182">self</a>.specification.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <span class="kw">let </span>returned_refs = <a class="self" href="#208">self</a>.returned_refs.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw-2">&amp;</span><a href="#218">substitute</a>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a href="#142">ProcedureContract</a> {
+            def_id: <a class="self" href="#208">self</a>.def_id,
+            args: <a href="#209">args</a>.to_vec(),
+            <a href="#235">returned_refs</a>,
+            returned_value: <a href="#210">target</a>,
+            <a href="#226">borrow_infos</a>,
+            specification: <a class="self" href="#208">self</a>.specification.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
