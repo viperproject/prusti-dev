@@ -54,6 +54,12 @@ pub use prusti_contracts_proc_macros::ghost;
 /// A macro to customize how a struct or enum should be printed in a counterexample
 pub use prusti_contracts_proc_macros::print_counterexample;
 
+/// A macro to annotate termination of a function
+pub use prusti_contracts_proc_macros::terminates;
+
+/// A macro to annotate body variant of a loop to prove termination
+pub use prusti_contracts_proc_macros::body_variant;
+
 #[cfg(not(feature = "prusti"))]
 mod private {
     use core::marker::PhantomData;
@@ -107,10 +113,15 @@ mod private {
     use core::{marker::PhantomData, ops::*};
 
     /// A macro for defining a closure with a specification.
-    pub use prusti_contracts_proc_macros::closure;
+    pub use prusti_contracts_proc_macros::{closure, pure, trusted};
 
     pub fn prusti_set_union_active_field<T>(_arg: T) {
         unreachable!();
+    }
+
+    #[pure]
+    pub fn prusti_terminates_trusted() -> Int {
+        Int::new(1)
     }
 
     /// a mathematical (unbounded) integer type

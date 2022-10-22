@@ -14,6 +14,7 @@ fn test2<T>(a: T) -> T {
 
 trait Validity {
     #[pure]
+    #[terminates]
     fn valid(&self) -> bool;
 }
 

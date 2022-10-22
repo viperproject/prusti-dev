@@ -74,6 +74,22 @@ pub enum ErrorCtxt {
     AssertLoopInvariantAfterIteration,
     /// An error when assuming the loop invariant on entry.
     UnexpectedAssumeLoopInvariantOnEntry,
+    /// A generic loop variant error.
+    LoopVariant,
+    /// Loop Variant doesn't hold on entry or after iteration
+    LoopVariantOnEntry,
+    LoopVariantAfterIteration,
+    LoopVariantNonDecreased,
+    /// If a loop needs to terminate and no loop variant is provided
+    UnexpectedReachableLoop,
+    /// If a call needs to terminate and it does not necessarily terminate
+    UnexpectedReachableCall,
+    /// Termination measure of a call might not be lower
+    CallTerminationMeasureLower,
+    /// The termination measure of a call might be negative
+    CallTerminationMeasureNonNegative,
+    /// Finding the value of the termination measure at the begin of a method unexpectedly caused an error
+    UnexpectedAssignMethodTerminationMeasure,
     /// A Viper `assert false` that encodes the failure (panic) of an `assert` Rust terminator
     /// Arguments: the message of the Rust assertion
     AssertTerminator(String),
@@ -634,6 +650,53 @@ impl<'tcx> ErrorManager<'tcx> {
                     "the key might not be in the map".to_string(),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::UnexpectedReachableLoop) => {
+                PrustiError::verification(
+                    "this loop might not terminate".to_string(),
+                    error_span
+                ).set_help("Consider attaching a loop variant at the begin of the loop with the `body_variant!` macro.\nAlternatively, remove the `#[terminates] attribute of this function, in case this is not within a ghost block.")
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::UnexpectedReachableCall) => {
+                PrustiError::verification(
+                    "this function call might not terminate".to_string(),
+                    error_span
+                ).set_help("Consider marking the called function with `#[terminates]` or making it `#[pure]`\nAlternatively, remove the `#[terminates] attribute of this function.")
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::CallTerminationMeasureLower) => {
+                PrustiError::verification(
+                    "the termination measure of this call is not necessarily lower".to_string(),
+                    error_span
+                )
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::CallTerminationMeasureNonNegative) => {
+                PrustiError::verification(
+                    "the termination measure of this call might become negative".to_string(),
+                    error_span
+                )
+            }
+
+            ("assert.failed:assertion.false", ErrorCtxt::LoopVariantOnEntry) => {
+                PrustiError::verification(
+                    "The loop variant might not hold on entry (is lower or equal to zero)".to_string(),
+                    error_span
+                )
+            }
+            ("assert.failed:assertion.false", ErrorCtxt::LoopVariantNonDecreased) => {
+                PrustiError::verification(
+                    "The loop variant might not have decreased".to_string(),
+                    error_span
+                )
+            }
+            ("assert.failed:assertion.false", ErrorCtxt::LoopVariantAfterIteration) => {
+                PrustiError::verification(
+                    "The loop variant might go below zero while the loop continues".to_string(),
+                    error_span
+                )
             }
 
             (full_err_id, ErrorCtxt::Unexpected) => {

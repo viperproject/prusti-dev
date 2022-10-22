@@ -76,6 +76,7 @@ fn extract_prusti_attributes(
                     }
                     // Nothing to do for attributes without arguments.
                     SpecAttributeKind::Pure
+                    | SpecAttributeKind::Terminates
                     | SpecAttributeKind::Trusted
                     | SpecAttributeKind::Predicate => {
                         assert!(attr.tokens.is_empty(), "Unexpected shape of an attribute.");
@@ -154,6 +155,7 @@ fn generate_spec_and_assertions(
             SpecAttributeKind::AfterExpiry => generate_for_after_expiry(attr_tokens, item),
             SpecAttributeKind::AssertOnExpiry => generate_for_assert_on_expiry(attr_tokens, item),
             SpecAttributeKind::Pure => generate_for_pure(attr_tokens, item),
+            SpecAttributeKind::Terminates => generate_for_terminates(attr_tokens, item),
             SpecAttributeKind::Trusted => generate_for_trusted(attr_tokens, item),
             // Predicates are handled separately below; the entry in the SpecAttributeKind enum
             // only exists so we successfully parse it and emit an error in
@@ -235,6 +237,34 @@ fn generate_for_assert_on_expiry(attr: TokenStream, item: &untyped::AnyFnItem) -
                 #[prusti::assert_pledge_spec_id_ref_rhs = #spec_id_rhs_str]
             },
         ],
+    ))
+}
+
+/// Generate spec items and attributes to typecheck and later retrieve "terminates" annotations.
+fn generate_for_terminates(mut attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
+    if attr.is_empty() {
+        attr = quote! { Int::new(1) };
+    } else {
+        let mut attr_iter = attr.clone().into_iter();
+        let first = attr_iter.next();
+        if let Some(TokenTree::Ident(ident)) = first {
+            if attr_iter.next().is_none() && ident == "trusted" {
+                attr = quote! { prusti_terminates_trusted() }
+            }
+        }
+    }
+
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+    let spec_item =
+        rewriter.process_assertion(rewriter::SpecItemType::Termination, spec_id, attr, item)?;
+
+    Ok((
+        vec![spec_item],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::terminates_spec_id_ref = #spec_id_str]
+        }],
     ))
 }
 
@@ -361,6 +391,10 @@ fn generate_for_trusted_for_types(attr: TokenStream, item: &syn::DeriveInput) ->
         vec![syn::Item::Impl(item_impl)],
         vec![],
     ))
+}
+
+pub fn body_variant(tokens: TokenStream) -> TokenStream {
+    generate_expression_closure(&AstRewriter::process_loop_variant, tokens)
 }
 
 pub fn body_invariant(tokens: TokenStream) -> TokenStream {
@@ -492,7 +526,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
             "Can refine trait specifications only on trait implementation blocks"
         ))),
     };
-    
+
     let self_type: &syn::Type = &impl_block.self_ty;
 
     let mut new_items = Vec::new();
@@ -787,6 +821,7 @@ fn extract_prusti_attributes_for_types(
                     SpecAttributeKind::Pure => unreachable!("pure on type"),
                     SpecAttributeKind::Invariant => unreachable!("invariant on type"),
                     SpecAttributeKind::Predicate => unreachable!("predicate on type"),
+                    SpecAttributeKind::Terminates => unreachable!("terminates on type"),
                     SpecAttributeKind::Trusted |
                     SpecAttributeKind::Model => {
                         assert!(attr.tokens.is_empty(), "Unexpected shape of an attribute.");
@@ -831,6 +866,7 @@ fn generate_spec_and_assertions_for_types(
             SpecAttributeKind::Predicate => unreachable!(),
             SpecAttributeKind::Invariant => unreachable!(),
             SpecAttributeKind::GhostConstraint => unreachable!(),
+            SpecAttributeKind::Terminates => unreachable!(),
             SpecAttributeKind::Trusted => generate_for_trusted_for_types(attr_tokens, item),
             SpecAttributeKind::Model => generate_for_model(attr_tokens, item),
             SpecAttributeKind::PrintCounterexample => generate_for_print_counterexample(attr_tokens, item),

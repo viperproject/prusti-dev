@@ -18,7 +18,7 @@ impl<'v, 'tcx: 'v> MirTypeLayoutsEncoderInterface<'tcx> for super::super::super:
         &self,
         ty: ty::Ty<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression> {
-        let encoded_ty = self.encode_type_high(ty)?;
+        let encoded_ty = self.encode_type_high(ty)?.erase_lifetimes();
         let usize = vir_high::Type::Int(vir_high::ty::Int::Usize);
         let const_arguments = encoded_ty.get_const_arguments();
         let function_call = vir_high::Expression::builtin_func_app_no_pos(

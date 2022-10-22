@@ -4,7 +4,7 @@ use self::{
 };
 use super::MirProcedureEncoderInterface;
 use crate::encoder::{
-    errors::{ErrorCtxt, PanicCause, SpannedEncodingResult, WithSpan},
+    errors::{ErrorCtxt, PanicCause, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
         casts::CastsEncoderInterface,
         constants::ConstantsEncoderInterface,
@@ -64,6 +64,7 @@ mod lifetimes;
 mod loops;
 mod scc;
 pub mod specification_blocks;
+mod termination;
 
 pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     encoder: &mut Encoder<'v, 'tcx>,
@@ -116,6 +117,7 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
         points_to_reborrow,
         reborrow_lifetimes_to_remove_for_block,
         current_basic_block,
+        termination_variable: None,
     };
     procedure_encoder.encode()
 }
@@ -155,10 +157,12 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
     points_to_reborrow: BTreeSet<vir_high::Local>,
     reborrow_lifetimes_to_remove_for_block: BTreeMap<mir::BasicBlock, BTreeSet<String>>,
     current_basic_block: Option<mir::BasicBlock>,
+    termination_variable: Option<vir_high::VariableDecl>,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode(&mut self) -> SpannedEncodingResult<vir_high::ProcedureDecl> {
+        self.pure_sanity_checks()?;
         let name = format!(
             "{}${}",
             self.encoder.encode_item_name(self.def_id),
@@ -180,6 +184,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         };
         let (assume_lifetime_preconditions, assert_lifetime_postconditions) =
             self.encode_lifetime_specifications()?;
+        let termination_initialization = self.encode_termination_initialization()?;
         let mut pre_statements = assume_lifetime_preconditions;
         pre_statements.extend(allocate_parameters);
         pre_statements.extend(assume_preconditions);
@@ -190,6 +195,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.def_id,
         )?;
         pre_statements.push(old_label);
+        pre_statements.extend(termination_initialization);
         pre_statements.extend(allocate_returns);
         let mut post_statements = assert_postconditions;
         post_statements.extend(deallocate_parameters);
@@ -200,6 +206,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.encode_body(&mut procedure_builder)?;
         self.encode_implicit_allocations(&mut procedure_builder)?;
         Ok(procedure_builder.build())
+    }
+
+    fn pure_sanity_checks(&self) -> SpannedEncodingResult<()> {
+        if self.encoder.is_pure(self.def_id, None) && !self.encoder.terminates(self.def_id, None) {
+            let mut err = SpannedEncodingError::incorrect(
+                "Pure functions need to terminate",
+                self.encoder.get_mir_body_span(self.mir),
+            );
+            err.set_help("Consider adding the `#[terminates]` attribute.");
+            Err(err)
+        } else {
+            Ok(())
+        }
     }
 
     fn encode_local(
@@ -547,6 +566,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.encode_terminator(&mut block_builder, location, terminator)?;
         }
         if let Some(statement) = self.loop_invariant_encoding.remove(&bb) {
+            if self.needs_termination(bb)
+                && statement.clone().unwrap_loop_invariant().variant.is_none()
+            {
+                block_builder.add_statement(self.encoder.set_statement_error_ctxt(
+                    vir_high::Statement::assert_no_pos(false.into()),
+                    data.terminator().source_info.span,
+                    ErrorCtxt::UnexpectedReachableLoop,
+                    self.def_id,
+                )?);
+            }
             block_builder.add_statement(statement);
         }
         block_builder.build();
@@ -1559,6 +1588,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .get_mir_procedure_contract_for_call(self.def_id, called_def_id, call_substs)
             .with_span(span)?;
 
+        if self.encoder.terminates(self.def_id, None) {
+            self.encode_termination_measure_call_assertion(
+                block_builder,
+                span,
+                &procedure_contract,
+                call_substs,
+                &arguments,
+            )?;
+        }
+
         for expression in
             self.encode_precondition_expressions(&procedure_contract, call_substs, &arguments)?
         {
@@ -1654,7 +1693,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     }
                 }
                 if self.encoder.is_pure(called_def_id, Some(call_substs))
-                    && self.def_id != called_def_id
+                    && !self.encoder.env().callee_reaches_caller(
+                        self.def_id,
+                        called_def_id,
+                        call_substs,
+                    )
                 {
                     // If we are verifying a pure function, we always need
                     // to encode it as a method
@@ -1877,7 +1920,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     (*loop_head, Vec::new())
                 };
             let statement =
-                self.encode_loop_invariant(*loop_head, invariant_location, specification_blocks)?;
+                self.encode_loop_specs(*loop_head, invariant_location, specification_blocks)?;
             self.loop_invariant_encoding
                 .insert(invariant_location, statement);
         }
@@ -1931,7 +1974,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                 let assert_expr = self.encoder.set_expression_error_ctxt(
                     self.encoder
-                        .encode_invariant_high(self.mir, bb, self.def_id, cl_substs)?,
+                        .encode_loop_spec_high(self.mir, bb, self.def_id, cl_substs)?,
                     span,
                     error_ctxt.clone(),
                     self.def_id,
@@ -1981,7 +2024,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                 let expr = self.encoder.set_expression_error_ctxt(
                     self.encoder
-                        .encode_invariant_high(self.mir, bb, self.def_id, cl_substs)?,
+                        .encode_loop_spec_high(self.mir, bb, self.def_id, cl_substs)?,
                     span,
                     error_ctxt.clone(),
                     self.def_id,

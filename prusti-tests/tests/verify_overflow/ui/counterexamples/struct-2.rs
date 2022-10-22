@@ -9,6 +9,7 @@ struct X{
 }
 
 #[pure]
+#[terminates(Int::new(1))]
 #[requires(x.a == 5)] // force specific counterexample
 #[ensures(!result)]
 fn test_pure(x: X) -> bool{

@@ -106,6 +106,18 @@ pub fn print_counterexample(_attr: TokenStream, tokens: TokenStream) -> TokenStr
     tokens
 }
 
+#[cfg(not(feature = "prusti"))]
+#[proc_macro_attribute]
+pub fn terminates(_attr: TokenStream, _tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
+#[cfg(not(feature = "prusti"))]
+#[proc_macro]
+pub fn body_variant(_tokens: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
+
 // ----------------------
 // --- PRUSTI ENABLED ---
 
@@ -228,6 +240,18 @@ pub fn ghost(tokens: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     prusti_specs::print_counterexample(attr.into(), tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro_attribute]
+pub fn terminates(attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    rewrite_prusti_attributes(SpecAttributeKind::Terminates, attr.into(), tokens.into()).into()
+}
+
+#[cfg(feature = "prusti")]
+#[proc_macro]
+pub fn body_variant(tokens: TokenStream) -> TokenStream {
+    prusti_specs::body_variant(tokens.into()).into()
 }
 
 // Ensure that you've also crated a transparent `#[cfg(not(feature = "prusti"))]`

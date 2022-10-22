@@ -73,6 +73,20 @@ pub(crate) async fn communicate(
     Ok(())
 }
 
+pub(crate) async fn get_version(
+    context: &Context,
+    solver_stdout: ChildStdout,
+) -> Result<(), std::io::Error> {
+    let mut stdout = async_std::io::stdout();
+    let mut solver_stdout = BufReader::new(solver_stdout);
+    let mut response = String::new();
+    while solver_stdout.read_line(&mut response).await? > 0 {}
+    context.write_to_log("out", &response).await?;
+    stdout.write_all(response.as_bytes()).await?;
+    stdout.flush().await?;
+    Ok(())
+}
+
 pub(crate) async fn pass_error(
     context: &Context,
     solver_stderr: ChildStderr,

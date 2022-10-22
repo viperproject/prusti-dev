@@ -1,5 +1,5 @@
 use prusti_interface::environment::{
-    is_ghost_begin_marker, is_ghost_end_marker, is_loop_invariant_block,
+    is_ghost_begin_marker, is_ghost_end_marker, is_loop_invariant_block, is_loop_variant_block,
     is_marked_specification_block, EnvQuery, Procedure,
 };
 use prusti_rustc_interface::{data_structures::graph::WithSuccessors, middle::mir};
@@ -80,7 +80,7 @@ impl SpecificationBlocks {
         let loop_info = procedure.loop_info();
         let predecessors = body.basic_blocks.predecessors();
         let mut loop_invariant_blocks = BTreeMap::<_, LoopInvariantBlocks>::new();
-        let mut loop_invariant_blocks_flat = BTreeSet::new();
+        let mut loop_spec_blocks_flat = BTreeSet::new();
         if collect_loop_invariants {
             // We use reverse_postorder here because we need to make sure that we
             // preserve the order of invariants in which they were specified by the
@@ -88,7 +88,10 @@ impl SpecificationBlocks {
             for (bb, data) in
                 prusti_rustc_interface::middle::mir::traversal::reverse_postorder(body)
             {
-                if specification_blocks.contains(&bb) && is_loop_invariant_block(env_query, data) {
+                if specification_blocks.contains(&bb)
+                    && (is_loop_invariant_block(env_query, data)
+                        || is_loop_variant_block(env_query, data))
+                {
                     let loop_head = loop_info.get_loop_head(bb).unwrap();
                     let loop_blocks = loop_invariant_blocks.entry(loop_head).or_insert_with(|| {
                         assert_eq!(
@@ -102,7 +105,7 @@ impl SpecificationBlocks {
                         }
                     });
                     loop_blocks.specification_blocks.push(bb);
-                    loop_invariant_blocks_flat.insert(bb);
+                    loop_spec_blocks_flat.insert(bb);
                 }
             }
         }
@@ -113,7 +116,7 @@ impl SpecificationBlocks {
             if !specification_blocks.contains(&bb) {
                 for successor in body.basic_blocks.successors(bb) {
                     if specification_blocks.contains(&successor)
-                        && !loop_invariant_blocks_flat.contains(&successor)
+                        && !loop_spec_blocks_flat.contains(&successor)
                     {
                         specification_entry_blocks.insert(successor);
                     }
