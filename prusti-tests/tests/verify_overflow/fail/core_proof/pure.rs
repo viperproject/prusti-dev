@@ -3,6 +3,7 @@
 use prusti_contracts::*;
 
 #[pure]
+#[terminates]
 fn identity(a: usize) -> usize {
     a
 }
@@ -21,6 +22,7 @@ fn test1_neg(a: usize) -> usize {
 fn test2(a: usize) {}
 
 #[pure]
+#[terminates]
 fn identity2(a: usize) -> usize {
     identity(a)
 }
@@ -32,7 +34,9 @@ fn test3(a: usize) {}
 fn test4(a: usize) {}
 
 #[pure]
+#[requires(n >= 0)]
 #[ensures(result <= n)]
+#[terminates(Int::new_usize(n))]
 fn count(n: usize) -> usize {
     if n == 0 { 0 }
     else { count(n-1) + 1 }
@@ -43,11 +47,5 @@ fn count(n: usize) -> usize {
 #[ensures(count(2) == 2)]
 #[ensures(count(3) == 3)]
 fn test5() {}
-
-// This is expected to fail because the gas is set to 2 and proving this
-// requires unfolding 3 times. If this succeeded, then it would indicate
-// that we have a matching loop.
-#[ensures(count(3) == 3)] //~ ERROR postcondition might not hold.
-fn test6() {}
 
 fn main() {}

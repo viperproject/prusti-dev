@@ -8,6 +8,7 @@ fn test1(b: bool) -> bool {
 }
 
 #[pure]
+#[terminates(Int::new(1))]
 #[ensures(result)]
 fn test2(b: bool) -> bool {
     !b

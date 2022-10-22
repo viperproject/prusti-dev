@@ -128,6 +128,8 @@ pub trait SyntacticEvaluation {
     fn is_true(&self) -> bool;
     /// Check whether the expression is syntactically known to be false.
     fn is_false(&self) -> bool;
+    /// Check whether the expression is syntactically known to be zero.
+    fn is_zero(&self) -> bool;
 }
 
 pub trait ExpressionIterator<E> {

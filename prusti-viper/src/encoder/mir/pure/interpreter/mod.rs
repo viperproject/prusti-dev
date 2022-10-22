@@ -660,6 +660,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 );
                 subst_with(encoded_rhs)
             }
+            "prusti_contracts::snapshot_equality" => {
+                let position = encoded_args[0].position();
+                let encoded_rhs = vir_high::Expression::builtin_func_app(
+                    vir_high::BuiltinFunc::SnapshotEquality,
+                    Vec::new(),
+                    encoded_args.into(),
+                    vir_high::Type::Bool,
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
             "prusti_contracts::before_expiry" => {
                 // self.encode_call_before_expiry()?
                 unimplemented!();

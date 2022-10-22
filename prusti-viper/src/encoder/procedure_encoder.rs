@@ -5280,7 +5280,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             self.proc_def_id,
                             cl_substs,
                         )?);
-                        encoded_spec_spans.push(self.encoder.env().query.get_def_span(spec.invariant));
+                        let invariant = match spec {
+                            prusti_interface::specs::typed::LoopSpecification::Invariant(inv) => inv,
+                            _ => continue,
+                        };
+                        encoded_spec_spans.push(self.encoder.env().tcx().def_span(invariant));
                     }
                 }
             }

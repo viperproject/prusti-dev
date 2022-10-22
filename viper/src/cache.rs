@@ -27,18 +27,19 @@ pub struct PersistentCache {
     data: HashMap<u64, VerificationResult>,
 }
 
+const RESULT_CACHE_VERSION: u64 = 1;
+
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
-enum ResultCache {
-    V1(HashMap<u64, VerificationResult>),
-    // To save/load different data (e.g. updated PersistentCache) use:
-    // V2(???),
+struct ResultCache {
+    data: HashMap<u64, VerificationResult>,
+    version: u64,
 }
 
 impl From<(PathBuf, ResultCache)> for PersistentCache {
     /// Used when loading cache from disk
     fn from((load_loc, rc): (PathBuf, ResultCache)) -> Self {
-        let ResultCache::V1(data) = rc;
-        // ResultCache::V2(...)
+        assert_eq!(rc.version, RESULT_CACHE_VERSION);
+        let data = rc.data;
         PersistentCache {
             updated: false,
             load_loc,
@@ -49,8 +50,10 @@ impl From<(PathBuf, ResultCache)> for PersistentCache {
 impl From<&PersistentCache> for ResultCache {
     /// Used when saving cache to disk
     fn from(cache: &PersistentCache) -> Self {
-        // ResultCache::V2(...)
-        ResultCache::V1(cache.data.clone())
+        ResultCache {
+            data: cache.data.clone(),
+            version: RESULT_CACHE_VERSION,
+        }
     }
 }
 
@@ -59,10 +62,20 @@ impl PersistentCache {
         let mut data_res: Option<ResultCache> = None;
         if !cache_loc.as_os_str().is_empty() {
             if let Ok(f) = fs::File::open(&cache_loc) {
-                match bincode::deserialize_from(&mut io::BufReader::new(f)) {
+                match bincode::deserialize_from::<_, ResultCache>(&mut io::BufReader::new(f)) {
                     Ok(data) => {
-                        info!("Loaded cache from \"{}\"", cache_loc.display());
-                        data_res = Some(data);
+                        if data.version == RESULT_CACHE_VERSION {
+                            info!("Loaded cache from \"{}\"", cache_loc.display());
+                            data_res = Some(data);
+                        } else {
+                            error!(
+                                "Cache version mismatch when reading from \"{}\": \
+                                    expected={} actual={}",
+                                cache_loc.display(),
+                                RESULT_CACHE_VERSION,
+                                data.version
+                            )
+                        }
                     }
                     Err(e) => error!("Failed to read cache from \"{}\": {e}", cache_loc.display()),
                 }
@@ -72,7 +85,10 @@ impl PersistentCache {
             cache_loc,
             data_res.unwrap_or_else(|| {
                 info!("Cache file doesn't exist or is invalid. Using fresh cache.");
-                ResultCache::V1(HashMap::new())
+                ResultCache {
+                    data: HashMap::new(),
+                    version: RESULT_CACHE_VERSION,
+                }
             }),
         ))
     }
