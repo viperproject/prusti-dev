@@ -97,6 +97,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
             name: self.encode_builtin_method_name(method),
             formal_args: vec![],
             formal_returns: vec![vir_local!{ ret: {return_type} }],
+            pres: vec![],
+            posts: vec![],
         }
     }
 

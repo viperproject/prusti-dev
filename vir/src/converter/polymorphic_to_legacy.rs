@@ -18,6 +18,16 @@ impl From<polymorphic::BodylessMethod> for legacy::BodylessMethod {
                 .into_iter()
                 .map(|formal_return| formal_return.into())
                 .collect(),
+            pres: bodyless_method
+                .pres
+                .into_iter()
+                .map(|formal_return| formal_return.into())
+                .collect(),
+            posts: bodyless_method
+                .posts
+                .into_iter()
+                .map(|formal_return| formal_return.into())
+                .collect(),
         }
     }
 }
