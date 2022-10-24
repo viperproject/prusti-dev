@@ -839,8 +839,8 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a BodylessMethod {
             &self.name,
             &self.formal_args.to_viper_decl(context, ast),
             &self.formal_returns.to_viper_decl(context, ast),
-            &[],
-            &[],
+            &self.pres.to_viper(context, ast),
+            &self.posts.to_viper(context, ast),
             None,
         )
     }
