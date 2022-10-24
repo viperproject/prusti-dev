@@ -81,6 +81,7 @@ impl From<polymorphic::Type> for legacy::Type {
         match typ {
             polymorphic::Type::Int => legacy::Type::Int,
             polymorphic::Type::Bool => legacy::Type::Bool,
+            polymorphic::Type::Ref => legacy::Type::Ref,
             polymorphic::Type::Float(float) => legacy::Type::Float(float.into()),
             polymorphic::Type::BitVector(vector) => legacy::Type::BitVector(vector.into()),
             polymorphic::Type::Seq(seq) => legacy::Type::Seq(Box::new((*seq.typ).into())),
