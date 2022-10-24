@@ -332,7 +332,7 @@
 </span><span class="kw">pub enum </span>Predicate {
     Struct(<a href="#158">StructPredicate</a>),
     Enum(<a href="#237">EnumPredicate</a>),
-    Bodyless(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="common.rs.html#298">LocalVar</a>),
+    Bodyless(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="common.rs.html#302">LocalVar</a>),
 }
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#11">Predicate</a> {
@@ -347,12 +347,12 @@
 
 <span class="kw">impl </span><a href="#11">Predicate</a> {
     <span class="doccomment">/// A helper for constructing the predicate&#39;s `self` argument.
-    </span><span class="kw">pub fn </span>construct_this(typ: <a href="common.rs.html#183">Type</a>) -&gt; <a href="common.rs.html#298">LocalVar</a> {
+    </span><span class="kw">pub fn </span>construct_this(typ: <a href="common.rs.html#183">Type</a>) -&gt; <a href="common.rs.html#302">LocalVar</a> {
         LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#29">typ</a>)
     }
     <span class="doccomment">/// Construct a new abstract predicate of the given type.
     </span><span class="kw">pub fn </span>new_abstract(typ: <a href="common.rs.html#183">Type</a>) -&gt; <a href="#11">Predicate</a> {
-        <span class="kw">let </span>predicate_name = <a href="#33">typ</a>.<a href="common.rs.html#240">name</a>();
+        <span class="kw">let </span>predicate_name = <a href="#33">typ</a>.<a href="common.rs.html#242">name</a>();
         <a href="#12">Predicate::Struct</a>(<a href="#158">StructPredicate</a> {
             name: <a href="#34">predicate_name</a>,
             this: <span class="self">Self</span>::construct_this(<a href="#33">typ</a>),
@@ -367,11 +367,11 @@
     /// value such as an integer or a boolean.
     </span><span class="kw">pub fn </span>new_primitive_value(
         typ: <a href="common.rs.html#183">Type</a>,
-        field: <a href="common.rs.html#329">Field</a>,
+        field: <a href="common.rs.html#333">Field</a>,
         bounds: <span class="prelude-ty">Option</span>&lt;(<a href="expr.rs.html#19">Expr</a>, <a href="expr.rs.html#19">Expr</a>)&gt;,
         is_unsigned: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     ) -&gt; <a href="#11">Predicate</a> {
-        <span class="kw">let </span>predicate_name = <a href="#48">typ</a>.<a href="common.rs.html#240">name</a>();
+        <span class="kw">let </span>predicate_name = <a href="#48">typ</a>.<a href="common.rs.html#242">name</a>();
         <span class="kw">let </span>this = <span class="self">Self</span>::construct_this(<a href="#48">typ</a>);
         <span class="kw">let </span>val_field = Expr::from(<a href="#54">this</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<a href="expr.rs.html#764">field</a>(<a href="#49">field</a>);
         <span class="kw">let </span>perm = Expr::acc_permission(<a href="#55">val_field</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="common.rs.html#69">PermAmount::Write</a>);
@@ -391,18 +391,18 @@
     }
     <span class="doccomment">/// Construct a predicate that corresponds to a composite type that has only one variant such
     /// as `struct` or `tuple`.
-    </span><span class="kw">pub fn </span>new_struct(typ: <a href="common.rs.html#183">Type</a>, fields: Vec&lt;<a href="common.rs.html#329">Field</a>&gt;) -&gt; <a href="#11">Predicate</a> {
+    </span><span class="kw">pub fn </span>new_struct(typ: <a href="common.rs.html#183">Type</a>, fields: Vec&lt;<a href="common.rs.html#333">Field</a>&gt;) -&gt; <a href="#11">Predicate</a> {
         <a href="#12">Predicate::Struct</a>(StructPredicate::new(<a href="#73">typ</a>, <a href="#73">fields</a>))
     }
     <span class="doccomment">/// Construct a predicate that corresponds to a composite type that has zero or more than one
     /// variants.
     </span><span class="kw">pub fn </span>new_enum(
-        this: <a href="common.rs.html#298">LocalVar</a>,
-        discriminant_field: <a href="common.rs.html#329">Field</a>,
+        this: <a href="common.rs.html#302">LocalVar</a>,
+        discriminant_field: <a href="common.rs.html#333">Field</a>,
         discriminant_bounds: <a href="expr.rs.html#19">Expr</a>,
         variants: Vec&lt;(<a href="expr.rs.html#19">Expr</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="#158">StructPredicate</a>)&gt;,
     ) -&gt; <a href="#11">Predicate</a> {
-        <span class="kw">let </span>predicate_name = <a href="#79">this</a>.typ.<a href="common.rs.html#240">name</a>();
+        <span class="kw">let </span>predicate_name = <a href="#79">this</a>.typ.<a href="common.rs.html#242">name</a>();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
             variants
                 .iter()
@@ -480,7 +480,7 @@
     <span class="doccomment">/// The predicate name in Viper.
     </span><span class="kw">pub </span>name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="doccomment">/// The self reference.
-    </span><span class="kw">pub </span>this: <a href="common.rs.html#298">LocalVar</a>,
+    </span><span class="kw">pub </span>this: <a href="common.rs.html#302">LocalVar</a>,
     <span class="doccomment">/// The optional body of the predicate.
     </span><span class="kw">pub </span>body: <span class="prelude-ty">Option</span>&lt;<a href="expr.rs.html#19">Expr</a>&gt;,
 }
@@ -500,13 +500,13 @@
 }
 
 <span class="kw">impl </span><a href="#158">StructPredicate</a> {
-    <span class="kw">pub fn </span>new(typ: <a href="common.rs.html#183">Type</a>, fields: Vec&lt;<a href="common.rs.html#329">Field</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>predicate_name = <a href="#182">typ</a>.<a href="common.rs.html#240">name</a>();
+    <span class="kw">pub fn </span>new(typ: <a href="common.rs.html#183">Type</a>, fields: Vec&lt;<a href="common.rs.html#333">Field</a>&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>predicate_name = <a href="#182">typ</a>.<a href="common.rs.html#242">name</a>();
         <span class="kw">let </span>this = Predicate::construct_this(<a href="#182">typ</a>);
         <span class="kw">let </span>body = <a href="#182">fields</a>
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|field| {
-                <span class="kw">let </span>predicate_name = <a href="#187">field</a>.<a href="common.rs.html#354">typed_ref_name</a>().unwrap();
+                <span class="kw">let </span>predicate_name = <a href="#187">field</a>.<a href="common.rs.html#358">typed_ref_name</a>().unwrap();
                 <span class="kw">let </span>location: <a href="expr.rs.html#19">Expr</a> = Expr::from(<a href="#184">this</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<a href="expr.rs.html#764">field</a>(<a href="#187">field</a>);
                 <span class="kw">let </span>field_perm = Expr::acc_permission(<a href="#189">location</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="common.rs.html#69">PermAmount::Write</a>);
                 <span class="kw">let </span>pred_perm =
@@ -559,9 +559,9 @@
     <span class="doccomment">/// The predicate name in Viper.
     </span><span class="kw">pub </span>name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="doccomment">/// The self reference.
-    </span><span class="kw">pub </span>this: <a href="common.rs.html#298">LocalVar</a>,
+    </span><span class="kw">pub </span>this: <a href="common.rs.html#302">LocalVar</a>,
     <span class="doccomment">/// The discriminant field.
-    </span><span class="kw">pub </span>discriminant_field: <a href="common.rs.html#329">Field</a>,
+    </span><span class="kw">pub </span>discriminant_field: <a href="common.rs.html#333">Field</a>,
     <span class="doccomment">/// The restrictions of the discriminant field.
     </span><span class="kw">pub </span>discriminant_bounds: <a href="expr.rs.html#19">Expr</a>,
     <span class="doccomment">/// `(guard, variant_name, variant_predicate)` of the enum. `guard`
@@ -583,8 +583,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="common.rs.html#329">Field</a>&gt; <span class="kw">for </span><a href="#252">EnumVariantIndex</a> {
-    <span class="kw">fn </span>from(field: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="common.rs.html#329">Field</a>) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="common.rs.html#333">Field</a>&gt; <span class="kw">for </span><a href="#252">EnumVariantIndex</a> {
+    <span class="kw">fn </span>from(field: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="common.rs.html#333">Field</a>) -&gt; <span class="self">Self </span>{
         <span class="comment">// TODO: Refactor to avoid string manipulations.
         </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(field.name.starts_with(<span class="string">&quot;enum_&quot;</span>));
         <a href="#252">EnumVariantIndex</a>(<a href="#266">field</a>.name[<span class="number">5</span>..].<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())

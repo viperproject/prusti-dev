@@ -859,8 +859,8 @@
 <span class="kw">use </span><a href="../../../prusti_utils/utils/identifiers/fn.encode_identifier.html">prusti_common::utils::identifiers::encode_identifier</a>;
 <span class="kw">use </span><a href="../../../rustc_hash/type.FxHashSet.html">rustc_hash::FxHashSet</a>;
 <span class="kw">use </span><a href="../../../vir/common/check_mode/enum.CheckMode.html">vir_crate::common::check_mode::CheckMode</a>;
-<span class="kw">use </span><a href="builtin_encoder.rs.html#59"><span class="kw">crate</span>::encoder::builtin_encoder::BuiltinEncoder</a>;
-<span class="kw">use </span><a href="builtin_encoder.rs.html#16"><span class="kw">crate</span>::encoder::builtin_encoder::BuiltinMethodKind</a>;
+<span class="kw">use </span><a href="builtin_encoder.rs.html#61"><span class="kw">crate</span>::encoder::builtin_encoder::BuiltinEncoder</a>;
+<span class="kw">use </span><a href="builtin_encoder.rs.html#17"><span class="kw">crate</span>::encoder::builtin_encoder::BuiltinMethodKind</a>;
 <span class="kw">use </span><span class="kw">crate</span>::encoder::errors::{<a href="errors/error_manager.rs.html#187">ErrorManager</a>, <a href="errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="errors/encoding_error.rs.html#15">EncodingError</a>};
 <span class="kw">use </span><a href="mod.rs.html#13"><span class="kw">crate</span>::encoder::foldunfold</a>;
 <span class="kw">use </span><a href="procedure_encoder.rs.html#86"><span class="kw">crate</span>::encoder::procedure_encoder::ProcedureEncoder</a>;
@@ -921,7 +921,7 @@
     error_manager: RefCell&lt;ErrorManager&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;,
     <span class="doccomment">/// A map containing all functions: identifier → function definition.
     </span>functions: RefCell&lt;FxHashMap&lt;<a href="../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a>, Rc&lt;<a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>&gt;&gt;&gt;,
-    builtin_methods: RefCell&lt;FxHashMap&lt;<a href="builtin_encoder.rs.html#16">BuiltinMethodKind</a>, <a href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a>&gt;&gt;,
+    builtin_methods: RefCell&lt;FxHashMap&lt;<a href="builtin_encoder.rs.html#17">BuiltinMethodKind</a>, <a href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a>&gt;&gt;,
     <span class="kw">pub</span>(<span class="kw">super</span>) high_builtin_function_encoder_state: <a href="high/builtin_functions/interface.rs.html#20">HighBuiltinFunctionEncoderState</a>,
     procedures: RefCell&lt;FxHashMap&lt;<a href="../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>, <a href="../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>&gt;&gt;,
     programs: Vec&lt;<a href="../../../vir/gen/polymorphic/program/struct.Program.html">vir::Program</a>&gt;,
@@ -1066,9 +1066,9 @@
 
     <span class="kw">fn </span>initialize(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// These are used in optimization passes
-        </span><a class="self" href="#216">self</a>.<a href="#419">encode_builtin_method_def</a>(<a href="builtin_encoder.rs.html#17">BuiltinMethodKind::HavocBool</a>);
-        <a class="self" href="#216">self</a>.<a href="#419">encode_builtin_method_def</a>(<a href="builtin_encoder.rs.html#18">BuiltinMethodKind::HavocInt</a>);
-        <a class="self" href="#216">self</a>.<a href="#419">encode_builtin_method_def</a>(<a href="builtin_encoder.rs.html#22">BuiltinMethodKind::HavocRef</a>);
+        </span><a class="self" href="#216">self</a>.<a href="#419">encode_builtin_method_def</a>(<a href="builtin_encoder.rs.html#18">BuiltinMethodKind::HavocBool</a>);
+        <a class="self" href="#216">self</a>.<a href="#419">encode_builtin_method_def</a>(<a href="builtin_encoder.rs.html#19">BuiltinMethodKind::HavocInt</a>);
+        <a class="self" href="#216">self</a>.<a href="#419">encode_builtin_method_def</a>(<a href="builtin_encoder.rs.html#23">BuiltinMethodKind::HavocRef</a>);
     }
 
     <span class="kw">pub fn </span>env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt; {
@@ -1137,7 +1137,7 @@
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_builtin_methods(
         <span class="kw-2">&amp;</span><span class="self">self
-    </span>) -&gt; Ref&lt;<span class="lifetime">&#39;_</span>, FxHashMap&lt;<a href="builtin_encoder.rs.html#16">BuiltinMethodKind</a>, <a href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a>&gt;&gt; {
+    </span>) -&gt; Ref&lt;<span class="lifetime">&#39;_</span>, FxHashMap&lt;<a href="builtin_encoder.rs.html#17">BuiltinMethodKind</a>, <a href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a>&gt;&gt; {
         <a class="self" href="#288">self</a>.builtin_methods.borrow()
     }
 
@@ -1267,11 +1267,11 @@
         }))
     }
 
-    <span class="kw">pub fn </span>encode_builtin_method_def(<span class="kw-2">&amp;</span><span class="self">self</span>, method_kind: <a href="builtin_encoder.rs.html#16">BuiltinMethodKind</a>) -&gt; <a href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a> {
+    <span class="kw">pub fn </span>encode_builtin_method_def(<span class="kw-2">&amp;</span><span class="self">self</span>, method_kind: <a href="builtin_encoder.rs.html#17">BuiltinMethodKind</a>) -&gt; <a href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a> {
         <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;encode_builtin_method_def({:?})&quot;</span>, method_kind);
         <span class="kw">if </span>!<span class="self">self</span>.builtin_methods.borrow().contains_key(<span class="kw-2">&amp;</span>method_kind) {
             <span class="kw">let </span>builtin_encoder = BuiltinEncoder::new(<a class="self" href="#419">self</a>);
-            <span class="kw">let </span>method = <a href="#422">builtin_encoder</a>.<a href="builtin_encoder.rs.html#81">encode_builtin_method_def</a>(<a href="#419">method_kind</a>);
+            <span class="kw">let </span>method = <a href="#422">builtin_encoder</a>.<a href="builtin_encoder.rs.html#84">encode_builtin_method_def</a>(<a href="#419">method_kind</a>);
             <a class="self" href="#419">self</a>.<a href="#201">log_vir_program_before_viper</a>(<a href="#423">method</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
             <a class="self" href="#419">self</a>.builtin_methods
                 .borrow_mut()
@@ -1280,12 +1280,12 @@
         <a class="self" href="#419">self</a>.builtin_methods.borrow()[<span class="kw-2">&amp;</span><a href="#419">method_kind</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 
-    <span class="kw">pub fn </span>encode_builtin_method_use(<span class="kw-2">&amp;</span><span class="self">self</span>, method_kind: <a href="builtin_encoder.rs.html#16">BuiltinMethodKind</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="kw">pub fn </span>encode_builtin_method_use(<span class="kw-2">&amp;</span><span class="self">self</span>, method_kind: <a href="builtin_encoder.rs.html#17">BuiltinMethodKind</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
         <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;encode_builtin_method_use({:?})&quot;</span>, method_kind);
         <span class="comment">// Trigger encoding of definition
         </span><a class="self" href="#432">self</a>.<a href="#419">encode_builtin_method_def</a>(<a href="#432">method_kind</a>);
         <span class="kw">let </span>builtin_encoder = BuiltinEncoder::new(<a class="self" href="#432">self</a>);
-        <a href="#436">builtin_encoder</a>.<a href="builtin_encoder.rs.html#70">encode_builtin_method_name</a>(<a href="#432">method_kind</a>)
+        <a href="#436">builtin_encoder</a>.<a href="builtin_encoder.rs.html#72">encode_builtin_method_name</a>(<a href="#432">method_kind</a>)
     }
 
     <span class="kw">pub fn </span>encode_cast_function_use(<span class="kw-2">&amp;</span><span class="self">self</span>, src_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, dst_ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;)

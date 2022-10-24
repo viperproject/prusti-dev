@@ -364,6 +364,10 @@
 <span id="364">364</span>
 <span id="365">365</span>
 <span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -553,8 +557,9 @@
     BitVector(<a href="#166">BitVector</a>),
     Seq(Box&lt;<a href="#183">Type</a>&gt;),
     Map(Box&lt;<a href="#183">Type</a>&gt;, Box&lt;<a href="#183">Type</a>&gt;),
-    <span class="comment">//Ref, // At the moment we don&#39;t need this
-    </span><span class="doccomment">/// TypedRef: the first parameter is the name of the predicate that encodes the type
+    <span class="doccomment">/// A Raw Viper reference, used to define builtin operations
+    </span>Ref,
+    <span class="doccomment">/// TypedRef: the first parameter is the name of the predicate that encodes the type
     </span>TypedRef(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
     Domain(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
     Snapshot(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>),
@@ -575,24 +580,25 @@
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#183">Type</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="#211">self</a> </span>{
-            <a href="#184">Type::Int</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#211">f</a>, <span class="string">&quot;Int&quot;</span>),
-            <a href="#185">Type::Bool</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#211">f</a>, <span class="string">&quot;Bool&quot;</span>),
-            <a href="#186">Type::Float</a>(<a href="#136">Float::F32</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#211">f</a>, <span class="string">&quot;F32&quot;</span>),
-            <a href="#186">Type::Float</a>(<a href="#137">Float::F64</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#211">f</a>, <span class="string">&quot;F64&quot;</span>),
-            <a href="#187">Type::BitVector</a>(value) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#211">f</a>, <span class="string">&quot;{}&quot;</span>, value),
-            <a href="#192">Type::TypedRef</a>(<span class="kw-2">ref </span>name) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#211">f</a>, <span class="string">&quot;Ref({})&quot;</span>, name),
-            <a href="#193">Type::Domain</a>(<span class="kw-2">ref </span>name) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#211">f</a>, <span class="string">&quot;Domain({})&quot;</span>, name),
-            <a href="#194">Type::Snapshot</a>(<span class="kw-2">ref </span>name) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#211">f</a>, <span class="string">&quot;Snapshot({})&quot;</span>, name),
-            <a href="#188">Type::Seq</a>(<span class="kw-2">ref </span>elem_ty) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#211">f</a>, <span class="string">&quot;Seq[{}]&quot;</span>, elem_ty),
-            <a href="#189">Type::Map</a>(<span class="kw-2">ref </span>key_type, <span class="kw-2">ref </span>val_type) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#211">f</a>, <span class="string">&quot;Map[{}, {}]&quot;</span>, key_type, val_type),
+        <span class="kw">match </span><span class="self"><a href="#212">self</a> </span>{
+            <a href="#184">Type::Int</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#212">f</a>, <span class="string">&quot;Int&quot;</span>),
+            <a href="#185">Type::Bool</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#212">f</a>, <span class="string">&quot;Bool&quot;</span>),
+            <a href="#191">Type::Ref</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#212">f</a>, <span class="string">&quot;Ref&quot;</span>),
+            <a href="#186">Type::Float</a>(<a href="#136">Float::F32</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#212">f</a>, <span class="string">&quot;F32&quot;</span>),
+            <a href="#186">Type::Float</a>(<a href="#137">Float::F64</a>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#212">f</a>, <span class="string">&quot;F64&quot;</span>),
+            <a href="#187">Type::BitVector</a>(value) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#212">f</a>, <span class="string">&quot;{}&quot;</span>, value),
+            <a href="#193">Type::TypedRef</a>(<span class="kw-2">ref </span>name) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#212">f</a>, <span class="string">&quot;Ref({})&quot;</span>, name),
+            <a href="#194">Type::Domain</a>(<span class="kw-2">ref </span>name) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#212">f</a>, <span class="string">&quot;Domain({})&quot;</span>, name),
+            <a href="#195">Type::Snapshot</a>(<span class="kw-2">ref </span>name) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#212">f</a>, <span class="string">&quot;Snapshot({})&quot;</span>, name),
+            <a href="#188">Type::Seq</a>(<span class="kw-2">ref </span>elem_ty) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#212">f</a>, <span class="string">&quot;Seq[{}]&quot;</span>, elem_ty),
+            <a href="#189">Type::Map</a>(<span class="kw-2">ref </span>key_type, <span class="kw-2">ref </span>val_type) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#212">f</a>, <span class="string">&quot;Map[{}, {}]&quot;</span>, key_type, val_type),
         }
     }
 }
 
 <span class="kw">impl </span><a href="#183">Type</a> {
     <span class="kw">pub fn </span>is_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>, <span class="kw-2">&amp;</span>Type::TypedRef(<span class="kw">_</span>))
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>, <span class="kw-2">&amp;</span>Type::TypedRef(<span class="kw">_</span>) | Type::Ref)
     }
 
     <span class="kw">pub fn </span>is_domain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
@@ -604,15 +610,16 @@
     }
 
     <span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">match </span><span class="self"><a href="#240">self</a> </span>{
+        <span class="kw">match </span><span class="self"><a href="#242">self</a> </span>{
             <a href="#185">Type::Bool</a> =&gt; <span class="string">&quot;bool&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             <a href="#184">Type::Int</a> =&gt; <span class="string">&quot;int&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a href="#191">Type::Ref</a> =&gt; <span class="string">&quot;ref&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             <a href="#186">Type::Float</a>(<a href="#136">Float::F32</a>) =&gt; <span class="string">&quot;f32&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             <a href="#186">Type::Float</a>(<a href="#137">Float::F64</a>) =&gt; <span class="string">&quot;f64&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a href="#187">Type::BitVector</a>(value) =&gt; <a href="#246">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a href="#192">Type::TypedRef</a>(<span class="kw-2">ref </span>pred_name) =&gt; <a href="#247">pred_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a href="#193">Type::Domain</a>(<span class="kw-2">ref </span>pred_name) =&gt; <a href="#248">pred_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a href="#194">Type::Snapshot</a>(<span class="kw-2">ref </span>pred_name) =&gt; <a href="#249">pred_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a href="#187">Type::BitVector</a>(value) =&gt; <a href="#249">value</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a href="#193">Type::TypedRef</a>(<span class="kw-2">ref </span>pred_name) =&gt; <a href="#250">pred_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a href="#194">Type::Domain</a>(<span class="kw-2">ref </span>pred_name) =&gt; <a href="#251">pred_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a href="#195">Type::Snapshot</a>(<span class="kw-2">ref </span>pred_name) =&gt; <a href="#252">pred_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             <a href="#188">Type::Seq</a>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Seq&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             <a href="#189">Type::Map</a>(..) =&gt; <span class="string">&quot;Map&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
         }
@@ -621,10 +628,10 @@
     <span class="doccomment">/// Construct a new VIR type that corresponds to an enum variant.
     </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>variant(<span class="self">self</span>, variant: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#257">self</a> </span>{
-            <a href="#192">Type::TypedRef</a>(<span class="kw-2">mut </span>name) =&gt; {
-                <a href="#259">name</a>.push_str(<a href="#257">variant</a>);
-                <a href="#192">Type::TypedRef</a>(<a href="#259">name</a>)
+        <span class="kw">match </span><span class="self"><a href="#260">self</a> </span>{
+            <a href="#193">Type::TypedRef</a>(<span class="kw-2">mut </span>name) =&gt; {
+                <a href="#262">name</a>.push_str(<a href="#260">variant</a>);
+                <a href="#193">Type::TypedRef</a>(<a href="#262">name</a>)
             }
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
@@ -634,28 +641,29 @@
     /// FIXME: this is a hack to support generics. See issue #187.
     </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>patch(<span class="self">self</span>, substs: <span class="kw-2">&amp;</span>HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#270">self</a> </span>{
-            <a href="#192">Type::TypedRef</a>(<span class="kw-2">mut </span>predicate_name) =&gt; {
+        <span class="kw">match </span><span class="self"><a href="#273">self</a> </span>{
+            <a href="#193">Type::TypedRef</a>(<span class="kw-2">mut </span>predicate_name) =&gt; {
                 <span class="kw">for </span>(typ, subst) <span class="kw">in </span>substs {
                     predicate_name = predicate_name.replace(typ, subst);
                 }
-                <a href="#192">Type::TypedRef</a>(<a href="#272">predicate_name</a>)
+                <a href="#193">Type::TypedRef</a>(<a href="#275">predicate_name</a>)
             }
-            typ =&gt; <a href="#278">typ</a>,
+            typ =&gt; <a href="#281">typ</a>,
         }
     }
 
-    <span class="kw">pub fn </span>get_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#198">TypeId</a> {
-        <span class="kw">match </span><span class="self"><a href="#282">self</a> </span>{
-            <a href="#185">Type::Bool</a> =&gt; <a href="#200">TypeId::Bool</a>,
-            <a href="#184">Type::Int</a> =&gt; <a href="#199">TypeId::Int</a>,
-            <a href="#186">Type::Float</a>(<span class="kw">_</span>) =&gt; <a href="#201">TypeId::Float</a>,
-            <a href="#187">Type::BitVector</a>(<span class="kw">_</span>) =&gt; <a href="#202">TypeId::BitVector</a>,
-            <a href="#192">Type::TypedRef</a>(<span class="kw">_</span>) =&gt; <a href="#203">TypeId::Ref</a>,
-            <a href="#193">Type::Domain</a>(<span class="kw">_</span>) =&gt; <a href="#206">TypeId::Domain</a>,
-            <a href="#194">Type::Snapshot</a>(<span class="kw">_</span>) =&gt; <a href="#207">TypeId::Snapshot</a>,
-            <a href="#188">Type::Seq</a>(<span class="kw">_</span>) =&gt; <a href="#204">TypeId::Seq</a>,
-            <a href="#189">Type::Map</a>(..) =&gt; <a href="#205">TypeId::Map</a>,
+    <span class="kw">pub fn </span>get_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="#199">TypeId</a> {
+        <span class="kw">match </span><span class="self"><a href="#285">self</a> </span>{
+            <a href="#185">Type::Bool</a> =&gt; <a href="#201">TypeId::Bool</a>,
+            <a href="#184">Type::Int</a> =&gt; <a href="#200">TypeId::Int</a>,
+            <a href="#191">Type::Ref</a> =&gt; <a href="#204">TypeId::Ref</a>,
+            <a href="#186">Type::Float</a>(<span class="kw">_</span>) =&gt; <a href="#202">TypeId::Float</a>,
+            <a href="#187">Type::BitVector</a>(<span class="kw">_</span>) =&gt; <a href="#203">TypeId::BitVector</a>,
+            <a href="#193">Type::TypedRef</a>(<span class="kw">_</span>) =&gt; <a href="#204">TypeId::Ref</a>,
+            <a href="#194">Type::Domain</a>(<span class="kw">_</span>) =&gt; <a href="#207">TypeId::Domain</a>,
+            <a href="#195">Type::Snapshot</a>(<span class="kw">_</span>) =&gt; <a href="#208">TypeId::Snapshot</a>,
+            <a href="#188">Type::Seq</a>(<span class="kw">_</span>) =&gt; <a href="#205">TypeId::Seq</a>,
+            <a href="#189">Type::Map</a>(..) =&gt; <a href="#206">TypeId::Map</a>,
         }
     }
 }
@@ -666,28 +674,28 @@
     <span class="kw">pub </span>typ: <a href="#183">Type</a>,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#298">LocalVar</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#302">LocalVar</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#304">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.name)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#308">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.name)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#298">LocalVar</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#302">LocalVar</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#310">f</a>, <span class="string">&quot;{}: {}&quot;</span>, <span class="self">self</span>.name, <span class="self">self</span>.typ)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#314">f</a>, <span class="string">&quot;{}: {}&quot;</span>, <span class="self">self</span>.name, <span class="self">self</span>.typ)
     }
 }
 
-<span class="kw">impl </span><a href="#298">LocalVar</a> {
+<span class="kw">impl </span><a href="#302">LocalVar</a> {
     <span class="kw">pub fn </span>new&lt;S: Into&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;(name: S, typ: <a href="#183">Type</a>) -&gt; <span class="self">Self </span>{
-        <a href="#298">LocalVar</a> {
-            name: <a href="#316">name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#316">typ</a>,
+        <a href="#302">LocalVar</a> {
+            name: <a href="#320">name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a href="#320">typ</a>,
         }
     }
 
     <span class="kw">pub fn </span>new_typed_ref&lt;S: Into&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;(name: S, ty_ref_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
-        LocalVar::new(<a href="#323">name</a>, <a href="#192">Type::TypedRef</a>(<a href="#323">ty_ref_name</a>))
+        LocalVar::new(<a href="#327">name</a>, <a href="#193">Type::TypedRef</a>(<a href="#327">ty_ref_name</a>))
     }
 }
 
@@ -697,37 +705,37 @@
     <span class="kw">pub </span>typ: <a href="#183">Type</a>,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#329">Field</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#333">Field</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#335">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.name)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#339">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.name)
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#329">Field</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#333">Field</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#341">f</a>, <span class="string">&quot;{}: {}&quot;</span>, <span class="self">self</span>.name, <span class="self">self</span>.typ)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#345">f</a>, <span class="string">&quot;{}: {}&quot;</span>, <span class="self">self</span>.name, <span class="self">self</span>.typ)
     }
 }
 
-<span class="kw">impl </span><a href="#329">Field</a> {
+<span class="kw">impl </span><a href="#333">Field</a> {
     <span class="kw">pub fn </span>new&lt;S: Into&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;(name: S, typ: <a href="#183">Type</a>) -&gt; <span class="self">Self </span>{
-        <a href="#329">Field</a> {
-            name: <a href="#347">name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a href="#347">typ</a>,
+        <a href="#333">Field</a> {
+            name: <a href="#351">name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a href="#351">typ</a>,
         }
     }
 
     <span class="kw">pub fn </span>typed_ref_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#354">self</a>.typ {
-            <a href="#192">Type::TypedRef</a>(<span class="kw-2">ref </span>name) =&gt; <span class="prelude-val">Some</span>(<a href="#356">name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+        <span class="kw">match </span><a class="self" href="#358">self</a>.typ {
+            <a href="#193">Type::TypedRef</a>(<span class="kw-2">ref </span>name) =&gt; <span class="prelude-val">Some</span>(<a href="#360">name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../common/identifier.rs.html#1">WithIdentifier</a> <span class="kw">for </span><a href="#329">Field</a> {
+<span class="kw">impl </span><a href="../../common/identifier.rs.html#1">WithIdentifier</a> <span class="kw">for </span><a href="#333">Field</a> {
     <span class="kw">fn </span>get_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="#363">self</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="#367">self</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 }
 </code></pre></div>

@@ -138,6 +138,7 @@
 <span id="138">138</span>
 <span id="139">139</span>
 <span id="140">140</span>
+<span id="141">141</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     common::{<a href="../../../../common/mod.rs.html#5">display</a>, <a href="../../../../common/identifier.rs.html#1">identifier::WithIdentifier</a>},
     <a href="../mod.rs.html#5">polymorphic::ast</a>::<span class="kw-2">*</span>,
@@ -152,7 +153,7 @@
     #[doc = <span class="string">&quot; `std::mem::size_of::&lt;u8&gt;()`, which have the same parameters and return&quot;</span>]
     #[doc = <span class="string">&quot; types, but different implementations.&quot;</span>]
     </span><span class="kw">pub </span>type_arguments: Vec&lt;<a href="common.rs.html#174">Type</a>&gt;,
-    <span class="kw">pub </span>formal_args: Vec&lt;<a href="common.rs.html#611">LocalVar</a>&gt;,
+    <span class="kw">pub </span>formal_args: Vec&lt;<a href="common.rs.html#616">LocalVar</a>&gt;,
     <span class="kw">pub </span>return_type: <a href="common.rs.html#174">Type</a>,
     <span class="kw">pub </span>pres: Vec&lt;<a href="expr.rs.html#13">Expr</a>&gt;,
     <span class="kw">pub </span>posts: Vec&lt;<a href="expr.rs.html#13">Expr</a>&gt;,
@@ -191,7 +192,7 @@
 }
 <span class="kw">impl </span><a href="#8">Function</a> {
     <span class="kw">pub fn </span>inline_body(<span class="kw-2">&amp;</span><span class="self">self</span>, args: Vec&lt;<a href="expr.rs.html#13">Expr</a>&gt;) -&gt; <a href="expr.rs.html#13">Expr</a> {
-        <span class="kw">let </span>subst: FxHashMap&lt;<a href="common.rs.html#611">LocalVar</a>, <a href="expr.rs.html#13">Expr</a>&gt; = <span class="self"><a href="#53">self</a>
+        <span class="kw">let </span>subst: FxHashMap&lt;<a href="common.rs.html#616">LocalVar</a>, <a href="expr.rs.html#13">Expr</a>&gt; = <span class="self"><a href="#53">self</a>
             </span>.formal_args
             .iter()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
@@ -227,7 +228,7 @@
 <span class="kw">pub fn </span>compute_identifier(
     name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     type_arguments: <span class="kw-2">&amp;</span>[<a href="common.rs.html#174">Type</a>],
-    formal_args: <span class="kw-2">&amp;</span>[<a href="common.rs.html#611">LocalVar</a>],
+    formal_args: <span class="kw-2">&amp;</span>[<a href="common.rs.html#616">LocalVar</a>],
     return_type: <span class="kw-2">&amp;</span><a href="common.rs.html#174">Type</a>,
 ) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="kw">let </span><span class="kw-2">mut </span>identifier = <a href="#88">name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
@@ -235,12 +236,13 @@
         <span class="kw">match </span><a href="#94">typ</a> {
             <a href="common.rs.html#175">Type::Int</a> =&gt; <span class="string">&quot;$int$&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             <a href="common.rs.html#176">Type::Bool</a> =&gt; <span class="string">&quot;$bool$&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a href="common.rs.html#182">Type::Ref</a> =&gt; <span class="string">&quot;$ref$&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             <a href="common.rs.html#177">Type::Float</a>(<a href="common.rs.html#114">Float::F32</a>) =&gt; <span class="string">&quot;$f32$&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             <a href="common.rs.html#177">Type::Float</a>(<a href="common.rs.html#115">Float::F64</a>) =&gt; <span class="string">&quot;$f64$&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             <a href="common.rs.html#178">Type::BitVector</a>(value) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;${}$&quot;</span>, value),
-            <a href="common.rs.html#182">Type::TypedRef</a>(<span class="kw">_</span>) | <a href="common.rs.html#185">Type::TypeVar</a>(<span class="kw">_</span>) =&gt; <a href="#94">typ</a>.<a href="common.rs.html#342">encode_as_string</a>(),
-            <a href="common.rs.html#183">Type::Domain</a>(<span class="kw">_</span>) =&gt; <a href="#94">typ</a>.<a href="common.rs.html#233">name</a>(),
-            <a href="common.rs.html#184">Type::Snapshot</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Snap${}&quot;</span>, typ.name()),
+            <a href="common.rs.html#184">Type::TypedRef</a>(<span class="kw">_</span>) | <a href="common.rs.html#187">Type::TypeVar</a>(<span class="kw">_</span>) =&gt; <a href="#94">typ</a>.<a href="common.rs.html#347">encode_as_string</a>(),
+            <a href="common.rs.html#185">Type::Domain</a>(<span class="kw">_</span>) =&gt; <a href="#94">typ</a>.<a href="common.rs.html#236">name</a>(),
+            <a href="common.rs.html#186">Type::Snapshot</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Snap${}&quot;</span>, typ.name()),
             <a href="common.rs.html#179">Type::Seq</a>(seq_type) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Seq${}&quot;</span>, type_name(<span class="kw-2">&amp;</span>seq_type.typ)),
             <a href="common.rs.html#180">Type::Map</a>(map) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;Map${}${}&quot;</span>,
@@ -264,18 +266,18 @@
 <span class="kw">impl </span><a href="../../../../common/identifier.rs.html#1">WithIdentifier</a> <span class="kw">for </span><a href="#8">Function</a> {
     <span class="kw">fn </span>get_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
         <a href="#87-92">compute_identifier</a>(
-            <span class="kw-2">&amp;</span><a class="self" href="#125">self</a>.name,
-            <span class="kw-2">&amp;</span><a class="self" href="#125">self</a>.type_arguments,
-            <span class="kw-2">&amp;</span><a class="self" href="#125">self</a>.formal_args,
-            <span class="kw-2">&amp;</span><a class="self" href="#125">self</a>.return_type,
+            <span class="kw-2">&amp;</span><a class="self" href="#126">self</a>.name,
+            <span class="kw-2">&amp;</span><a class="self" href="#126">self</a>.type_arguments,
+            <span class="kw-2">&amp;</span><a class="self" href="#126">self</a>.formal_args,
+            <span class="kw-2">&amp;</span><a class="self" href="#126">self</a>.return_type,
         )
     }
 }
 <span class="attribute">#[derive(PartialEq, Eq, Hash, Clone, Debug)]
 </span><span class="kw">pub struct </span>FunctionIdentifier(<span class="kw">pub</span>(<span class="kw">crate</span>) <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>);
-<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="#135">FunctionIdentifier</a> {
+<span class="kw">impl </span>From&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; <span class="kw">for </span><a href="#136">FunctionIdentifier</a> {
     <span class="kw">fn </span>from(string: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(<a href="#137">string</a>)
+        <span class="self">Self</span>(<a href="#138">string</a>)
     }
 }
 </code></pre></div>
