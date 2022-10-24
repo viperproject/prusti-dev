@@ -48,8 +48,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
         let mut cfg_method = vir::CfgMethod::new(
             // method name
             self.encoder.encode_item_name(self.def_id),
-            // formal args
-            self.mir.arg_count,
             // formal returns
             vec![],
             // local vars
