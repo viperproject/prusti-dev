@@ -8,6 +8,7 @@ use prusti_common::{vir_local, vir_expr};
 use vir_crate::polymorphic::{self as vir};
 use vir_crate::common::identifier::WithIdentifier;
 use super::high::builtin_functions::HighBuiltinFunctionEncoderInterface;
+use super::versioning;
 
 const PRIMITIVE_VALID_DOMAIN_NAME: &str = "PrimitiveValidDomain";
 
@@ -20,6 +21,7 @@ pub enum BuiltinMethodKind {
     HavocF64,
     HavocBV(vir::BitVector),
     HavocRef,
+    BumpMemVersion,
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
@@ -75,6 +77,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
             BuiltinMethodKind::HavocF32 => "builtin$havoc_f32".to_string(),
             BuiltinMethodKind::HavocF64 => "builtin$havoc_f64".to_string(),
             BuiltinMethodKind::HavocRef => "builtin$havoc_ref".to_string(),
+            BuiltinMethodKind::BumpMemVersion => versioning::bump_mem_version_name().to_string(),
         }
     }
 
@@ -86,6 +89,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
             BuiltinMethodKind::HavocF32 => vir::Type::Float(vir::Float::F32),
             BuiltinMethodKind::HavocF64 => vir::Type::Float(vir::Float::F64),
             BuiltinMethodKind::HavocRef => vir::Type::typed_ref(""),
+            BuiltinMethodKind::BumpMemVersion => {
+                return versioning::bump_mem_version_definition();
+            }
         };
         vir::BodylessMethod {
             name: self.encode_builtin_method_name(method),

@@ -488,6 +488,7 @@ impl ast::StmtFolder for VarPurifier {
                 ast::Type::TypedRef(_) => "builtin$havoc_ref".to_string(),
                 ast::Type::TypeVar(_) => "builtin$havoc_ref".to_string(),
                 ast::Type::Domain(_)
+                | ast::Type::Ref
                 | ast::Type::Snapshot(_)
                 | ast::Type::Seq(_)
                 | ast::Type::Map(..) => unreachable!(),
