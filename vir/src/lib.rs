@@ -14,9 +14,16 @@ mod gen;
 
 pub mod common;
 pub mod converter;
+/// VIR that is as close to MIR as possible.
 pub mod high;
-pub mod legacy;
+/// Effectively Viper.
 pub mod low;
+/// Fold-unfold operations are inferred.
 pub mod middle;
-pub mod polymorphic;
+/// Reduce the number of types. For example, tuples and structs are unified.
 pub mod typed;
+
+/// Monomorphized legacy.
+pub mod legacy;
+/// Polymorphic legacy.
+pub mod polymorphic;
