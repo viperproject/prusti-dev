@@ -2837,6 +2837,8 @@ mod tests {
                     vec![Type::type_var("E"), Type::type_var("F")],
                 ),
             }],
+            pres: vec![],
+            posts: vec![],
         };
 
         let expected = BodylessMethod {
@@ -2858,6 +2860,8 @@ mod tests {
                     vec![Type::Bool, Type::typed_ref("SimpleRef")],
                 ),
             }],
+            pres: vec![],
+            posts: vec![],
         };
         test(source, expected, &SUBSTITUTION_MAP);
     }
