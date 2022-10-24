@@ -65,44 +65,91 @@
 <span id="65">65</span>
 <span id="66">66</span>
 <span id="67">67</span>
-</pre><pre class="rust"><code><span class="comment">// This Clippy chcek seems to be always wrong.
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+</pre><pre class="rust"><code><span class="comment">// © 2022, ETH Zurich
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+</span><span class="attribute">#![feature(exit_status_error)]
+</span><span class="comment">// This Clippy check seems to be always wrong.
 </span><span class="attribute">#![allow(clippy::iter_with_drain)]
 
-</span><span class="kw">use </span><a href="../../proc_macro2/struct.TokenStream.html">proc_macro2::TokenStream</a>;
-<span class="kw">use </span><a href="../../quote/macro.quote.html">quote::quote</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
-<span class="kw">use </span><a href="../../syn/macro.parse_quote.html">syn::parse_quote</a>;
+</span><span class="kw">use </span><a href="generator/modules_tree.rs.html#19"><span class="kw">crate</span>::generator::ToModulesTree</a>;
+<span class="kw">use </span><a href="../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>;
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">fs::File</a>, <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">io::Read</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>, <a href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">process::Command</a>};
+<span class="kw">use </span>syn::{<a href="../../syn/macro.parse_quote.html">parse_quote</a>, <a href="../../syn/fn.parse_str.html">parse_str</a>};
 
 <span class="kw">mod </span><a href="ast/mod.rs.html#1-71">ast</a>;
 <span class="kw">mod </span><a href="deriver/mod.rs.html#1-66">deriver</a>;
-<span class="kw">mod </span><a href="generator/mod.rs.html#1-33">generator</a>;
+<span class="kw">mod </span><a href="generator/mod.rs.html#7-11">generator</a>;
 <span class="kw">mod </span><a href="helpers.rs.html#1-134">helpers</a>;
 <span class="kw">mod </span><a href="parser/mod.rs.html#1-70">parser</a>;
 <span class="kw">mod </span><a href="resolver/mod.rs.html#1-306">resolver</a>;
 
-<span class="kw">pub fn </span>define_vir(input: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, source_file: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>) -&gt; <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>declarations: <a href="ast/mod.rs.html#1">ast::Declarations</a> = syn::parse2(<a href="#16">input</a>)
-        .unwrap_or_else(|error| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Failed to parse {:?}: {}&quot;</span>, source_file, error));
-    <span class="kw">let </span><span class="kw-2">mut </span>sentinel_item = <a class="macro" href="../../syn/macro.parse_quote.html">parse_quote! </a>{ <span class="kw">mod </span>stub; };
-    <span class="kw">let </span><span class="kw-2">mut </span>error_tokens = proc_macro2::TokenStream::new();
-    <a href="#17">declarations</a>.components = {
+<span class="doccomment">/// Read the definitions from `defs_dir` and write the expanded code into `out_dir`.
+</span><span class="kw">pub fn </span>generate_vir(defs_dir: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>, out_dir: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>) {
+    <span class="comment">// Read the declarations from the root module
+    </span><span class="kw">let </span>defs_mod_path = <a href="#24">defs_dir</a>.join(<span class="string">&quot;mod.rs&quot;</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>defs_mod_file = File::open(<span class="kw-2">&amp;</span><a href="#26">defs_mod_path</a>)
+        .unwrap_or_else(|err| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Failed to open file &#39;{}&#39;: {}&quot;</span>, defs_mod_path.display(), err));
+    <span class="kw">let </span><span class="kw-2">mut </span>defs_mod_source = String::new();
+    <a href="#27">defs_mod_file</a>
+        .<a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">read_to_string</a>(<span class="kw-2">&amp;mut </span><a href="#29">defs_mod_source</a>)
+        .unwrap_or_else(|err| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Failed to read file &#39;{}&#39;: {}&quot;</span>, defs_mod_path.display(), err));
+    <span class="kw">let </span><span class="kw-2">mut </span>declarations: <a href="ast/mod.rs.html#1">ast::Declarations</a> = <a href="../../syn/fn.parse_str.html">parse_str</a>(<span class="kw-2">&amp;</span><a href="#29">defs_mod_source</a>)
+        .unwrap_or_else(|err| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Failed to parse {:?}: {}&quot;</span>, defs_mod_path.display(), err));
+
+    <span class="comment">// Expand declarations
+    </span><span class="kw">let </span><span class="kw-2">mut </span>error_tokens = proc_macro2::TokenStream::new();
+    <a href="#33">declarations</a>.components = {
         <span class="kw">let </span>(expanded_components, errors) =
-            <a href="parser/mod.rs.html#7">parser::expand</a>(<a href="#17">declarations</a>.components, <a href="#16">source_file</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+            <a href="parser/mod.rs.html#7">parser::expand</a>(<a href="#33">declarations</a>.components, <a href="#26">defs_mod_path</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
         <span class="kw">for </span>error <span class="kw">in </span>errors {
             <span class="macro">eprintln!</span>(<span class="string">&quot;error in parsing declarations: {}&quot;</span>, error);
             error_tokens.extend(error.to_compile_error());
         }
-        <a href="#22">expanded_components</a>
+        <a href="#39">expanded_components</a>
     };
     <span class="kw">for </span>ir <span class="kw">in </span><span class="kw-2">&amp;mut </span>declarations.irs {
-        mem::swap(ir, <span class="kw-2">&amp;mut </span>sentinel_item);
-        <span class="kw">let </span>(new_item, errors) = parser::expand(sentinel_item, source_file.to_owned());
-        sentinel_item = new_item;
+        <span class="kw">let </span><span class="kw-2">mut </span>tmp_item = <span class="macro">parse_quote! </span>{ <span class="kw">mod </span>stub; };
+        mem::swap(ir, <span class="kw-2">&amp;mut </span>tmp_item);
+        <span class="kw">let </span>(new_item, errors) = parser::expand(tmp_item, defs_mod_path.to_owned());
+        tmp_item = new_item;
         <span class="kw">for </span>error <span class="kw">in </span>errors {
             <span class="macro">eprintln!</span>(<span class="string">&quot;error in expanding declarations: {}&quot;</span>, error);
             error_tokens.extend(error.to_compile_error());
         }
-        mem::swap(ir, <span class="kw-2">&amp;mut </span>sentinel_item);
+        mem::swap(ir, <span class="kw-2">&amp;mut </span>tmp_item);
     }
     <span class="kw">let </span><span class="kw-2">mut </span>resolved_irs = Vec::new();
     <span class="kw">for </span>ir <span class="kw">in </span>declarations.irs {
@@ -113,24 +160,35 @@
         }
         resolved_irs.push(new_item);
     }
-    <a href="#17">declarations</a>.irs = <a href="#40">resolved_irs</a>;
-    <span class="kw">let </span>original_irs = <a href="#17">declarations</a>.irs.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <a href="#33">declarations</a>.irs = <a href="#58">resolved_irs</a>;
+    <span class="kw">let </span>original_irs = <a href="#33">declarations</a>.irs.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
     <span class="kw">for </span>ir <span class="kw">in </span><span class="kw-2">&amp;mut </span>declarations.irs {
-        mem::swap(ir, <span class="kw-2">&amp;mut </span>sentinel_item);
-        <span class="kw">let </span>(new_item_with_derives, derive_errors) = deriver::expand(sentinel_item, <span class="kw-2">&amp;</span>original_irs);
-        sentinel_item = new_item_with_derives;
+        <span class="kw">let </span><span class="kw-2">mut </span>tmp_item = <span class="macro">parse_quote! </span>{ <span class="kw">mod </span>stub; };
+        mem::swap(ir, <span class="kw-2">&amp;mut </span>tmp_item);
+        <span class="kw">let </span>(new_item_with_derives, derive_errors) = deriver::expand(tmp_item, <span class="kw-2">&amp;</span>original_irs);
+        tmp_item = new_item_with_derives;
         <span class="kw">for </span>error <span class="kw">in </span>derive_errors {
             <span class="macro">eprintln!</span>(<span class="string">&quot;error in deriving types: {}&quot;</span>, error);
             error_tokens.extend(error.to_compile_error());
         }
-        mem::swap(ir, <span class="kw-2">&amp;mut </span>sentinel_item);
+        mem::swap(ir, <span class="kw-2">&amp;mut </span>tmp_item);
     }
 
-    <span class="kw">if </span>!error_tokens.is_empty() {
+    <span class="comment">// Write the tokens (and errors) to a tree of folders
+    </span><span class="kw">if </span>!error_tokens.is_empty() {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;{:?}&quot;</span>, error_tokens);
     }
+    <span class="kw">let </span><span class="kw-2">mut </span>modules_tree = <a href="#33">declarations</a>.<a href="generator/modules_tree.rs.html#20">to_modules_tree</a>();
+    <a href="#37">error_tokens</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<span class="kw-2">&amp;mut </span><a href="#85">modules_tree</a>.tokens);
+    <a href="#85">modules_tree</a>.<a href="generator/modules_tree.rs.html#78">write_to_disk</a>(<a href="#24">out_dir</a>, <span class="prelude-val">None</span>);
 
-    <a class="macro" href="../../quote/macro.quote.html">quote! </a>{ #declarations #error_tokens }
+    <span class="comment">// Pretty-print the generated code
+    </span>Command::new(<span class="string">&quot;rustfmt&quot;</span>)
+        .arg(<a href="#24">out_dir</a>.join(<span class="string">&quot;mod.rs&quot;</span>))
+        .status()
+        .unwrap_or_else(|err| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Failed to format generated code: {}&quot;</span>, err))
+        .exit_ok()
+        .unwrap_or_else(|err| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Formatting generated code failed with exit status {}&quot;</span>, err));
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="vir_gen" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

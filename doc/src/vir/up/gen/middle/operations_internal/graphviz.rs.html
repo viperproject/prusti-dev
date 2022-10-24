@@ -1,0 +1,112 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vir/src/../gen/middle/operations_internal/graphviz.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>graphviz.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../../normalize.css"><link rel="stylesheet" href="../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../storage.js"></script><script defer src="../../../../../../source-script.js"></script><script defer src="../../../../../../source-files.js"></script><script defer src="../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../../../../vir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../vir/index.html"><img class="rust-logo" src="../../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::{
+    <a href="../ast/statement/mod.rs.html#22">ast::statement::Statement</a>,
+    cfg::procedure::{<a href="../cfg/procedure.rs.html#42">BasicBlock</a>, <a href="../cfg/procedure.rs.html#14">ProcedureDecl</a>, <a href="../cfg/procedure.rs.html#56">Successor</a>},
+};
+<span class="kw">use </span><span class="kw">crate</span>::common::graphviz::{<a href="../../../../common/graphviz/helpers.rs.html#1">escape_html</a>, <a href="../../../../common/graphviz/graph.rs.html#8">Graph</a>, <a href="../../../../common/graphviz/builders.rs.html#11">NodeBuilder</a>, <a href="../../../../common/graphviz/mod.rs.html#14">ToGraphviz</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">std::io::Write</a>;
+<span class="kw">impl </span><a href="../../../../common/graphviz/mod.rs.html#14">ToGraphviz</a> <span class="kw">for </span><a href="../cfg/procedure.rs.html#14">ProcedureDecl</a> {
+    <span class="kw">fn </span>to_graph(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../common/graphviz/graph.rs.html#8">Graph</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>graph = Graph::with_columns(<span class="kw-2">&amp;</span>[<span class="string">&quot;statement&quot;</span>]);
+        <span class="kw">for </span>(label, block) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.basic_blocks {
+            <span class="kw">let </span><span class="kw-2">mut </span>node_builder = graph.create_node(label.to_string());
+            block_to_graph_node(block, <span class="kw-2">&amp;mut </span>node_builder);
+            node_builder.build();
+            <span class="kw">match </span><span class="kw-2">&amp;</span>block.successor {
+                Successor::Exit =&gt; graph.add_exit_edge(label.to_string(), <span class="string">&quot;exit&quot;</span>.to_string()),
+                Successor::Goto(target) =&gt; {
+                    graph.add_regular_edge(label.to_string(), target.to_string())
+                }
+                Successor::GotoSwitch(targets) =&gt; {
+                    <span class="kw">for </span>(condition, target) <span class="kw">in </span>targets {
+                        graph.add_regular_annotated_edge(
+                            label.to_string(),
+                            target.to_string(),
+                            escape_html(condition.to_string()),
+                        );
+                    }
+                }
+                Successor::NonDetChoice(first, second) =&gt; {
+                    graph.add_regular_annotated_edge(
+                        label.to_string(),
+                        first.to_string(),
+                        <span class="string">&quot;*&quot;</span>.to_string(),
+                    );
+                    graph.add_regular_annotated_edge(
+                        label.to_string(),
+                        second.to_string(),
+                        <span class="string">&quot;*&quot;</span>.to_string(),
+                    );
+                }
+            }
+        }
+        <a href="#9">graph</a>
+    }
+}
+<span class="kw">fn </span>block_to_graph_node(block: <span class="kw-2">&amp;</span><a href="../cfg/procedure.rs.html#42">BasicBlock</a>, node_builder: <span class="kw-2">&amp;mut </span><a href="../../../../common/graphviz/builders.rs.html#11">NodeBuilder</a>) {
+    <span class="kw">for </span>statement <span class="kw">in </span><span class="kw-2">&amp;</span>block.statements {
+        <span class="kw">let </span>statement_string = <span class="kw">match </span>statement {
+            Statement::Comment(statement) =&gt; {
+                <span class="macro">format!</span>(<span class="string">&quot;&lt;font color=\&quot;orange\&quot;&gt;{}&lt;/font&gt;&quot;</span>, escape_html(statement))
+            }
+            <span class="kw">_ </span>=&gt; escape_html(statement.to_string()),
+        };
+        node_builder.add_row_sequence(<span class="macro">vec!</span>[statement_string]);
+    }
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="vir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>
