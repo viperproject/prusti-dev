@@ -187,7 +187,8 @@ pub enum Type {
     BitVector(BitVector),
     Seq(Box<Type>),
     Map(Box<Type>, Box<Type>),
-    //Ref, // At the moment we don't need this
+    /// A Raw Viper reference, used to define builtin operations
+    Ref,
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(String),
     Domain(String),
@@ -212,6 +213,7 @@ impl fmt::Display for Type {
         match self {
             Type::Int => write!(f, "Int"),
             Type::Bool => write!(f, "Bool"),
+            Type::Ref => write!(f, "Ref"),
             Type::Float(Float::F32) => write!(f, "F32"),
             Type::Float(Float::F64) => write!(f, "F64"),
             Type::BitVector(value) => write!(f, "{}", value),
@@ -226,7 +228,7 @@ impl fmt::Display for Type {
 
 impl Type {
     pub fn is_ref(&self) -> bool {
-        matches!(self, &Type::TypedRef(_))
+        matches!(self, &Type::TypedRef(_) | Type::Ref)
     }
 
     pub fn is_domain(&self) -> bool {
@@ -241,6 +243,7 @@ impl Type {
         match self {
             Type::Bool => "bool".to_string(),
             Type::Int => "int".to_string(),
+            Type::Ref => "ref".to_string(),
             Type::Float(Float::F32) => "f32".to_string(),
             Type::Float(Float::F64) => "f64".to_string(),
             Type::BitVector(value) => value.to_string(),
@@ -283,6 +286,7 @@ impl Type {
         match self {
             Type::Bool => TypeId::Bool,
             Type::Int => TypeId::Int,
+            Type::Ref => TypeId::Ref,
             Type::Float(_) => TypeId::Float,
             Type::BitVector(_) => TypeId::BitVector,
             Type::TypedRef(_) => TypeId::Ref,
