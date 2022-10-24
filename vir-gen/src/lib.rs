@@ -4,8 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// This Clippy check seems to be always wrong.
 #![feature(exit_status_error)]
+
+// This Clippy check seems to be always wrong.
 #![allow(clippy::iter_with_drain)]
 
 use crate::generator::ToModulesTree;
