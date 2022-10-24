@@ -11,8 +11,8 @@ impl fmt::Display for CfgMethod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(
             f,
-            "method {}({} args)",
-            self.method_name, self.formal_arg_count
+            "method {}(...)",
+            self.method_name
         )?;
         writeln!(
             f,
