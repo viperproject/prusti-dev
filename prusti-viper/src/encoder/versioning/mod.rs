@@ -7,10 +7,16 @@
 use prusti_common::vir_local;
 use vir_crate::polymorphic::{self as vir};
 
-pub fn define_bump_version_method() -> vir::BodylessMethod {
+const BUMP_MEM_VERSION_NAME: &str = "builtin$bump_mem_version";
+
+pub fn bump_mem_version_name() -> &'static str {
+    BUMP_MEM_VERSION_NAME
+}
+
+pub fn bump_mem_version_definition() -> vir::BodylessMethod {
     vir::BodylessMethod {
-        name: "builtin$bump_version".to_string(),
-        formal_args: vec![],
-        formal_returns: vec![vir_local!{ ret: {return_type} }],
+        name: BUMP_MEM_VERSION_NAME.to_string(),
+        formal_args: vec![vir_local!{ mem: Ref }],
+        formal_returns: vec![],
     }
 }

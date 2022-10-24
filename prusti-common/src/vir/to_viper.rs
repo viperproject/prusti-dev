@@ -101,8 +101,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
         match self {
             Type::Int => ast.int_type(),
             Type::Bool => ast.bool_type(),
-            //Type::Ref |
-            Type::TypedRef(_) => ast.ref_type(),
+            Type::Ref | Type::TypedRef(_) => ast.ref_type(),
             Type::Domain(ref name) => ast.domain_type(name, &[], &[]),
             Type::Snapshot(ref name) => ast.domain_type(&format!("Snap${}", name), &[], &[]),
             Type::Seq(ref elem_ty) => ast.seq_type(elem_ty.to_viper(_context, ast)),
