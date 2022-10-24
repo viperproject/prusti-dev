@@ -1,4 +1,4 @@
-// © 2019, ETH Zurich
+// © 2022, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,7 +11,7 @@ use crate::encoder::errors::{
     EncodingResult, SpannedEncodingResult
 };
 use crate::encoder::errors::error_manager::PanicCause;
-use crate::encoder::foldunfold;
+use crate::encoder::{foldunfold, versioning};
 use crate::encoder::high::types::HighTypeEncoderInterface;
 use crate::encoder::initialisation::InitInfo;
 use crate::encoder::loop_encoder::{LoopEncoder, LoopEncoderError};
@@ -422,6 +422,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         self.cfg_method
             .set_successor(return_cfg_block, Successor::Return);
+
+        // Declare the memory version
+        self.cfg_method.add_local_var(
+            versioning::MEM_VERSION_VAR_NAME,
+            versioning::MEM_VERSION_VAR_TYPE,
+        );
+        self.cfg_method.add_stmts(
+            start_cfg_block,
+            versioning::encode_mem_version_init(),
+        );
 
         // Encode a flag that becomes true the first time a block is executed
         for bbi in self.procedure.get_reachable_nonspec_cfg_blocks() {

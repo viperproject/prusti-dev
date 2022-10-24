@@ -77,7 +77,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
             BuiltinMethodKind::HavocF32 => "builtin$havoc_f32".to_string(),
             BuiltinMethodKind::HavocF64 => "builtin$havoc_f64".to_string(),
             BuiltinMethodKind::HavocRef => "builtin$havoc_ref".to_string(),
-            BuiltinMethodKind::BumpMemVersion => versioning::get_bump_mem_version_method_name(),
+            BuiltinMethodKind::BumpMemVersion => versioning::BUMP_MEM_VERSION_METHOD_NAME.to_string(),
         }
     }
 
@@ -91,7 +91,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
             BuiltinMethodKind::HavocF64 => vir::Type::Float(vir::Float::F64),
             BuiltinMethodKind::HavocRef => vir::Type::typed_ref(""),
             BuiltinMethodKind::BumpMemVersion => {
-                return versioning::get_bump_mem_version_method_def();
+                return versioning::encode_bump_mem_version_method_def();
             }
         };
         vir::BodylessMethod {
