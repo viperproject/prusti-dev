@@ -77,11 +77,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
             BuiltinMethodKind::HavocF32 => "builtin$havoc_f32".to_string(),
             BuiltinMethodKind::HavocF64 => "builtin$havoc_f64".to_string(),
             BuiltinMethodKind::HavocRef => "builtin$havoc_ref".to_string(),
-            BuiltinMethodKind::BumpMemVersion => versioning::bump_mem_version_name().to_string(),
+            BuiltinMethodKind::BumpMemVersion => versioning::get_bump_mem_version_method_name(),
         }
     }
 
     pub fn encode_builtin_method_def(&self, method: BuiltinMethodKind) -> vir::BodylessMethod {
+        let method_name = self.encode_builtin_method_name(method);
         let return_type = match method {
             BuiltinMethodKind::HavocBool => vir::Type::Bool,
             BuiltinMethodKind::HavocInt => vir::Type::Int,
@@ -90,11 +91,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
             BuiltinMethodKind::HavocF64 => vir::Type::Float(vir::Float::F64),
             BuiltinMethodKind::HavocRef => vir::Type::typed_ref(""),
             BuiltinMethodKind::BumpMemVersion => {
-                return versioning::bump_mem_version_definition();
+                return versioning::get_bump_mem_version_method_def();
             }
         };
         vir::BodylessMethod {
-            name: self.encode_builtin_method_name(method),
+            name: method_name,
             formal_args: vec![],
             formal_returns: vec![vir_local!{ ret: {return_type} }],
             pres: vec![],

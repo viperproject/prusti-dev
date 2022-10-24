@@ -9,3 +9,7 @@ The build script will use `vir-gen` to copy the definitions of `defs/` into `gen
 * `#[derive_helpers]` derives constructors of enum variants.
 * `#[derive_visitors]` derives visitors.
 * `derive_lower!` derives visitors converting from one VIR to another.
+
+VIR layers:
+* `high` --(type unifications)--> `typed` --(fold-unfold generation)--> `middle` --> `low`
+* `polymorphic` --(monomorphization)--> `legacy`
