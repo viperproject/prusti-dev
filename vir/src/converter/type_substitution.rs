@@ -3868,7 +3868,6 @@ mod tests {
         let source = CfgMethod {
             uuid,
             method_name: String::from("mn1"),
-            formal_arg_count: 5,
             formal_returns: vec![
                 LocalVar {
                     name: String::from("_v1"),
@@ -3960,7 +3959,6 @@ mod tests {
         let expected = CfgMethod {
             uuid,
             method_name: String::from("mn1"),
-            formal_arg_count: 5,
             formal_returns: vec![
                 LocalVar {
                     name: String::from("_v1"),
