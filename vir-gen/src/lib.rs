@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![feature(exit_status_error)]
-
 // This Clippy check seems to be always wrong.
 #![allow(clippy::iter_with_drain)]
 
