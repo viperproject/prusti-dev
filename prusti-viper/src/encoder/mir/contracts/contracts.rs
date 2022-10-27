@@ -2,7 +2,10 @@ use super::borrows::BorrowInfo;
 use crate::encoder::places;
 use prusti_interface::{environment::Environment, specs::typed};
 use prusti_rustc_interface::{
-    hir::{def_id::DefId, Mutability},
+    hir::{
+        def_id::{DefId, LocalDefId},
+        Mutability,
+    },
     middle::{mir, ty::subst::SubstsRef},
 };
 use rustc_hash::FxHashMap;
@@ -99,6 +102,29 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
                     )
                 })
                 .collect(),
+        }
+    }
+
+    pub fn functional_termination_measure<'a, 'tcx>(
+        &'a self,
+        env: &'a Environment<'tcx>,
+        substs: SubstsRef<'tcx>,
+    ) -> Option<(LocalDefId, SubstsRef<'tcx>)> {
+        match self.specification.terminates {
+            typed::SpecificationItem::Empty => None,
+            typed::SpecificationItem::Inherent(t) | typed::SpecificationItem::Refined(_, t) => {
+                t.map(|inherent_def_id| (inherent_def_id, substs))
+            }
+            typed::SpecificationItem::Inherited(t) => t.map(|inherited_def_id| {
+                (
+                    inherited_def_id,
+                    // Same comment as `functional_precondition` applies.
+                    env.query
+                        .find_trait_method_substs(self.def_id, substs)
+                        .unwrap()
+                        .1,
+                )
+            }),
         }
     }
 

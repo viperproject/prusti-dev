@@ -32,12 +32,12 @@ mod traits;
 pub use self::{
     body::EnvBody,
     diagnostic::EnvDiagnostic,
-    loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops},
+    loops::{LoopAnalysisError, PlaceAccess, PlaceAccessKind, ProcedureLoops},
     loops_utils::*,
     name::EnvName,
     procedure::{
         get_loop_invariant, is_ghost_begin_marker, is_ghost_end_marker, is_loop_invariant_block,
-        is_marked_specification_block, BasicBlockIndex, Procedure,
+        is_loop_variant_block, is_marked_specification_block, BasicBlockIndex, Procedure,
     },
     query::EnvQuery,
 };
@@ -46,6 +46,7 @@ use self::{
     collect_prusti_spec_visitor::CollectPrustiSpecVisitor,
 };
 use crate::data::ProcedureDefId;
+use rustc_middle::ty::SubstsRef;
 
 /// Facade to the Rust compiler.
 pub struct Environment<'tcx> {
@@ -132,6 +133,28 @@ impl<'tcx> Environment<'tcx> {
             })
             .ord()
             .unwrap()
+    }
+
+    pub fn callee_reaches_caller(
+        &self,
+        caller_def_id: ProcedureDefId,
+        called_def_id: ProcedureDefId,
+        call_substs: SubstsRef<'tcx>,
+    ) -> bool {
+        if called_def_id == caller_def_id {
+            true
+        } else {
+            let param_env = self.tcx().param_env(caller_def_id);
+            if let Some(instance) =
+                traits::resolve_instance(self.tcx(), param_env.and((called_def_id, call_substs)))
+                    .unwrap()
+            {
+                self.tcx()
+                    .mir_callgraph_reachable((instance, caller_def_id.expect_local()))
+            } else {
+                true
+            }
+        }
     }
 
     /// Get the current version of the `prusti` crate

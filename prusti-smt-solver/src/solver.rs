@@ -1,8 +1,7 @@
+use crate::subprocess::{communicate, get_version, pass_error};
 use async_std::process::{Command, Stdio};
 use context::Context;
 use futures::try_join;
-
-use subprocess::{communicate, pass_error};
 
 mod context;
 mod subprocess;
@@ -17,7 +16,7 @@ async fn main() -> Result<(), std::io::Error> {
     context.write_config_to_log().await?;
     let args: Vec<_> = std::env::args().skip(1).collect();
     let mut cmd = Command::new(z3_path);
-    cmd.args(args)
+    cmd.args(&args)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
@@ -33,8 +32,16 @@ async fn main() -> Result<(), std::io::Error> {
     let solver_stdin = solver.stdin.expect("failed to create stdin pipe with Z3");
     let solver_stdout = solver.stdout.expect("failed to create stdout pipe with Z3");
     let solver_stderr = solver.stderr.expect("failed to create stderr pipe with Z3");
-    let communicate = communicate(&context, solver_stdin, solver_stdout);
     let error = pass_error(&context, solver_stderr);
-    try_join!(communicate, error)?;
+    if args
+        .iter()
+        .any(|arg| arg == "--version" || arg == "-version")
+    {
+        let communicate = get_version(&context, solver_stdout);
+        try_join!(communicate, error)?;
+    } else {
+        let communicate = communicate(&context, solver_stdin, solver_stdout);
+        try_join!(communicate, error)?;
+    };
     Ok(())
 }

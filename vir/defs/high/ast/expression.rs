@@ -230,6 +230,7 @@ pub struct FuncApp {
 
 #[derive(Copy)]
 pub enum BuiltinFunc {
+    SnapshotEquality,
     Size,
     PaddingSize,
     Discriminant,

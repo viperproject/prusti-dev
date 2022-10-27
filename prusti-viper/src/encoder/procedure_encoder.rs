@@ -44,7 +44,7 @@ use prusti_interface::{
             LoanPlaces, PoloniusInfo, PoloniusInfoError, ReborrowingDAG, ReborrowingDAGNode,
             ReborrowingKind, ReborrowingZombity,
         },
-        BasicBlockIndex, PermissionKind, Procedure,
+        BasicBlockIndex, LoopAnalysisError, PermissionKind, Procedure,
     },
     PrustiError,
 };
@@ -798,10 +798,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let loop_body: Vec<BasicBlockIndex> = loop_info
             .get_loop_body(loop_head)
             .iter()
+            .copied()
             .filter(
-                |&&bb| self.procedure.is_reachable_block(bb) && !self.procedure.is_spec_block(bb)
+                |&bb| self.procedure.is_reachable_block(bb) && !self.procedure.is_spec_block(bb)
             )
-            .cloned()
             .collect();
 
         // Identify important blocks
@@ -809,18 +809,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let loop_exit_blocks_set: FxHashSet<_> = loop_exit_blocks.iter().cloned().collect();
         let before_invariant_block: BasicBlockIndex = self.cached_loop_invariant_block[&loop_head];
         let before_inv_block_pos = loop_body
-            .iter()
-            .position(|&bb| bb == before_invariant_block)
+            .iter().copied()
+            .position(|bb| bb == before_invariant_block)
             .unwrap();
         let after_inv_block_pos = 1 + before_inv_block_pos;
-        let exit_blocks_before_inv: Vec<_> = loop_body[0..after_inv_block_pos]
-            .iter()
-            .filter(|&bb| loop_exit_blocks_set.contains(bb))
-            .cloned()
+        // Find boolean switch exit blocks before the invariant
+        let boolean_exit_blocks_before_inv: Vec<_> = loop_body[0..after_inv_block_pos]
+            .iter().copied()
+            .filter(|bb| loop_exit_blocks_set.contains(bb))
+            .filter(|&bb| self.procedure.successors(bb).len() == 2)
             .collect();
-        // HEURISTIC: pick the last exit block before the invariant.
+        // HEURISTIC: pick the last boolean exit block before the invariant.
         // An infinite loop will have no exit blocks, so we have to use an Option here
-        let opt_loop_guard_switch = exit_blocks_before_inv.last().cloned();
+        let opt_loop_guard_switch = boolean_exit_blocks_before_inv.last().cloned();
         let after_guard_block_pos = opt_loop_guard_switch
             .and_then(|loop_guard_switch| {
                 loop_body
@@ -1175,6 +1176,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 vir::Type::Snapshot(_) => BuiltinMethodKind::HavocRef,
                 vir::Type::Seq(_) => BuiltinMethodKind::HavocRef,
                 vir::Type::Map(_) => BuiltinMethodKind::HavocRef,
+                vir::Type::Ref => return Err(SpannedEncodingError::internal(
+                    format!("unexpected type of local variable {:?}", var),
+                    self.mir.span,
+                )),
             };
             let stmt = vir::Stmt::MethodCall( vir::MethodCall {
                 method_name: self.encoder.encode_builtin_method_use(builtin_method),
@@ -1533,7 +1538,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
             mir::Rvalue::Cast(mir::CastKind::PointerExposeAddress, ref operand, dst_ty) |
             mir::Rvalue::Cast(mir::CastKind::PointerFromExposedAddress, ref operand, dst_ty) |
-            mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
+            mir::Rvalue::Cast(mir::CastKind::IntToInt, ref operand, dst_ty) => {
                 self.encode_cast(
                     operand,
                     dst_ty,
@@ -1580,6 +1585,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::Cast(mir::CastKind::DynStar, _, _) => {
                 return Err(EncodingError::unsupported(
                     "raw pointers are not supported"
+                )).with_span(span);
+            }
+            mir::Rvalue::Cast(cast_kind, _, _) => {
+                return Err(EncodingError::unsupported(
+                    format!("casts {:?} are not supported", cast_kind)
                 )).with_span(span);
             }
             mir::Rvalue::AddressOf(_, _) => {
@@ -4991,7 +5001,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         let permissions_forest = self
             .loop_encoder
-            .compute_loop_invariant(loop_head, loop_inv);
+            .compute_loop_invariant(loop_head, loop_inv)
+            .map_err(|err| match err {
+                LoopAnalysisError::UnsupportedPlaceContext(place_ctxt, loc) => {
+                    SpannedEncodingError::internal(
+                        format!("loop uses the unexpected PlaceContext '{:?}'", place_ctxt),
+                        self.mir_encoder.get_span_of_location(loc),
+                    )
+                }
+            })?;
         debug!("permissions_forest: {:?}", permissions_forest);
         let loops = self.loop_encoder.get_enclosing_loop_heads(loop_head);
         let enclosing_permission_forest = if loops.len() > 1 {
@@ -5000,7 +5018,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             Some(self.loop_encoder.compute_loop_invariant(
                 enclosing_loop_head,
                 self.cached_loop_invariant_block[&enclosing_loop_head],
-            ))
+            ).map_err(|err| match err {
+                LoopAnalysisError::UnsupportedPlaceContext(place_ctxt, loc) => {
+                    SpannedEncodingError::internal(
+                        format!("loop uses the unexpected PlaceContext '{:?}'", place_ctxt),
+                        self.mir_encoder.get_span_of_location(loc),
+                    )
+                }
+            })?)
         } else {
             None
         };
@@ -5259,7 +5284,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             self.proc_def_id,
                             cl_substs,
                         )?);
-                        encoded_spec_spans.push(self.encoder.env().query.get_def_span(spec.invariant));
+                        let invariant = match spec {
+                            prusti_interface::specs::typed::LoopSpecification::Invariant(inv) => inv,
+                            _ => continue,
+                        };
+                        encoded_spec_spans.push(self.encoder.env().tcx().def_span(invariant));
                     }
                 }
             }

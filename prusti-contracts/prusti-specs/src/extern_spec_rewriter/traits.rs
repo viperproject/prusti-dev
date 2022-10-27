@@ -66,9 +66,8 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
     };
 
     // Add a where clause which restricts this self type parameter to the trait
-    if item_trait.generics.where_clause.as_ref().is_some() {
-        let span = item_trait.generics.where_clause.as_ref().unwrap().span();
-        return Err(syn::Error::new(span, "Where clauses for extern traits specs are not supported"));
+    if let Some(where_clause) = &item_trait.generics.where_clause {
+        return Err(syn::Error::new(where_clause.span(), "Where clauses for extern traits specs are not supported"));
     }
     let self_where_clause: syn::WhereClause = parse_quote! {
         where #self_type_ident: #self_type_trait
@@ -140,9 +139,9 @@ impl<'a> GeneratedStruct<'a> {
                     ));
                 }
                 syn::TraitItem::Method(trait_method) => {
-                    if trait_method.default.is_some() {
+                    if let Some(default) = &trait_method.default {
                         return Err(syn::Error::new(
-                            trait_method.default.as_ref().unwrap().span(),
+                            default.span(),
                             "Default methods in external trait specs are invalid",
                         ));
                     }
@@ -169,8 +168,9 @@ impl<'a> GeneratedStruct<'a> {
         let self_type_path: syn::TypePath = parse_quote_spanned! {self_type_ident.span()=>
             #self_type_ident
         };
+        let self_type = syn::Type::Path(self_type_path);
 
-        generate_extern_spec_method_stub(trait_method, &self_type_path, Some(&self.self_type_trait), ExternSpecKind::Trait)
+        generate_extern_spec_method_stub(trait_method, &self_type, Some(&self.self_type_trait), ExternSpecKind::Trait)
     }
 }
 

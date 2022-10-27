@@ -129,13 +129,20 @@ mod syn_extensions {
             &self.attrs
         }
     }
+    
+    impl HasAttributes for ItemFn {
+        fn attrs(&self) -> &Vec<Attribute> {
+            &self.attrs
+        }
+    }
 }
 
 /// See [SelfTypeRewriter]
 mod self_type_rewriter {
-    use syn::{ImplItemMethod, ItemFn, parse_quote_spanned, TypePath};
-    use syn::spanned::Spanned;
-    use syn::visit_mut::VisitMut;
+    use syn::{
+        parse_quote_spanned, spanned::Spanned, visit_mut::VisitMut, ImplItemMethod, ItemFn, Type,
+        TypePath,
+    };
 
     /// Given a replacement for the `Self` type and the trait it should fulfill,
     /// this type rewrites `Self` and associated type paths.
@@ -155,25 +162,31 @@ mod self_type_rewriter {
     /// }
     /// ```
     pub(crate) trait SelfTypeRewriter {
-        fn rewrite_self_type(&mut self, self_type: &TypePath, self_type_trait: Option<&TypePath>);
+        fn rewrite_self_type(&mut self, self_type: &Type, self_type_trait: Option<&TypePath>);
     }
 
     impl SelfTypeRewriter for ItemFn {
-        fn rewrite_self_type(&mut self, self_type: &TypePath, self_type_trait: Option<&TypePath>) {
-            let mut rewriter = Rewriter {self_type, self_type_trait};
+        fn rewrite_self_type(&mut self, self_type: &Type, self_type_trait: Option<&TypePath>) {
+            let mut rewriter = Rewriter {
+                self_type,
+                self_type_trait,
+            };
             rewriter.rewrite_item_fn(self);
         }
     }
 
     impl SelfTypeRewriter for ImplItemMethod {
-        fn rewrite_self_type(&mut self, self_type: &TypePath, self_type_trait: Option<&TypePath>) {
-            let mut rewriter = Rewriter {self_type, self_type_trait};
+        fn rewrite_self_type(&mut self, self_type: &Type, self_type_trait: Option<&TypePath>) {
+            let mut rewriter = Rewriter {
+                self_type,
+                self_type_trait,
+            };
             rewriter.rewrite_impl_item_method(self);
         }
     }
 
     struct Rewriter<'a> {
-        self_type: &'a TypePath,
+        self_type: &'a Type,
         self_type_trait: Option<&'a TypePath>,
     }
 
@@ -188,31 +201,38 @@ mod self_type_rewriter {
     }
 
     impl<'a> VisitMut for Rewriter<'a> {
-        fn visit_type_path_mut(&mut self, ty_path: &mut syn::TypePath) {
-            if ty_path.qself.is_none()
-                && !ty_path.path.segments.is_empty()
-                && ty_path.path.segments[0].ident == "Self" {
-                if ty_path.path.segments.len() == 1 {
-                    // replace `Self` type
-                    *ty_path = self.self_type.clone();
-                } else if ty_path.path.segments.len() >= 2 {
-                    // replace associated types
-                    let mut path_rest = ty_path.path.segments.clone()
-                        .into_pairs()
-                        .skip(1)
-                        .collect::<syn::punctuated::Punctuated<syn::PathSegment, _>>();
-                    if ty_path.path.segments.trailing_punct() {
-                        path_rest.push_punct(<syn::Token![::]>::default());
+        fn visit_type_mut(&mut self, ty: &mut Type) {
+            if let Type::Path(ty_path) = ty {
+                if ty_path.qself.is_none()
+                    && !ty_path.path.segments.is_empty()
+                    && ty_path.path.segments[0].ident == "Self"
+                {
+                    if ty_path.path.segments.len() == 1 {
+                        // replace `Self` type
+                        *ty = self.self_type.clone();
+                    } else if ty_path.path.segments.len() >= 2 {
+                        // replace associated types
+                        let mut path_rest = ty_path
+                            .path
+                            .segments
+                            .clone()
+                            .into_pairs()
+                            .skip(1)
+                            .collect::<syn::punctuated::Punctuated<syn::PathSegment, _>>(
+                        );
+                        if ty_path.path.segments.trailing_punct() {
+                            path_rest.push_punct(<syn::Token![::]>::default());
+                        }
+                        let self_type = &self.self_type;
+                        let self_type_trait = &self.self_type_trait;
+                        let new_type_path: syn::TypePath = parse_quote_spanned! {ty_path.span()=>
+                            < #self_type as #self_type_trait > :: #path_rest
+                        };
+                        *ty_path = new_type_path;
                     }
-                    let self_type = &self.self_type;
-                    let self_type_trait = &self.self_type_trait;
-                    let new_type_path: syn::TypePath = parse_quote_spanned! {ty_path.span()=>
-                    < #self_type as #self_type_trait > :: #path_rest
-                };
-                    *ty_path = new_type_path;
                 }
             }
-            syn::visit_mut::visit_type_path_mut(self, ty_path);
+            syn::visit_mut::visit_type_mut(self, ty);
         }
     }
 }
@@ -221,7 +241,7 @@ mod self_type_rewriter {
 mod receiver_rewriter {
     use proc_macro2::{Ident, TokenStream, TokenTree};
     use quote::{quote, quote_spanned};
-    use syn::{FnArg, ImplItemMethod, ItemFn, Macro, parse_quote_spanned, TypePath};
+    use syn::{FnArg, ImplItemMethod, ItemFn, Macro, parse_quote_spanned, Type};
     use syn::spanned::Spanned;
     use syn::visit_mut::VisitMut;
 
@@ -242,25 +262,25 @@ mod receiver_rewriter {
     /// }
     /// ```
     pub(crate) trait RewritableReceiver {
-        fn rewrite_receiver(&mut self, new_ty: &TypePath);
+        fn rewrite_receiver(&mut self, new_ty: &Type);
     }
 
     impl RewritableReceiver for ImplItemMethod {
-        fn rewrite_receiver(&mut self, new_ty: &TypePath) {
+        fn rewrite_receiver(&mut self, new_ty: &Type) {
             let mut rewriter = Rewriter {new_ty};
             rewriter.rewrite_impl_item_method(self);
         }
     }
 
     impl RewritableReceiver for ItemFn {
-        fn rewrite_receiver(&mut self, new_ty: &TypePath) {
+        fn rewrite_receiver(&mut self, new_ty: &Type) {
             let mut rewriter = Rewriter {new_ty};
             rewriter.rewrite_item_fn(self);
         }
     }
 
     struct Rewriter<'a> {
-        new_ty: &'a TypePath,
+        new_ty: &'a Type,
     }
 
     impl<'a> Rewriter<'a> {

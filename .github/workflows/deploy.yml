@@ -53,6 +53,48 @@ jobs:
           if-no-files-found: error
           path: prusti_artifact/**
 
+  # Build in release mode (but don't test) for macOS ARM
+  # See: https://stackoverflow.com/a/66875783/2491528
+  # Blocked by: https://github.com/viperproject/prusti-dev/issues/1193
+  build_macos_arm:
+    if: false
+    runs-on: macos-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Set up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '15'
+
+      - name: Set up the environment
+        run: python x.py setup
+
+      - name: Install the ARM toolchain
+        run: rustup target add aarch64-apple-darwin
+
+      - name: Build with cargo --release for arm64
+        run: |
+          SDKROOT=$(xcrun -sdk macosx --show-sdk-path) \
+          MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx --show-sdk-platform-version) \
+          python x.py build --release --all --target=aarch64-apple-darwin
+
+      - name: Package Prusti artifact
+        run: python x.py package release prusti_artifact
+
+      - name: Upload Prusti artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: prusti-release-macos-arm
+          if-no-files-found: error
+          path: prusti_artifact/**
+
   # Deploy to a new GitHub pre-release
   deploy:
     needs: build

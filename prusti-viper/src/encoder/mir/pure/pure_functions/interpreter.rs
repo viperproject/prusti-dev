@@ -279,7 +279,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             TerminatorKind::FalseEdge {
                 ref real_target, ..
             } => {
-                assert_eq!(states.len(), 2);
+                assert!(states.len() == 1 || states.len() == 2); // can be 1 for match guards (both targets point at the same block after some optimizations)
                 states[real_target].clone()
             }
 
@@ -384,8 +384,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 }
                 ExprBackwardInterpreterState::new(final_expr)
             }
-
-            TerminatorKind::DropAndReplace { .. } => unimplemented!(),
 
             TerminatorKind::Call {
                 ref args,
@@ -603,14 +601,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                             self.caller_def_id,
                                             call_substs,
                                         )
-                                        .with_span(term.source_info.span)?
+                                        .with_span(span)?
                                 } else {
                                     return Err(SpannedEncodingError::incorrect(
                                         format!(
                                             "use of impure function {:?} in pure code is not allowed",
                                             func_proc_name
                                         ),
-                                        term.source_info.span,
+                                        span,
                                     ));
                                 };
                                 trace!("Encoding pure function call '{}'", function_name);
@@ -695,13 +693,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     state
                 } else {
                     // Other kind of calls?
-                    unimplemented!();
+                    return Err(SpannedEncodingError::internal(
+                        format!("unexpected call kind '{:?}'", term.kind),
+                        span,
+                    ));
                 }
             }
 
             TerminatorKind::Call { .. } => {
                 // Other kind of calls?
-                unimplemented!();
+                return Err(SpannedEncodingError::internal(
+                    format!("unexpected call kind '{:?}'", term.kind),
+                    span,
+                ));
             }
 
             TerminatorKind::Assert {
@@ -766,10 +770,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 }
             }
 
-            TerminatorKind::Yield { .. }
+            TerminatorKind::DropAndReplace { .. }
+            | TerminatorKind::Yield { .. }
             | TerminatorKind::GeneratorDrop
             | TerminatorKind::InlineAsm { .. } => {
-                unimplemented!("{:?}", term.kind)
+                return Err(SpannedEncodingError::internal(
+                    format!("unimplemented encoding of terminator '{:?}'", term.kind),
+                    span,
+                ));
             }
         };
 
@@ -1008,7 +1016,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 state.substitute_value(&encoded_lhs, snapshot);
                             }
 
-                            ref x => unimplemented!("{:?}", x),
+                            ref agg => {
+                                return Err(SpannedEncodingError::internal(
+                                    format!("unimplemented encoding of RHS aggregate '{:?}'", agg),
+                                    span
+                                ));
+                            }
                         }
                     }
 
@@ -1086,8 +1099,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         state.substitute_value(&opt_lhs_value_place.unwrap(), encoded_value);
                     }
 
-                    mir::Rvalue::NullaryOp(_op, _op_ty) => unimplemented!(),
-
                     &mir::Rvalue::Discriminant(src) => {
                         let (encoded_src, src_ty, _) = self.encode_place(src).with_span(span)?;
                         match src_ty.kind() {
@@ -1121,7 +1132,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 state.substitute_value(&opt_lhs_value_place.unwrap(), discr_value);
                             }
                             ref x => {
-                                panic!("The discriminant of type {:?} is not defined", x);
+                                return Err(SpannedEncodingError::internal(
+                                    format!("the discriminant of type {:?} is not defined", x),
+                                    span
+                                ));
                             }
                         }
                     }
@@ -1150,7 +1164,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         state.substitute_value(&encoded_lhs, encoded_ref);
                     }
 
-                    mir::Rvalue::Cast(mir::CastKind::Misc, ref operand, dst_ty) => {
+                    mir::Rvalue::Cast(mir::CastKind::IntToInt, ref operand, dst_ty) => {
                         let encoded_val = self.mir_encoder
                             .encode_cast_expr(operand, *dst_ty, span)?;
 
@@ -1207,6 +1221,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         }
                     }
 
+                    mir::Rvalue::Cast(unsupported_kind, _, _) => {
+                        return Err(SpannedEncodingError::unsupported(
+                            format!("unsupported cast of kind '{:?}'", unsupported_kind),
+                            span,
+                        ));
+                    }
+
                     mir::Rvalue::Repeat(ref operand, times) => {
                         let (encoded_operand, _) = self.encode_operand(operand).with_span(span)?;
                         let len: usize = self.encoder.const_eval_intlike(mir::ConstantKind::Ty(*times)).with_span(span)?
@@ -1230,12 +1251,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     }
 
                     ref rhs => {
-                        unimplemented!("encoding of '{:?}'", rhs);
+                        return Err(SpannedEncodingError::internal(
+                            format!("unimplemented encoding of RHS '{:?}'", rhs),
+                            span
+                        ));
                     }
                 }
             }
 
-            ref stmt => unimplemented!("encoding of '{:?}'", stmt),
+            ref stmt => {
+                return Err(SpannedEncodingError::internal(
+                    format!("unimplemented encoding of statement '{:?}'", stmt),
+                    span
+                ));
+            }
         }
 
         self.apply_downcasts(state, location)?;

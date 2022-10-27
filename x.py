@@ -80,7 +80,7 @@ RUSTFMT_PATHS = [
 
 def shell(command, term_on_nzec=True):
     """Run a shell command."""
-    logging.debug("Running a shell command: ", command)
+    logging.debug(f"Running a shell command: {command}")
     if not dry_run:
         completed = subprocess.run(command.split())
         if completed.returncode != 0 and term_on_nzec:
@@ -291,12 +291,16 @@ def package(mode: str, package_path: str):
         f"prusti-contracts/target/verify/{mode}/deps/*.d",
     ]
     actual_exclude_set = set(path for pattern in exclude_paths for path in glob.glob(pattern))
+    logging.debug(f"The number of excluded paths is: {len(actual_exclude_set)}")
 
     # Copy the paths
     num_copied_paths = 0
     for pattern, dst_folder in include_paths_and_dst:
-        actual_paths = sorted(set(glob.glob(pattern)) - actual_exclude_set)
-        for src_path in actual_paths:
+        matched_paths = set(glob.glob(pattern))
+        if not matched_paths:
+            logging.debug(f"A glob pattern gave no results: {pattern}")
+        filtered_paths = sorted(matched_paths - actual_exclude_set)
+        for src_path in filtered_paths:
             dst_folder_path = os.path.join(package_path, dst_folder)
             dst_path = os.path.join(dst_folder_path, os.path.basename(src_path))
             logging.info(f"Copying '{src_path}' to '{dst_path}'...")

@@ -90,7 +90,7 @@ fn run_prusti_tests(group_name: &str, filter: &Option<String>, rustc_flags: Opti
     if path.exists() {
         config.target_rustcflags = Some(format!(
             "--color=never {}",
-            config.target_rustcflags.unwrap_or_else(|| "".to_string())
+            config.target_rustcflags.unwrap_or_default()
         ));
         config.mode = Mode::Ui;
         config.src_base = path;

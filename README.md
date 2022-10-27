@@ -1,8 +1,8 @@
 Prusti
 ======
 
-[![Test](https://github.com/viperproject/prusti-dev/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/viperproject/prusti-dev/actions/workflows/test.yml)
-[![Deploy](https://github.com/viperproject/prusti-dev/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/viperproject/prusti-dev/actions/workflows/deploy.yml)
+[![Test](https://github.com/viperproject/prusti-dev/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/viperproject/prusti-dev/actions/workflows/test.yml?query=branch%3Amaster)
+[![Deploy](https://github.com/viperproject/prusti-dev/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/viperproject/prusti-dev/actions/workflows/deploy.yml?query=branch%3Amaster)
 [![Test coverage](https://codecov.io/gh/viperproject/prusti-dev/branch/master/graph/badge.svg)](https://codecov.io/gh/viperproject/prusti-dev)
 [![Project chat](https://img.shields.io/badge/Zulip-join_chat-brightgreen.svg)](https://prusti.zulipchat.com/)
 
@@ -22,6 +22,20 @@ Documentation
 * The [developer guide](https://viperproject.github.io/prusti-dev/dev-guide/) contains Prusti details intended to make the project more approachable for new contributors.
 
 Do you still have questions? Open an issue or contact us on the [Zulip chat](https://prusti.zulipchat.com/).
+
+
+Getting Prusti
+--------------
+
+The easiest way to try out Prusti is by using the ["Prusti Assistant"](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant) extension for VS Code. See the **requirements** and the troubleshooting section in its [readme](https://github.com/viperproject/prusti-assistant/blob/master/README.md).
+
+Alternatively, if you wish to use Prusti from the command line there are three options:
+* Download the precompiled binaries for Ubuntu, Windows, or macOS x64 from a [GitHub release](https://github.com/viperproject/prusti-dev/releases).
+* Compile from the source code, by installing [rustup](https://rustup.rs/), running `./x.py setup` and then `./x.py build --release`.
+* (unmaintained) Build a Docker image from this [`Dockerfile`](Dockerfile).
+
+All three options provide the `prusti-rustc` and `cargo-prusti` programs that can be used analogously to, respectively, `rustc` and `cargo build`.
+For more detailed instructions, refer to the guides linked above.
 
 
 Quick example
@@ -67,17 +81,3 @@ Quick example
 4. Run Prusti. Now the `bisect` function verifies.
 
 Congratulations! You just proved absence of panics and integer overflows in the `bisect` function. To additionally prove that the result is correct (i.e. such that `f(x) == target`), see [this example](prusti-tests/tests/verify_overflow/pass/overflow/bisect.rs).
-
-
-Using Prusti
-------------
-
-The easiest way to try out Prusti is by using the ["Prusti Assistant"](https://marketplace.visualstudio.com/items?itemName=viper-admin.prusti-assistant) extension for VS Code.
-
-Alternatively, if you wish to use Prusti from the command line there are three options:
-* Download the precompiled binaries for Ubuntu, Windows, or MacOS from a [GitHub release](https://github.com/viperproject/prusti-dev/releases).
-* Compile from the source code, by installing [rustup](https://rustup.rs/), running `./x.py setup` and then `./x.py build --release`.
-* Build a Docker image from this [`Dockerfile`](Dockerfile).
-
-All three options provide the `prusti-rustc` and `cargo-prusti` programs that can be used analogously to, respectively, `rustc` and `cargo check`.
-For more detailed instructions, refer to the guides linked above.

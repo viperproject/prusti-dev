@@ -28,16 +28,7 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for IllegalPredicateUsagesChecker {
             self.collect_illegal_predicate_usages(collected_predicates.predicates, env.query);
         debug!("Predicate usages: {:?}", illegal_pred_usages);
 
-        let body_errors = collected_predicates
-            .abstract_predicate_with_bodies
-            .into_iter()
-            .map(|def_id| {
-                let span = env.query.get_def_span(def_id);
-                PrustiError::incorrect(
-                    "abstract predicates must not have bodies".to_string(),
-                    MultiSpan::from_span(span),
-                )
-            });
+        // TODO: check behavioral subtyping of implemented predicates against default implementation
 
         let illegal_usage_errors = illegal_pred_usages
             .into_iter()
@@ -52,7 +43,7 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for IllegalPredicateUsagesChecker {
                 )
             });
 
-        body_errors.chain(illegal_usage_errors).collect()
+        illegal_usage_errors.collect()
     }
 }
 
@@ -159,7 +150,7 @@ impl<'v, 'tcx: 'v> NonSpecExprVisitor<'tcx> for CheckPredicatesVisitor<'tcx> {
     }
 
     fn visit_expr(&mut self, ex: &'tcx hir::Expr<'tcx>) {
-        let owner_def_id = ex.hir_id.owner;
+        let owner_def_id = ex.hir_id.owner.def_id;
 
         // General check: The "path" of a predicate doesn't appear anywhere
         // (e.g. as in a function call or an argument when we pass the predicate to another function)

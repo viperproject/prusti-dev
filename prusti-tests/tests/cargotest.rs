@@ -185,6 +185,11 @@ fn test_failing_crate() {
 }
 
 #[cargo_test]
+fn test_failing_stable_toolchain() {
+    test_local_project("failing_stable_toolchain");
+}
+
+#[cargo_test]
 fn test_library_contracts_test() {
     test_local_project("library_contracts_test");
 }
