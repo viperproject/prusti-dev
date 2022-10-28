@@ -13,8 +13,6 @@ use crate::encoder::builtin_encoder::BuiltinMethodKind;
 use crate::encoder::errors::{ErrorManager, SpannedEncodingError, EncodingError};
 use crate::encoder::foldunfold;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
-use crate::encoder::SpecFunctionKind;
-use crate::encoder::spec_function_encoder::SpecFunctionEncoder;
 use prusti_common::{vir_expr, vir_local};
 use prusti_common::config;
 use prusti_common::report::log;
@@ -84,7 +82,6 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub(super) pure_function_encoder_state: PureFunctionEncoderState<'v, 'tcx>,
     pub(super) typed_type_encoder_state: HighToTypedTypeEncoderState,
     pub(super) specifications_state: SpecificationsState<'tcx>,
-    spec_functions: RefCell<FxHashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
     type_discriminant_funcs: RefCell<FxHashMap<String, vir::FunctionIdentifier>>,
     type_cast_functions: RefCell<FxHashMap<(ty::Ty<'tcx>, ty::Ty<'tcx>), vir::FunctionIdentifier>>,
     pub(super) snapshot_encoder_state: SnapshotEncoderState,
@@ -165,7 +162,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             high_type_encoder_state: Default::default(),
             pure_function_encoder_state: Default::default(),
             typed_type_encoder_state: Default::default(),
-            spec_functions: RefCell::new(FxHashMap::default()),
             type_discriminant_funcs: RefCell::new(FxHashMap::default()),
             type_cast_functions: RefCell::new(FxHashMap::default()),
             encoding_queue: RefCell::new(vec![]),
@@ -540,40 +536,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.procedures.borrow_mut().insert(def_id, method);
         }
 
-        // TODO: specification functions are currently only encoded for closures
-        // but we want them (on demand) for all functions when they are passed
-        // as a function pointer; likewise we want them for function *signatures*,
-        // when Fn* values are passed dynamically in boxes.
-        // This is not the correct place to trigger the encoding, it should be
-        // moved to where the spec function is used. `encode_spec_funcs` already
-        // ensures that spec functions for a particular `DefId` are encoded only
-        // once.
-        if self.env.query.is_closure(def_id) {
-            self.encode_spec_funcs(def_id)?;
-        }
-
         Ok(())
-    }
-
-    /// Encodes the specification functions for the function/closure def_id.
-    pub fn encode_spec_funcs(&self, def_id: ProcedureDefId)
-        -> SpannedEncodingResult<Vec<vir::FunctionIdentifier>>
-    {
-        if !self.env.query.has_body(def_id) || !def_id.is_local() {
-            return Ok(vec![]);
-        }
-
-        if !self.spec_functions.borrow().contains_key(&def_id) {
-            let procedure = self.env.get_procedure(def_id);
-            // TODO(tymap): for now use identity, long-term might need separate spec funcs
-            let substs = self.env.query.identity_substs(def_id);
-            let spec_func_encoder = SpecFunctionEncoder::new(self, &procedure, substs);
-            let result = spec_func_encoder.encode()?.into_iter().map(|function| {
-                self.insert_function(function)
-            }).collect();
-            self.spec_functions.borrow_mut().insert(def_id, result);
-        }
-        Ok(self.spec_functions.borrow()[&def_id].clone())
     }
 
     /// Checks whether the given type implements structural equality
@@ -625,23 +588,23 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::TyKind::Uint(ty::UintTy::Usize) => scalar_value.to_machine_usize(&self.env.tcx()).unwrap().into(),
             ty::TyKind::Float(ty::FloatTy::F32) => {
                 let bits = scalar_value.to_u32().unwrap();
-                vir::Expr::Const(
-                    vir::ConstExpr {
-                        value: vir::Const::Float(vir::FloatConst::F32(bits)),
-                        position: vir::Position::default(),
-                    })
+                vir::Expr::Const(vir::ConstExpr {
+                    value: vir::Const::Float(vir::FloatConst::F32(bits)),
+                    position: vir::Position::default(),
+                })
             },
             ty::TyKind::Float(ty::FloatTy::F64) => {
                 let bits = scalar_value.to_u64().unwrap();
-                vir::Expr::Const(
-                    vir::ConstExpr {
-                        value: vir::Const::Float(vir::FloatConst::F64(bits)),
-                        position: vir::Position::default(),
-                    })
+                vir::Expr::Const(vir::ConstExpr {
+                    value: vir::Const::Float(vir::FloatConst::F64(bits)),
+                    position: vir::Position::default(),
+                })
             }
-            ty::TyKind::FnDef(def_id, _) => {
-                self.encode_spec_funcs(*def_id)?;
-                vir::Expr::Const( vir::ConstExpr {value: vir::Const::FnPtr, position: vir::Position::default()} )
+            ty::TyKind::FnDef(..) => {
+                vir::Expr::Const(vir::ConstExpr {
+                    value: vir::Const::FnPtr,
+                    position: vir::Position::default(),
+                })
             }
             _ => {
                 return Err(EncodingError::unsupported(
@@ -805,27 +768,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 }
             }
         }
-    }
-
-    pub fn encode_spec_func_name(&self, def_id: ProcedureDefId, kind: SpecFunctionKind) -> String {
-        let kind_name = match kind {
-            SpecFunctionKind::Pre => "pre",
-            SpecFunctionKind::Post => "post",
-            SpecFunctionKind::HistInv => "histinv",
-        };
-        let full_name = format!(
-            "sf_{}_{}",
-            kind_name,
-            encode_identifier(self.env.name.get_unique_item_name(def_id))
-        );
-        let short_name = format!(
-            "sf_{}_{}",
-            kind_name,
-            encode_identifier(
-                self.env.name.get_item_name(def_id)
-            )
-        );
-        self.intern_viper_identifier(full_name, short_name)
     }
 
     pub fn intern_viper_identifier<S: AsRef<str>>(&self, full_name: S, short_name: S) -> String {
