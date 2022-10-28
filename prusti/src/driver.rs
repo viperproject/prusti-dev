@@ -101,10 +101,12 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
 
 /// Initialize Prusti and the Rust compiler loggers.
 fn init_loggers() {
-    let env = env_logger::Env::new()
-        .filter("PRUSTI_LOG")
-        .write_style("PRUSTI_LOG_STYLE");
-    env_logger::init_from_env(env);
+    env_logger::init_from_env(
+        env_logger::Env::new()
+            .filter_or("PRUSTI_LOG", config::log())
+            .write_style_or("PRUSTI_LOG_STYLE", config::log_style()),
+    );
+    
     prusti_rustc_interface::driver::init_rustc_env_logger();
 }
 
