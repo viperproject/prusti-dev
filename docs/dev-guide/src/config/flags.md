@@ -39,7 +39,7 @@
 | [`INTERN_NAMES`](#intern_names) | `bool` | `true` | A |
 | [`JAVA_HOME`](#java_home) | `Option<String>` | `None` | A |
 | [`JSON_COMMUNICATION`](#json_communication) | `bool` | `false` | A |
-| [`LOG`](#log) | `Option<String>` | `None` | A |
+| [`LOG`](#log) | `String` | `""` | A |
 | [`LOG_DIR`](#log_dir) | `String` | `"log"` | A* |
 | [`LOG_STYLE`](#log_style) | `String` | `"auto"` | A |
 | [`LOG_SMT_WRAPPER_INTERACTION`](#log_smt_wrapper_interaction) | `bool` | `false` | A |

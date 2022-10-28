@@ -82,6 +82,8 @@ lazy_static::lazy_static! {
         settings.set_default("encode_unsigned_num_constraint", false).unwrap();
         settings.set_default("encode_bitvectors", false).unwrap();
         settings.set_default("simplify_encoding", true).unwrap();
+        settings.set_default("log", "").unwrap();
+        settings.set_default("log_style", "auto").unwrap();
         settings.set_default("log_dir", "log").unwrap();
         settings.set_default("cache_path", "").unwrap();
         settings.set_default("dump_debug_info", false).unwrap();
@@ -416,6 +418,16 @@ pub fn dump_viper_program() -> bool {
 /// Filter for `fold`/`unfold` nodes when debug info is dumped.
 pub fn foldunfold_state_filter() -> String {
     read_setting("foldunfold_state_filter")
+}
+
+/// Set the log level of `env_logger`.
+pub fn log() -> String {
+    read_setting("log")
+}
+
+/// Set the log style when logging is enabled by `log`.
+pub fn log_style() -> String {
+    read_setting("log_style")
 }
 
 /// Path to directory in which log files and dumped output will be stored.

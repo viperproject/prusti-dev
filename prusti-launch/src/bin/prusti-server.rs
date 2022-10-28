@@ -32,6 +32,9 @@ fn process(args: Vec<String>) -> Result<(), i32> {
     let mut cmd = Command::new(&prusti_server_driver_path);
     cmd.args(args);
 
+    // Prevent shadowing of default log behavior.
+    cmd.env("DEFAULT_PRUSTI_LOG", "info");
+
     let libjvm_path =
         launch::find_libjvm(&java_home).expect("Failed to find JVM library. Check JAVA_HOME");
     launch::add_to_loader_path(vec![libjvm_path], &mut cmd);
