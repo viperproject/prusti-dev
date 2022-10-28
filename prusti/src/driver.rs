@@ -106,7 +106,7 @@ fn init_loggers() {
             .filter_or("PRUSTI_LOG", config::log())
             .write_style_or("PRUSTI_LOG_STYLE", config::log_style()),
     );
-    
+
     prusti_rustc_interface::driver::init_rustc_env_logger();
 }
 
