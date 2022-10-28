@@ -23,6 +23,11 @@
 <span id="23">23</span>
 <span id="24">24</span>
 <span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -30,11 +35,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use </span><a href="../../clap_derive/derive.Parser.html">clap::Parser</a>;
+<span class="kw">use </span><a href="../../prusti_utils/config/index.html">prusti_utils::config</a>;
 
 <span class="doccomment">/// A verification server to handle Prusti verification requests.
 </span><span class="attribute">#[derive(Parser, Debug)]
 #[clap(version, about, long_about = <span class="prelude-val">None</span>)]
-</span><span class="kw">struct </span><a href="#12">Args</a> {
+</span><span class="kw">struct </span><a href="#13">Args</a> {
     <span class="doccomment">/// Sets the port on which to listen for incoming verification requests.
     /// Pass 0 to get a free one assigned by the OS.
     </span><span class="attribute">#[clap(short, long, value_name = <span class="string">&quot;PORT&quot;</span>, default_value_t = <span class="number">0</span>)]
@@ -42,11 +48,15 @@
 }
 
 <span class="kw">fn </span>main() {
-    env_logger::init_from_env(env_logger::Env::new().filter_or(<span class="string">&quot;PRUSTI_LOG&quot;</span>, <span class="string">&quot;info&quot;</span>));
+    env_logger::init_from_env(
+        env_logger::Env::new()
+            .filter_or(<span class="string">&quot;PRUSTI_LOG&quot;</span>, config::log())
+            .write_style_or(<span class="string">&quot;PRUSTI_LOG_STYLE&quot;</span>, config::log_style()),
+    );
 
     <span class="kw">let </span>args = Args::parse();
 
-    prusti_server::start_server_on_port(<a href="#22">args</a>.port);
+    prusti_server::start_server_on_port(<a href="#27">args</a>.port);
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_server_driver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>

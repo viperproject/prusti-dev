@@ -237,6 +237,8 @@
 <span id="237">237</span>
 <span id="238">238</span>
 <span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -340,10 +342,12 @@
 
 <span class="doccomment">/// Initialize Prusti and the Rust compiler loggers.
 </span><span class="kw">fn </span>init_loggers() {
-    <span class="kw">let </span>env = env_logger::Env::new()
-        .filter(<span class="string">&quot;PRUSTI_LOG&quot;</span>)
-        .write_style(<span class="string">&quot;PRUSTI_LOG_STYLE&quot;</span>);
-    env_logger::init_from_env(<a href="#104">env</a>);
+    env_logger::init_from_env(
+        env_logger::Env::new()
+            .filter_or(<span class="string">&quot;PRUSTI_LOG&quot;</span>, config::log())
+            .write_style_or(<span class="string">&quot;PRUSTI_LOG_STYLE&quot;</span>, config::log_style()),
+    );
+
     prusti_rustc_interface::driver::init_rustc_env_logger();
 }
 
@@ -363,12 +367,12 @@
     <span class="comment">// This environment variable will not be set when building dependencies.
     </span><span class="kw">let </span>is_primary_package = env::var(<span class="string">&quot;CARGO_PRIMARY_PACKAGE&quot;</span>).is_ok();
     <span class="comment">// Is this crate a dependency when user doesn&#39;t want to verify dependencies
-    </span><span class="kw">let </span>is_no_verify_dep_crate = !<a href="#125">is_primary_package</a> &amp;&amp; config::no_verify_deps();
+    </span><span class="kw">let </span>is_no_verify_dep_crate = !<a href="#127">is_primary_package</a> &amp;&amp; config::no_verify_deps();
 
     <span class="comment">// Would `cargo check` not report errors for this crate? That is, are lints disabled
     // (i.e. is this a non-local crate)
     </span><span class="kw">let </span>are_lints_disabled =
-        <a href="arg_value.rs.html#13-17">arg_value</a>(<span class="kw-2">&amp;</span><a href="#117">original_rustc_args</a>, <span class="string">&quot;--cap-lints&quot;</span>, |val| <a href="#132">val</a> == <span class="string">&quot;allow&quot;</span>).is_some();
+        <a href="arg_value.rs.html#13-17">arg_value</a>(<span class="kw-2">&amp;</span><a href="#119">original_rustc_args</a>, <span class="string">&quot;--cap-lints&quot;</span>, |val| <a href="#134">val</a> == <span class="string">&quot;allow&quot;</span>).is_some();
 
     <span class="comment">// Remote dependencies (e.g. from git/crates.io), or any dependencies if `no_verify_deps`,
     // are not verified. However, we still run Prusti on them to export potential specs.
@@ -423,35 +427,35 @@
         user::message(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Prusti version: {}&quot;</span>, get_prusti_version_info()));
         <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Prusti version: {}&quot;</span>, get_prusti_version_info());
 
-        <a href="#145">rustc_args</a>.push(<span class="string">&quot;-Zalways-encode-mir&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-        <a href="#145">rustc_args</a>.push(<span class="string">&quot;-Zcrate-attr=feature(type_ascription)&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-        <a href="#145">rustc_args</a>.push(<span class="string">&quot;-Zcrate-attr=feature(stmt_expr_attributes)&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-        <a href="#145">rustc_args</a>.push(<span class="string">&quot;-Zcrate-attr=feature(register_tool)&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-        <a href="#145">rustc_args</a>.push(<span class="string">&quot;-Zcrate-attr=register_tool(prusti)&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+        <a href="#147">rustc_args</a>.push(<span class="string">&quot;-Zalways-encode-mir&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+        <a href="#147">rustc_args</a>.push(<span class="string">&quot;-Zcrate-attr=feature(type_ascription)&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+        <a href="#147">rustc_args</a>.push(<span class="string">&quot;-Zcrate-attr=feature(stmt_expr_attributes)&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+        <a href="#147">rustc_args</a>.push(<span class="string">&quot;-Zcrate-attr=feature(register_tool)&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+        <a href="#147">rustc_args</a>.push(<span class="string">&quot;-Zcrate-attr=register_tool(prusti)&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
 
         <span class="kw">if </span>config::check_overflows() {
             <span class="comment">// Some crates might have a `overflow-checks = false` in their `Cargo.toml` to
             // disable integer overflow checks, but we want to override that.
-            </span><a href="#145">rustc_args</a>.push(<span class="string">&quot;-Coverflow-checks=on&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+            </span><a href="#147">rustc_args</a>.push(<span class="string">&quot;-Coverflow-checks=on&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
         }
 
         <span class="kw">if </span>config::dump_debug_info() {
-            <a href="#145">rustc_args</a>.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+            <a href="#147">rustc_args</a>.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;-Zdump-mir-dir={}&quot;</span>,
                 config::log_dir()
                     .join(<span class="string">&quot;mir&quot;</span>)
                     .to_str()
                     .expect(<span class="string">&quot;failed to configure dump-mir-dir&quot;</span>)
             ));
-            <a href="#145">rustc_args</a>.push(<span class="string">&quot;-Zdump-mir=all&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-            <a href="#145">rustc_args</a>.push(<span class="string">&quot;-Zdump-mir-graphviz&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+            <a href="#147">rustc_args</a>.push(<span class="string">&quot;-Zdump-mir=all&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+            <a href="#147">rustc_args</a>.push(<span class="string">&quot;-Zdump-mir-graphviz&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
             <span class="kw">if </span>!config::ignore_regions() {
-                <a href="#145">rustc_args</a>.push(<span class="string">&quot;-Zidentify-regions=yes&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+                <a href="#147">rustc_args</a>.push(<span class="string">&quot;-Zidentify-regions=yes&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
             }
         }
         <span class="kw">if </span>config::dump_nll_facts() {
-            <a href="#145">rustc_args</a>.push(<span class="string">&quot;-Znll-facts=yes&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-            <a href="#145">rustc_args</a>.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+            <a href="#147">rustc_args</a>.push(<span class="string">&quot;-Znll-facts=yes&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+            <a href="#147">rustc_args</a>.push(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;-Znll-facts-dir={}&quot;</span>,
                 config::log_dir()
                     .join(<span class="string">&quot;nll-facts&quot;</span>)
@@ -462,9 +466,9 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>callbacks = PrustiCompilerCalls::default();
 
-        prusti_rustc_interface::driver::RunCompiler::new(<span class="kw-2">&amp;</span><a href="#145">rustc_args</a>, <span class="kw-2">&amp;mut </span><a href="#224">callbacks</a>).run()
+        prusti_rustc_interface::driver::RunCompiler::new(<span class="kw-2">&amp;</span><a href="#147">rustc_args</a>, <span class="kw-2">&amp;mut </span><a href="#226">callbacks</a>).run()
     });
-    <span class="kw">let </span>duration = <a href="#112">stopwatch</a>.finish();
+    <span class="kw">let </span>duration = <a href="#114">stopwatch</a>.finish();
     <span class="kw">if let </span><span class="prelude-val">Some</span>(deadline) = config::verification_deadline() {
         <span class="comment">// Check that we met the deadline.
         </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
@@ -474,7 +478,7 @@
             duration,
         );
     }
-    <a href="https://doc.rust-lang.org/nightly/std/process/fn.exit.html">std::process::exit</a>(<a href="#177">exit_code</a>)
+    <a href="https://doc.rust-lang.org/nightly/std/process/fn.exit.html">std::process::exit</a>(<a href="#179">exit_code</a>)
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_driver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>
