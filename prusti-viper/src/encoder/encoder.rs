@@ -648,10 +648,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         self.intern_viper_identifier(full_name, short_name)
     }
 
-    pub fn get_item_name(&self, proc_def_id: ProcedureDefId) -> String {
-        self.env.name.get_item_name(proc_def_id)
-    }
-
     pub fn queue_procedure_encoding(&self, def_id: ProcedureDefId) {
         self.encoding_queue
             .borrow_mut()
