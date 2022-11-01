@@ -362,7 +362,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
                     if maybe_dead {
                         self.tcx.sess.delay_span_bug(
                             terminator.source_info.span,
-                            &format!(
+                            format!(
                                 "drop of untracked, uninitialized value {:?}, place {:?} ({:?})",
                                 bb, place, path,
                             ),
@@ -421,7 +421,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
                         LookupResult::Parent(..) => {
                             self.tcx.sess.delay_span_bug(
                                 terminator.source_info.span,
-                                &format!("drop of untracked value {:?}", bb),
+                                format!("drop of untracked value {:?}", bb),
                             );
                         }
                     }
