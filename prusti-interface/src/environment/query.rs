@@ -354,7 +354,7 @@ impl<'tcx> EnvQuery<'tcx> {
         let ty = self.resolve_assoc_types(ty, param_env);
         let ty = self.tcx.erase_late_bound_regions(ty);
         ty.is_copy_modulo_regions(
-            self.tcx.at(prusti_rustc_interface::span::DUMMY_SP),
+            *self.tcx.at(prusti_rustc_interface::span::DUMMY_SP),
             param_env,
         )
     }

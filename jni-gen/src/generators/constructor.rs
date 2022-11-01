@@ -24,13 +24,12 @@ pub fn generate_constructor(
             &[],
         )?
         .l()?;
-    let num_constructors = env.get_array_length(constructors.into_inner())?;
+    let num_constructors = env.get_array_length(*constructors)?;
 
     let mut indexed_constructors = HashMap::new();
 
     for constructor_index in 0..num_constructors {
-        let constructor =
-            env.get_object_array_element(constructors.into_inner(), constructor_index)?;
+        let constructor = env.get_object_array_element(*constructors, constructor_index)?;
 
         let constructor_signature = java_str_to_string(
             &env.get_string(
@@ -79,10 +78,10 @@ pub fn generate_constructor(
             &[],
         )?
         .l()?;
-    let num_parameters = env.get_array_length(parameters.into_inner())?;
+    let num_parameters = env.get_array_length(*parameters)?;
 
     for parameter_index in 0..num_parameters {
-        let parameter = env.get_object_array_element(parameters.into_inner(), parameter_index)?;
+        let parameter = env.get_object_array_element(*parameters, parameter_index)?;
         let parameter_name = env.get_string(
             env.call_method(parameter, "getName", "()Ljava/lang/String;", &[])?
                 .l()?
