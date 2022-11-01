@@ -30,7 +30,7 @@ impl CrossCrateSpecs {
         }
         let target_filename = outputs
             .out_directory
-            .join(&format!("lib{}.specs", env.name.local_crate_filename()));
+            .join(format!("lib{}.specs", env.name.local_crate_filename()));
         if let Err(e) = Self::write_into_file(env, def_spec, &target_filename) {
             PrustiError::internal(
                 format!(

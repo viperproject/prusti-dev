@@ -1964,7 +1964,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
         if node.incoming_zombies && restored.is_some() {
-            let lhs_label = self.get_label_after_location(loan_location).to_string();
+            let lhs_label = &self.get_label_after_location(loan_location).to_string();
             for &in_loan in node.reborrowing_loans.iter() {
                 // TODO: Is this the correct span?
                 if self.is_mutable_borrow(in_loan).with_span(span)? {
@@ -1972,8 +1972,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let in_label = self.get_label_after_location(in_location).to_string();
                     used_lhs_label = true;
                     stmts.extend(self.encode_transfer_permissions(
-                        expiring.clone().old(&in_label),
-                        expiring.clone().old(&lhs_label),
+                        expiring.clone().old(in_label),
+                        expiring.clone().old(lhs_label),
                         loan_location,
                         is_in_package_stmt,
                     ));
@@ -2098,7 +2098,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             let in_location = self.polonius_info().get_loan_location(&in_loan);
                             let in_label = self.get_label_after_location(in_location).to_string();
                             stmts.extend(self.encode_transfer_permissions(
-                                encoded_place.clone().old(&in_label),
+                                encoded_place.clone().old(in_label),
                                 encoded_place.clone().old(&post_label),
                                 loan_location,
                                 is_in_package_stmt,
@@ -2797,7 +2797,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )?
         );
 
-        self.encode_transfer_args_permissions(location, args,  &mut stmts, label.clone(), false)?;
+        self.encode_transfer_args_permissions(location, args,  &mut stmts, &label, false)?;
 
         // Store a label for permissions got back from the call
         debug!(
@@ -3012,7 +3012,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ]
         });
 
-        self.encode_transfer_args_permissions(location, args,  &mut stmts, label.clone(), false)?;
+        self.encode_transfer_args_permissions(location, args,  &mut stmts, &label, false)?;
         // Store a label for permissions got back from the call
         debug!(
             "Pure function call location {:?} has label {}",
@@ -3073,7 +3073,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )?;
             stmts.extend(call_stmts);
 
-            self.encode_transfer_args_permissions(location, args,  &mut stmts, label, false)?;
+            self.encode_transfer_args_permissions(location, args,  &mut stmts, &label, false)?;
 
             Ok(stmts)
         } else {
@@ -3612,7 +3612,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         )?;
         stmts.extend(call_stmts);
 
-        self.encode_transfer_args_permissions(location, args,  &mut stmts, label, false)?;
+        self.encode_transfer_args_permissions(location, args,  &mut stmts, &label, false)?;
         Ok(stmts)
     }
 
@@ -3688,7 +3688,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
         args: &[mir::Operand<'tcx>],
         stmts: &mut Vec<vir::Stmt>,
-        label: String,
+        label: &str,
         is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<()> {
         let span = self.mir_encoder.get_span_of_location(location);
@@ -3710,7 +3710,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let ref_place = place.clone().field(ref_field);
                     stmts.extend(self.encode_transfer_permissions(
                         ref_place.clone(),
-                        ref_place.clone().old(&label),
+                        ref_place.clone().old(label),
                         location,
                         is_in_package_stmt,
                     ));

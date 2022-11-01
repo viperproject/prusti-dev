@@ -81,7 +81,7 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
             // function.
             (
                 ty.is_copy_modulo_regions(
-                    self.env().tcx().at(prusti_rustc_interface::span::DUMMY_SP),
+                    *self.env().tcx().at(prusti_rustc_interface::span::DUMMY_SP),
                     param_env,
                 ),
                 Some(adt_def.did()),

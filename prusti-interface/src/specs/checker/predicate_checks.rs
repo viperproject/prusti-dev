@@ -119,8 +119,8 @@ impl<'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'tcx> {
     }
 
     fn visit_trait_item(&mut self, ti: &'tcx hir::TraitItem<'tcx>) {
-        let def_id = ti.def_id.to_def_id();
-        let attrs = self.env_query.get_local_attributes(ti.def_id);
+        let def_id = ti.owner_id.def_id.to_def_id();
+        let attrs = self.env_query.get_local_attributes(ti.owner_id.def_id);
 
         if has_abstract_predicate_attr(attrs) {
             let span = self.env_query.get_def_span(def_id);

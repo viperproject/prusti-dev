@@ -79,7 +79,7 @@ impl Counterexample {
     /// mapped counterexample.
     pub fn annotate_error(&self, mut prusti_error: PrustiError) -> PrustiError {
         for entry in &self.0 {
-            prusti_error = prusti_error.add_note(&format!("{}", entry), Some(entry.span));
+            prusti_error = prusti_error.add_note(format!("{}", entry), Some(entry.span));
         }
         prusti_error
     }
