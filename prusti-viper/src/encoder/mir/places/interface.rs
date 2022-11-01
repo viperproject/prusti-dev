@@ -364,7 +364,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                     ),
                     vir_high::Type::Int(vir_high::ty::Int::I16) => vir_high::Expression::or(
                         vir_high::Expression::less_than(result.clone(), std::i16::MIN.into()),
-                        vir_high::Expression::greater_than(result, std::i16::MIN.into()),
+                        vir_high::Expression::greater_than(result, std::i16::MAX.into()),
                     ),
                     vir_high::Type::Int(vir_high::ty::Int::I32) => vir_high::Expression::or(
                         vir_high::Expression::less_than(result.clone(), std::i32::MIN.into()),
