@@ -193,11 +193,12 @@ impl<'a> JniUtils<'a> {
     /// Returns a new Java array of objects, initialised with null values
     pub fn new_object_array(&self, length: jsize) -> JObject {
         let object_class = self.unwrap_result(self.env.find_class("java/lang/Object"));
-        JObject::from(self.unwrap_result(self.env.new_object_array(
+        let object_array = self.unwrap_result(self.env.new_object_array(
             length,
             object_class,
             JObject::null(),
-        )))
+        ));
+        unsafe { JObject::from_raw(object_array) }
     }
 
     /// Converts a Scala Seq to a Java Array
