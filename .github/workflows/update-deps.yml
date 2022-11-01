@@ -38,7 +38,9 @@ jobs:
           UPDATE_NUMBER=$(( 10#$(date +%m) * 2 + (10#$(date +%d) / 15) - 0 ))
           DEVELOPER="${DEVELOPERS[ $UPDATE_NUMBER % ${#DEVELOPERS[@]} ]}"
           echo "The assigned developer is $DEVELOPER"
+          mv prusti-contracts/Cargo.toml prusti-contracts/Cargo_disabled.toml
           OUTDATED_DEPENDENCIES="$(cargo outdated --root-deps-only --workspace 2>&1 || echo "cargo outdated failed to execute")"
+          mv prusti-contracts/Cargo_disabled.toml prusti-contracts/Cargo.toml
           echo "VIPER_VERSION=$VIPER_VERSION" >> $GITHUB_ENV
           echo "NIGHTLY_VERSION=$NIGHTLY_VERSION" >> $GITHUB_ENV
           echo "DEVELOPER=$DEVELOPER" >> $GITHUB_ENV
@@ -63,13 +65,16 @@ jobs:
             * [ ] Run `cargo audit` and fix the issues.
             * [ ] Manualy update outdated dependencies (see the list below).
             * [ ] Manualy run `cargo update`.
-            
+
             <details><summary>List of direct outdated dependencies:</summary>
 
             ```
+            $ mv prusti-contracts/Cargo.toml prusti-contracts/Cargo_disabled.toml
             $ cargo outdated --root-deps-only --workspace
-            
+
             ${{ env.OUTDATED_DEPENDENCIES }}
+
+            $ mv prusti-contracts/Cargo_disabled.toml prusti-contracts/Cargo.toml
             ```
             </details>
 
