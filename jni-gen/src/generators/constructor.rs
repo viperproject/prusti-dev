@@ -29,8 +29,7 @@ pub fn generate_constructor(
     let mut indexed_constructors = HashMap::new();
 
     for constructor_index in 0..num_constructors {
-        let constructor =
-            env.get_object_array_element(*constructors, constructor_index)?;
+        let constructor = env.get_object_array_element(*constructors, constructor_index)?;
 
         let constructor_signature = java_str_to_string(
             &env.get_string(
