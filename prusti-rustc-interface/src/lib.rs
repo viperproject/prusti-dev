@@ -25,7 +25,7 @@ pub extern crate rustc_target as target;
 // TODO: switch over to `rustc_smir` once RA knows about the crate
 // pub use rustc_smir::very_unstable::{borrowck, dataflow, hir, middle, trait_selection};
 pub extern crate rustc_borrowck as borrowck;
-pub extern crate rustc_mir_dataflow as dataflow;
-pub extern crate rustc_middle as middle;
 pub extern crate rustc_hir as hir;
+pub extern crate rustc_middle as middle;
+pub extern crate rustc_mir_dataflow as dataflow;
 pub extern crate rustc_trait_selection as trait_selection;
