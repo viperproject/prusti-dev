@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/sys/unix/selector/epoll.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../mio/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.5/src/sys/unix/selector/epoll.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../normalize.css"><link rel="stylesheet" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../mio/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -248,6 +248,44 @@
 <span id="248">248</span>
 <span id="249">249</span>
 <span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../../../interest.rs.html#17">Interest</a>, <a href="../../../token.rs.html#132">Token</a>};
 
 <span class="kw">use </span>libc::{<a href="../../../../../libc/unix/linux_like/constant.EPOLLET.html">EPOLLET</a>, <a href="../../../../../libc/unix/linux_like/constant.EPOLLIN.html">EPOLLIN</a>, <a href="../../../../../libc/unix/linux_like/constant.EPOLLOUT.html">EPOLLOUT</a>, <a href="../../../../../libc/unix/linux_like/constant.EPOLLRDHUP.html">EPOLLRDHUP</a>};
@@ -273,18 +311,44 @@
 
 <span class="kw">impl </span><a href="#16">Selector</a> {
     <span class="kw">pub fn </span>new() -&gt; io::Result&lt;<a href="#16">Selector</a>&gt; {
-        <span class="comment">// According to libuv, `EPOLL_CLOEXEC` is not defined on Android API &lt;
+        <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;android&quot;</span>))]
+        </span><span class="kw">let </span>res = <a class="macro" href="../mod.rs.html#5-14">syscall!</a>(epoll_create1(libc::EPOLL_CLOEXEC));
+
+        <span class="comment">// On Android &lt; API level 16 `epoll_create1` is not defined, so use a
+        // raw system call.
+        // According to libuv, `EPOLL_CLOEXEC` is not defined on Android API &lt;
         // 21. But `EPOLL_CLOEXEC` is an alias for `O_CLOEXEC` on that platform,
         // so we use it instead.
         </span><span class="attribute">#[cfg(target_os = <span class="string">&quot;android&quot;</span>)]
-        </span><span class="kw">let </span>flag = libc::O_CLOEXEC;
-        <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;android&quot;</span>))]
-        </span><span class="kw">let </span>flag = libc::EPOLL_CLOEXEC;
+        </span><span class="kw">let </span>res = <span class="macro">syscall!</span>(syscall(libc::SYS_epoll_create1, libc::O_CLOEXEC));
 
-        <a class="macro" href="../mod.rs.html#5-14">syscall!</a>(epoll_create1(flag)).map(|ep| <a href="#16">Selector</a> {
+        <span class="kw">let </span>ep = <span class="kw">match </span><a href="#27">res</a> {
+            <span class="prelude-val">Ok</span>(ep) =&gt; <a href="#38">ep</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
+            <span class="prelude-val">Err</span>(err) =&gt; {
+                <span class="comment">// When `epoll_create1` is not available fall back to use
+                // `epoll_create` followed by `fcntl`.
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(libc::ENOSYS) = <a href="#39">err</a>.raw_os_error() {
+                    <span class="kw">match </span><a class="macro" href="../mod.rs.html#5-14">syscall!</a>(epoll_create(<span class="number">1024</span>)) {
+                        <span class="prelude-val">Ok</span>(ep) =&gt; <span class="kw">match </span><a class="macro" href="../mod.rs.html#5-14">syscall!</a>(fcntl(ep, libc::F_SETFD, libc::FD_CLOEXEC)) {
+                            <span class="prelude-val">Ok</span>(ep) =&gt; <a href="#45">ep</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
+                            <span class="prelude-val">Err</span>(err) =&gt; {
+                                <span class="comment">// `fcntl` failed, cleanup `ep`.
+                                </span><span class="kw">let _ </span>= <span class="kw">unsafe </span>{ libc::close(<a href="#44">ep</a>) };
+                                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#46">err</a>);
+                            }
+                        },
+                        <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#52">err</a>),
+                    }
+                } <span class="kw">else </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#39">err</a>);
+                }
+            }
+        };
+
+        <span class="prelude-val">Ok</span>(<a href="#16">Selector</a> {
             <span class="attribute">#[cfg(debug_assertions)]
             </span>id: <a href="#13">NEXT_ID</a>.fetch_add(<span class="number">1</span>, Ordering::Relaxed),
-            <a href="#34">ep</a>,
+            <a href="#37">ep</a>,
             <span class="attribute">#[cfg(debug_assertions)]
             </span>has_waker: AtomicBool::new(<span class="bool-val">false</span>),
         })
@@ -294,14 +358,14 @@
         <a class="macro" href="../mod.rs.html#5-14">syscall!</a>(fcntl(<span class="self">self</span>.ep, libc::F_DUPFD_CLOEXEC, <span class="kw">super</span>::LOWEST_FD)).map(|ep| <a href="#16">Selector</a> {
             <span class="comment">// It&#39;s the same selector, so we use the same id.
             </span><span class="attribute">#[cfg(debug_assertions)]
-            </span>id: <a class="self" href="#43">self</a>.id,
-            <a href="#44">ep</a>,
+            </span>id: <a class="self" href="#69">self</a>.id,
+            <a href="#70">ep</a>,
             <span class="attribute">#[cfg(debug_assertions)]
-            </span>has_waker: AtomicBool::new(<a class="self" href="#43">self</a>.has_waker.load(Ordering::Acquire)),
+            </span>has_waker: AtomicBool::new(<a class="self" href="#69">self</a>.has_waker.load(Ordering::Acquire)),
         })
     }
 
-    <span class="kw">pub fn </span>select(<span class="kw-2">&amp;</span><span class="self">self</span>, events: <span class="kw-2">&amp;mut </span><a href="#151">Events</a>, timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">pub fn </span>select(<span class="kw-2">&amp;</span><span class="self">self</span>, events: <span class="kw-2">&amp;mut </span><a href="#189">Events</a>, timeout: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;) -&gt; io::Result&lt;()&gt; {
         <span class="comment">// A bug in kernels &lt; 2.6.37 makes timeouts larger than LONG_MAX / CONFIG_HZ
         // (approx. 30 minutes with CONFIG_HZ=1200) effectively infinite on 32 bits
         // architectures. The magic number is the same constant used by libuv.
@@ -310,11 +374,23 @@
         <span class="attribute">#[cfg(not(target_pointer_width = <span class="string">&quot;32&quot;</span>))]
         </span><span class="kw">const </span>MAX_SAFE_TIMEOUT: <a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a> = libc::c_int::max_value() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u128.html">u128</a>;
 
-        <span class="kw">let </span>timeout = <a href="#54">timeout</a>
-            .map(|to| cmp::min(<a href="#64">to</a>.as_millis(), <a href="#61">MAX_SAFE_TIMEOUT</a>) <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a>)
+        <span class="kw">let </span>timeout = <a href="#80">timeout</a>
+            .map(|to| {
+                <span class="kw">let </span>to_ms = <a href="#90">to</a>.as_millis();
+                <span class="comment">// as_millis() truncates, so round up to 1 ms as the documentation says can happen.
+                // This avoids turning submillisecond timeouts into immediate returns unless the
+                // caller explicitly requests that by specifying a zero timeout.
+                </span><span class="kw">let </span>to_ms = <a href="#91">to_ms</a>
+                    + <span class="kw">if </span>to_ms == <span class="number">0 </span>&amp;&amp; to.subsec_nanos() != <span class="number">0 </span>{
+                        <span class="number">1
+                    </span>} <span class="kw">else </span>{
+                        <span class="number">0
+                    </span>};
+                cmp::min(<a href="#87">MAX_SAFE_TIMEOUT</a>, <a href="#95">to_ms</a>) <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a>
+            })
             .unwrap_or(-<span class="number">1</span>);
 
-        <a href="#54">events</a>.clear();
+        <a href="#80">events</a>.clear();
         <a class="macro" href="../mod.rs.html#5-14">syscall!</a>(epoll_wait(
             <span class="self">self</span>.ep,
             events.as_mut_ptr(),
@@ -324,14 +400,14 @@
         .map(|n_events| {
             <span class="comment">// This is safe because `epoll_wait` ensures that `n_events` are
             // assigned.
-            </span><span class="kw">unsafe </span>{ <a href="#54">events</a>.set_len(<a href="#74">n_events</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) };
+            </span><span class="kw">unsafe </span>{ <a href="#80">events</a>.set_len(<a href="#112">n_events</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) };
         })
     }
 
     <span class="kw">pub fn </span>register(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, token: <a href="../../../token.rs.html#132">Token</a>, interests: <a href="../../../interest.rs.html#17">Interest</a>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>event = <a href="../../../../../libc/unix/linux_like/struct.epoll_event.html">libc::epoll_event</a> {
-            events: <a href="#136">interests_to_epoll</a>(<a href="#81">interests</a>),
-            u64: usize::from(<a href="#81">token</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+            events: <a href="#174">interests_to_epoll</a>(<a href="#119">interests</a>),
+            u64: usize::from(<a href="#119">token</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
             <span class="attribute">#[cfg(target_os = <span class="string">&quot;redox&quot;</span>)]
             </span>_pad: <span class="number">0</span>,
         };
@@ -341,8 +417,8 @@
 
     <span class="kw">pub fn </span>reregister(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, token: <a href="../../../token.rs.html#132">Token</a>, interests: <a href="../../../interest.rs.html#17">Interest</a>) -&gt; io::Result&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>event = <a href="../../../../../libc/unix/linux_like/struct.epoll_event.html">libc::epoll_event</a> {
-            events: <a href="#136">interests_to_epoll</a>(<a href="#92">interests</a>),
-            u64: usize::from(<a href="#92">token</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+            events: <a href="#174">interests_to_epoll</a>(<a href="#130">interests</a>),
+            u64: usize::from(<a href="#130">token</a>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
             <span class="attribute">#[cfg(target_os = <span class="string">&quot;redox&quot;</span>)]
             </span>_pad: <span class="number">0</span>,
         };
@@ -356,7 +432,7 @@
 
     <span class="attribute">#[cfg(debug_assertions)]
     </span><span class="kw">pub fn </span>register_waker(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#108">self</a>.has_waker.swap(<span class="bool-val">true</span>, Ordering::AcqRel)
+        <a class="self" href="#146">self</a>.has_waker.swap(<span class="bool-val">true</span>, Ordering::AcqRel)
     }
 }
 
@@ -364,14 +440,14 @@
     <span class="kw">impl </span><a href="#16">Selector</a> {
         <span class="attribute">#[cfg(debug_assertions)]
         </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-            <a class="self" href="#116">self</a>.id
+            <a class="self" href="#154">self</a>.id
         }
     }
 }
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for </span><a href="#16">Selector</a> {
     <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="#123">self</a>.ep
+        <a class="self" href="#161">self</a>.ep
     }
 }
 
@@ -387,78 +463,78 @@
     <span class="kw">let </span><span class="kw-2">mut </span>kind = <a href="../../../../../libc/unix/linux_like/constant.EPOLLET.html">EPOLLET</a>;
 
     <span class="kw">if </span>interests.is_readable() {
-        <a href="#137">kind</a> = <a href="#137">kind</a> | <a href="../../../../../libc/unix/linux_like/constant.EPOLLIN.html">EPOLLIN</a> | <a href="../../../../../libc/unix/linux_like/constant.EPOLLRDHUP.html">EPOLLRDHUP</a>;
+        <a href="#175">kind</a> = <a href="#175">kind</a> | <a href="../../../../../libc/unix/linux_like/constant.EPOLLIN.html">EPOLLIN</a> | <a href="../../../../../libc/unix/linux_like/constant.EPOLLRDHUP.html">EPOLLRDHUP</a>;
     }
 
     <span class="kw">if </span>interests.is_writable() {
-        <a href="#137">kind</a> |= <a href="../../../../../libc/unix/linux_like/constant.EPOLLOUT.html">EPOLLOUT</a>;
+        <a href="#175">kind</a> |= <a href="../../../../../libc/unix/linux_like/constant.EPOLLOUT.html">EPOLLOUT</a>;
     }
 
-    <a href="#137">kind</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+    <a href="#175">kind</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
 }
 
 <span class="kw">pub type </span>Event = <a href="../../../../../libc/unix/linux_like/struct.epoll_event.html">libc::epoll_event</a>;
-<span class="kw">pub type </span>Events = Vec&lt;<a href="#150">Event</a>&gt;;
+<span class="kw">pub type </span>Events = Vec&lt;<a href="#188">Event</a>&gt;;
 
 <span class="kw">pub mod </span>event {
     <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 
-    <span class="kw">use </span><a href="#150"><span class="kw">crate</span>::sys::Event</a>;
+    <span class="kw">use </span><a href="#188"><span class="kw">crate</span>::sys::Event</a>;
     <span class="kw">use </span><a href="../../../token.rs.html#132"><span class="kw">crate</span>::Token</a>;
 
-    <span class="kw">pub fn </span>token(event: <span class="kw-2">&amp;</span><a href="#150">Event</a>) -&gt; <a href="../../../token.rs.html#132">Token</a> {
-        <a href="../../../token.rs.html#132">Token</a>(<a href="#159">event</a>.u64 <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
+    <span class="kw">pub fn </span>token(event: <span class="kw-2">&amp;</span><a href="#188">Event</a>) -&gt; <a href="../../../token.rs.html#132">Token</a> {
+        <a href="../../../token.rs.html#132">Token</a>(<a href="#197">event</a>.u64 <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
     }
 
-    <span class="kw">pub fn </span>is_readable(event: <span class="kw-2">&amp;</span><a href="#150">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<a href="#163">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; <a href="../../../../../libc/unix/linux_like/constant.EPOLLIN.html">libc::EPOLLIN</a>) != <span class="number">0
-            </span>|| (<a href="#163">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; libc::EPOLLPRI) != <span class="number">0
+    <span class="kw">pub fn </span>is_readable(event: <span class="kw-2">&amp;</span><a href="#188">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        (<a href="#201">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; <a href="../../../../../libc/unix/linux_like/constant.EPOLLIN.html">libc::EPOLLIN</a>) != <span class="number">0
+            </span>|| (<a href="#201">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; libc::EPOLLPRI) != <span class="number">0
     </span>}
 
-    <span class="kw">pub fn </span>is_writable(event: <span class="kw-2">&amp;</span><a href="#150">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<a href="#168">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; <a href="../../../../../libc/unix/linux_like/constant.EPOLLOUT.html">libc::EPOLLOUT</a>) != <span class="number">0
+    <span class="kw">pub fn </span>is_writable(event: <span class="kw-2">&amp;</span><a href="#188">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        (<a href="#206">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; <a href="../../../../../libc/unix/linux_like/constant.EPOLLOUT.html">libc::EPOLLOUT</a>) != <span class="number">0
     </span>}
 
-    <span class="kw">pub fn </span>is_error(event: <span class="kw-2">&amp;</span><a href="#150">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<a href="#172">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; libc::EPOLLERR) != <span class="number">0
+    <span class="kw">pub fn </span>is_error(event: <span class="kw-2">&amp;</span><a href="#188">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        (<a href="#210">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; libc::EPOLLERR) != <span class="number">0
     </span>}
 
-    <span class="kw">pub fn </span>is_read_closed(event: <span class="kw-2">&amp;</span><a href="#150">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub fn </span>is_read_closed(event: <span class="kw-2">&amp;</span><a href="#188">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// Both halves of the socket have closed
-        </span><a href="#176">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; libc::EPOLLHUP != <span class="number">0
+        </span><a href="#214">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; libc::EPOLLHUP != <span class="number">0
             </span><span class="comment">// Socket has received FIN or called shutdown(SHUT_RD)
-            </span>|| (<a href="#176">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; <a href="../../../../../libc/unix/linux_like/constant.EPOLLIN.html">libc::EPOLLIN</a> != <span class="number">0
-                </span>&amp;&amp; <a href="#176">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; <a href="../../../../../libc/unix/linux_like/constant.EPOLLRDHUP.html">libc::EPOLLRDHUP</a> != <span class="number">0</span>)
+            </span>|| (<a href="#214">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; <a href="../../../../../libc/unix/linux_like/constant.EPOLLIN.html">libc::EPOLLIN</a> != <span class="number">0
+                </span>&amp;&amp; <a href="#214">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; <a href="../../../../../libc/unix/linux_like/constant.EPOLLRDHUP.html">libc::EPOLLRDHUP</a> != <span class="number">0</span>)
     }
 
-    <span class="kw">pub fn </span>is_write_closed(event: <span class="kw-2">&amp;</span><a href="#150">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub fn </span>is_write_closed(event: <span class="kw-2">&amp;</span><a href="#188">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// Both halves of the socket have closed
-        </span><a href="#184">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; libc::EPOLLHUP != <span class="number">0
+        </span><a href="#222">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; libc::EPOLLHUP != <span class="number">0
             </span><span class="comment">// Unix pipe write end has closed
-            </span>|| (<a href="#184">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; <a href="../../../../../libc/unix/linux_like/constant.EPOLLOUT.html">libc::EPOLLOUT</a> != <span class="number">0
-                </span>&amp;&amp; <a href="#184">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; libc::EPOLLERR != <span class="number">0</span>)
+            </span>|| (<a href="#222">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; <a href="../../../../../libc/unix/linux_like/constant.EPOLLOUT.html">libc::EPOLLOUT</a> != <span class="number">0
+                </span>&amp;&amp; <a href="#222">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; libc::EPOLLERR != <span class="number">0</span>)
             <span class="comment">// The other side (read end) of a Unix pipe has closed.
-            </span>|| <a href="#184">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> == libc::EPOLLERR
+            </span>|| <a href="#222">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> == libc::EPOLLERR
     }
 
-    <span class="kw">pub fn </span>is_priority(event: <span class="kw-2">&amp;</span><a href="#150">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        (<a href="#194">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; libc::EPOLLPRI) != <span class="number">0
+    <span class="kw">pub fn </span>is_priority(event: <span class="kw-2">&amp;</span><a href="#188">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        (<a href="#232">event</a>.events <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; libc::EPOLLPRI) != <span class="number">0
     </span>}
 
-    <span class="kw">pub fn </span>is_aio(<span class="kw">_</span>: <span class="kw-2">&amp;</span><a href="#150">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub fn </span>is_aio(<span class="kw">_</span>: <span class="kw-2">&amp;</span><a href="#188">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// Not supported in the kernel, only in libc.
         </span><span class="bool-val">false
     </span>}
 
-    <span class="kw">pub fn </span>is_lio(<span class="kw">_</span>: <span class="kw-2">&amp;</span><a href="#150">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">pub fn </span>is_lio(<span class="kw">_</span>: <span class="kw-2">&amp;</span><a href="#188">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// Not supported.
         </span><span class="bool-val">false
     </span>}
 
-    <span class="kw">pub fn </span>debug_details(f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;, event: <span class="kw-2">&amp;</span><a href="#150">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+    <span class="kw">pub fn </span>debug_details(f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;, event: <span class="kw-2">&amp;</span><a href="#188">Event</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="attribute">#[allow(clippy::trivially_copy_pass_by_ref)]
         </span><span class="kw">fn </span>check_events(got: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, want: <span class="kw-2">&amp;</span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-            (<span class="kw-2">*</span><a href="#210">got</a> <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; <a href="#210">want</a>) != <span class="number">0
+            (<span class="kw-2">*</span><a href="#248">got</a> <span class="kw">as </span><a href="../../../../../libc/unix/type.c_int.html">libc::c_int</a> &amp; <a href="#248">want</a>) != <span class="number">0
         </span>}
         <a class="macro" href="../../mod.rs.html#18-51">debug_detail!</a>(
             EventsDetails(<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
@@ -484,10 +560,10 @@
         );
 
         <span class="comment">// Can&#39;t reference fields in packed structures.
-        </span><span class="kw">let </span>e_u64 = <a href="#208">event</a>.u64;
-        <a href="#208">f</a>.debug_struct(<span class="string">&quot;epoll_event&quot;</span>)
-            .field(<span class="string">&quot;events&quot;</span>, <span class="kw-2">&amp;</span><a href="#213-234">EventsDetails</a>(<a href="#208">event</a>.events))
-            .field(<span class="string">&quot;u64&quot;</span>, <span class="kw-2">&amp;</span><a href="#237">e_u64</a>)
+        </span><span class="kw">let </span>e_u64 = <a href="#246">event</a>.u64;
+        <a href="#246">f</a>.debug_struct(<span class="string">&quot;epoll_event&quot;</span>)
+            .field(<span class="string">&quot;events&quot;</span>, <span class="kw-2">&amp;</span><a href="#251-272">EventsDetails</a>(<a href="#246">event</a>.events))
+            .field(<span class="string">&quot;u64&quot;</span>, <span class="kw-2">&amp;</span><a href="#275">e_u64</a>)
             .finish()
     }
 }
@@ -499,4 +575,4 @@
     </span><span class="macro">assert_eq!</span>(libc::O_CLOEXEC, libc::EPOLL_CLOEXEC);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (95a3a7277 2022-10-31)" ></div></body></html>

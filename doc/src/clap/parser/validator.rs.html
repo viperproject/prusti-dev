@@ -1,6 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.22/src/parser/validator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.18/src/parser/validator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../clap/index.html">
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -540,341 +539,109 @@
 <span id="538">538</span>
 <span id="539">539</span>
 <span id="540">540</span>
-<span id="541">541</span>
-<span id="542">542</span>
-<span id="543">543</span>
-<span id="544">544</span>
-<span id="545">545</span>
-<span id="546">546</span>
-<span id="547">547</span>
-<span id="548">548</span>
-<span id="549">549</span>
-<span id="550">550</span>
-<span id="551">551</span>
-<span id="552">552</span>
-<span id="553">553</span>
-<span id="554">554</span>
-<span id="555">555</span>
-<span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
-<span id="559">559</span>
-<span id="560">560</span>
-<span id="561">561</span>
-<span id="562">562</span>
-<span id="563">563</span>
-<span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
-<span id="572">572</span>
-<span id="573">573</span>
-<span id="574">574</span>
-<span id="575">575</span>
-<span id="576">576</span>
-<span id="577">577</span>
-<span id="578">578</span>
-<span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
-<span id="587">587</span>
-<span id="588">588</span>
-<span id="589">589</span>
-<span id="590">590</span>
-<span id="591">591</span>
-<span id="592">592</span>
-<span id="593">593</span>
-<span id="594">594</span>
-<span id="595">595</span>
-<span id="596">596</span>
-<span id="597">597</span>
-<span id="598">598</span>
-<span id="599">599</span>
-<span id="600">600</span>
-<span id="601">601</span>
-<span id="602">602</span>
-<span id="603">603</span>
-<span id="604">604</span>
-<span id="605">605</span>
-<span id="606">606</span>
-<span id="607">607</span>
-<span id="608">608</span>
-<span id="609">609</span>
-<span id="610">610</span>
-<span id="611">611</span>
-<span id="612">612</span>
-<span id="613">613</span>
-<span id="614">614</span>
-<span id="615">615</span>
-<span id="616">616</span>
-<span id="617">617</span>
-<span id="618">618</span>
-<span id="619">619</span>
-<span id="620">620</span>
-<span id="621">621</span>
-<span id="622">622</span>
-<span id="623">623</span>
-<span id="624">624</span>
-<span id="625">625</span>
-<span id="626">626</span>
-<span id="627">627</span>
-<span id="628">628</span>
-<span id="629">629</span>
-<span id="630">630</span>
-<span id="631">631</span>
-<span id="632">632</span>
-<span id="633">633</span>
-<span id="634">634</span>
-<span id="635">635</span>
-<span id="636">636</span>
-<span id="637">637</span>
-<span id="638">638</span>
-<span id="639">639</span>
-<span id="640">640</span>
-<span id="641">641</span>
-<span id="642">642</span>
-<span id="643">643</span>
-<span id="644">644</span>
-<span id="645">645</span>
-<span id="646">646</span>
-<span id="647">647</span>
-<span id="648">648</span>
-<span id="649">649</span>
-<span id="650">650</span>
-<span id="651">651</span>
-<span id="652">652</span>
-<span id="653">653</span>
-<span id="654">654</span>
-<span id="655">655</span>
-<span id="656">656</span>
-<span id="657">657</span>
-<span id="658">658</span>
-<span id="659">659</span>
-<span id="660">660</span>
-<span id="661">661</span>
-<span id="662">662</span>
-<span id="663">663</span>
-<span id="664">664</span>
-<span id="665">665</span>
-<span id="666">666</span>
-<span id="667">667</span>
-<span id="668">668</span>
-<span id="669">669</span>
-<span id="670">670</span>
-<span id="671">671</span>
-<span id="672">672</span>
-<span id="673">673</span>
-<span id="674">674</span>
-<span id="675">675</span>
-<span id="676">676</span>
-<span id="677">677</span>
-<span id="678">678</span>
-<span id="679">679</span>
-<span id="680">680</span>
-<span id="681">681</span>
-<span id="682">682</span>
-<span id="683">683</span>
-<span id="684">684</span>
-<span id="685">685</span>
-<span id="686">686</span>
-<span id="687">687</span>
-<span id="688">688</span>
-<span id="689">689</span>
-<span id="690">690</span>
-<span id="691">691</span>
-<span id="692">692</span>
 </pre><pre class="rust"><code><span class="comment">// Internal
-</span><span class="kw">use </span><span class="kw">crate</span>::builder::{<a href="../builder/app_settings.rs.html#34">AppSettings</a>, <a href="../builder/arg.rs.html#61">Arg</a>, <a href="../builder/arg_predicate.rs.html#2">ArgPredicate</a>, <a href="../builder/command.rs.html#70">Command</a>, <a href="../builder/possible_value.rs.html#30">PossibleValue</a>};
-<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../error/mod.rs.html#40">Error</a>, <span class="prelude-ty">Result </span><span class="kw">as </span>ClapResult};
-<span class="kw">use </span><a href="../output/fmt.rs.html#9"><span class="kw">crate</span>::output::fmt::Stream</a>;
-<span class="kw">use </span><a href="../output/usage.rs.html#11"><span class="kw">crate</span>::output::Usage</a>;
-<span class="kw">use </span><span class="kw">crate</span>::parser::{<a href="arg_matcher.rs.html#17">ArgMatcher</a>, <a href="matches/matched_arg.rs.html#16">MatchedArg</a>, <a href="parser.rs.html#1681">ParseState</a>};
+</span><span class="kw">use </span><a href="../builder/styled_str.rs.html#3"><span class="kw">crate</span>::builder::StyledStr</a>;
+<span class="kw">use </span><span class="kw">crate</span>::builder::{<a href="../builder/arg.rs.html#54">Arg</a>, <a href="../builder/arg_predicate.rs.html#7">ArgPredicate</a>, <a href="../builder/command.rs.html#71">Command</a>, <a href="../builder/possible_value.rs.html#31">PossibleValue</a>};
+<span class="kw">use </span><span class="kw">crate</span>::error::{<a href="../error/mod.rs.html#59">Error</a>, <span class="prelude-ty">Result </span><span class="kw">as </span>ClapResult};
+<span class="kw">use </span><a href="../output/usage.rs.html#16"><span class="kw">crate</span>::output::Usage</a>;
+<span class="kw">use </span><span class="kw">crate</span>::parser::{<a href="arg_matcher.rs.html#17">ArgMatcher</a>, <a href="parser.rs.html#1594">ParseState</a>};
 <span class="kw">use </span><a href="../util/graph.rs.html#17"><span class="kw">crate</span>::util::ChildGraph</a>;
-<span class="kw">use </span><a href="../util/id.rs.html#11"><span class="kw">crate</span>::util::Id</a>;
-<span class="kw">use crate</span>::{<a href="../lib.rs.html#189">INTERNAL_ERROR_MSG</a>, <a href="../lib.rs.html#191">INVALID_UTF8</a>};
+<span class="kw">use </span><a href="../util/flat_map.rs.html#9"><span class="kw">crate</span>::util::FlatMap</a>;
+<span class="kw">use </span><a href="../util/flat_set.rs.html#9"><span class="kw">crate</span>::util::FlatSet</a>;
+<span class="kw">use </span><a href="../util/id.rs.html#9"><span class="kw">crate</span>::util::Id</a>;
+<span class="kw">use </span><a href="../lib.rs.html#157"><span class="kw">crate</span>::INTERNAL_ERROR_MSG</a>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Validator&lt;<span class="lifetime">&#39;help</span>, <span class="lifetime">&#39;cmd</span>&gt; {
-    cmd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd </span>Command&lt;<span class="lifetime">&#39;help</span>&gt;,
-    required: ChildGraph&lt;<a href="../util/id.rs.html#11">Id</a>&gt;,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Validator&lt;<span class="lifetime">&#39;cmd</span>&gt; {
+    cmd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd </span><a href="../builder/command.rs.html#71">Command</a>,
+    required: ChildGraph&lt;<a href="../util/id.rs.html#9">Id</a>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;help</span>, <span class="lifetime">&#39;cmd</span>&gt; Validator&lt;<span class="lifetime">&#39;help</span>, <span class="lifetime">&#39;cmd</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(cmd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd </span>Command&lt;<span class="lifetime">&#39;help</span>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>required = <a href="#17">cmd</a>.<a href="../builder/command.rs.html#4980">required_graph</a>();
-        <a href="#11">Validator</a> { <a href="#17">cmd</a>, <a href="#18">required</a> }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;cmd</span>&gt; Validator&lt;<span class="lifetime">&#39;cmd</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(cmd: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd </span><a href="../builder/command.rs.html#71">Command</a>) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>required = <a href="#19">cmd</a>.<a href="../builder/command.rs.html#4463">required_graph</a>();
+        <a href="#13">Validator</a> { <a href="#19">cmd</a>, <a href="#20">required</a> }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        parse_state: <a href="parser.rs.html#1681">ParseState</a>,
+        parse_state: <a href="parser.rs.html#1594">ParseState</a>,
         matcher: <span class="kw-2">&amp;mut </span><a href="arg_matcher.rs.html#17">ArgMatcher</a>,
     ) -&gt; ClapResult&lt;()&gt; {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>conflicts = Conflicts::new();
-        <span class="kw">let </span>has_subcmd = <a href="#25">matcher</a>.<a href="arg_matcher.rs.html#131">subcommand_name</a>().is_some();
+        <span class="kw">let </span>has_subcmd = <a href="#27">matcher</a>.<a href="arg_matcher.rs.html#124">subcommand_name</a>().is_some();
 
-        <span class="kw">if let </span><a href="parser.rs.html#1683">ParseState::Opt</a>(a) = <a href="#24">parse_state</a> {
+        <span class="kw">if let </span><a href="parser.rs.html#1596">ParseState::Opt</a>(a) = <a href="#26">parse_state</a> {
             <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate: needs_val_of={:?}&quot;</span>, a);
 
-            <span class="kw">let </span>o = <span class="kw-2">&amp;</span><a class="self" href="#23">self</a>.cmd[<span class="kw-2">&amp;</span><a href="#31">a</a>];
-            <span class="kw">let </span>should_err = <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = <a href="#25">matcher</a>.args.get(<span class="kw-2">&amp;</span><a href="#34">o</a>.id) {
-                <a href="#35">v</a>.<a href="matches/matched_arg.rs.html#147">all_val_groups_empty</a>() &amp;&amp; !(<a href="#34">o</a>.min_vals.is_some() &amp;&amp; <a href="#34">o</a>.min_vals.unwrap() == <span class="number">0</span>)
-            } <span class="kw">else </span>{
+            <span class="kw">let </span>o = <span class="kw-2">&amp;</span><a class="self" href="#25">self</a>.cmd[<span class="kw-2">&amp;</span><a href="#33">a</a>];
+            <span class="kw">let </span>should_err = <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = <a href="#27">matcher</a>.args.<a href="../util/flat_map.rs.html#91-94">get</a>(<a href="#36">o</a>.<a href="../builder/arg.rs.html#3698">get_id</a>()) {
+                <a href="#37">v</a>.<a href="matches/matched_arg.rs.html#128">all_val_groups_empty</a>() &amp;&amp; <a href="#36">o</a>.<a href="../builder/arg.rs.html#3851">get_min_vals</a>() != <span class="number">0
+            </span>} <span class="kw">else </span>{
                 <span class="bool-val">true
             </span>};
             <span class="kw">if </span>should_err {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::empty_value(
-                    <a class="self" href="#23">self</a>.cmd,
-                    <span class="kw-2">&amp;</span><a href="#678">get_possible_values</a>(<a href="#34">o</a>)
+                    <a class="self" href="#25">self</a>.cmd,
+                    <span class="kw-2">&amp;</span><a href="#531">get_possible_values_cli</a>(<a href="#36">o</a>)
                         .iter()
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|pv| !<a href="#45">pv</a>.<a href="../builder/possible_value.rs.html#177">is_hide_set</a>())
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(PossibleValue::get_name)
+                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|pv| !<a href="#47">pv</a>.<a href="../builder/possible_value.rs.html#169">is_hide_set</a>())
+                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|n| <a href="#48">n</a>.<a href="../builder/possible_value.rs.html#145">get_name</a>().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
                         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
-                    <a href="#34">o</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                    <a href="#36">o</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                 ));
             }
         }
 
         <span class="kw">if </span>!has_subcmd &amp;&amp; <span class="self">self</span>.cmd.is_arg_required_else_help_set() {
-            <span class="kw">let </span>num_user_values = <a href="#25">matcher</a>
-                .<a href="arg_matcher.rs.html#119">arg_ids</a>()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|arg_id| <a href="#25">matcher</a>.<a href="arg_matcher.rs.html#139">check_explicit</a>(<a href="#56">arg_id</a>, <a href="../builder/arg_predicate.rs.html#3">ArgPredicate::IsPresent</a>))
+            <span class="kw">let </span>num_user_values = <a href="#27">matcher</a>
+                .<a href="arg_matcher.rs.html#112">arg_ids</a>()
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|arg_id| <a href="#27">matcher</a>.<a href="arg_matcher.rs.html#128">check_explicit</a>(<a href="#58">arg_id</a>, <span class="kw-2">&amp;</span><a href="../builder/arg_predicate.rs.html#9">ArgPredicate::IsPresent</a>))
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>();
             <span class="kw">if </span>num_user_values == <span class="number">0 </span>{
-                <span class="kw">let </span>message = <span class="self">self</span>.cmd.write_help_err(<span class="bool-val">false</span>, Stream::Stderr)<span class="question-mark">?</span>;
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::display_help_error(<a class="self" href="#23">self</a>.cmd, <a href="#59">message</a>));
+                <span class="kw">let </span>message = <a class="self" href="#25">self</a>.cmd.<a href="../builder/command.rs.html#4559">write_help_err</a>(<span class="bool-val">false</span>);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::display_help_error(<a class="self" href="#25">self</a>.cmd, <a href="#61">message</a>));
             }
         }
-        <span class="attribute">#[allow(deprecated)]
-        </span><span class="kw">if </span>!has_subcmd &amp;&amp; <span class="self">self</span>.cmd.is_subcommand_required_set() {
-            <span class="kw">let </span>bn = <span class="self"><a href="#23">self</a>
+        <span class="kw">if </span>!has_subcmd &amp;&amp; <span class="self">self</span>.cmd.is_subcommand_required_set() {
+            <span class="kw">let </span>bn = <span class="self"><a href="#25">self</a>
                 </span>.cmd
-                .<a href="../builder/command.rs.html#3311">get_bin_name</a>()
-                .unwrap_or_else(|| <a class="self" href="#23">self</a>.cmd.<a href="../builder/command.rs.html#3322">get_name</a>());
+                .<a href="../builder/command.rs.html#3223">get_bin_name</a>()
+                .unwrap_or_else(|| <a class="self" href="#25">self</a>.cmd.<a href="../builder/command.rs.html#3234">get_name</a>());
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::missing_subcommand(
-                <a class="self" href="#23">self</a>.cmd,
-                <a href="#65">bn</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                Usage::new(<a class="self" href="#23">self</a>.cmd)
-                    .<a href="../output/usage.rs.html#24">required</a>(<span class="kw-2">&amp;</span><a class="self" href="#23">self</a>.required)
-                    .<a href="../output/usage.rs.html#31">create_usage_with_title</a>(<span class="kw-2">&amp;</span>[]),
+                <a class="self" href="#25">self</a>.cmd,
+                <a href="#66">bn</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                Usage::new(<a class="self" href="#25">self</a>.cmd)
+                    .<a href="../output/usage.rs.html#29">required</a>(<span class="kw-2">&amp;</span><a class="self" href="#25">self</a>.required)
+                    .<a href="../output/usage.rs.html#36">create_usage_with_title</a>(<span class="kw-2">&amp;</span>[]),
             ));
-        } <span class="kw">else if </span>!has_subcmd &amp;&amp; <span class="self">self</span>.cmd.is_set(AppSettings::SubcommandRequiredElseHelp) {
-            <span class="macro">debug!</span>(<span class="string">&quot;Validator::new::get_matches_with: SubcommandRequiredElseHelp=true&quot;</span>);
-            <span class="kw">let </span>message = <span class="self">self</span>.cmd.write_help_err(<span class="bool-val">false</span>, Stream::Stderr)<span class="question-mark">?</span>;
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::display_help_error(<a class="self" href="#23">self</a>.cmd, <a href="#78">message</a>));
         }
 
-        <span class="self">self</span>.validate_conflicts(matcher, <span class="kw-2">&amp;mut </span>conflicts)<span class="question-mark">?</span>;
+        <a class="macro" href="../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.validate_conflicts(matcher, <span class="kw-2">&amp;mut </span>conflicts));
         <span class="kw">if </span>!(<span class="self">self</span>.cmd.is_subcommand_negates_reqs_set() &amp;&amp; has_subcmd) {
-            <span class="self">self</span>.validate_required(matcher, <span class="kw-2">&amp;mut </span>conflicts)<span class="question-mark">?</span>;
+            <a class="macro" href="../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.validate_required(matcher, <span class="kw-2">&amp;mut </span>conflicts));
         }
-        <span class="self">self</span>.validate_matched_args(matcher)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="kw">fn </span>validate_arg_values(<span class="kw-2">&amp;</span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span><a href="../builder/arg.rs.html#61">Arg</a>, ma: <span class="kw-2">&amp;</span><a href="matches/matched_arg.rs.html#16">MatchedArg</a>) -&gt; ClapResult&lt;()&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_arg_values: arg={:?}&quot;</span>, arg.name);
-        <span class="kw">for </span>val <span class="kw">in </span>ma.raw_vals_flatten() {
-            <span class="kw">if </span>!arg.possible_vals.is_empty() {
-                <span class="macro">debug!</span>(
-                    <span class="string">&quot;Validator::validate_arg_values: possible_vals={:?}&quot;</span>,
-                    arg.possible_vals
-                );
-                <span class="kw">let </span>val_str = val.to_string_lossy();
-                <span class="kw">let </span>ok = arg
-                    .possible_vals
-                    .iter()
-                    .any(|pv| pv.matches(<span class="kw-2">&amp;</span>val_str, arg.is_ignore_case_set()));
-                <span class="kw">if </span>!ok {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::invalid_value(
-                        <span class="self">self</span>.cmd,
-                        val_str.into_owned(),
-                        <span class="kw-2">&amp;</span>arg.possible_vals
-                            .iter()
-                            .filter(|pv| !pv.is_hide_set())
-                            .map(PossibleValue::get_name)
-                            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
-                        arg.to_string(),
-                    ));
-                }
-            }
-            {
-                <span class="attribute">#![allow(deprecated)]
-                </span><span class="kw">if </span>arg.is_forbid_empty_values_set() &amp;&amp; val.is_empty() {
-                    <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_arg_values: illegal empty val found&quot;</span>);
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::empty_value(
-                        <span class="self">self</span>.cmd,
-                        <span class="kw-2">&amp;</span>get_possible_values(arg)
-                            .iter()
-                            .filter(|pv| !pv.is_hide_set())
-                            .map(PossibleValue::get_name)
-                            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
-                        arg.to_string(),
-                    ));
-                }
-            }
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>vtor) = arg.validator {
-                <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_arg_values: checking validator...&quot;</span>);
-                <span class="kw">let </span><span class="kw-2">mut </span>vtor = vtor.lock().unwrap();
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = vtor(<span class="kw-2">&amp;*</span>val.to_string_lossy()) {
-                    <span class="macro">debug!</span>(<span class="string">&quot;error&quot;</span>);
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::value_validation(
-                        arg.to_string(),
-                        val.to_string_lossy().into_owned(),
-                        e,
-                    )
-                    .with_cmd(<span class="self">self</span>.cmd));
-                } <span class="kw">else </span>{
-                    <span class="macro">debug!</span>(<span class="string">&quot;good&quot;</span>);
-                }
-            }
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>vtor) = arg.validator_os {
-                <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_arg_values: checking validator_os...&quot;</span>);
-                <span class="kw">let </span><span class="kw-2">mut </span>vtor = vtor.lock().unwrap();
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = vtor(val) {
-                    <span class="macro">debug!</span>(<span class="string">&quot;error&quot;</span>);
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::value_validation(
-                        arg.to_string(),
-                        val.to_string_lossy().into(),
-                        e,
-                    )
-                    .with_cmd(<span class="self">self</span>.cmd));
-                } <span class="kw">else </span>{
-                    <span class="macro">debug!</span>(<span class="string">&quot;good&quot;</span>);
-                }
-            }
-        }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>validate_conflicts(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>,
-        conflicts: <span class="kw-2">&amp;mut </span><a href="#606">Conflicts</a>,
+        conflicts: <span class="kw-2">&amp;mut </span><a href="#459">Conflicts</a>,
     ) -&gt; ClapResult&lt;()&gt; {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_conflicts&quot;</span>);
 
-        <span class="self">self</span>.validate_exclusive(matcher)<span class="question-mark">?</span>;
+        <a class="macro" href="../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.validate_exclusive(matcher));
 
         <span class="kw">for </span>arg_id <span class="kw">in </span>matcher
             .arg_ids()
-            .filter(|arg_id| matcher.check_explicit(arg_id, ArgPredicate::IsPresent))
+            .filter(|arg_id| matcher.check_explicit(arg_id, <span class="kw-2">&amp;</span>ArgPredicate::IsPresent))
             .filter(|arg_id| <span class="self">self</span>.cmd.find(arg_id).is_some())
         {
             <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_conflicts::iter: id={:?}&quot;</span>, arg_id);
             <span class="kw">let </span>conflicts = conflicts.gather_conflicts(<span class="self">self</span>.cmd, matcher, arg_id);
-            <span class="self">self</span>.build_conflict_err(arg_id, <span class="kw-2">&amp;</span>conflicts, matcher)<span class="question-mark">?</span>;
+            <span class="macro">ok!</span>(<span class="self">self</span>.build_conflict_err(arg_id, <span class="kw-2">&amp;</span>conflicts, matcher));
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -882,10 +649,13 @@
 
     <span class="kw">fn </span>validate_exclusive(<span class="kw-2">&amp;</span><span class="self">self</span>, matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>) -&gt; ClapResult&lt;()&gt; {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_exclusive&quot;</span>);
-        <span class="kw">let </span>args_count = <a href="#189">matcher</a>
-            .<a href="arg_matcher.rs.html#119">arg_ids</a>()
+        <span class="kw">let </span>args_count = <a href="#109">matcher</a>
+            .<a href="arg_matcher.rs.html#112">arg_ids</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|arg_id| {
-                <a href="#189">matcher</a>.<a href="arg_matcher.rs.html#139">check_explicit</a>(<a href="#193">arg_id</a>, <a href="../builder/arg_predicate.rs.html#3"><span class="kw">crate</span>::builder::ArgPredicate::IsPresent</a>)
+                <a href="#109">matcher</a>.<a href="arg_matcher.rs.html#128">check_explicit</a>(<a href="#113">arg_id</a>, <span class="kw-2">&amp;</span><a href="../builder/arg_predicate.rs.html#9"><span class="kw">crate</span>::builder::ArgPredicate::IsPresent</a>)
+                    <span class="comment">// Avoid including our own groups by checking none of them.  If a group is present, the
+                    // args for the group will be.
+                    </span>&amp;&amp; <a class="self" href="#109">self</a>.cmd.<a href="../builder/command.rs.html#4375">find</a>(<a href="#113">arg_id</a>).is_some()
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>();
         <span class="kw">if </span>args_count &lt;= <span class="number">1 </span>{
@@ -893,35 +663,35 @@
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
-        <a href="#189">matcher</a>
-            .<a href="arg_matcher.rs.html#119">arg_ids</a>()
+        <a href="#109">matcher</a>
+            .<a href="arg_matcher.rs.html#112">arg_ids</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|arg_id| {
-                <a href="#189">matcher</a>.<a href="arg_matcher.rs.html#139">check_explicit</a>(<a href="#204">arg_id</a>, <a href="../builder/arg_predicate.rs.html#3"><span class="kw">crate</span>::builder::ArgPredicate::IsPresent</a>)
+                <a href="#109">matcher</a>.<a href="arg_matcher.rs.html#128">check_explicit</a>(<a href="#127">arg_id</a>, <span class="kw-2">&amp;</span><a href="../builder/arg_predicate.rs.html#9"><span class="kw">crate</span>::builder::ArgPredicate::IsPresent</a>)
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|name| {
                 <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_exclusive:iter:{:?}&quot;</span>, name);
-                <a class="self" href="#189">self</a>.cmd
-                    .<a href="../builder/command.rs.html#4884">find</a>(<a href="#207">name</a>)
+                <a class="self" href="#109">self</a>.cmd
+                    .<a href="../builder/command.rs.html#4375">find</a>(<a href="#130">name</a>)
                     <span class="comment">// Find `arg`s which are exclusive but also appear with other args.
-                    </span>.filter(|<span class="kw-2">&amp;</span>arg| <a href="#212">arg</a>.<a href="../builder/arg.rs.html#4783">is_exclusive_set</a>() &amp;&amp; <a href="#191">args_count</a> &gt; <span class="number">1</span>)
+                    </span>.filter(|<span class="kw-2">&amp;</span>arg| <a href="#135">arg</a>.<a href="../builder/arg.rs.html#4033">is_exclusive_set</a>() &amp;&amp; <a href="#111">args_count</a> &gt; <span class="number">1</span>)
             })
             <span class="comment">// Throw an error for the first conflict found.
             </span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">try_for_each</a>(|arg| {
                 <span class="prelude-val">Err</span>(Error::argument_conflict(
-                    <a class="self" href="#189">self</a>.cmd,
-                    <a href="#215">arg</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                    <a class="self" href="#109">self</a>.cmd,
+                    <a href="#138">arg</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                     Vec::new(),
-                    Usage::new(<a class="self" href="#189">self</a>.cmd)
-                        .<a href="../output/usage.rs.html#24">required</a>(<span class="kw-2">&amp;</span><a class="self" href="#189">self</a>.required)
-                        .<a href="../output/usage.rs.html#31">create_usage_with_title</a>(<span class="kw-2">&amp;</span>[]),
+                    Usage::new(<a class="self" href="#109">self</a>.cmd)
+                        .<a href="../output/usage.rs.html#29">required</a>(<span class="kw-2">&amp;</span><a class="self" href="#109">self</a>.required)
+                        .<a href="../output/usage.rs.html#36">create_usage_with_title</a>(<span class="kw-2">&amp;</span>[]),
                 ))
             })
     }
 
     <span class="kw">fn </span>build_conflict_err(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><a href="../util/id.rs.html#11">Id</a>,
-        conflict_ids: <span class="kw-2">&amp;</span>[<a href="../util/id.rs.html#11">Id</a>],
+        name: <span class="kw-2">&amp;</span><a href="../util/id.rs.html#9">Id</a>,
+        conflict_ids: <span class="kw-2">&amp;</span>[<a href="../util/id.rs.html#9">Id</a>],
         matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>,
     ) -&gt; ClapResult&lt;()&gt; {
         <span class="kw">if </span>conflict_ids.is_empty() {
@@ -929,72 +699,76 @@
         }
 
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::build_conflict_err: name={:?}&quot;</span>, name);
-        <span class="kw">let </span><span class="kw-2">mut </span>seen = std::collections::HashSet::new();
-        <span class="kw">let </span>conflicts = <a href="#230">conflict_ids</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>seen = FlatSet::new();
+        <span class="kw">let </span>conflicts = <a href="#153">conflict_ids</a>
             .iter()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|c_id| {
                 <span class="kw">if </span><span class="self">self</span>.cmd.find_group(c_id).is_some() {
-                    <a class="self" href="#228">self</a>.cmd.<a href="../builder/command.rs.html#4997">unroll_args_in_group</a>(<a href="#241">c_id</a>)
+                    <a class="self" href="#151">self</a>.cmd.<a href="../builder/command.rs.html#4480">unroll_args_in_group</a>(<a href="#164">c_id</a>)
                 } <span class="kw">else </span>{
                     <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[c_id.clone()]
                 }
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|c_id| {
-                <a href="#238">seen</a>.insert(<a href="#248">c_id</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).then(|| {
-                    <span class="kw">let </span>c_arg = <a class="self" href="#228">self</a>.cmd.<a href="../builder/command.rs.html#4884">find</a>(<span class="kw-2">&amp;</span><a href="#248">c_id</a>).expect(<a href="../lib.rs.html#189">INTERNAL_ERROR_MSG</a>);
-                    <a href="#250">c_arg</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
+                <a href="#161">seen</a>.<a href="../util/flat_set.rs.html#18">insert</a>(<a href="#171">c_id</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).then(|| {
+                    <span class="kw">let </span>c_arg = <a class="self" href="#151">self</a>.cmd.<a href="../builder/command.rs.html#4375">find</a>(<span class="kw-2">&amp;</span><a href="#171">c_id</a>).expect(<a href="../lib.rs.html#157">INTERNAL_ERROR_MSG</a>);
+                    <a href="#173">c_arg</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
                 })
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
-        <span class="kw">let </span>former_arg = <a class="self" href="#228">self</a>.cmd.<a href="../builder/command.rs.html#4884">find</a>(<a href="#229">name</a>).expect(<a href="../lib.rs.html#189">INTERNAL_ERROR_MSG</a>);
-        <span class="kw">let </span>usg = <a class="self" href="#228">self</a>.<a href="#266">build_conflict_err_usage</a>(<a href="#231">matcher</a>, <a href="#230">conflict_ids</a>);
+        <span class="kw">let </span>former_arg = <a class="self" href="#151">self</a>.cmd.<a href="../builder/command.rs.html#4375">find</a>(<a href="#152">name</a>).expect(<a href="../lib.rs.html#157">INTERNAL_ERROR_MSG</a>);
+        <span class="kw">let </span>usg = <a class="self" href="#151">self</a>.<a href="#189-193">build_conflict_err_usage</a>(<a href="#154">matcher</a>, <a href="#153">conflict_ids</a>);
         <span class="prelude-val">Err</span>(Error::argument_conflict(
-            <a class="self" href="#228">self</a>.cmd,
-            <a href="#256">former_arg</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a href="#239">conflicts</a>,
-            <a href="#257">usg</a>,
+            <a class="self" href="#151">self</a>.cmd,
+            <a href="#179">former_arg</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a href="#162">conflicts</a>,
+            <a href="#180">usg</a>,
         ))
     }
 
-    <span class="kw">fn </span>build_conflict_err_usage(<span class="kw-2">&amp;</span><span class="self">self</span>, matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>, conflicting_keys: <span class="kw-2">&amp;</span>[<a href="../util/id.rs.html#11">Id</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let </span>used_filtered: Vec&lt;<a href="../util/id.rs.html#11">Id</a>&gt; = <a href="#266">matcher</a>
-            .<a href="arg_matcher.rs.html#119">arg_ids</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|arg_id| <a href="#266">matcher</a>.<a href="arg_matcher.rs.html#139">check_explicit</a>(<a href="#269">arg_id</a>, <a href="../builder/arg_predicate.rs.html#3">ArgPredicate::IsPresent</a>))
+    <span class="kw">fn </span>build_conflict_err_usage(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>,
+        conflicting_keys: <span class="kw-2">&amp;</span>[<a href="../util/id.rs.html#9">Id</a>],
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../builder/styled_str.rs.html#3">StyledStr</a>&gt; {
+        <span class="kw">let </span>used_filtered: Vec&lt;<a href="../util/id.rs.html#9">Id</a>&gt; = <a href="#191">matcher</a>
+            .<a href="arg_matcher.rs.html#112">arg_ids</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|arg_id| <a href="#191">matcher</a>.<a href="arg_matcher.rs.html#128">check_explicit</a>(<a href="#196">arg_id</a>, <span class="kw-2">&amp;</span><a href="../builder/arg_predicate.rs.html#9">ArgPredicate::IsPresent</a>))
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|n| {
                 <span class="comment">// Filter out the args we don&#39;t want to specify.
-                </span><a class="self" href="#266">self</a>.cmd.<a href="../builder/command.rs.html#4884">find</a>(<a href="#270">n</a>).map_or(<span class="bool-val">true</span>, |a| !<a href="#272">a</a>.<a href="../builder/arg.rs.html#4731">is_hide_set</a>())
+                </span><a class="self" href="#190">self</a>.cmd.<a href="../builder/command.rs.html#4375">find</a>(<a href="#197">n</a>).map_or(<span class="bool-val">false</span>, |a| !<a href="#199">a</a>.<a href="../builder/arg.rs.html#3991">is_hide_set</a>())
             })
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|key| !<a href="#266">conflicting_keys</a>.contains(<a href="#274">key</a>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|key| !<a href="#192">conflicting_keys</a>.contains(<a href="#201">key</a>))
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let </span>required: Vec&lt;<a href="../util/id.rs.html#11">Id</a>&gt; = <a href="#267">used_filtered</a>
+        <span class="kw">let </span>required: Vec&lt;<a href="../util/id.rs.html#9">Id</a>&gt; = <a href="#194">used_filtered</a>
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|key| <a class="self" href="#266">self</a>.cmd.<a href="../builder/command.rs.html#4884">find</a>(<a href="#279">key</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|arg| <a href="#280">arg</a>.requires.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|item| <span class="kw-2">&amp;</span><a href="#280">item</a>.<span class="number">1</span>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|key| !<a href="#267">used_filtered</a>.contains(<a href="#281">key</a>) &amp;&amp; !<a href="#266">conflicting_keys</a>.contains(<a href="#281">key</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#267">used_filtered</a>.iter())
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(|key| <a class="self" href="#190">self</a>.cmd.<a href="../builder/command.rs.html#4375">find</a>(<a href="#206">key</a>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(|arg| <a href="#207">arg</a>.requires.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|item| <span class="kw-2">&amp;</span><a href="#207">item</a>.<span class="number">1</span>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|key| !<a href="#194">used_filtered</a>.contains(<a href="#208">key</a>) &amp;&amp; !<a href="#192">conflicting_keys</a>.contains(<a href="#208">key</a>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#194">used_filtered</a>.iter())
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        Usage::new(<a class="self" href="#266">self</a>.cmd)
-            .<a href="../output/usage.rs.html#24">required</a>(<span class="kw-2">&amp;</span><a class="self" href="#266">self</a>.required)
-            .<a href="../output/usage.rs.html#31">create_usage_with_title</a>(<span class="kw-2">&amp;</span><a href="#277">required</a>)
+        Usage::new(<a class="self" href="#190">self</a>.cmd)
+            .<a href="../output/usage.rs.html#29">required</a>(<span class="kw-2">&amp;</span><a class="self" href="#190">self</a>.required)
+            .<a href="../output/usage.rs.html#36">create_usage_with_title</a>(<span class="kw-2">&amp;</span><a href="#204">required</a>)
     }
 
     <span class="kw">fn </span>gather_requires(<span class="kw-2">&amp;mut </span><span class="self">self</span>, matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>) {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::gather_requires&quot;</span>);
         <span class="kw">for </span>name <span class="kw">in </span>matcher
             .arg_ids()
-            .filter(|arg_id| matcher.check_explicit(arg_id, ArgPredicate::IsPresent))
+            .filter(|arg_id| matcher.check_explicit(arg_id, <span class="kw-2">&amp;</span>ArgPredicate::IsPresent))
         {
             <span class="macro">debug!</span>(<span class="string">&quot;Validator::gather_requires:iter:{:?}&quot;</span>, name);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(arg) = <span class="self">self</span>.cmd.find(name) {
-                <span class="kw">let </span>is_relevant = |(val, req_arg): <span class="kw-2">&amp;</span>(ArgPredicate&lt;<span class="lifetime">&#39;_</span>&gt;, Id)| -&gt; <span class="prelude-ty">Option</span>&lt;Id&gt; {
-                    <span class="kw">let </span>required = matcher.check_explicit(<span class="kw-2">&amp;</span>arg.id, <span class="kw-2">*</span>val);
+                <span class="kw">let </span>is_relevant = |(val, req_arg): <span class="kw-2">&amp;</span>(ArgPredicate, Id)| -&gt; <span class="prelude-ty">Option</span>&lt;Id&gt; {
+                    <span class="kw">let </span>required = matcher.check_explicit(arg.get_id(), val);
                     required.then(|| req_arg.clone())
                 };
 
-                <span class="kw">for </span>req <span class="kw">in </span><span class="self">self</span>.cmd.unroll_arg_requires(is_relevant, <span class="kw-2">&amp;</span>arg.id) {
+                <span class="kw">for </span>req <span class="kw">in </span><span class="self">self</span>.cmd.unroll_arg_requires(is_relevant, arg.get_id()) {
                     <span class="self">self</span>.required.insert(req);
                 }
             } <span class="kw">else if let </span><span class="prelude-val">Some</span>(g) = <span class="self">self</span>.cmd.find_group(name) {
@@ -1006,161 +780,24 @@
         }
     }
 
-    <span class="kw">fn </span>validate_matched_args(<span class="kw-2">&amp;</span><span class="self">self</span>, matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>) -&gt; ClapResult&lt;()&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_matched_args&quot;</span>);
-        <a href="#315">matcher</a>.<a href="arg_matcher.rs.html#135">iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">try_for_each</a>(|(name, ma)| {
-            <span class="macro">debug!</span>(
-                <span class="string">&quot;Validator::validate_matched_args:iter:{:?}: vals={:#?}&quot;</span>,
-                name,
-                ma.vals_flatten()
-            );
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(arg) = <a class="self" href="#315">self</a>.cmd.<a href="../builder/command.rs.html#4884">find</a>(<a href="#317">name</a>) {
-                <span class="self">self</span>.validate_arg_num_vals(arg, ma)<span class="question-mark">?</span>;
-                <span class="self">self</span>.validate_arg_values(arg, ma)<span class="question-mark">?</span>;
-                <span class="self">self</span>.validate_arg_num_occurs(arg, ma)<span class="question-mark">?</span>;
-            }
-            <span class="prelude-val">Ok</span>(())
-        })
-    }
-
-    <span class="kw">fn </span>validate_arg_num_occurs(<span class="kw-2">&amp;</span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="../builder/arg.rs.html#61">Arg</a>, ma: <span class="kw-2">&amp;</span><a href="matches/matched_arg.rs.html#16">MatchedArg</a>) -&gt; ClapResult&lt;()&gt; {
-        <span class="attribute">#![allow(deprecated)]
-        </span><span class="macro">debug!</span>(
-            <span class="string">&quot;Validator::validate_arg_num_occurs: {:?}={}&quot;</span>,
-            a.name,
-            ma.get_occurrences()
-        );
-        <span class="comment">// Occurrence of positional argument equals to number of values rather
-        // than number of grouped values.
-        </span><span class="kw">if </span>ma.get_occurrences() &gt; <span class="number">1 </span>&amp;&amp; !a.is_multiple_occurrences_set() &amp;&amp; !a.is_positional() {
-            <span class="comment">// Not the first time, and we don&#39;t allow multiples
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::unexpected_multiple_usage(
-                <a class="self" href="#332">self</a>.cmd,
-                <a href="#332">a</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                Usage::new(<a class="self" href="#332">self</a>.cmd)
-                    .<a href="../output/usage.rs.html#24">required</a>(<span class="kw-2">&amp;</span><a class="self" href="#332">self</a>.required)
-                    .<a href="../output/usage.rs.html#31">create_usage_with_title</a>(<span class="kw-2">&amp;</span>[]),
-            ));
-        }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(max_occurs) = <a href="#332">a</a>.max_occurs {
-            <span class="macro">debug!</span>(
-                <span class="string">&quot;Validator::validate_arg_num_occurs: max_occurs set...{}&quot;</span>,
-                max_occurs
-            );
-            <span class="kw">let </span>occurs = <a href="#332">ma</a>.<a href="matches/matched_arg.rs.html#81">get_occurrences</a>() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-            <span class="kw">if </span>occurs &gt; max_occurs {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::too_many_occurrences(
-                    <a class="self" href="#332">self</a>.cmd,
-                    <a href="#332">a</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#351">max_occurs</a>,
-                    <a href="#356">occurs</a>,
-                    Usage::new(<a class="self" href="#332">self</a>.cmd)
-                        .<a href="../output/usage.rs.html#24">required</a>(<span class="kw-2">&amp;</span><a class="self" href="#332">self</a>.required)
-                        .<a href="../output/usage.rs.html#31">create_usage_with_title</a>(<span class="kw-2">&amp;</span>[]),
-                ));
-            }
-        }
-
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="kw">fn </span>validate_arg_num_vals(<span class="kw-2">&amp;</span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="../builder/arg.rs.html#61">Arg</a>, ma: <span class="kw-2">&amp;</span><a href="matches/matched_arg.rs.html#16">MatchedArg</a>) -&gt; ClapResult&lt;()&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_arg_num_vals&quot;</span>);
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(num) = <a href="#373">a</a>.num_vals {
-            <span class="kw">let </span>total_num = <a href="#373">ma</a>.<a href="matches/matched_arg.rs.html#137">num_vals</a>();
-            <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_arg_num_vals: num_vals set...{}&quot;</span>, num);
-            <span class="attribute">#[allow(deprecated)]
-            </span><span class="kw">let </span>should_err = <span class="kw">if </span>a.is_multiple_occurrences_set() {
-                <a href="#376">total_num</a> % <a href="#375">num</a> != <span class="number">0
-            </span>} <span class="kw">else </span>{
-                <a href="#375">num</a> != <a href="#376">total_num</a>
-            };
-            <span class="kw">if </span>should_err {
-                <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_arg_num_vals: Sending error WrongNumberOfValues&quot;</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::wrong_number_of_values(
-                    <a class="self" href="#373">self</a>.cmd,
-                    <a href="#373">a</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#375">num</a>,
-                    <span class="attribute">#[allow(deprecated)]
-                    </span><span class="kw">if </span>a.is_multiple_occurrences_set() {
-                        <a href="#376">total_num</a> % <a href="#375">num</a>
-                    } <span class="kw">else </span>{
-                        <a href="#376">total_num</a>
-                    },
-                    Usage::new(<a class="self" href="#373">self</a>.cmd)
-                        .<a href="../output/usage.rs.html#24">required</a>(<span class="kw-2">&amp;</span><a class="self" href="#373">self</a>.required)
-                        .<a href="../output/usage.rs.html#31">create_usage_with_title</a>(<span class="kw-2">&amp;</span>[]),
-                ));
-            }
-        }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(num) = <a href="#373">a</a>.max_vals {
-            <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_arg_num_vals: max_vals set...{}&quot;</span>, num);
-            <span class="kw">if </span>ma.num_vals() &gt; num {
-                <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_arg_num_vals: Sending error TooManyValues&quot;</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::too_many_values(
-                    <a class="self" href="#373">self</a>.cmd,
-                    <a href="#373">ma</a>.<a href="matches/matched_arg.rs.html#110">raw_vals_flatten</a>()
-                        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">last</a>()
-                        .expect(<a href="../lib.rs.html#189">INTERNAL_ERROR_MSG</a>)
-                        .to_str()
-                        .expect(<a href="../lib.rs.html#191">INVALID_UTF8</a>)
-                        .<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#373">a</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    Usage::new(<a class="self" href="#373">self</a>.cmd)
-                        .<a href="../output/usage.rs.html#24">required</a>(<span class="kw-2">&amp;</span><a class="self" href="#373">self</a>.required)
-                        .<a href="../output/usage.rs.html#31">create_usage_with_title</a>(<span class="kw-2">&amp;</span>[]),
-                ));
-            }
-        }
-        <span class="kw">let </span>min_vals_zero = <span class="kw">if let </span><span class="prelude-val">Some</span>(num) = <a href="#373">a</a>.min_vals {
-            <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_arg_num_vals: min_vals set: {}&quot;</span>, num);
-            <span class="kw">if </span>ma.num_vals() &lt; num &amp;&amp; num != <span class="number">0 </span>{
-                <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_arg_num_vals: Sending error TooFewValues&quot;</span>);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::too_few_values(
-                    <a class="self" href="#373">self</a>.cmd,
-                    <a href="#373">a</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#421">num</a>,
-                    <a href="#373">ma</a>.<a href="matches/matched_arg.rs.html#137">num_vals</a>(),
-                    Usage::new(<a class="self" href="#373">self</a>.cmd)
-                        .<a href="../output/usage.rs.html#24">required</a>(<span class="kw-2">&amp;</span><a class="self" href="#373">self</a>.required)
-                        .<a href="../output/usage.rs.html#31">create_usage_with_title</a>(<span class="kw-2">&amp;</span>[]),
-                ));
-            }
-            <a href="#421">num</a> == <span class="number">0
-        </span>} <span class="kw">else </span>{
-            <span class="bool-val">false
-        </span>};
-        <span class="comment">// Issue 665 (https://github.com/clap-rs/clap/issues/665)
-        // Issue 1105 (https://github.com/clap-rs/clap/issues/1105)
-        </span><span class="kw">if </span>a.is_takes_value_set() &amp;&amp; !min_vals_zero &amp;&amp; ma.all_val_groups_empty() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::empty_value(
-                <a class="self" href="#373">self</a>.cmd,
-                <span class="kw-2">&amp;</span><a href="#678">get_possible_values</a>(<a href="#373">a</a>)
-                    .iter()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|pv| !<a href="#446">pv</a>.<a href="../builder/possible_value.rs.html#177">is_hide_set</a>())
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(PossibleValue::get_name)
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
-                <a href="#373">a</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            ));
-        }
-        <span class="prelude-val">Ok</span>(())
-    }
-
     <span class="kw">fn </span>validate_required(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>,
-        conflicts: <span class="kw-2">&amp;mut </span><a href="#606">Conflicts</a>,
+        conflicts: <span class="kw-2">&amp;mut </span><a href="#459">Conflicts</a>,
     ) -&gt; ClapResult&lt;()&gt; {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_required: required={:?}&quot;</span>, <span class="self">self</span>.required);
-        <a class="self" href="#456">self</a>.<a href="#290">gather_requires</a>(<a href="#457">matcher</a>);
+        <a class="self" href="#243">self</a>.<a href="#217">gather_requires</a>(<a href="#244">matcher</a>);
 
-        <span class="kw">let </span>is_exclusive_present = <a href="#457">matcher</a>
-            .<a href="arg_matcher.rs.html#119">arg_ids</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|arg_id| <a href="#457">matcher</a>.<a href="arg_matcher.rs.html#139">check_explicit</a>(<a href="#465">arg_id</a>, <a href="../builder/arg_predicate.rs.html#3">ArgPredicate::IsPresent</a>))
+        <span class="kw">let </span><span class="kw-2">mut </span>missing_required = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>highest_index = <span class="number">0</span>;
+
+        <span class="kw">let </span>is_exclusive_present = <a href="#244">matcher</a>
+            .<a href="arg_matcher.rs.html#112">arg_ids</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|arg_id| <a href="#244">matcher</a>.<a href="arg_matcher.rs.html#128">check_explicit</a>(<a href="#255">arg_id</a>, <span class="kw-2">&amp;</span><a href="../builder/arg_predicate.rs.html#9">ArgPredicate::IsPresent</a>))
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|id| {
-                <a class="self" href="#456">self</a>.cmd
-                    .<a href="../builder/command.rs.html#4884">find</a>(<a href="#466">id</a>)
-                    .map(|arg| <a href="#469">arg</a>.<a href="../builder/arg.rs.html#4783">is_exclusive_set</a>())
+                <a class="self" href="#243">self</a>.cmd
+                    .<a href="../builder/command.rs.html#4375">find</a>(<a href="#256">id</a>)
+                    .map(|arg| <a href="#259">arg</a>.<a href="../builder/arg.rs.html#4033">is_exclusive_set</a>())
                     .unwrap_or_default()
             });
         <span class="macro">debug!</span>(
@@ -1171,13 +808,20 @@
         <span class="kw">for </span>arg_or_group <span class="kw">in </span><span class="self">self
             </span>.required
             .iter()
-            .filter(|r| !matcher.check_explicit(r, ArgPredicate::IsPresent))
+            .filter(|r| !matcher.check_explicit(r, <span class="kw-2">&amp;</span>ArgPredicate::IsPresent))
         {
             <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_required:iter:aog={:?}&quot;</span>, arg_or_group);
             <span class="kw">if let </span><span class="prelude-val">Some</span>(arg) = <span class="self">self</span>.cmd.find(arg_or_group) {
                 <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_required:iter: This is an arg&quot;</span>);
                 <span class="kw">if </span>!is_exclusive_present &amp;&amp; !<span class="self">self</span>.is_missing_required_ok(arg, matcher, conflicts) {
-                    <span class="kw">return </span><span class="self">self</span>.missing_required_error(matcher, <span class="macro">vec!</span>[]);
+                    <span class="macro">debug!</span>(
+                        <span class="string">&quot;Validator::validate_required:iter: Missing {:?}&quot;</span>,
+                        arg.get_id()
+                    );
+                    missing_required.push(arg.get_id().clone());
+                    <span class="kw">if </span>!arg.is_last_set() {
+                        highest_index = highest_index.max(arg.get_index().unwrap_or(<span class="number">0</span>));
+                    }
                 }
             } <span class="kw">else if let </span><span class="prelude-val">Some</span>(group) = <span class="self">self</span>.cmd.find_group(arg_or_group) {
                 <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_required:iter: This is a group&quot;</span>);
@@ -1185,133 +829,189 @@
                     </span>.cmd
                     .unroll_args_in_group(<span class="kw-2">&amp;</span>group.id)
                     .iter()
-                    .any(|a| matcher.check_explicit(a, ArgPredicate::IsPresent))
+                    .any(|a| matcher.check_explicit(a, <span class="kw-2">&amp;</span>ArgPredicate::IsPresent))
                 {
-                    <span class="kw">return </span><span class="self">self</span>.missing_required_error(matcher, <span class="macro">vec!</span>[]);
+                    <span class="macro">debug!</span>(
+                        <span class="string">&quot;Validator::validate_required:iter: Missing {:?}&quot;</span>,
+                        group.get_id()
+                    );
+                    missing_required.push(group.get_id().clone());
                 }
             }
         }
 
         <span class="comment">// Validate the conditionally required args
-        </span><span class="kw">for </span>a <span class="kw">in </span><span class="self">self</span>.cmd.get_arguments() {
+        </span><span class="kw">for </span>a <span class="kw">in </span><span class="self">self
+            </span>.cmd
+            .get_arguments()
+            .filter(|a| !matcher.check_explicit(a.get_id(), <span class="kw-2">&amp;</span>ArgPredicate::IsPresent))
+        {
+            <span class="kw">let </span><span class="kw-2">mut </span>required = <span class="bool-val">false</span>;
+
             <span class="kw">for </span>(other, val) <span class="kw">in </span><span class="kw-2">&amp;</span>a.r_ifs {
-                <span class="kw">if </span>matcher.check_explicit(other, ArgPredicate::Equals(std::ffi::OsStr::new(<span class="kw-2">*</span>val)))
-                    &amp;&amp; !matcher.check_explicit(<span class="kw-2">&amp;</span>a.id, ArgPredicate::IsPresent)
-                {
-                    <span class="kw">return </span><span class="self">self</span>.missing_required_error(matcher, <span class="macro">vec!</span>[a.id.clone()]);
+                <span class="kw">if </span>matcher.check_explicit(other, <span class="kw-2">&amp;</span>ArgPredicate::Equals(val.into())) {
+                    <span class="macro">debug!</span>(
+                        <span class="string">&quot;Validator::validate_required:iter: Missing {:?}&quot;</span>,
+                        a.get_id()
+                    );
+                    required = <span class="bool-val">true</span>;
                 }
             }
 
             <span class="kw">let </span>match_all = a.r_ifs_all.iter().all(|(other, val)| {
-                matcher.check_explicit(other, ArgPredicate::Equals(std::ffi::OsStr::new(<span class="kw-2">*</span>val)))
+                matcher.check_explicit(other, <span class="kw-2">&amp;</span>ArgPredicate::Equals(val.into()))
             });
-            <span class="kw">if </span>match_all
-                &amp;&amp; !a.r_ifs_all.is_empty()
-                &amp;&amp; !matcher.check_explicit(<span class="kw-2">&amp;</span>a.id, ArgPredicate::IsPresent)
+            <span class="kw">if </span>match_all &amp;&amp; !a.r_ifs_all.is_empty() {
+                <span class="macro">debug!</span>(
+                    <span class="string">&quot;Validator::validate_required:iter: Missing {:?}&quot;</span>,
+                    a.get_id()
+                );
+                required = <span class="bool-val">true</span>;
+            }
+
+            <span class="kw">if </span>(!a.r_unless.is_empty() || !a.r_unless_all.is_empty())
+                &amp;&amp; <span class="self">self</span>.fails_arg_required_unless(a, matcher)
             {
-                <span class="kw">return </span><span class="self">self</span>.missing_required_error(matcher, <span class="macro">vec!</span>[a.id.clone()]);
+                <span class="macro">debug!</span>(
+                    <span class="string">&quot;Validator::validate_required:iter: Missing {:?}&quot;</span>,
+                    a.get_id()
+                );
+                required = <span class="bool-val">true</span>;
+            }
+
+            <span class="kw">if </span>required {
+                missing_required.push(a.get_id().clone());
+                <span class="kw">if </span>!a.is_last_set() {
+                    highest_index = highest_index.max(a.get_index().unwrap_or(<span class="number">0</span>));
+                }
             }
         }
 
-        <span class="self">self</span>.validate_required_unless(matcher)<span class="question-mark">?</span>;
+        <span class="comment">// For display purposes, include all of the preceding positional arguments
+        </span><span class="kw">if </span>!<span class="self">self</span>.cmd.is_allow_missing_positional_set() {
+            <span class="kw">for </span>pos <span class="kw">in </span><span class="self">self
+                </span>.cmd
+                .get_positionals()
+                .filter(|a| !matcher.check_explicit(a.get_id(), <span class="kw-2">&amp;</span>ArgPredicate::IsPresent))
+            {
+                <span class="kw">if </span>pos.get_index() &lt; <span class="prelude-val">Some</span>(highest_index) {
+                    <span class="macro">debug!</span>(
+                        <span class="string">&quot;Validator::validate_required:iter: Missing {:?}&quot;</span>,
+                        pos.get_id()
+                    );
+                    missing_required.push(pos.get_id().clone());
+                }
+            }
+        }
+
+        <span class="kw">if </span>!missing_required.is_empty() {
+            <a class="macro" href="../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.missing_required_error(matcher, missing_required));
+        }
 
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>is_missing_required_ok(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        a: <span class="kw-2">&amp;</span>Arg&lt;<span class="lifetime">&#39;help</span>&gt;,
+        a: <span class="kw-2">&amp;</span><a href="../builder/arg.rs.html#54">Arg</a>,
         matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>,
-        conflicts: <span class="kw-2">&amp;mut </span><a href="#606">Conflicts</a>,
+        conflicts: <span class="kw-2">&amp;mut </span><a href="#459">Conflicts</a>,
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::is_missing_required_ok: {}&quot;</span>, a.name);
-        <span class="kw">let </span>conflicts = <a href="#531">conflicts</a>.<a href="#615">gather_conflicts</a>(<a class="self" href="#528">self</a>.cmd, <a href="#530">matcher</a>, <span class="kw-2">&amp;</span><a href="#529">a</a>.id);
-        !<a href="#534">conflicts</a>.is_empty()
-    }
-
-    <span class="kw">fn </span>validate_required_unless(<span class="kw-2">&amp;</span><span class="self">self</span>, matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>) -&gt; ClapResult&lt;()&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_required_unless&quot;</span>);
-        <span class="kw">let </span>failed_args: Vec&lt;<span class="kw">_</span>&gt; = <span class="self"><a href="#538">self</a>
-            </span>.cmd
-            .<a href="../builder/command.rs.html#3563">get_arguments</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|<span class="kw-2">&amp;</span>a| {
-                (!<a href="#543">a</a>.r_unless.is_empty() || !<a href="#543">a</a>.r_unless_all.is_empty())
-                    &amp;&amp; !<a href="#538">matcher</a>.<a href="arg_matcher.rs.html#139">check_explicit</a>(<span class="kw-2">&amp;</span><a href="#543">a</a>.id, <a href="../builder/arg_predicate.rs.html#3">ArgPredicate::IsPresent</a>)
-                    &amp;&amp; <a class="self" href="#538">self</a>.<a href="#558">fails_arg_required_unless</a>(<a href="#543">a</a>, <a href="#538">matcher</a>)
-            })
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|a| <a href="#548">a</a>.id.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">if </span>failed_args.is_empty() {
-            <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else </span>{
-            <a class="self" href="#538">self</a>.<a href="#567">missing_required_error</a>(<a href="#538">matcher</a>, <a href="#540">failed_args</a>)
-        }
+        <span class="macro">debug!</span>(<span class="string">&quot;Validator::is_missing_required_ok: {}&quot;</span>, a.get_id());
+        <span class="kw">let </span>conflicts = <a href="#377">conflicts</a>.<a href="#468">gather_conflicts</a>(<a class="self" href="#374">self</a>.cmd, <a href="#376">matcher</a>, <a href="#375">a</a>.<a href="../builder/arg.rs.html#3698">get_id</a>());
+        !<a href="#380">conflicts</a>.is_empty()
     }
 
     <span class="comment">// Failing a required unless means, the arg&#39;s &quot;unless&quot; wasn&#39;t present, and neither were they
-    </span><span class="kw">fn </span>fails_arg_required_unless(<span class="kw-2">&amp;</span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>Arg&lt;<span class="lifetime">&#39;help</span>&gt;, matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::fails_arg_required_unless: a={:?}&quot;</span>, a.name);
-        <span class="kw">let </span>exists = |id| <a href="#558">matcher</a>.<a href="arg_matcher.rs.html#139">check_explicit</a>(<a href="#560">id</a>, <a href="../builder/arg_predicate.rs.html#3">ArgPredicate::IsPresent</a>);
+    </span><span class="kw">fn </span>fails_arg_required_unless(<span class="kw-2">&amp;</span><span class="self">self</span>, a: <span class="kw-2">&amp;</span><a href="../builder/arg.rs.html#54">Arg</a>, matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="macro">debug!</span>(<span class="string">&quot;Validator::fails_arg_required_unless: a={:?}&quot;</span>, a.get_id());
+        <span class="kw">let </span>exists = |id| <a href="#385">matcher</a>.<a href="arg_matcher.rs.html#128">check_explicit</a>(<a href="#387">id</a>, <span class="kw-2">&amp;</span><a href="../builder/arg_predicate.rs.html#9">ArgPredicate::IsPresent</a>);
 
-        (<a href="#558">a</a>.r_unless_all.is_empty() || !<a href="#558">a</a>.r_unless_all.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<a href="#560">exists</a>))
-            &amp;&amp; !<a href="#558">a</a>.r_unless.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<a href="#560">exists</a>)
+        (<a href="#385">a</a>.r_unless_all.is_empty() || !<a href="#385">a</a>.r_unless_all.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<a href="#387">exists</a>))
+            &amp;&amp; !<a href="#385">a</a>.r_unless.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<a href="#387">exists</a>)
     }
 
-    <span class="comment">// `incl`: an arg to include in the error even if not used
-    </span><span class="kw">fn </span>missing_required_error(<span class="kw-2">&amp;</span><span class="self">self</span>, matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>, incl: Vec&lt;<a href="../util/id.rs.html#11">Id</a>&gt;) -&gt; ClapResult&lt;()&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Validator::missing_required_error; incl={:?}&quot;</span>, incl);
+    <span class="comment">// `req_args`: an arg to include in the error even if not used
+    </span><span class="kw">fn </span>missing_required_error(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>,
+        raw_req_args: Vec&lt;<a href="../util/id.rs.html#9">Id</a>&gt;,
+    ) -&gt; ClapResult&lt;()&gt; {
+        <span class="macro">debug!</span>(<span class="string">&quot;Validator::missing_required_error; incl={:?}&quot;</span>, raw_req_args);
         <span class="macro">debug!</span>(
             <span class="string">&quot;Validator::missing_required_error: reqs={:?}&quot;</span>,
             <span class="self">self</span>.required
         );
 
-        <span class="kw">let </span>usg = Usage::new(<a class="self" href="#567">self</a>.cmd).<a href="../output/usage.rs.html#24">required</a>(<span class="kw-2">&amp;</span><a class="self" href="#567">self</a>.required);
+        <span class="kw">let </span>usg = Usage::new(<a class="self" href="#395">self</a>.cmd).<a href="../output/usage.rs.html#29">required</a>(<span class="kw-2">&amp;</span><a class="self" href="#395">self</a>.required);
 
-        <span class="kw">let </span>req_args = <a href="#574">usg</a>
-            .<a href="../output/usage.rs.html#331-336">get_required_usage_from</a>(<span class="kw-2">&amp;</span><a href="#567">incl</a>, <span class="prelude-val">Some</span>(<a href="#567">matcher</a>), <span class="bool-val">true</span>)
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        <span class="kw">let </span>req_args = {
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;usage&quot;</span>)]
+            </span>{
+                <a href="#405">usg</a>.<a href="../output/usage.rs.html#316-321">get_required_usage_from</a>(<span class="kw-2">&amp;</span><a href="#397">raw_req_args</a>, <span class="prelude-val">Some</span>(<a href="#396">matcher</a>), <span class="bool-val">true</span>)
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|s| <a href="#412">s</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+            }
+
+            <span class="attribute">#[cfg(not(feature = <span class="string">&quot;usage&quot;</span>))]
+            </span>{
+                raw_req_args
+                    .iter()
+                    .map(|id| {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(arg) = <span class="self">self</span>.cmd.find(id) {
+                            arg.to_string()
+                        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(_group) = <span class="self">self</span>.cmd.find_group(id) {
+                            <span class="self">self</span>.cmd.format_group(id).to_string()
+                        } <span class="kw">else </span>{
+                            <span class="macro">debug_assert!</span>(<span class="bool-val">false</span>, <span class="string">&quot;id={:?} is unknown&quot;</span>, id);
+                            <span class="string">&quot;&quot;</span>.to_owned()
+                        }
+                    })
+                    .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+            }
+        };
 
         <span class="macro">debug!</span>(
             <span class="string">&quot;Validator::missing_required_error: req_args={:#?}&quot;</span>,
             req_args
         );
 
-        <span class="kw">let </span>used: Vec&lt;<a href="../util/id.rs.html#11">Id</a>&gt; = <a href="#567">matcher</a>
-            .<a href="arg_matcher.rs.html#119">arg_ids</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|arg_id| <a href="#567">matcher</a>.<a href="arg_matcher.rs.html#139">check_explicit</a>(<a href="#588">arg_id</a>, <a href="../builder/arg_predicate.rs.html#3">ArgPredicate::IsPresent</a>))
+        <span class="kw">let </span>used: Vec&lt;<a href="../util/id.rs.html#9">Id</a>&gt; = <a href="#396">matcher</a>
+            .<a href="arg_matcher.rs.html#112">arg_ids</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|arg_id| <a href="#396">matcher</a>.<a href="arg_matcher.rs.html#128">check_explicit</a>(<a href="#441">arg_id</a>, <span class="kw-2">&amp;</span><a href="../builder/arg_predicate.rs.html#9">ArgPredicate::IsPresent</a>))
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|n| {
                 <span class="comment">// Filter out the args we don&#39;t want to specify.
-                </span><a class="self" href="#567">self</a>.cmd.<a href="../builder/command.rs.html#4884">find</a>(<a href="#589">n</a>).map_or(<span class="bool-val">true</span>, |a| !<a href="#591">a</a>.<a href="../builder/arg.rs.html#4731">is_hide_set</a>())
+                </span><a class="self" href="#395">self</a>.cmd.<a href="../builder/command.rs.html#4375">find</a>(<a href="#442">n</a>).map_or(<span class="bool-val">false</span>, |a| !<a href="#444">a</a>.<a href="../builder/arg.rs.html#3991">is_hide_set</a>())
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#567">incl</a>)
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#397">raw_req_args</a>)
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
         <span class="prelude-val">Err</span>(Error::missing_required_argument(
-            <a class="self" href="#567">self</a>.cmd,
-            <a href="#576">req_args</a>,
-            <a href="#574">usg</a>.<a href="../output/usage.rs.html#31">create_usage_with_title</a>(<span class="kw-2">&amp;</span><a href="#586">used</a>),
+            <a class="self" href="#395">self</a>.cmd,
+            <a href="#407">req_args</a>,
+            <a href="#405">usg</a>.<a href="../output/usage.rs.html#36">create_usage_with_title</a>(<span class="kw-2">&amp;</span><a href="#439">used</a>),
         ))
     }
 }
 
 <span class="attribute">#[derive(Default, Clone, Debug)]
 </span><span class="kw">struct </span>Conflicts {
-    potential: std::collections::HashMap&lt;<a href="../util/id.rs.html#11">Id</a>, Vec&lt;<a href="../util/id.rs.html#11">Id</a>&gt;&gt;,
+    potential: FlatMap&lt;<a href="../util/id.rs.html#9">Id</a>, Vec&lt;<a href="../util/id.rs.html#9">Id</a>&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="#606">Conflicts</a> {
+<span class="kw">impl </span><a href="#459">Conflicts</a> {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::default()
     }
 
-    <span class="kw">fn </span>gather_conflicts(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cmd: <span class="kw-2">&amp;</span><a href="../builder/command.rs.html#70">Command</a>, matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>, arg_id: <span class="kw-2">&amp;</span><a href="../util/id.rs.html#11">Id</a>) -&gt; Vec&lt;<a href="../util/id.rs.html#11">Id</a>&gt; {
+    <span class="kw">fn </span>gather_conflicts(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cmd: <span class="kw-2">&amp;</span><a href="../builder/command.rs.html#71">Command</a>, matcher: <span class="kw-2">&amp;</span><a href="arg_matcher.rs.html#17">ArgMatcher</a>, arg_id: <span class="kw-2">&amp;</span><a href="../util/id.rs.html#9">Id</a>) -&gt; Vec&lt;<a href="../util/id.rs.html#9">Id</a>&gt; {
         <span class="macro">debug!</span>(<span class="string">&quot;Conflicts::gather_conflicts: arg={:?}&quot;</span>, arg_id);
         <span class="kw">let </span><span class="kw-2">mut </span>conflicts = Vec::new();
         <span class="kw">for </span>other_arg_id <span class="kw">in </span>matcher
             .arg_ids()
-            .filter(|arg_id| matcher.check_explicit(arg_id, ArgPredicate::IsPresent))
+            .filter(|arg_id| matcher.check_explicit(arg_id, <span class="kw-2">&amp;</span>ArgPredicate::IsPresent))
         {
             <span class="kw">if </span>arg_id == other_arg_id {
                 <span class="kw">continue</span>;
@@ -1331,13 +1031,13 @@
             }
         }
         <span class="macro">debug!</span>(<span class="string">&quot;Conflicts::gather_conflicts: conflicts={:?}&quot;</span>, conflicts);
-        <a href="#617">conflicts</a>
+        <a href="#470">conflicts</a>
     }
 
-    <span class="kw">fn </span>gather_direct_conflicts(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cmd: <span class="kw-2">&amp;</span><a href="../builder/command.rs.html#70">Command</a>, arg_id: <span class="kw-2">&amp;</span><a href="../util/id.rs.html#11">Id</a>) -&gt; <span class="kw-2">&amp;</span>[<a href="../util/id.rs.html#11">Id</a>] {
-        <a class="self" href="#643">self</a>.potential.entry(<a href="#643">arg_id</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).or_insert_with(|| {
-            <span class="kw">let </span>conf = <span class="kw">if let </span><span class="prelude-val">Some</span>(arg) = <a href="#643">cmd</a>.<a href="../builder/command.rs.html#4884">find</a>(<a href="#643">arg_id</a>) {
-                <span class="kw">let </span><span class="kw-2">mut </span>conf = <a href="#645">arg</a>.blacklist.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    <span class="kw">fn </span>gather_direct_conflicts(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cmd: <span class="kw-2">&amp;</span><a href="../builder/command.rs.html#71">Command</a>, arg_id: <span class="kw-2">&amp;</span><a href="../util/id.rs.html#9">Id</a>) -&gt; <span class="kw-2">&amp;</span>[<a href="../util/id.rs.html#9">Id</a>] {
+        <a class="self" href="#496">self</a>.potential.<a href="../util/flat_map.rs.html#82">entry</a>(<a href="#496">arg_id</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<a href="../util/flat_map.rs.html#162">or_insert_with</a>(|| {
+            <span class="kw">let </span>conf = <span class="kw">if let </span><span class="prelude-val">Some</span>(arg) = <a href="#496">cmd</a>.<a href="../builder/command.rs.html#4375">find</a>(<a href="#496">arg_id</a>) {
+                <span class="kw">let </span><span class="kw-2">mut </span>conf = <a href="#498">arg</a>.blacklist.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
                 <span class="kw">for </span>group_id <span class="kw">in </span>cmd.groups_for_arg(arg_id) {
                     <span class="kw">let </span>group = cmd.find_group(<span class="kw-2">&amp;</span>group_id).expect(INTERNAL_ERROR_MSG);
                     conf.extend(group.conflicts.iter().cloned());
@@ -1351,11 +1051,11 @@
                 }
 
                 <span class="comment">// Overrides are implicitly conflicts
-                </span><a href="#646">conf</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#645">arg</a>.overrides.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
+                </span><a href="#499">conf</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#498">arg</a>.overrides.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
 
-                <a href="#646">conf</a>
-            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(group) = <a href="#643">cmd</a>.<a href="../builder/command.rs.html#4966">find_group</a>(<a href="#643">arg_id</a>) {
-                <a href="#663">group</a>.conflicts.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+                <a href="#499">conf</a>
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(group) = <a href="#496">cmd</a>.<a href="../builder/command.rs.html#4449">find_group</a>(<a href="#496">arg_id</a>) {
+                <a href="#516">group</a>.conflicts.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
             } <span class="kw">else </span>{
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="bool-val">false</span>, <span class="string">&quot;id={:?} is unknown&quot;</span>, arg_id);
                 Vec::new()
@@ -1364,25 +1064,20 @@
                 <span class="string">&quot;Conflicts::gather_direct_conflicts id={:?}, conflicts={:?}&quot;</span>,
                 arg_id, conf
             );
-            <a href="#645">conf</a>
+            <a href="#498">conf</a>
         })
     }
 }
 
-<span class="kw">fn </span>get_possible_values&lt;<span class="lifetime">&#39;help</span>&gt;(a: <span class="kw-2">&amp;</span>Arg&lt;<span class="lifetime">&#39;help</span>&gt;) -&gt; Vec&lt;PossibleValue&lt;<span class="lifetime">&#39;help</span>&gt;&gt; {
-    <span class="attribute">#![allow(deprecated)]
-    </span><span class="kw">if </span>!a.is_takes_value_set() {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_possible_values_cli(a: <span class="kw-2">&amp;</span><a href="../builder/arg.rs.html#54">Arg</a>) -&gt; Vec&lt;<a href="../builder/possible_value.rs.html#31">PossibleValue</a>&gt; {
+    <span class="kw">if </span>!a.is_takes_value_set() {
         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(pvs) = <a href="#678">a</a>.<a href="../builder/arg.rs.html#4519">get_possible_values</a>() {
-        <span class="comment">// Check old first in case the user explicitly set possible values and the derive inferred
-        // a `ValueParser` with some.
-        </span><a href="#682">pvs</a>.to_vec()
     } <span class="kw">else </span>{
-        <a href="#678">a</a>.<a href="../builder/arg.rs.html#4708">get_value_parser</a>()
-            .<a href="../builder/value_parser.rs.html#245-247">possible_values</a>()
-            .map(|pvs| <a href="#689">pvs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
+        <a href="#531">a</a>.<a href="../builder/arg.rs.html#3971">get_value_parser</a>()
+            .<a href="../builder/value_parser.rs.html#243-245">possible_values</a>()
+            .map(|pvs| <a href="#537">pvs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
             .unwrap_or_default()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (95a3a7277 2022-10-31)" ></div></body></html>

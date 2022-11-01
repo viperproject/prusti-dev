@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.15.0/src/race.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>race.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../once_cell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../once_cell/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.16.0/src/race.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>race.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../once_cell/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -301,6 +301,7 @@
 <span id="301">301</span>
 <span id="302">302</span>
 <span id="303">303</span>
+<span id="304">304</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Thread-safe, non-blocking, &quot;first one wins&quot; flavor of `OnceCell`.
 //!
 //! If two threads race to initialize a type from the `race` module, they
@@ -322,9 +323,9 @@
 //! `Acquire` and `Release` have very little performance overhead on most
 //! architectures versus `Relaxed`.
 
-</span><span class="attribute">#[cfg(feature = <span class="string">&quot;atomic-polyfill&quot;</span>)]
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;critical-section&quot;</span>)]
 </span><span class="kw">use </span>atomic_polyfill <span class="kw">as </span>atomic;
-<span class="attribute">#[cfg(not(feature = <span class="string">&quot;atomic-polyfill&quot;</span>))]
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;critical-section&quot;</span>))]
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/sync/atomic/index.html">core::sync::atomic</a>;
 
 <span class="kw">use </span>atomic::{<a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
@@ -468,6 +469,7 @@
     </span><span class="kw">fn </span>from_usize(value: <a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">NonZeroUsize</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a href="#165">value</a>.get() == <span class="number">1
     </span>}
+
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>to_usize(value: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroUsize.html">NonZeroUsize</a> {
         <span class="kw">unsafe </span>{ NonZeroUsize::new_unchecked(<span class="kw">if </span>value { <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">2 </span>}) }
@@ -475,7 +477,7 @@
 }
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-</span><span class="kw">pub use </span><a href="#185"><span class="self">self</span>::once_box::OnceBox</a>;
+</span><span class="kw">pub use </span><a href="#186"><span class="self">self</span>::once_box::OnceBox</a>;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
 </span><span class="kw">mod </span>once_box {
@@ -492,7 +494,7 @@
 
     <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">core::fmt::Debug</a> <span class="kw">for </span>OnceBox&lt;T&gt; {
         <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">core::fmt::Result</a> {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#191">f</a>, <span class="string">&quot;OnceBox({:?})&quot;</span>, <span class="self">self</span>.inner.load(Ordering::Relaxed))
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#192">f</a>, <span class="string">&quot;OnceBox({:?})&quot;</span>, <span class="self">self</span>.inner.load(Ordering::Relaxed))
         }
     }
 
@@ -504,9 +506,9 @@
 
     <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>OnceBox&lt;T&gt; {
         <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-            <span class="kw">let </span>ptr = <span class="kw-2">*</span><a class="self" href="#203">self</a>.inner.get_mut();
+            <span class="kw">let </span>ptr = <span class="kw-2">*</span><a class="self" href="#204">self</a>.inner.get_mut();
             <span class="kw">if </span>!ptr.is_null() {
-                <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="kw">unsafe </span>{ Box::from_raw(<a href="#204">ptr</a>) })
+                <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="kw">unsafe </span>{ Box::from_raw(<a href="#205">ptr</a>) })
             }
         }
     }
@@ -514,16 +516,16 @@
     <span class="kw">impl</span>&lt;T&gt; OnceBox&lt;T&gt; {
         <span class="doccomment">/// Creates a new empty cell.
         </span><span class="kw">pub const fn </span>new() -&gt; OnceBox&lt;T&gt; {
-            <a href="#185">OnceBox</a> { inner: AtomicPtr::new(ptr::null_mut()), ghost: PhantomData }
+            <a href="#186">OnceBox</a> { inner: AtomicPtr::new(ptr::null_mut()), ghost: PhantomData }
         }
 
         <span class="doccomment">/// Gets a reference to the underlying value.
         </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-            <span class="kw">let </span>ptr = <a class="self" href="#218">self</a>.inner.load(Ordering::Acquire);
+            <span class="kw">let </span>ptr = <a class="self" href="#219">self</a>.inner.load(Ordering::Acquire);
             <span class="kw">if </span>ptr.is_null() {
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
-            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a href="#219">ptr</a> })
+            <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a href="#220">ptr</a> })
         }
 
         <span class="doccomment">/// Sets the contents of this cell to `value`.
@@ -531,16 +533,16 @@
         /// Returns `Ok(())` if the cell was empty and `Err(value)` if it was
         /// full.
         </span><span class="kw">pub fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, value: Box&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;T&gt;&gt; {
-            <span class="kw">let </span>ptr = Box::into_raw(<a href="#230">value</a>);
-            <span class="kw">let </span>exchange = <a class="self" href="#230">self</a>.inner.compare_exchange(
+            <span class="kw">let </span>ptr = Box::into_raw(<a href="#231">value</a>);
+            <span class="kw">let </span>exchange = <a class="self" href="#231">self</a>.inner.compare_exchange(
                 ptr::null_mut(),
-                <a href="#231">ptr</a>,
+                <a href="#232">ptr</a>,
                 Ordering::AcqRel,
                 Ordering::Acquire,
             );
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) = <a href="#232">exchange</a> {
-                <span class="kw">let </span>value = <span class="kw">unsafe </span>{ Box::from_raw(<a href="#231">ptr</a>) };
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#239">value</a>);
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) = <a href="#233">exchange</a> {
+                <span class="kw">let </span>value = <span class="kw">unsafe </span>{ Box::from_raw(<a href="#232">ptr</a>) };
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#240">value</a>);
             }
             <span class="prelude-val">Ok</span>(())
         }
@@ -556,9 +558,9 @@
             </span>F: FnOnce() -&gt; Box&lt;T&gt;,
         {
             <span class="kw">enum </span>Void {}
-            <span class="kw">match </span><a class="self" href="#251">self</a>.<a href="#269-271">get_or_try_init</a>(|| <span class="prelude-val">Ok</span>::&lt;Box&lt;T&gt;, <a href="#255">Void</a>&gt;(<a href="#251">f</a>())) {
-                <span class="prelude-val">Ok</span>(val) =&gt; <a href="#257">val</a>,
-                <span class="prelude-val">Err</span>(void) =&gt; <span class="kw">match </span><a href="#258">void</a> {},
+            <span class="kw">match </span><a class="self" href="#252">self</a>.<a href="#270-272">get_or_try_init</a>(|| <span class="prelude-val">Ok</span>::&lt;Box&lt;T&gt;, <a href="#256">Void</a>&gt;(<a href="#252">f</a>())) {
+                <span class="prelude-val">Ok</span>(val) =&gt; <a href="#258">val</a>,
+                <span class="prelude-val">Err</span>(void) =&gt; <span class="kw">match </span><a href="#259">void</a> {},
             }
         }
 
@@ -573,23 +575,23 @@
         <span class="kw">where
             </span>F: FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;T&gt;, E&gt;,
         {
-            <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a class="self" href="#269">self</a>.inner.load(Ordering::Acquire);
+            <span class="kw">let </span><span class="kw-2">mut </span>ptr = <a class="self" href="#270">self</a>.inner.load(Ordering::Acquire);
 
             <span class="kw">if </span>ptr.is_null() {
                 <span class="kw">let </span>val = f()<span class="question-mark">?</span>;
-                <a href="#273">ptr</a> = Box::into_raw(<a href="#276">val</a>);
-                <span class="kw">let </span>exchange = <a class="self" href="#269">self</a>.inner.compare_exchange(
+                <a href="#274">ptr</a> = Box::into_raw(<a href="#277">val</a>);
+                <span class="kw">let </span>exchange = <a class="self" href="#270">self</a>.inner.compare_exchange(
                     ptr::null_mut(),
-                    <a href="#273">ptr</a>,
+                    <a href="#274">ptr</a>,
                     Ordering::AcqRel,
                     Ordering::Acquire,
                 );
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(old) = <a href="#278">exchange</a> {
-                    <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="kw">unsafe </span>{ Box::from_raw(<a href="#273">ptr</a>) });
-                    <a href="#273">ptr</a> = <a href="#284">old</a>;
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(old) = <a href="#279">exchange</a> {
+                    <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<span class="kw">unsafe </span>{ Box::from_raw(<a href="#274">ptr</a>) });
+                    <a href="#274">ptr</a> = <a href="#285">old</a>;
                 }
             };
-            <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a href="#273">ptr</a> })
+            <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><a href="#274">ptr</a> })
         }
     }
 
@@ -605,4 +607,4 @@
     </span><span class="kw">fn </span>_dummy() {}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="once_cell" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="once_cell" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (95a3a7277 2022-10-31)" ></div></body></html>

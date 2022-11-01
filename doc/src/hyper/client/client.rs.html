@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.20/src/client/client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.22/src/client/client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1460,13 +1460,46 @@
 <span id="1460">1460</span>
 <span id="1461">1461</span>
 <span id="1462">1462</span>
+<span id="1463">1463</span>
+<span id="1464">1464</span>
+<span id="1465">1465</span>
+<span id="1466">1466</span>
+<span id="1467">1467</span>
+<span id="1468">1468</span>
+<span id="1469">1469</span>
+<span id="1470">1470</span>
+<span id="1471">1471</span>
+<span id="1472">1472</span>
+<span id="1473">1473</span>
+<span id="1474">1474</span>
+<span id="1475">1475</span>
+<span id="1476">1476</span>
+<span id="1477">1477</span>
+<span id="1478">1478</span>
+<span id="1479">1479</span>
+<span id="1480">1480</span>
+<span id="1481">1481</span>
+<span id="1482">1482</span>
+<span id="1483">1483</span>
+<span id="1484">1484</span>
+<span id="1485">1485</span>
+<span id="1486">1486</span>
+<span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
+<span id="1490">1490</span>
+<span id="1491">1491</span>
+<span id="1492">1492</span>
+<span id="1493">1493</span>
+<span id="1494">1494</span>
+<span id="1495">1495</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">std::error::Error</a> <span class="kw">as </span>StdError;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
 
 <span class="kw">use </span><a href="../../../futures_channel/oneshot/index.html">futures_channel::oneshot</a>;
-<span class="kw">use </span>futures_util::future::{<a class="self" href="../../../futures_util/future/index.html">self</a>, Either, <a href="../../../futures_util/future/future/trait.FutureExt.html">FutureExt</a> <span class="kw">as _</span>, <a href="../../../futures_util/future/try_future/trait.TryFutureExt.html">TryFutureExt</a> <span class="kw">as _</span>};
+<span class="kw">use </span>futures_util::future::{<a class="self" href="../../../futures_util/future/index.html">self</a>, <a href="../../../futures_util/future/either/enum.Either.html">Either</a>, <a href="../../../futures_util/future/future/trait.FutureExt.html">FutureExt</a> <span class="kw">as _</span>, <a href="../../../futures_util/future/try_future/trait.TryFutureExt.html">TryFutureExt</a> <span class="kw">as _</span>};
 <span class="kw">use </span>http::header::{<a href="../../../hyper/header/struct.HeaderValue.html">HeaderValue</a>, <a href="../../../hyper/header/constant.HOST.html">HOST</a>};
 <span class="kw">use </span>http::uri::{<a href="../../../http/uri/port/struct.Port.html">Port</a>, <a href="../../../http/uri/scheme/struct.Scheme.html">Scheme</a>};
 <span class="kw">use </span>http::{<a href="../../../hyper/struct.Method.html">Method</a>, <a href="../../../hyper/struct.Request.html">Request</a>, <a href="../../../hyper/struct.Response.html">Response</a>, <a href="../../../hyper/struct.Uri.html">Uri</a>, <a href="../../../hyper/struct.Version.html">Version</a>};
@@ -1524,7 +1557,7 @@
     </span><span class="attribute">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;tcp&quot;</span>)))]
     #[inline]
     </span><span class="kw">pub fn </span>new() -&gt; Client&lt;<a href="connect/http.rs.html#33">HttpConnector</a>, <a href="../body/body.rs.html#36">Body</a>&gt; {
-        Builder::default().<a href="#1321-1324">build_http</a>()
+        Builder::default().<a href="#1354-1357">build_http</a>()
     }
 }
 
@@ -1905,7 +1938,7 @@
                 <span class="prelude-val">Some</span>(lock) =&gt; <a href="#443">lock</a>,
                 <span class="prelude-val">None </span>=&gt; {
                     <span class="kw">let </span>canceled =
-                        <span class="kw">crate</span>::Error::new_canceled().<a href="../error.rs.html#215">with</a>(<span class="string">&quot;HTTP/2 connection in progress&quot;</span>);
+                        <span class="kw">crate</span>::Error::new_canceled().<a href="../error.rs.html#219">with</a>(<span class="string">&quot;HTTP/2 connection in progress&quot;</span>);
                     <span class="kw">return </span>Either::Right(future::err(<a href="#445">canceled</a>));
                 }
             };
@@ -1928,7 +1961,7 @@
                                     <span class="comment">// Another connection has already upgraded,
                                     // the pool checkout should finish up for us.
                                     </span><span class="kw">let </span>canceled = <span class="kw">crate</span>::Error::new_canceled()
-                                        .<a href="../error.rs.html#215">with</a>(<span class="string">&quot;ALPN upgraded to HTTP/2&quot;</span>);
+                                        .<a href="../error.rs.html#219">with</a>(<span class="string">&quot;ALPN upgraded to HTTP/2&quot;</span>);
                                     <span class="kw">return </span>Either::Right(future::err(<a href="#468">canceled</a>));
                                 }
                             }
@@ -1940,7 +1973,7 @@
                         </span><span class="kw">let </span>is_h2 = <a href="#433">is_ver_h2</a> || <a href="#455">connected</a>.alpn == <a href="connect/mod.rs.html#122">Alpn::H2</a>;
                         <span class="attribute">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
                         </span>{
-                            <a href="#431">conn_builder</a>.<a href="conn.rs.html#770">http2_only</a>(<a href="#478">is_h2</a>);
+                            <a href="#431">conn_builder</a>.<a href="conn.rs.html#788">http2_only</a>(<a href="#478">is_h2</a>);
                         }
 
                         Either::Left(Box::pin(<span class="kw">async move </span>{
@@ -2440,7 +2473,7 @@
     ///
     /// Default is an adaptive read buffer.
     </span><span class="kw">pub fn </span>http1_read_buf_exact_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sz: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#980">self</a>.conn_builder.<a href="conn.rs.html#731">http1_read_buf_exact_size</a>(<span class="prelude-val">Some</span>(<a href="#980">sz</a>));
+        <a class="self" href="#980">self</a>.conn_builder.<a href="conn.rs.html#749">http1_read_buf_exact_size</a>(<span class="prelude-val">Some</span>(<a href="#980">sz</a>));
         <span class="self"><a href="#980">self</a>
     </span>}
 
@@ -2456,7 +2489,7 @@
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;http1&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;http1&quot;</span>)))]
     </span><span class="kw">pub fn </span>http1_max_buf_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#996">self</a>.conn_builder.<a href="conn.rs.html#748">http1_max_buf_size</a>(<a href="#996">max</a>);
+        <a class="self" href="#996">self</a>.conn_builder.<a href="conn.rs.html#766">http1_max_buf_size</a>(<a href="#996">max</a>);
         <span class="self"><a href="#996">self</a>
     </span>}
 
@@ -2525,6 +2558,39 @@
         <span class="self"><a href="#1060">self</a>
     </span>}
 
+    <span class="doccomment">/// Sets whether invalid header lines should be silently ignored in HTTP/1 responses.
+    ///
+    /// This mimicks the behaviour of major browsers. You probably don&#39;t want this.
+    /// You should only want this if you are implementing a proxy whose main
+    /// purpose is to sit in front of browsers whose users access arbitrary content
+    /// which may be malformed, and they expect everything that works without
+    /// the proxy to keep working with the proxy.
+    ///
+    /// This option will prevent Hyper&#39;s client from returning an error encountered
+    /// when parsing a header, except if the error was caused by the character NUL
+    /// (ASCII code 0), as Chrome specifically always reject those.
+    ///
+    /// The ignorable errors are:
+    /// * empty header names;
+    /// * characters that are not allowed in header names, except for `\0` and `\r`;
+    /// * when `allow_spaces_after_header_name_in_responses` is not enabled,
+    ///   spaces and tabs between the header name and the colon;
+    /// * missing colon between header name and colon;
+    /// * characters that are not allowed in header values except for `\0` and `\r`.
+    ///
+    /// If an ignorable error is encountered, the parser tries to find the next
+    /// line in the input to resume parsing the rest of the headers. An error
+    /// will be emitted nonetheless if it finds `\0` or a lone `\r` while
+    /// looking for the next line.
+    </span><span class="kw">pub fn </span>http1_ignore_invalid_headers_in_responses(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        val: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    ) -&gt; <span class="kw-2">&amp;mut </span><a href="#895">Builder</a> {
+        <a class="self" href="#1091">self</a>.conn_builder
+            .<a href="conn.rs.html#674-677">http1_ignore_invalid_headers_in_responses</a>(<a href="#1092">val</a>);
+        <span class="self"><a href="#1091">self</a>
+    </span>}
+
     <span class="doccomment">/// Set whether HTTP/1 connections should try to use vectored writes,
     /// or always flatten into a single buffer.
     ///
@@ -2538,8 +2604,8 @@
     /// Default is `auto`. In this mode hyper will try to guess which
     /// mode to use
     </span><span class="kw">pub fn </span>http1_writev(<span class="kw-2">&amp;mut </span><span class="self">self</span>, enabled: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><a href="#895">Builder</a> {
-        <a class="self" href="#1078">self</a>.conn_builder.<a href="conn.rs.html#677">http1_writev</a>(<a href="#1078">enabled</a>);
-        <span class="self"><a href="#1078">self</a>
+        <a class="self" href="#1111">self</a>.conn_builder.<a href="conn.rs.html#695">http1_writev</a>(<a href="#1111">enabled</a>);
+        <span class="self"><a href="#1111">self</a>
     </span>}
 
     <span class="doccomment">/// Set whether HTTP/1 connections will write header names as title case at
@@ -2549,8 +2615,8 @@
     ///
     /// Default is false.
     </span><span class="kw">pub fn </span>http1_title_case_headers(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#1089">self</a>.conn_builder.<a href="conn.rs.html#688">http1_title_case_headers</a>(<a href="#1089">val</a>);
-        <span class="self"><a href="#1089">self</a>
+        <a class="self" href="#1122">self</a>.conn_builder.<a href="conn.rs.html#706">http1_title_case_headers</a>(<a href="#1122">val</a>);
+        <span class="self"><a href="#1122">self</a>
     </span>}
 
     <span class="doccomment">/// Set whether to support preserving original header cases.
@@ -2567,16 +2633,16 @@
     ///
     /// Default is false.
     </span><span class="kw">pub fn </span>http1_preserve_header_case(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#1107">self</a>.conn_builder.<a href="conn.rs.html#706">http1_preserve_header_case</a>(<a href="#1107">val</a>);
-        <span class="self"><a href="#1107">self</a>
+        <a class="self" href="#1140">self</a>.conn_builder.<a href="conn.rs.html#724">http1_preserve_header_case</a>(<a href="#1140">val</a>);
+        <span class="self"><a href="#1140">self</a>
     </span>}
 
     <span class="doccomment">/// Set whether HTTP/0.9 responses should be tolerated.
     ///
     /// Default is false.
     </span><span class="kw">pub fn </span>http09_responses(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#1115">self</a>.conn_builder.<a href="conn.rs.html#589">http09_responses</a>(<a href="#1115">val</a>);
-        <span class="self"><a href="#1115">self</a>
+        <a class="self" href="#1148">self</a>.conn_builder.<a href="conn.rs.html#589">http09_responses</a>(<a href="#1148">val</a>);
+        <span class="self"><a href="#1148">self</a>
     </span>}
 
     <span class="doccomment">/// Set whether the connection **must** use HTTP/2.
@@ -2592,8 +2658,8 @@
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;http2&quot;</span>)))]
     </span><span class="kw">pub fn </span>http2_only(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#1132">self</a>.client_config.ver = <span class="kw">if </span>val { <a href="#763">Ver::Http2</a> } <span class="kw">else </span>{ <a href="#762">Ver::Auto</a> };
-        <span class="self"><a href="#1132">self</a>
+        <a class="self" href="#1165">self</a>.client_config.ver = <span class="kw">if </span>val { <a href="#763">Ver::Http2</a> } <span class="kw">else </span>{ <a href="#762">Ver::Auto</a> };
+        <span class="self"><a href="#1165">self</a>
     </span>}
 
     <span class="doccomment">/// Sets the [`SETTINGS_INITIAL_WINDOW_SIZE`][spec] option for HTTP2
@@ -2607,9 +2673,9 @@
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;http2&quot;</span>)))]
     </span><span class="kw">pub fn </span>http2_initial_stream_window_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sz: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#1147">self</a>.conn_builder
-            .<a href="conn.rs.html#787">http2_initial_stream_window_size</a>(<a href="#1147">sz</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <span class="self"><a href="#1147">self</a>
+        <a class="self" href="#1180">self</a>.conn_builder
+            .<a href="conn.rs.html#805">http2_initial_stream_window_size</a>(<a href="#1180">sz</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="self"><a href="#1180">self</a>
     </span>}
 
     <span class="doccomment">/// Sets the max connection-level flow control for HTTP2
@@ -2623,9 +2689,9 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         sz: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;&gt;,
     ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#1161">self</a>.conn_builder
-            .<a href="conn.rs.html#802-805">http2_initial_connection_window_size</a>(<a href="#1162">sz</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <span class="self"><a href="#1161">self</a>
+        <a class="self" href="#1194">self</a>.conn_builder
+            .<a href="conn.rs.html#820-823">http2_initial_connection_window_size</a>(<a href="#1195">sz</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="self"><a href="#1194">self</a>
     </span>}
 
     <span class="doccomment">/// Sets whether to use an adaptive flow control.
@@ -2636,8 +2702,8 @@
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;http2&quot;</span>)))]
     </span><span class="kw">pub fn </span>http2_adaptive_window(<span class="kw-2">&amp;mut </span><span class="self">self</span>, enabled: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#1176">self</a>.conn_builder.<a href="conn.rs.html#820">http2_adaptive_window</a>(<a href="#1176">enabled</a>);
-        <span class="self"><a href="#1176">self</a>
+        <a class="self" href="#1209">self</a>.conn_builder.<a href="conn.rs.html#838">http2_adaptive_window</a>(<a href="#1209">enabled</a>);
+        <span class="self"><a href="#1209">self</a>
     </span>}
 
     <span class="doccomment">/// Sets the maximum frame size to use for HTTP2.
@@ -2648,8 +2714,8 @@
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;http2&quot;</span>)))]
     </span><span class="kw">pub fn </span>http2_max_frame_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sz: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#1188">self</a>.conn_builder.<a href="conn.rs.html#838">http2_max_frame_size</a>(<a href="#1188">sz</a>);
-        <span class="self"><a href="#1188">self</a>
+        <a class="self" href="#1221">self</a>.conn_builder.<a href="conn.rs.html#856">http2_max_frame_size</a>(<a href="#1221">sz</a>);
+        <span class="self"><a href="#1221">self</a>
     </span>}
 
     <span class="doccomment">/// Sets an interval for HTTP2 Ping frames should be sent to keep a
@@ -2669,8 +2735,8 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         interval: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt;&gt;,
     ) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#1207">self</a>.conn_builder.<a href="conn.rs.html#858-861">http2_keep_alive_interval</a>(<a href="#1208">interval</a>);
-        <span class="self"><a href="#1207">self</a>
+        <a class="self" href="#1240">self</a>.conn_builder.<a href="conn.rs.html#876-879">http2_keep_alive_interval</a>(<a href="#1241">interval</a>);
+        <span class="self"><a href="#1240">self</a>
     </span>}
 
     <span class="doccomment">/// Sets a timeout for receiving an acknowledgement of the keep-alive ping.
@@ -2687,8 +2753,8 @@
     #[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;http2&quot;</span>)))]
     </span><span class="kw">pub fn </span>http2_keep_alive_timeout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, timeout: <a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#1227">self</a>.conn_builder.<a href="conn.rs.html#879">http2_keep_alive_timeout</a>(<a href="#1227">timeout</a>);
-        <span class="self"><a href="#1227">self</a>
+        <a class="self" href="#1260">self</a>.conn_builder.<a href="conn.rs.html#897">http2_keep_alive_timeout</a>(<a href="#1260">timeout</a>);
+        <span class="self"><a href="#1260">self</a>
     </span>}
 
     <span class="doccomment">/// Sets whether HTTP2 keep-alive should apply while the connection is idle.
@@ -2707,8 +2773,8 @@
     #[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;http2&quot;</span>)))]
     </span><span class="kw">pub fn </span>http2_keep_alive_while_idle(<span class="kw-2">&amp;mut </span><span class="self">self</span>, enabled: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#1247">self</a>.conn_builder.<a href="conn.rs.html#899">http2_keep_alive_while_idle</a>(<a href="#1247">enabled</a>);
-        <span class="self"><a href="#1247">self</a>
+        <a class="self" href="#1280">self</a>.conn_builder.<a href="conn.rs.html#917">http2_keep_alive_while_idle</a>(<a href="#1280">enabled</a>);
+        <span class="self"><a href="#1280">self</a>
     </span>}
 
     <span class="doccomment">/// Sets the maximum number of HTTP2 concurrent locally reset streams.
@@ -2722,8 +2788,8 @@
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;http2&quot;</span>)))]
     </span><span class="kw">pub fn </span>http2_max_concurrent_reset_streams(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#1262">self</a>.conn_builder.<a href="conn.rs.html#914">http2_max_concurrent_reset_streams</a>(<a href="#1262">max</a>);
-        <span class="self"><a href="#1262">self</a>
+        <a class="self" href="#1295">self</a>.conn_builder.<a href="conn.rs.html#932">http2_max_concurrent_reset_streams</a>(<a href="#1295">max</a>);
+        <span class="self"><a href="#1295">self</a>
     </span>}
 
     <span class="doccomment">/// Set the maximum write buffer size for each HTTP/2 stream.
@@ -2736,8 +2802,8 @@
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;http2&quot;</span>)]
     #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;http2&quot;</span>)))]
     </span><span class="kw">pub fn </span>http2_max_send_buf_size(<span class="kw-2">&amp;mut </span><span class="self">self</span>, max: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#1276">self</a>.conn_builder.<a href="conn.rs.html#928">http2_max_send_buf_size</a>(<a href="#1276">max</a>);
-        <span class="self"><a href="#1276">self</a>
+        <a class="self" href="#1309">self</a>.conn_builder.<a href="conn.rs.html#946">http2_max_send_buf_size</a>(<a href="#1309">max</a>);
+        <span class="self"><a href="#1309">self</a>
     </span>}
 
     <span class="doccomment">/// Set whether to retry requests that get disrupted before ever starting
@@ -2753,8 +2819,8 @@
     /// Default is `true`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>retry_canceled_requests(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#1293">self</a>.client_config.retry_canceled_requests = <a href="#1293">val</a>;
-        <span class="self"><a href="#1293">self</a>
+        <a class="self" href="#1326">self</a>.client_config.retry_canceled_requests = <a href="#1326">val</a>;
+        <span class="self"><a href="#1326">self</a>
     </span>}
 
     <span class="doccomment">/// Set whether to automatically add the `Host` header to requests.
@@ -2765,8 +2831,8 @@
     /// Default is `true`.
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>set_host(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#1305">self</a>.client_config.set_host = <a href="#1305">val</a>;
-        <span class="self"><a href="#1305">self</a>
+        <a class="self" href="#1338">self</a>.client_config.set_host = <a href="#1338">val</a>;
+        <span class="self"><a href="#1338">self</a>
     </span>}
 
     <span class="doccomment">/// Provide an executor to execute background `Connection` tasks.
@@ -2774,8 +2840,8 @@
     </span><span class="kw">where
         </span>E: Executor&lt;<a href="../common/exec.rs.html#28">BoxSendFuture</a>&gt; + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>,
     {
-        <a class="self" href="#1311">self</a>.conn_builder.<a href="conn.rs.html#578-580">executor</a>(<a href="#1311">exec</a>);
-        <span class="self"><a href="#1311">self</a>
+        <a class="self" href="#1344">self</a>.conn_builder.<a href="conn.rs.html#578-580">executor</a>(<a href="#1344">exec</a>);
+        <span class="self"><a href="#1344">self</a>
     </span>}
 
     <span class="doccomment">/// Builder a client with this configuration and the default `HttpConnector`.
@@ -2787,9 +2853,9 @@
     {
         <span class="kw">let </span><span class="kw-2">mut </span>connector = HttpConnector::new();
         <span class="kw">if </span><span class="self">self</span>.pool_config.is_enabled() {
-            <a href="#1326">connector</a>.<a href="connect/http.rs.html#143">set_keepalive</a>(<a class="self" href="#1321">self</a>.pool_config.idle_timeout);
+            <a href="#1359">connector</a>.<a href="connect/http.rs.html#143">set_keepalive</a>(<a class="self" href="#1354">self</a>.pool_config.idle_timeout);
         }
-        <a class="self" href="#1321">self</a>.<a href="#1334-1338">build</a>(<a href="#1326">connector</a>)
+        <a class="self" href="#1354">self</a>.<a href="#1367-1371">build</a>(<a href="#1359">connector</a>)
     }
 
     <span class="doccomment">/// Combine the configuration of this builder with a connector to create a `Client`.
@@ -2800,20 +2866,20 @@
         B::Data: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
     {
         <a href="#29">Client</a> {
-            config: <a class="self" href="#1334">self</a>.client_config,
-            conn_builder: <a class="self" href="#1334">self</a>.conn_builder.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <a href="#1334">connector</a>,
-            pool: Pool::new(<a class="self" href="#1334">self</a>.pool_config, <span class="kw-2">&amp;</span><a class="self" href="#1334">self</a>.conn_builder.exec),
+            config: <a class="self" href="#1367">self</a>.client_config,
+            conn_builder: <a class="self" href="#1367">self</a>.conn_builder.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a href="#1367">connector</a>,
+            pool: Pool::new(<a class="self" href="#1367">self</a>.pool_config, <span class="kw-2">&amp;</span><a class="self" href="#1367">self</a>.conn_builder.exec),
         }
     }
 }
 
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#895">Builder</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1350">f</a>.debug_struct(<span class="string">&quot;Builder&quot;</span>)
-            .field(<span class="string">&quot;client_config&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1350">self</a>.client_config)
-            .field(<span class="string">&quot;conn_builder&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1350">self</a>.conn_builder)
-            .field(<span class="string">&quot;pool_config&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1350">self</a>.pool_config)
+        <a href="#1383">f</a>.debug_struct(<span class="string">&quot;Builder&quot;</span>)
+            .field(<span class="string">&quot;client_config&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1383">self</a>.client_config)
+            .field(<span class="string">&quot;conn_builder&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1383">self</a>.conn_builder)
+            .field(<span class="string">&quot;pool_config&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="#1383">self</a>.pool_config)
             .finish()
     }
 }
@@ -2923,4 +2989,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (95a3a7277 2022-10-31)" ></div></body></html>

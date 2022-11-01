@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.57/src/expand.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expand.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../async_trait/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../async_trait/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-trait-0.1.58/src/expand.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expand.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../async_trait/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -460,13 +460,6 @@
 <span id="460">460</span>
 <span id="461">461</span>
 <span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
-<span id="465">465</span>
-<span id="466">466</span>
-<span id="467">467</span>
-<span id="468">468</span>
-<span id="469">469</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::lifetime::{<a href="lifetime.rs.html#70">AddLifetimeToImplTrait</a>, <a href="lifetime.rs.html#9">CollectLifetimes</a>};
 <span class="kw">use </span><a href="parse.rs.html#5"><span class="kw">crate</span>::parse::Item</a>;
 <span class="kw">use </span><span class="kw">crate</span>::receiver::{<a href="receiver.rs.html#15">has_self_in_block</a>, <a href="receiver.rs.html#9">has_self_in_sig</a>, <a href="receiver.rs.html#29">mut_pat</a>, <a href="receiver.rs.html#88">ReplaceSelf</a>};
@@ -628,20 +621,15 @@
     has_default: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     is_local: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 ) {
-    <a href="#157">sig</a>.fn_token.span = <a href="#157">sig</a>.asyncness.take().unwrap().span;
+    <span class="kw">let </span>default_span = <a href="#157">sig</a>.asyncness.take().unwrap().span;
+    <a href="#157">sig</a>.fn_token.span = <a href="#162">default_span</a>;
 
-    <span class="kw">let </span>ret = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#157">sig</a>.output {
-        ReturnType::Default =&gt; <a class="macro" href="../../quote/macro.quote.html">quote!</a>(()),
-        ReturnType::Type(<span class="kw">_</span>, ret) =&gt; <a class="macro" href="../../quote/macro.quote.html">quote!</a>(#ret),
+    <span class="kw">let </span>(ret_arrow, ret) = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#157">sig</a>.output {
+        ReturnType::Default =&gt; (<a class="macro" href="../../syn/macro.Token.html">Token!</a>[-&gt;](<a href="#162">default_span</a>), <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(default_span=&gt; ())),
+        ReturnType::Type(arrow, ret) =&gt; (<span class="kw-2">*</span><a href="#167">arrow</a>, <a class="macro" href="../../quote/macro.quote.html">quote!</a>(#ret)),
     };
 
-    <span class="kw">let </span>default_span = <a href="#157">sig</a>
-        .ident
-        .span()
-        .join(<a href="#157">sig</a>.paren_token.span)
-        .unwrap_or_else(|| <a href="#157">sig</a>.ident.span());
-
-    <span class="kw">let </span><span class="kw-2">mut </span>lifetimes = CollectLifetimes::new(<span class="string">&quot;&#39;life&quot;</span>, <a href="#169">default_span</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>lifetimes = CollectLifetimes::new(<span class="string">&quot;&#39;life&quot;</span>, <a href="#162">default_span</a>);
     <span class="kw">for </span>arg <span class="kw">in </span>sig.inputs.iter_mut() {
         <span class="kw">match </span>arg {
             FnArg::Receiver(arg) =&gt; lifetimes.visit_receiver_mut(arg),
@@ -704,36 +692,35 @@
         .push(<a class="macro" href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned!</a>(default_span=&gt; <span class="lifetime">&#39;async_trait</span>));
 
     <span class="kw">if </span>has_self {
-        <span class="kw">let </span>bound_span = <a href="#157">sig</a>.ident.span();
         <span class="kw">let </span>bound = <span class="kw">match </span><a href="#157">sig</a>.inputs.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
             <span class="prelude-val">Some</span>(FnArg::Receiver(<a href="../../syn/item/struct.Receiver.html">Receiver</a> {
                 reference: <span class="prelude-val">Some</span>(<span class="kw">_</span>),
                 mutability: <span class="prelude-val">None</span>,
                 ..
-            })) =&gt; Ident::new(<span class="string">&quot;Sync&quot;</span>, <a href="#238">bound_span</a>),
+            })) =&gt; Ident::new(<span class="string">&quot;Sync&quot;</span>, <a href="#162">default_span</a>),
             <span class="prelude-val">Some</span>(FnArg::Typed(arg))
-                <span class="kw">if match </span>(<a href="#245">arg</a>.pat.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="#245">arg</a>.ty.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()) {
+                <span class="kw">if match </span>(<a href="#239">arg</a>.pat.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a href="#239">arg</a>.ty.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()) {
                     (Pat::Ident(pat), Type::Reference(ty)) =&gt; {
-                        <a href="#247">pat</a>.ident == <span class="string">&quot;self&quot; </span>&amp;&amp; <a href="#247">ty</a>.mutability.is_none()
+                        <a href="#241">pat</a>.ident == <span class="string">&quot;self&quot; </span>&amp;&amp; <a href="#241">ty</a>.mutability.is_none()
                     }
                     <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
                 } =&gt;
             {
-                Ident::new(<span class="string">&quot;Sync&quot;</span>, <a href="#238">bound_span</a>)
+                Ident::new(<span class="string">&quot;Sync&quot;</span>, <a href="#162">default_span</a>)
             }
-            <span class="kw">_ </span>=&gt; Ident::new(<span class="string">&quot;Send&quot;</span>, <a href="#238">bound_span</a>),
+            <span class="kw">_ </span>=&gt; Ident::new(<span class="string">&quot;Send&quot;</span>, <a href="#162">default_span</a>),
         };
 
         <span class="kw">let </span>assume_bound = <span class="kw">match </span><a href="#156">context</a> {
-            <a href="#27">Context::Trait</a> { supertraits, .. } =&gt; !<a href="#159">has_default</a> || <a href="#412">has_bound</a>(<a href="#259">supertraits</a>, <span class="kw-2">&amp;</span><a href="#239">bound</a>),
+            <a href="#27">Context::Trait</a> { supertraits, .. } =&gt; !<a href="#159">has_default</a> || <a href="#405">has_bound</a>(<a href="#253">supertraits</a>, <span class="kw-2">&amp;</span><a href="#233">bound</a>),
             <a href="#31">Context::Impl</a> { .. } =&gt; <span class="bool-val">true</span>,
         };
 
-        <span class="kw">let </span>where_clause = <a href="#464">where_clause_or_default</a>(<span class="kw-2">&amp;mut </span><a href="#157">sig</a>.generics.where_clause);
-        <a href="#263">where_clause</a>.predicates.push(<span class="kw">if </span>assume_bound || is_local {
-            <a class="macro" href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned!</a>(bound_span=&gt; <span class="self">Self</span>: <span class="lifetime">&#39;async_trait</span>)
+        <span class="kw">let </span>where_clause = <a href="#457">where_clause_or_default</a>(<span class="kw-2">&amp;mut </span><a href="#157">sig</a>.generics.where_clause);
+        <a href="#257">where_clause</a>.predicates.push(<span class="kw">if </span>assume_bound || is_local {
+            <a class="macro" href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned!</a>(default_span=&gt; <span class="self">Self</span>: <span class="lifetime">&#39;async_trait</span>)
         } <span class="kw">else </span>{
-            <a class="macro" href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned!</a>(bound_span=&gt; <span class="self">Self</span>: ::core::marker::#bound + <span class="lifetime">&#39;async_trait</span>)
+            <a class="macro" href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned!</a>(default_span=&gt; <span class="self">Self</span>: ::core::marker::#bound + <span class="lifetime">&#39;async_trait</span>)
         });
     }
 
@@ -757,14 +744,13 @@
         }
     }
 
-    <span class="kw">let </span>ret_span = <a href="#157">sig</a>.ident.span();
     <span class="kw">let </span>bounds = <span class="kw">if </span>is_local {
-        <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(ret_span=&gt; <span class="lifetime">&#39;async_trait</span>)
+        <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(default_span=&gt; <span class="lifetime">&#39;async_trait</span>)
     } <span class="kw">else </span>{
-        <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(ret_span=&gt; ::core::marker::Send + <span class="lifetime">&#39;async_trait</span>)
+        <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(default_span=&gt; ::core::marker::Send + <span class="lifetime">&#39;async_trait</span>)
     };
-    <a href="#157">sig</a>.output = <a class="macro" href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{ret_span=&gt;
-        -&gt; ::core::pin::Pin&lt;Box&lt;
+    <a href="#157">sig</a>.output = <a class="macro" href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned! </a>{default_span=&gt;
+        #ret_arrow ::core::pin::Pin&lt;Box&lt;
             <span class="kw">dyn </span>::core::future::Future&lt;Output = #ret&gt; + #bounds
         &gt;&gt;
     };
@@ -788,43 +774,43 @@
 //         ___ret
 //     })
 </span><span class="kw">fn </span>transform_block(context: <a href="#26">Context</a>, sig: <span class="kw-2">&amp;mut </span><a href="../../syn/item/struct.Signature.html">Signature</a>, block: <span class="kw-2">&amp;mut </span><a href="../../syn/stmt/struct.Block.html">Block</a>) {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(Stmt::Item(syn::Item::Verbatim(item))) = <a href="#321">block</a>.stmts.first() {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(Stmt::Item(syn::Item::Verbatim(item))) = <a href="#314">block</a>.stmts.first() {
         <span class="kw">if </span>block.stmts.len() == <span class="number">1 </span>&amp;&amp; item.to_string() == <span class="string">&quot;;&quot; </span>{
             <span class="kw">return</span>;
         }
     }
 
     <span class="kw">let </span><span class="kw-2">mut </span>self_span = <span class="prelude-val">None</span>;
-    <span class="kw">let </span>decls = <a href="#321">sig</a>
+    <span class="kw">let </span>decls = <a href="#314">sig</a>
         .inputs
         .iter()
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(i, arg)| <span class="kw">match </span><a href="#333">arg</a> {
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(i, arg)| <span class="kw">match </span><a href="#326">arg</a> {
             FnArg::Receiver(<a href="../../syn/item/struct.Receiver.html">Receiver</a> {
                 self_token,
                 mutability,
                 ..
             }) =&gt; {
-                <span class="kw">let </span>ident = Ident::new(<span class="string">&quot;__self&quot;</span>, <a href="#335">self_token</a>.span);
-                <a href="#328">self_span</a> = <span class="prelude-val">Some</span>(<a href="#335">self_token</a>.span);
+                <span class="kw">let </span>ident = Ident::new(<span class="string">&quot;__self&quot;</span>, <a href="#328">self_token</a>.span);
+                <a href="#321">self_span</a> = <span class="prelude-val">Some</span>(<a href="#328">self_token</a>.span);
                 <a class="macro" href="../../quote/macro.quote.html">quote!</a>(<span class="kw">let </span>#mutability #ident = #self_token;)
             }
             FnArg::Typed(arg) =&gt; {
                 <span class="kw">if let </span>Pat::Ident(<a href="../../syn/pat/struct.PatIdent.html">PatIdent</a> {
                     ident, mutability, ..
-                }) = <span class="kw-2">&amp;*</span><a href="#343">arg</a>.pat
+                }) = <span class="kw-2">&amp;*</span><a href="#336">arg</a>.pat
                 {
                     <span class="kw">if </span>ident == <span class="string">&quot;self&quot; </span>{
-                        <a href="#328">self_span</a> = <span class="prelude-val">Some</span>(<a href="#345">ident</a>.span());
-                        <span class="kw">let </span>prefixed = Ident::new(<span class="string">&quot;__self&quot;</span>, <a href="#345">ident</a>.span());
+                        <a href="#321">self_span</a> = <span class="prelude-val">Some</span>(<a href="#338">ident</a>.span());
+                        <span class="kw">let </span>prefixed = Ident::new(<span class="string">&quot;__self&quot;</span>, <a href="#338">ident</a>.span());
                         <a class="macro" href="../../quote/macro.quote.html">quote!</a>(<span class="kw">let </span>#mutability #prefixed = #ident;)
                     } <span class="kw">else </span>{
                         <a class="macro" href="../../quote/macro.quote.html">quote!</a>(<span class="kw">let </span>#mutability #ident = #ident;)
                     }
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>pat = <span class="kw-2">&amp;</span><a href="#343">arg</a>.pat;
-                    <span class="kw">let </span>ident = <a href="#405">positional_arg</a>(<a href="#333">i</a>, <a href="#356">pat</a>);
-                    <span class="kw">if let </span>Pat::Wild(<span class="kw">_</span>) = <span class="kw-2">**</span><a href="#356">pat</a> {
+                    <span class="kw">let </span>pat = <span class="kw-2">&amp;</span><a href="#336">arg</a>.pat;
+                    <span class="kw">let </span>ident = <a href="#398">positional_arg</a>(<a href="#326">i</a>, <a href="#349">pat</a>);
+                    <span class="kw">if let </span>Pat::Wild(<span class="kw">_</span>) = <span class="kw-2">**</span><a href="#349">pat</a> {
                         <a class="macro" href="../../quote/macro.quote.html">quote!</a>(<span class="kw">let </span>#ident = #ident;)
                     } <span class="kw">else </span>{
                         <a class="macro" href="../../quote/macro.quote.html">quote!</a>(<span class="kw">let </span>#pat = #ident;)
@@ -834,13 +820,13 @@
         })
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(span) = <a href="#328">self_span</a> {
-        <span class="kw">let </span><span class="kw-2">mut </span>replace_self = <a href="receiver.rs.html#88">ReplaceSelf</a>(<a href="#368">span</a>);
-        <a href="#369">replace_self</a>.<a href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_block_mut</a>(<a href="#321">block</a>);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(span) = <a href="#321">self_span</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>replace_self = <a href="receiver.rs.html#88">ReplaceSelf</a>(<a href="#361">span</a>);
+        <a href="#362">replace_self</a>.<a href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_block_mut</a>(<a href="#314">block</a>);
     }
 
-    <span class="kw">let </span>stmts = <span class="kw-2">&amp;</span><a href="#321">block</a>.stmts;
-    <span class="kw">let </span>let_ret = <span class="kw">match </span><span class="kw-2">&amp;mut </span><a href="#321">sig</a>.output {
+    <span class="kw">let </span>stmts = <span class="kw-2">&amp;</span><a href="#314">block</a>.stmts;
+    <span class="kw">let </span>let_ret = <span class="kw">match </span><span class="kw-2">&amp;mut </span><a href="#314">sig</a>.output {
         ReturnType::Default =&gt; <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned! </a>{block.brace_token.span=&gt;
             #(#decls)*
             <span class="kw">let _</span>: () = { #(#stmts)* };
@@ -868,13 +854,13 @@
     <span class="kw">let </span>box_pin = <a class="macro" href="../../quote/macro.quote_spanned.html">quote_spanned!</a>(block.brace_token.span=&gt;
         Box::pin(<span class="kw">async move </span>{ #let_ret })
     );
-    <a href="#321">block</a>.stmts = <a class="macro" href="../../syn/macro.parse_quote.html">parse_quote!</a>(#box_pin);
+    <a href="#314">block</a>.stmts = <a class="macro" href="../../syn/macro.parse_quote.html">parse_quote!</a>(#box_pin);
 }
 
 <span class="kw">fn </span>positional_arg(i: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, pat: <span class="kw-2">&amp;</span><a href="../../syn/pat/enum.Pat.html">Pat</a>) -&gt; <a href="../../proc_macro2/struct.Ident.html">Ident</a> {
-    <span class="kw">let </span>span: <a href="../../proc_macro2/struct.Span.html">Span</a> = <a href="../../syn/spanned/trait.Spanned.html">syn::spanned::Spanned::span</a>(<a href="#405">pat</a>);
+    <span class="kw">let </span>span: <a href="../../proc_macro2/struct.Span.html">Span</a> = <a href="../../syn/spanned/trait.Spanned.html">syn::spanned::Spanned::span</a>(<a href="#398">pat</a>);
     <span class="attribute">#[cfg(not(no_span_mixed_site))]
-    </span><span class="kw">let </span>span = <a href="#406">span</a>.resolved_at(Span::mixed_site());
+    </span><span class="kw">let </span>span = <a href="#399">span</a>.resolved_at(Span::mixed_site());
     <a class="macro" href="../../quote/macro.format_ident.html">format_ident!</a>(<span class="string">&quot;__arg{}&quot;</span>, i, span = span)
 }
 
@@ -908,33 +894,33 @@
                 </span>&amp;&amp; ty.path.segments[<span class="number">0</span>].ident == <span class="string">&quot;Self&quot;
                 </span>&amp;&amp; <span class="self">self</span>.set.contains(<span class="kw-2">&amp;</span>ty.path.segments[<span class="number">1</span>].ident)
             {
-                <a class="self" href="#436">self</a>.contains = <span class="bool-val">true</span>;
+                <a class="self" href="#429">self</a>.contains = <span class="bool-val">true</span>;
             }
-            visit_mut::visit_type_path_mut(<a class="self" href="#436">self</a>, <a href="#436">ty</a>);
+            visit_mut::visit_type_path_mut(<a class="self" href="#429">self</a>, <a href="#429">ty</a>);
         }
     }
 
-    <span class="kw">match </span><a href="#429">context</a> {
+    <span class="kw">match </span><a href="#422">context</a> {
         <a href="#27">Context::Trait</a> { .. } =&gt; <span class="bool-val">false</span>,
         <a href="#31">Context::Impl</a> {
             associated_type_impl_traits,
             ..
         } =&gt; {
-            <span class="kw">let </span><span class="kw-2">mut </span>visit = <a href="#430">AssociatedTypeImplTraits</a> {
-                set: <a href="#451">associated_type_impl_traits</a>,
+            <span class="kw">let </span><span class="kw-2">mut </span>visit = <a href="#423">AssociatedTypeImplTraits</a> {
+                set: <a href="#444">associated_type_impl_traits</a>,
                 contains: <span class="bool-val">false</span>,
             };
-            <a href="#454">visit</a>.<a href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_type_mut</a>(<a href="#429">ret</a>);
-            <a href="#454">visit</a>.contains
+            <a href="#447">visit</a>.<a href="../../syn/gen/visit_mut/trait.VisitMut.html">visit_type_mut</a>(<a href="#422">ret</a>);
+            <a href="#447">visit</a>.contains
         }
     }
 }
 
 <span class="kw">fn </span>where_clause_or_default(clause: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<a href="../../syn/generics/struct.WhereClause.html">WhereClause</a>&gt;) -&gt; <span class="kw-2">&amp;mut </span><a href="../../syn/generics/struct.WhereClause.html">WhereClause</a> {
-    <a href="#464">clause</a>.get_or_insert_with(|| <a href="../../syn/generics/struct.WhereClause.html">WhereClause</a> {
+    <a href="#457">clause</a>.get_or_insert_with(|| <a href="../../syn/generics/struct.WhereClause.html">WhereClause</a> {
         where_token: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         predicates: Punctuated::new(),
     })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_trait" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_trait" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (95a3a7277 2022-10-31)" ></div></body></html>

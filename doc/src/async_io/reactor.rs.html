@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-io-1.9.0/src/reactor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reactor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../async_io/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../async_io/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-io-1.10.0/src/reactor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reactor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../async_io/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -647,6 +647,7 @@
 <span id="647">647</span>
 <span id="648">648</span>
 <span id="649">649</span>
+<span id="650">650</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">std::borrow::Borrow</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">std::collections::BTreeMap</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
@@ -665,9 +666,9 @@
 <span class="kw">use </span>std::task::{<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
 <span class="kw">use </span>std::time::{<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>, <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>};
 
+<span class="kw">use </span><a href="../../async_lock/once_cell/struct.OnceCell.html">async_lock::OnceCell</a>;
 <span class="kw">use </span><a href="../../concurrent_queue/struct.ConcurrentQueue.html">concurrent_queue::ConcurrentQueue</a>;
 <span class="kw">use </span><a href="../../futures_lite/macro.ready.html">futures_lite::ready</a>;
-<span class="kw">use </span><a href="../../once_cell/sync/struct.Lazy.html">once_cell::sync::Lazy</a>;
 <span class="kw">use </span>polling::{<a href="../../polling/struct.Event.html">Event</a>, <a href="../../polling/struct.Poller.html">Poller</a>};
 <span class="kw">use </span><a href="../../slab/struct.Slab.html">slab::Slab</a>;
 
@@ -692,7 +693,7 @@
     </span>ticker: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
 
     <span class="doccomment">/// Registered sources.
-    </span>sources: Mutex&lt;Slab&lt;Arc&lt;<a href="#342">Source</a>&gt;&gt;&gt;,
+    </span>sources: Mutex&lt;Slab&lt;Arc&lt;<a href="#343">Source</a>&gt;&gt;&gt;,
 
     <span class="doccomment">/// Temporary storage for I/O events when polling the reactor.
     ///
@@ -710,14 +711,16 @@
     ///
     /// When inserting or removing a timer, we don&#39;t process it immediately - we just push it into
     /// this queue. Timers actually get processed when the queue fills up or the reactor is polled.
-    </span>timer_ops: ConcurrentQueue&lt;<a href="#335">TimerOp</a>&gt;,
+    </span>timer_ops: ConcurrentQueue&lt;<a href="#336">TimerOp</a>&gt;,
 }
 
 <span class="kw">impl </span><a href="#31">Reactor</a> {
     <span class="doccomment">/// Returns a reference to the reactor.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="#31">Reactor</a> {
-        <span class="kw">static </span>REACTOR: Lazy&lt;<a href="#31">Reactor</a>&gt; = Lazy::new(|| {
-            <a href="driver.rs.html#36"><span class="kw">crate</span>::driver::init</a>();
+        <span class="kw">static </span>REACTOR: OnceCell&lt;<a href="#31">Reactor</a>&gt; = OnceCell::new();
+
+        <a href="#70">REACTOR</a>.get_or_init_blocking(|| {
+            <a href="driver.rs.html#40"><span class="kw">crate</span>::driver::init</a>();
             <a href="#31">Reactor</a> {
                 poller: Poller::new().expect(<span class="string">&quot;cannot initialize I/O event notification&quot;</span>),
                 ticker: AtomicUsize::new(<span class="number">0</span>),
@@ -726,13 +729,12 @@
                 timers: Mutex::new(BTreeMap::new()),
                 timer_ops: ConcurrentQueue::bounded(<span class="number">1000</span>),
             }
-        });
-        <span class="kw-2">&amp;</span><a href="#70">REACTOR</a>
+        })
     }
 
     <span class="doccomment">/// Returns the current ticker.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ticker(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#85">self</a>.ticker.load(Ordering::SeqCst)
+        <a class="self" href="#86">self</a>.ticker.load(Ordering::SeqCst)
     }
 
     <span class="doccomment">/// Registers an I/O source in the reactor.
@@ -740,35 +742,35 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="attribute">#[cfg(unix)] </span>raw: <a href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>,
         <span class="attribute">#[cfg(windows)] </span>raw: RawSocket,
-    ) -&gt; io::Result&lt;Arc&lt;<a href="#342">Source</a>&gt;&gt; {
+    ) -&gt; io::Result&lt;Arc&lt;<a href="#343">Source</a>&gt;&gt; {
         <span class="comment">// Create an I/O source for this file descriptor.
         </span><span class="kw">let </span>source = {
-            <span class="kw">let </span><span class="kw-2">mut </span>sources = <a class="self" href="#91">self</a>.sources.lock().unwrap();
-            <span class="kw">let </span>key = <a href="#97">sources</a>.vacant_entry().key();
-            <span class="kw">let </span>source = Arc::new(<a href="#342">Source</a> {
-                <a href="#92">raw</a>,
-                <a href="#98">key</a>,
+            <span class="kw">let </span><span class="kw-2">mut </span>sources = <a class="self" href="#92">self</a>.sources.lock().unwrap();
+            <span class="kw">let </span>key = <a href="#98">sources</a>.vacant_entry().key();
+            <span class="kw">let </span>source = Arc::new(<a href="#343">Source</a> {
+                <a href="#93">raw</a>,
+                <a href="#99">key</a>,
                 state: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
             });
-            <a href="#97">sources</a>.insert(<a href="#99">source</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <a href="#99">source</a>
+            <a href="#98">sources</a>.insert(<a href="#100">source</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a href="#100">source</a>
         };
 
         <span class="comment">// Register the file descriptor.
-        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a class="self" href="#91">self</a>.poller.add(<a href="#92">raw</a>, Event::none(<a href="#96">source</a>.key)) {
-            <span class="kw">let </span><span class="kw-2">mut </span>sources = <a class="self" href="#91">self</a>.sources.lock().unwrap();
-            <a href="#110">sources</a>.remove(<a href="#96">source</a>.key);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#109">err</a>);
+        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a class="self" href="#92">self</a>.poller.add(<a href="#93">raw</a>, Event::none(<a href="#97">source</a>.key)) {
+            <span class="kw">let </span><span class="kw-2">mut </span>sources = <a class="self" href="#92">self</a>.sources.lock().unwrap();
+            <a href="#111">sources</a>.remove(<a href="#97">source</a>.key);
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="#110">err</a>);
         }
 
-        <span class="prelude-val">Ok</span>(<a href="#96">source</a>)
+        <span class="prelude-val">Ok</span>(<a href="#97">source</a>)
     }
 
     <span class="doccomment">/// Deregisters an I/O source from the reactor.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove_io(<span class="kw-2">&amp;</span><span class="self">self</span>, source: <span class="kw-2">&amp;</span><a href="#342">Source</a>) -&gt; io::Result&lt;()&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>sources = <a class="self" href="#119">self</a>.sources.lock().unwrap();
-        <a href="#120">sources</a>.remove(<a href="#119">source</a>.key);
-        <a class="self" href="#119">self</a>.poller.delete(<a href="#119">source</a>.raw)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove_io(<span class="kw-2">&amp;</span><span class="self">self</span>, source: <span class="kw-2">&amp;</span><a href="#343">Source</a>) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>sources = <a class="self" href="#120">self</a>.sources.lock().unwrap();
+        <a href="#121">sources</a>.remove(<a href="#120">source</a>.key);
+        <a class="self" href="#120">self</a>.poller.delete(<a href="#120">source</a>.raw)
     }
 
     <span class="doccomment">/// Registers a timer in the reactor.
@@ -777,7 +779,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>insert_timer(<span class="kw-2">&amp;</span><span class="self">self</span>, when: <a href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>, waker: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="comment">// Generate a new timer ID.
         </span><span class="kw">static </span>ID_GENERATOR: <a href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a> = AtomicUsize::new(<span class="number">1</span>);
-        <span class="kw">let </span>id = <a href="#130">ID_GENERATOR</a>.fetch_add(<span class="number">1</span>, Ordering::Relaxed);
+        <span class="kw">let </span>id = <a href="#131">ID_GENERATOR</a>.fetch_add(<span class="number">1</span>, Ordering::Relaxed);
 
         <span class="comment">// Push an insert operation.
         </span><span class="kw">while </span><span class="self">self
@@ -791,9 +793,9 @@
         }
 
         <span class="comment">// Notify that a timer has been inserted.
-        </span><a class="self" href="#128">self</a>.<a href="#161">notify</a>();
+        </span><a class="self" href="#129">self</a>.<a href="#162">notify</a>();
 
-        <a href="#131">id</a>
+        <a href="#132">id</a>
     }
 
     <span class="doccomment">/// Deregisters a timer from the reactor.
@@ -808,21 +810,21 @@
 
     <span class="doccomment">/// Notifies the thread blocked on the reactor.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>notify(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="#161">self</a>.poller.notify().expect(<span class="string">&quot;failed to notify reactor&quot;</span>);
+        <a class="self" href="#162">self</a>.poller.notify().expect(<span class="string">&quot;failed to notify reactor&quot;</span>);
     }
 
     <span class="doccomment">/// Locks the reactor, potentially blocking if the lock is held by another thread.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ReactorLock&lt;<span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">let </span>reactor = <a class="self" href="#166">self</a>;
-        <span class="kw">let </span>events = <a class="self" href="#166">self</a>.events.lock().unwrap();
-        <a href="#239">ReactorLock</a> { <a href="#167">reactor</a>, <a href="#168">events</a> }
+        <span class="kw">let </span>reactor = <a class="self" href="#167">self</a>;
+        <span class="kw">let </span>events = <a class="self" href="#167">self</a>.events.lock().unwrap();
+        <a href="#240">ReactorLock</a> { <a href="#168">reactor</a>, <a href="#169">events</a> }
     }
 
     <span class="doccomment">/// Attempts to lock the reactor.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ReactorLock&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
-        <a class="self" href="#173">self</a>.events.try_lock().ok().map(|events| {
-            <span class="kw">let </span>reactor = <a class="self" href="#173">self</a>;
-            <a href="#239">ReactorLock</a> { <a href="#175">reactor</a>, <a href="#174">events</a> }
+        <a class="self" href="#174">self</a>.events.try_lock().ok().map(|events| {
+            <span class="kw">let </span>reactor = <a class="self" href="#174">self</a>;
+            <a href="#240">ReactorLock</a> { <a href="#176">reactor</a>, <a href="#175">events</a> }
         })
     }
 
@@ -830,8 +832,8 @@
     ///
     /// Returns the duration until the next timer before this method was called.
     </span><span class="kw">fn </span>process_timers(<span class="kw-2">&amp;</span><span class="self">self</span>, wakers: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>timers = <a class="self" href="#183">self</a>.timers.lock().unwrap();
-        <a class="self" href="#183">self</a>.<a href="#221">process_timer_ops</a>(<span class="kw-2">&amp;mut </span><a href="#184">timers</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>timers = <a class="self" href="#184">self</a>.timers.lock().unwrap();
+        <a class="self" href="#184">self</a>.<a href="#222">process_timer_ops</a>(<span class="kw-2">&amp;mut </span><a href="#185">timers</a>);
 
         <span class="kw">let </span>now = Instant::now();
 
@@ -839,23 +841,23 @@
         //
         // Careful to split just *after* `now`, so that a timer set for exactly `now` is considered
         // ready.
-        </span><span class="kw">let </span>pending = <a href="#184">timers</a>.split_off(<span class="kw-2">&amp;</span>(<a href="#187">now</a> + Duration::from_nanos(<span class="number">1</span>), <span class="number">0</span>));
-        <span class="kw">let </span>ready = mem::replace(<span class="kw-2">&amp;mut *</span><a href="#184">timers</a>, <a href="#193">pending</a>);
+        </span><span class="kw">let </span>pending = <a href="#185">timers</a>.split_off(<span class="kw-2">&amp;</span>(<a href="#188">now</a> + Duration::from_nanos(<span class="number">1</span>), <span class="number">0</span>));
+        <span class="kw">let </span>ready = mem::replace(<span class="kw-2">&amp;mut *</span><a href="#185">timers</a>, <a href="#194">pending</a>);
 
         <span class="comment">// Calculate the duration until the next event.
         </span><span class="kw">let </span>dur = <span class="kw">if </span>ready.is_empty() {
             <span class="comment">// Duration until the next timer.
-            </span><a href="#184">timers</a>
+            </span><a href="#185">timers</a>
                 .keys()
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-                .map(|(when, <span class="kw">_</span>)| <a href="#202">when</a>.saturating_duration_since(<a href="#187">now</a>))
+                .map(|(when, <span class="kw">_</span>)| <a href="#203">when</a>.saturating_duration_since(<a href="#188">now</a>))
         } <span class="kw">else </span>{
             <span class="comment">// Timers are about to fire right now.
             </span><span class="prelude-val">Some</span>(Duration::from_secs(<span class="number">0</span>))
         };
 
         <span class="comment">// Drop the lock before waking.
-        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#184">timers</a>);
+        </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#185">timers</a>);
 
         <span class="comment">// Add wakers to the list.
         </span><a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(<span class="string">&quot;process_timers: {} ready wakers&quot;</span>, ready.len());
@@ -863,7 +865,7 @@
             wakers.push(waker);
         }
 
-        <a href="#197">dur</a>
+        <a href="#198">dur</a>
     }
 
     <span class="doccomment">/// Processes queued timer operations.
@@ -896,31 +898,31 @@
         <span class="kw">let </span><span class="kw-2">mut </span>wakers = Vec::new();
 
         <span class="comment">// Process ready timers.
-        </span><span class="kw">let </span>next_timer = <a class="self" href="#246">self</a>.reactor.<a href="#183">process_timers</a>(<span class="kw-2">&amp;mut </span><a href="#247">wakers</a>);
+        </span><span class="kw">let </span>next_timer = <a class="self" href="#247">self</a>.reactor.<a href="#184">process_timers</a>(<span class="kw-2">&amp;mut </span><a href="#248">wakers</a>);
 
         <span class="comment">// compute the timeout for blocking on I/O events.
-        </span><span class="kw">let </span>timeout = <span class="kw">match </span>(<a href="#250">next_timer</a>, <a href="#246">timeout</a>) {
+        </span><span class="kw">let </span>timeout = <span class="kw">match </span>(<a href="#251">next_timer</a>, <a href="#247">timeout</a>) {
             (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">None</span>,
-            (<span class="prelude-val">Some</span>(t), <span class="prelude-val">None</span>) | (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(t)) =&gt; <span class="prelude-val">Some</span>(<a href="#255">t</a>),
-            (<span class="prelude-val">Some</span>(a), <span class="prelude-val">Some</span>(b)) =&gt; <span class="prelude-val">Some</span>(<a href="#256">a</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="#256">b</a>)),
+            (<span class="prelude-val">Some</span>(t), <span class="prelude-val">None</span>) | (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(t)) =&gt; <span class="prelude-val">Some</span>(<a href="#256">t</a>),
+            (<span class="prelude-val">Some</span>(a), <span class="prelude-val">Some</span>(b)) =&gt; <span class="prelude-val">Some</span>(<a href="#257">a</a>.<a href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a href="#257">b</a>)),
         };
 
         <span class="comment">// Bump the ticker before polling I/O.
-        </span><span class="kw">let </span>tick = <span class="self"><a href="#246">self</a>
+        </span><span class="kw">let </span>tick = <span class="self"><a href="#247">self</a>
             </span>.reactor
             .ticker
             .fetch_add(<span class="number">1</span>, Ordering::SeqCst)
             .wrapping_add(<span class="number">1</span>);
 
-        <a class="self" href="#246">self</a>.events.clear();
+        <a class="self" href="#247">self</a>.events.clear();
 
         <span class="comment">// Block on I/O events.
-        </span><span class="kw">let </span>res = <span class="kw">match </span><a class="self" href="#246">self</a>.reactor.poller.wait(<span class="kw-2">&amp;mut </span><a class="self" href="#246">self</a>.events, <a href="#253">timeout</a>) {
+        </span><span class="kw">let </span>res = <span class="kw">match </span><a class="self" href="#247">self</a>.reactor.poller.wait(<span class="kw-2">&amp;mut </span><a class="self" href="#247">self</a>.events, <a href="#254">timeout</a>) {
             <span class="comment">// No I/O events occurred.
             </span><span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; {
                 <span class="kw">if </span>timeout != <span class="prelude-val">Some</span>(Duration::from_secs(<span class="number">0</span>)) {
                     <span class="comment">// The non-zero timeout was hit so fire ready timers.
-                    </span><a class="self" href="#246">self</a>.reactor.<a href="#183">process_timers</a>(<span class="kw-2">&amp;mut </span><a href="#247">wakers</a>);
+                    </span><a class="self" href="#247">self</a>.reactor.<a href="#184">process_timers</a>(<span class="kw-2">&amp;mut </span><a href="#248">wakers</a>);
                 }
                 <span class="prelude-val">Ok</span>(())
             }
@@ -928,7 +930,7 @@
             <span class="comment">// At least one I/O event occurred.
             </span><span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                 <span class="comment">// Iterate over sources in the event list.
-                </span><span class="kw">let </span>sources = <a class="self" href="#246">self</a>.reactor.sources.lock().unwrap();
+                </span><span class="kw">let </span>sources = <a class="self" href="#247">self</a>.reactor.sources.lock().unwrap();
 
                 <span class="kw">for </span>ev <span class="kw">in </span><span class="self">self</span>.events.iter() {
                     <span class="comment">// Check if there is a source in the table with this key.
@@ -963,10 +965,10 @@
             }
 
             <span class="comment">// The syscall was interrupted.
-            </span><span class="prelude-val">Err</span>(err) <span class="kw">if </span><a href="#317">err</a>.kind() == io::ErrorKind::Interrupted =&gt; <span class="prelude-val">Ok</span>(()),
+            </span><span class="prelude-val">Err</span>(err) <span class="kw">if </span><a href="#318">err</a>.kind() == io::ErrorKind::Interrupted =&gt; <span class="prelude-val">Ok</span>(()),
 
             <span class="comment">// An actual error occureed.
-            </span><span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#320">err</a>),
+            </span><span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a href="#321">err</a>),
         };
 
         <span class="comment">// Wake up ready tasks.
@@ -976,7 +978,7 @@
             </span>panic::catch_unwind(|| waker.wake()).ok();
         }
 
-        <a href="#269">res</a>
+        <a href="#270">res</a>
     }
 }
 
@@ -1001,7 +1003,7 @@
     </span>key: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 
     <span class="doccomment">/// Inner state with registered wakers.
-    </span>state: Mutex&lt;[<a href="#360">Direction</a>; <span class="number">2</span>]&gt;,
+    </span>state: Mutex&lt;[<a href="#361">Direction</a>; <span class="number">2</span>]&gt;,
 }
 
 <span class="doccomment">/// A read or write direction.
@@ -1022,16 +1024,16 @@
     </span>wakers: Slab&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;&gt;,
 }
 
-<span class="kw">impl </span><a href="#360">Direction</a> {
+<span class="kw">impl </span><a href="#361">Direction</a> {
     <span class="doccomment">/// Returns `true` if there are no wakers interested in this direction.
     </span><span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#378">self</a>.waker.is_none() &amp;&amp; <a class="self" href="#378">self</a>.wakers.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|(<span class="kw">_</span>, opt)| <a href="#379">opt</a>.is_none())
+        <a class="self" href="#379">self</a>.waker.is_none() &amp;&amp; <a class="self" href="#379">self</a>.wakers.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|(<span class="kw">_</span>, opt)| <a href="#380">opt</a>.is_none())
     }
 
     <span class="doccomment">/// Moves all wakers into a `Vec`.
     </span><span class="kw">fn </span>drain_into(<span class="kw-2">&amp;mut </span><span class="self">self</span>, dst: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>&gt;) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a class="self" href="#383">self</a>.waker.take() {
-            <a href="#383">dst</a>.push(<a href="#384">w</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a class="self" href="#384">self</a>.waker.take() {
+            <a href="#384">dst</a>.push(<a href="#385">w</a>);
         }
         <span class="kw">for </span>(<span class="kw">_</span>, opt) <span class="kw">in </span><span class="self">self</span>.wakers.iter_mut() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(w) = opt.take() {
@@ -1041,46 +1043,46 @@
     }
 }
 
-<span class="kw">impl </span><a href="#342">Source</a> {
+<span class="kw">impl </span><a href="#343">Source</a> {
     <span class="doccomment">/// Polls the I/O source for readability.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_readable(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="#397">self</a>.<a href="#409">poll_ready</a>(<a href="#25">READ</a>, <a href="#397">cx</a>)
+        <a class="self" href="#398">self</a>.<a href="#410">poll_ready</a>(<a href="#25">READ</a>, <a href="#398">cx</a>)
     }
 
     <span class="doccomment">/// Polls the I/O source for writability.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>poll_writable(<span class="kw-2">&amp;</span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <a class="self" href="#402">self</a>.<a href="#409">poll_ready</a>(<a href="#26">WRITE</a>, <a href="#402">cx</a>)
+        <a class="self" href="#403">self</a>.<a href="#410">poll_ready</a>(<a href="#26">WRITE</a>, <a href="#403">cx</a>)
     }
 
     <span class="doccomment">/// Registers a waker from `poll_readable()` or `poll_writable()`.
     ///
     /// If a different waker is already registered, it gets replaced and woken.
     </span><span class="kw">fn </span>poll_ready(<span class="kw-2">&amp;</span><span class="self">self</span>, dir: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="#409">self</a>.state.lock().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="#410">self</a>.state.lock().unwrap();
 
         <span class="comment">// Check if the reactor has delivered an event.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>((a, b)) = <a href="#410">state</a>[<a href="#409">dir</a>].ticks {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>((a, b)) = <a href="#411">state</a>[<a href="#410">dir</a>].ticks {
             <span class="comment">// If `state[dir].tick` has changed to a value other than the old reactor tick,
             // that means a newer reactor tick has delivered an event.
             </span><span class="kw">if </span>state[dir].tick != a &amp;&amp; state[dir].tick != b {
-                <a href="#410">state</a>[<a href="#409">dir</a>].ticks = <span class="prelude-val">None</span>;
+                <a href="#411">state</a>[<a href="#410">dir</a>].ticks = <span class="prelude-val">None</span>;
                 <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Ok</span>(()));
             }
         }
 
-        <span class="kw">let </span>was_empty = <a href="#410">state</a>[<a href="#409">dir</a>].<a href="#378">is_empty</a>();
+        <span class="kw">let </span>was_empty = <a href="#411">state</a>[<a href="#410">dir</a>].<a href="#379">is_empty</a>();
 
         <span class="comment">// Register the current task&#39;s waker.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="#410">state</a>[<a href="#409">dir</a>].waker.take() {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = <a href="#411">state</a>[<a href="#410">dir</a>].waker.take() {
             <span class="kw">if </span>w.will_wake(cx.waker()) {
-                <a href="#410">state</a>[<a href="#409">dir</a>].waker = <span class="prelude-val">Some</span>(<a href="#425">w</a>);
+                <a href="#411">state</a>[<a href="#410">dir</a>].waker = <span class="prelude-val">Some</span>(<a href="#426">w</a>);
                 <span class="kw">return </span>Poll::Pending;
             }
             <span class="comment">// Wake the previous waker because it&#39;s going to get replaced.
-            </span>panic::catch_unwind(|| <a href="#425">w</a>.wake()).ok();
+            </span>panic::catch_unwind(|| <a href="#426">w</a>.wake()).ok();
         }
-        <a href="#410">state</a>[<a href="#409">dir</a>].waker = <span class="prelude-val">Some</span>(<a href="#409">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a href="#410">state</a>[<a href="#409">dir</a>].ticks = <span class="prelude-val">Some</span>((Reactor::get().<a href="#85">ticker</a>(), <a href="#410">state</a>[<a href="#409">dir</a>].tick));
+        <a href="#411">state</a>[<a href="#410">dir</a>].waker = <span class="prelude-val">Some</span>(<a href="#410">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a href="#411">state</a>[<a href="#410">dir</a>].ticks = <span class="prelude-val">Some</span>((Reactor::get().<a href="#86">ticker</a>(), <a href="#411">state</a>[<a href="#410">dir</a>].tick));
 
         <span class="comment">// Update interest in this I/O handle.
         </span><span class="kw">if </span>was_empty {
@@ -1099,29 +1101,29 @@
 
     <span class="doccomment">/// Waits until the I/O source is readable.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>readable&lt;T&gt;(handle: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Async&lt;T&gt;) -&gt; Readable&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="#485">Readable</a>(<span class="self">Self</span>::ready(<a href="#452">handle</a>, <a href="#25">READ</a>))
+        <a href="#486">Readable</a>(<span class="self">Self</span>::ready(<a href="#453">handle</a>, <a href="#25">READ</a>))
     }
 
     <span class="doccomment">/// Waits until the I/O source is readable.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>readable_owned&lt;T&gt;(handle: Arc&lt;<span class="kw">crate</span>::Async&lt;T&gt;&gt;) -&gt; ReadableOwned&lt;T&gt; {
-        <a href="#505">ReadableOwned</a>(<span class="self">Self</span>::ready(<a href="#457">handle</a>, <a href="#25">READ</a>))
+        <a href="#506">ReadableOwned</a>(<span class="self">Self</span>::ready(<a href="#458">handle</a>, <a href="#25">READ</a>))
     }
 
     <span class="doccomment">/// Waits until the I/O source is writable.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>writable&lt;T&gt;(handle: <span class="kw-2">&amp;</span><span class="kw">crate</span>::Async&lt;T&gt;) -&gt; Writable&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-        <a href="#525">Writable</a>(<span class="self">Self</span>::ready(<a href="#462">handle</a>, <a href="#26">WRITE</a>))
+        <a href="#526">Writable</a>(<span class="self">Self</span>::ready(<a href="#463">handle</a>, <a href="#26">WRITE</a>))
     }
 
     <span class="doccomment">/// Waits until the I/O source is writable.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>writable_owned&lt;T&gt;(handle: Arc&lt;<span class="kw">crate</span>::Async&lt;T&gt;&gt;) -&gt; WritableOwned&lt;T&gt; {
-        <a href="#545">WritableOwned</a>(<span class="self">Self</span>::ready(<a href="#467">handle</a>, <a href="#26">WRITE</a>))
+        <a href="#546">WritableOwned</a>(<span class="self">Self</span>::ready(<a href="#468">handle</a>, <a href="#26">WRITE</a>))
     }
 
     <span class="doccomment">/// Waits until the I/O source is readable or writable.
     </span><span class="kw">fn </span>ready&lt;H: Borrow&lt;<span class="kw">crate</span>::Async&lt;T&gt;&gt; + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>, T&gt;(handle: H, dir: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Ready&lt;H, T&gt; {
-        <a href="#563">Ready</a> {
-            <a href="#472">handle</a>,
-            <a href="#472">dir</a>,
+        <a href="#564">Ready</a> {
+            <a href="#473">handle</a>,
+            <a href="#473">dir</a>,
             ticks: <span class="prelude-val">None</span>,
             index: <span class="prelude-val">None</span>,
             _guard: <span class="prelude-val">None</span>,
@@ -1145,7 +1147,7 @@
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Readable&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#498">f</a>.debug_struct(<span class="string">&quot;Readable&quot;</span>).finish()
+        <a href="#499">f</a>.debug_struct(<span class="string">&quot;Readable&quot;</span>).finish()
     }
 }
 
@@ -1165,7 +1167,7 @@
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>ReadableOwned&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#518">f</a>.debug_struct(<span class="string">&quot;ReadableOwned&quot;</span>).finish()
+        <a href="#519">f</a>.debug_struct(<span class="string">&quot;ReadableOwned&quot;</span>).finish()
     }
 }
 
@@ -1185,7 +1187,7 @@
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>Writable&lt;<span class="lifetime">&#39;_</span>, T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#538">f</a>.debug_struct(<span class="string">&quot;Writable&quot;</span>).finish()
+        <a href="#539">f</a>.debug_struct(<span class="string">&quot;Writable&quot;</span>).finish()
     }
 }
 
@@ -1205,7 +1207,7 @@
 
 <span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span>WritableOwned&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#558">f</a>.debug_struct(<span class="string">&quot;WritableOwned&quot;</span>).finish()
+        <a href="#559">f</a>.debug_struct(<span class="string">&quot;WritableOwned&quot;</span>).finish()
     }
 }
 
@@ -1230,12 +1232,12 @@
             index,
             _guard,
             ..
-        } = <span class="kw-2">&amp;mut *</span><a class="self" href="#576">self</a>;
+        } = <span class="kw-2">&amp;mut *</span><a class="self" href="#577">self</a>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="#578">handle</a>.<a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">borrow</a>().source.state.lock().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <a href="#579">handle</a>.<a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">borrow</a>().source.state.lock().unwrap();
 
         <span class="comment">// Check if the reactor has delivered an event.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>((a, b)) = <span class="kw-2">*</span><a href="#580">ticks</a> {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>((a, b)) = <span class="kw-2">*</span><a href="#581">ticks</a> {
             <span class="comment">// If `state[dir].tick` has changed to a value other than the old reactor tick,
             // that means a newer reactor tick has delivered an event.
             </span><span class="kw">if </span>state[<span class="kw-2">*</span>dir].tick != a &amp;&amp; state[<span class="kw-2">*</span>dir].tick != b {
@@ -1243,25 +1245,25 @@
             }
         }
 
-        <span class="kw">let </span>was_empty = <a href="#586">state</a>[<span class="kw-2">*</span><a href="#579">dir</a>].<a href="#378">is_empty</a>();
+        <span class="kw">let </span>was_empty = <a href="#587">state</a>[<span class="kw-2">*</span><a href="#580">dir</a>].<a href="#379">is_empty</a>();
 
         <span class="comment">// Register the current task&#39;s waker.
-        </span><span class="kw">let </span>i = <span class="kw">match </span><span class="kw-2">*</span><a href="#581">index</a> {
-            <span class="prelude-val">Some</span>(i) =&gt; <a href="#601">i</a>,
+        </span><span class="kw">let </span>i = <span class="kw">match </span><span class="kw-2">*</span><a href="#582">index</a> {
+            <span class="prelude-val">Some</span>(i) =&gt; <a href="#602">i</a>,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">let </span>i = <a href="#586">state</a>[<span class="kw-2">*</span><a href="#579">dir</a>].wakers.insert(<span class="prelude-val">None</span>);
-                <span class="kw-2">*</span><a href="#582">_guard</a> = <span class="prelude-val">Some</span>(<a href="#634">RemoveOnDrop</a> {
-                    handle: <a href="#578">handle</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    dir: <span class="kw-2">*</span><a href="#579">dir</a>,
-                    key: <a href="#603">i</a>,
+                <span class="kw">let </span>i = <a href="#587">state</a>[<span class="kw-2">*</span><a href="#580">dir</a>].wakers.insert(<span class="prelude-val">None</span>);
+                <span class="kw-2">*</span><a href="#583">_guard</a> = <span class="prelude-val">Some</span>(<a href="#635">RemoveOnDrop</a> {
+                    handle: <a href="#579">handle</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    dir: <span class="kw-2">*</span><a href="#580">dir</a>,
+                    key: <a href="#604">i</a>,
                     _marker: PhantomData,
                 });
-                <span class="kw-2">*</span><a href="#581">index</a> = <span class="prelude-val">Some</span>(<a href="#603">i</a>);
-                <span class="kw-2">*</span><a href="#580">ticks</a> = <span class="prelude-val">Some</span>((Reactor::get().<a href="#85">ticker</a>(), <a href="#586">state</a>[<span class="kw-2">*</span><a href="#579">dir</a>].tick));
-                <a href="#603">i</a>
+                <span class="kw-2">*</span><a href="#582">index</a> = <span class="prelude-val">Some</span>(<a href="#604">i</a>);
+                <span class="kw-2">*</span><a href="#581">ticks</a> = <span class="prelude-val">Some</span>((Reactor::get().<a href="#86">ticker</a>(), <a href="#587">state</a>[<span class="kw-2">*</span><a href="#580">dir</a>].tick));
+                <a href="#604">i</a>
             }
         };
-        <a href="#586">state</a>[<span class="kw-2">*</span><a href="#579">dir</a>].wakers[<a href="#600">i</a>] = <span class="prelude-val">Some</span>(<a href="#576">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a href="#587">state</a>[<span class="kw-2">*</span><a href="#580">dir</a>].wakers[<a href="#601">i</a>] = <span class="prelude-val">Some</span>(<a href="#577">cx</a>.waker().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
         <span class="comment">// Update interest in this I/O handle.
         </span><span class="kw">if </span>was_empty {
@@ -1289,12 +1291,12 @@
 
 <span class="kw">impl</span>&lt;H: Borrow&lt;<span class="kw">crate</span>::Async&lt;T&gt;&gt;, T&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>RemoveOnDrop&lt;H, T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="#642">self</a>.handle.<a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">borrow</a>().source.state.lock().unwrap();
-        <span class="kw">let </span>wakers = <span class="kw-2">&amp;mut </span><a href="#643">state</a>[<a class="self" href="#642">self</a>.dir].wakers;
+        <span class="kw">let </span><span class="kw-2">mut </span>state = <a class="self" href="#643">self</a>.handle.<a href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">borrow</a>().source.state.lock().unwrap();
+        <span class="kw">let </span>wakers = <span class="kw-2">&amp;mut </span><a href="#644">state</a>[<a class="self" href="#643">self</a>.dir].wakers;
         <span class="kw">if </span>wakers.contains(<span class="self">self</span>.key) {
-            <a href="#644">wakers</a>.remove(<a class="self" href="#642">self</a>.key);
+            <a href="#645">wakers</a>.remove(<a class="self" href="#643">self</a>.key);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_io" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_io" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (95a3a7277 2022-10-31)" ></div></body></html>

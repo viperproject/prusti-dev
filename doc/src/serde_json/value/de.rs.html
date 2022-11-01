@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.86/src/value/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde_json/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.87/src/value/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../serde_json/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1375,18 +1375,9 @@
 <span id="1375">1375</span>
 <span id="1376">1376</span>
 <span id="1377">1377</span>
-<span id="1378">1378</span>
-<span id="1379">1379</span>
-<span id="1380">1380</span>
-<span id="1381">1381</span>
-<span id="1382">1382</span>
-<span id="1383">1383</span>
-<span id="1384">1384</span>
-<span id="1385">1385</span>
-<span id="1386">1386</span>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="../error.rs.html#15"><span class="kw">crate</span>::error::Error</a>;
 <span class="kw">use </span><a href="../map.rs.html#26"><span class="kw">crate</span>::map::Map</a>;
-<span class="kw">use </span><a href="../number.rs.html#25"><span class="kw">crate</span>::number::Number</a>;
+<span class="kw">use </span><a href="../number.rs.html#22"><span class="kw">crate</span>::number::Number</a>;
 <span class="kw">use </span><a href="mod.rs.html#115"><span class="kw">crate</span>::value::Value</a>;
 <span class="kw">use </span>alloc::borrow::{<a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">Cow</a>, <a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">alloc::string::String</a>;
@@ -1400,7 +1391,7 @@
     <a class="self" href="../../../serde/de/index.html">self</a>, <a href="../../../serde/de/trait.Deserialize.html">Deserialize</a>, <a href="../../../serde/de/trait.DeserializeSeed.html">DeserializeSeed</a>, <a href="../../../serde/de/trait.EnumAccess.html">EnumAccess</a>, <a href="../../../serde/de/trait.Expected.html">Expected</a>, <a href="../../../serde/de/trait.IntoDeserializer.html">IntoDeserializer</a>, <a href="../../../serde/de/trait.MapAccess.html">MapAccess</a>,
     <a href="../../../serde/de/trait.SeqAccess.html">SeqAccess</a>, <a href="../../../serde/de/enum.Unexpected.html">Unexpected</a>, <a href="../../../serde/de/trait.VariantAccess.html">VariantAccess</a>, <a href="../../../serde/de/trait.Visitor.html">Visitor</a>,
 };
-<span class="kw">use </span>serde::{<a href="../../../serde/macro.forward_to_deserialize_any.html">forward_to_deserialize_any</a>, <a href="../../../serde/macro.serde_if_integer128.html">serde_if_integer128</a>};
+<span class="kw">use </span><a href="../../../serde/macro.forward_to_deserialize_any.html">serde::forward_to_deserialize_any</a>;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::number::NumberFromString;
@@ -1503,7 +1494,7 @@
                         <span class="kw">let </span>value = visitor.next_value_seed(<span class="kw">crate</span>::raw::BoxedFromString)<span class="question-mark">?</span>;
                         <span class="kw">crate</span>::from_str(value.get()).map_err(de::Error::custom)
                     }
-                    <span class="prelude-val">Some</span>(<a href="#1213">KeyClass::Map</a>(first_key)) =&gt; {
+                    <span class="prelude-val">Some</span>(<a href="#1204">KeyClass::Map</a>(first_key)) =&gt; {
                         <span class="kw">let </span><span class="kw-2">mut </span>values = Map::new();
 
                         <a href="#121">values</a>.<a href="../map.rs.html#125">insert</a>(<a href="#120">first_key</a>, <a class="macro" href="../lib.rs.html#388-395">tri!</a>(visitor.next_value()));
@@ -1525,7 +1516,7 @@
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for </span><a href="mod.rs.html#115">Value</a> {
     <span class="kw">type </span><span class="prelude-val">Err </span>= <a href="../error.rs.html#15">Error</a>;
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="mod.rs.html#115">Value</a>, <a href="../error.rs.html#15">Error</a>&gt; {
-        <a href="../de.rs.html#2609-2611"><span class="kw">super</span>::<span class="kw">super</span>::de::from_str</a>(<a href="#141">s</a>)
+        <a href="../de.rs.html#2598-2600"><span class="kw">super</span>::<span class="kw">super</span>::de::from_str</a>(<a href="#141">s</a>)
     }
 }
 
@@ -1614,26 +1605,23 @@
     <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_i16);
     <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_i32);
     <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_i64);
+    <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_i128);
     <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_u8);
     <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_u16);
     <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_u32);
     <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_u64);
+    <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_u128);
     <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_f32);
     <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_f64);
-
-    <span class="macro">serde_if_integer128! </span>{
-        <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_i128);
-        <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_u128);
-    }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="self"><a href="#244">self</a> </span>{
-            <a href="mod.rs.html#123">Value::Null</a> =&gt; <a href="#244">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_none</a>(),
-            <span class="kw">_ </span>=&gt; <a href="#244">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_some</a>(<a class="self" href="#244">self</a>),
+        <span class="kw">match </span><span class="self"><a href="#241">self</a> </span>{
+            <a href="mod.rs.html#123">Value::Null</a> =&gt; <a href="#241">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_none</a>(),
+            <span class="kw">_ </span>=&gt; <a href="#241">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_some</a>(<a class="self" href="#241">self</a>),
         }
     }
 
@@ -1647,11 +1635,11 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">let </span>(variant, value) = <span class="kw">match </span><span class="self"><a href="#256">self</a> </span>{
+        <span class="kw">let </span>(variant, value) = <span class="kw">match </span><span class="self"><a href="#253">self</a> </span>{
             <a href="mod.rs.html#174">Value::Object</a>(value) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>iter = <a href="#265">value</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
-                <span class="kw">let </span>(variant, value) = <span class="kw">match </span><a href="#266">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                    <span class="prelude-val">Some</span>(v) =&gt; <a href="#268">v</a>,
+                <span class="kw">let </span><span class="kw-2">mut </span>iter = <a href="#262">value</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
+                <span class="kw">let </span>(variant, value) = <span class="kw">match </span><a href="#263">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+                    <span class="prelude-val">Some</span>(v) =&gt; <a href="#265">v</a>,
                     <span class="prelude-val">None </span>=&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_value</a>(
                             Unexpected::Map,
@@ -1666,18 +1654,18 @@
                         <span class="kw-2">&amp;</span><span class="string">&quot;map with a single key&quot;</span>,
                     ));
                 }
-                (<a href="#267">variant</a>, <span class="prelude-val">Some</span>(<a href="#267">value</a>))
+                (<a href="#264">variant</a>, <span class="prelude-val">Some</span>(<a href="#264">value</a>))
             }
-            <a href="mod.rs.html#150">Value::String</a>(variant) =&gt; (<a href="#285">variant</a>, <span class="prelude-val">None</span>),
+            <a href="mod.rs.html#150">Value::String</a>(variant) =&gt; (<a href="#282">variant</a>, <span class="prelude-val">None</span>),
             other =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_type</a>(
-                    <a href="#286">other</a>.<a href="#1276">unexpected</a>(),
+                    <a href="#283">other</a>.<a href="#1267">unexpected</a>(),
                     <span class="kw-2">&amp;</span><span class="string">&quot;string or map&quot;</span>,
                 ));
             }
         };
 
-        <a href="#259">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_enum</a>(<a href="#461">EnumDeserializer</a> { <a href="#264">variant</a>, <a href="#264">value</a> })
+        <a href="#256">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_enum</a>(<a href="#458">EnumDeserializer</a> { <a href="#261">variant</a>, <a href="#261">value</a> })
     }
 
     <span class="attribute">#[inline]
@@ -1698,17 +1686,17 @@
             }
         }
 
-        <span class="kw">let _ </span>= <a href="#300">name</a>;
-        <a href="#301">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_newtype_struct</a>(<a class="self" href="#299">self</a>)
+        <span class="kw">let _ </span>= <a href="#297">name</a>;
+        <a href="#298">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_newtype_struct</a>(<a class="self" href="#296">self</a>)
     }
 
     <span class="kw">fn </span>deserialize_bool&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="self"><a href="#319">self</a> </span>{
-            <a href="mod.rs.html#132">Value::Bool</a>(v) =&gt; <a href="#319">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_bool</a>(<a href="#324">v</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#319">self</a>.<a href="#1268-1270">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#319">visitor</a>)),
+        <span class="kw">match </span><span class="self"><a href="#316">self</a> </span>{
+            <a href="mod.rs.html#132">Value::Bool</a>(v) =&gt; <a href="#316">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_bool</a>(<a href="#321">v</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#316">self</a>.<a href="#1259-1261">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#316">visitor</a>)),
         }
     }
 
@@ -1716,24 +1704,24 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#329">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_string</a>(<a href="#329">visitor</a>)
+        <a class="self" href="#326">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_string</a>(<a href="#326">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_str&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#336">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_string</a>(<a href="#336">visitor</a>)
+        <a class="self" href="#333">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_string</a>(<a href="#333">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_string&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="self"><a href="#343">self</a> </span>{
+        <span class="kw">match </span><span class="self"><a href="#340">self</a> </span>{
             <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
-            </span><a href="mod.rs.html#150">Value::String</a>(v) =&gt; <a href="#343">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_string</a>(<a href="#349">v</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#343">self</a>.<a href="#1268-1270">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#343">visitor</a>)),
+            </span><a href="mod.rs.html#150">Value::String</a>(v) =&gt; <a href="#340">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_string</a>(<a href="#346">v</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#340">self</a>.<a href="#1259-1261">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#340">visitor</a>)),
         }
     }
 
@@ -1741,18 +1729,18 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#354">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_byte_buf</a>(<a href="#354">visitor</a>)
+        <a class="self" href="#351">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_byte_buf</a>(<a href="#351">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_byte_buf&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="self"><a href="#361">self</a> </span>{
+        <span class="kw">match </span><span class="self"><a href="#358">self</a> </span>{
             <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
-            </span><a href="mod.rs.html#150">Value::String</a>(v) =&gt; <a href="#361">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_string</a>(<a href="#367">v</a>),
-            <a href="mod.rs.html#159">Value::Array</a>(v) =&gt; <a href="#172-174">visit_array</a>(<a href="#368">v</a>, <a href="#361">visitor</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#361">self</a>.<a href="#1268-1270">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#361">visitor</a>)),
+            </span><a href="mod.rs.html#150">Value::String</a>(v) =&gt; <a href="#358">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_string</a>(<a href="#364">v</a>),
+            <a href="mod.rs.html#159">Value::Array</a>(v) =&gt; <a href="#172-174">visit_array</a>(<a href="#365">v</a>, <a href="#358">visitor</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#358">self</a>.<a href="#1259-1261">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#358">visitor</a>)),
         }
     }
 
@@ -1760,9 +1748,9 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="self"><a href="#373">self</a> </span>{
-            <a href="mod.rs.html#123">Value::Null</a> =&gt; <a href="#373">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>(),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#373">self</a>.<a href="#1268-1270">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#373">visitor</a>)),
+        <span class="kw">match </span><span class="self"><a href="#370">self</a> </span>{
+            <a href="mod.rs.html#123">Value::Null</a> =&gt; <a href="#370">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>(),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#370">self</a>.<a href="#1259-1261">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#370">visitor</a>)),
         }
     }
 
@@ -1770,16 +1758,16 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#383">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_unit</a>(<a href="#383">visitor</a>)
+        <a class="self" href="#380">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_unit</a>(<a href="#380">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_seq&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="self"><a href="#390">self</a> </span>{
-            <a href="mod.rs.html#159">Value::Array</a>(v) =&gt; <a href="#172-174">visit_array</a>(<a href="#395">v</a>, <a href="#390">visitor</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#390">self</a>.<a href="#1268-1270">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#390">visitor</a>)),
+        <span class="kw">match </span><span class="self"><a href="#387">self</a> </span>{
+            <a href="mod.rs.html#159">Value::Array</a>(v) =&gt; <a href="#172-174">visit_array</a>(<a href="#392">v</a>, <a href="#387">visitor</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#387">self</a>.<a href="#1259-1261">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#387">visitor</a>)),
         }
     }
 
@@ -1787,7 +1775,7 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#400">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a href="#400">visitor</a>)
+        <a class="self" href="#397">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a href="#397">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_tuple_struct&lt;V&gt;(
@@ -1799,16 +1787,16 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#408">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a href="#411">visitor</a>)
+        <a class="self" href="#405">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a href="#408">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_map&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="self"><a href="#419">self</a> </span>{
-            <a href="mod.rs.html#174">Value::Object</a>(v) =&gt; <a href="#190-192">visit_object</a>(<a href="#424">v</a>, <a href="#419">visitor</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#419">self</a>.<a href="#1268-1270">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#419">visitor</a>)),
+        <span class="kw">match </span><span class="self"><a href="#416">self</a> </span>{
+            <a href="mod.rs.html#174">Value::Object</a>(v) =&gt; <a href="#190-192">visit_object</a>(<a href="#421">v</a>, <a href="#416">visitor</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#416">self</a>.<a href="#1259-1261">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#416">visitor</a>)),
         }
     }
 
@@ -1821,10 +1809,10 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="self"><a href="#430">self</a> </span>{
-            <a href="mod.rs.html#159">Value::Array</a>(v) =&gt; <a href="#172-174">visit_array</a>(<a href="#439">v</a>, <a href="#433">visitor</a>),
-            <a href="mod.rs.html#174">Value::Object</a>(v) =&gt; <a href="#190-192">visit_object</a>(<a href="#440">v</a>, <a href="#433">visitor</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#430">self</a>.<a href="#1268-1270">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#433">visitor</a>)),
+        <span class="kw">match </span><span class="self"><a href="#427">self</a> </span>{
+            <a href="mod.rs.html#159">Value::Array</a>(v) =&gt; <a href="#172-174">visit_array</a>(<a href="#436">v</a>, <a href="#430">visitor</a>),
+            <a href="mod.rs.html#174">Value::Object</a>(v) =&gt; <a href="#190-192">visit_object</a>(<a href="#437">v</a>, <a href="#430">visitor</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#427">self</a>.<a href="#1259-1261">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#430">visitor</a>)),
         }
     }
 
@@ -1832,15 +1820,15 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#445">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_string</a>(<a href="#445">visitor</a>)
+        <a class="self" href="#442">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_string</a>(<a href="#442">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_ignored_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="#452">self</a>);
-        <a href="#452">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>()
+        <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="#449">self</a>);
+        <a href="#449">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>()
     }
 }
 
@@ -1849,17 +1837,17 @@
     value: <span class="prelude-ty">Option</span>&lt;<a href="mod.rs.html#115">Value</a>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#461">EnumDeserializer</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#458">EnumDeserializer</a> {
     <span class="kw">type </span>Error = <a href="../error.rs.html#15">Error</a>;
-    <span class="kw">type </span>Variant = <a href="#488">VariantDeserializer</a>;
+    <span class="kw">type </span>Variant = <a href="#485">VariantDeserializer</a>;
 
-    <span class="kw">fn </span>variant_seed&lt;V&gt;(<span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;(V::Value, <a href="#488">VariantDeserializer</a>), <a href="../error.rs.html#15">Error</a>&gt;
+    <span class="kw">fn </span>variant_seed&lt;V&gt;(<span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;(V::Value, <a href="#485">VariantDeserializer</a>), <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">let </span>variant = <a class="self" href="#470">self</a>.variant.<a href="../../../serde/de/trait.IntoDeserializer.html">into_deserializer</a>();
-        <span class="kw">let </span>visitor = <a href="#488">VariantDeserializer</a> { value: <a class="self" href="#470">self</a>.value };
-        <a href="#470">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#474">variant</a>).map(|v| (<a href="#476">v</a>, <a href="#475">visitor</a>))
+        <span class="kw">let </span>variant = <a class="self" href="#467">self</a>.variant.<a href="../../../serde/de/trait.IntoDeserializer.html">into_deserializer</a>();
+        <span class="kw">let </span>visitor = <a href="#485">VariantDeserializer</a> { value: <a class="self" href="#467">self</a>.value };
+        <a href="#467">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#471">variant</a>).map(|v| (<a href="#473">v</a>, <a href="#472">visitor</a>))
     }
 }
 
@@ -1867,7 +1855,7 @@
     <span class="kw">type </span>Deserializer = <span class="self">Self</span>;
 
     <span class="kw">fn </span>into_deserializer(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Deserializer {
-        <span class="self"><a href="#483">self</a>
+        <span class="self"><a href="#480">self</a>
     </span>}
 }
 
@@ -1875,12 +1863,12 @@
     value: <span class="prelude-ty">Option</span>&lt;<a href="mod.rs.html#115">Value</a>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; VariantAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#488">VariantDeserializer</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; VariantAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#485">VariantDeserializer</a> {
     <span class="kw">type </span>Error = <a href="../error.rs.html#15">Error</a>;
 
     <span class="kw">fn </span>unit_variant(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#15">Error</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#495">self</a>.value {
-            <span class="prelude-val">Some</span>(value) =&gt; <a href="../../../serde/de/trait.Deserialize.html">Deserialize::deserialize</a>(<a href="#497">value</a>),
+        <span class="kw">match </span><a class="self" href="#492">self</a>.value {
+            <span class="prelude-val">Some</span>(value) =&gt; <a href="../../../serde/de/trait.Deserialize.html">Deserialize::deserialize</a>(<a href="#494">value</a>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(()),
         }
     }
@@ -1889,8 +1877,8 @@
     <span class="kw">where
         </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><a class="self" href="#502">self</a>.value {
-            <span class="prelude-val">Some</span>(value) =&gt; <a href="#502">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#507">value</a>),
+        <span class="kw">match </span><a class="self" href="#499">self</a>.value {
+            <span class="prelude-val">Some</span>(value) =&gt; <a href="#499">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#504">value</a>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_type</a>(
                 Unexpected::UnitVariant,
                 <span class="kw-2">&amp;</span><span class="string">&quot;newtype variant&quot;</span>,
@@ -1902,16 +1890,16 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><a class="self" href="#515">self</a>.value {
+        <span class="kw">match </span><a class="self" href="#512">self</a>.value {
             <span class="prelude-val">Some</span>(<a href="mod.rs.html#159">Value::Array</a>(v)) =&gt; {
                 <span class="kw">if </span>v.is_empty() {
-                    <a href="#515">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>()
+                    <a href="#512">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>()
                 } <span class="kw">else </span>{
-                    <a href="#172-174">visit_array</a>(<a href="#520">v</a>, <a href="#515">visitor</a>)
+                    <a href="#172-174">visit_array</a>(<a href="#517">v</a>, <a href="#512">visitor</a>)
                 }
             }
             <span class="prelude-val">Some</span>(other) =&gt; <span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_type</a>(
-                <a href="#527">other</a>.<a href="#1276">unexpected</a>(),
+                <a href="#524">other</a>.<a href="#1267">unexpected</a>(),
                 <span class="kw-2">&amp;</span><span class="string">&quot;tuple variant&quot;</span>,
             )),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_type</a>(
@@ -1929,10 +1917,10 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><a class="self" href="#539">self</a>.value {
-            <span class="prelude-val">Some</span>(<a href="mod.rs.html#174">Value::Object</a>(v)) =&gt; <a href="#190-192">visit_object</a>(<a href="#547">v</a>, <a href="#541">visitor</a>),
+        <span class="kw">match </span><a class="self" href="#536">self</a>.value {
+            <span class="prelude-val">Some</span>(<a href="mod.rs.html#174">Value::Object</a>(v)) =&gt; <a href="#190-192">visit_object</a>(<a href="#544">v</a>, <a href="#538">visitor</a>),
             <span class="prelude-val">Some</span>(other) =&gt; <span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_type</a>(
-                <a href="#548">other</a>.<a href="#1276">unexpected</a>(),
+                <a href="#545">other</a>.<a href="#1267">unexpected</a>(),
                 <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>,
             )),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_type</a>(
@@ -1947,30 +1935,30 @@
     iter: vec::IntoIter&lt;<a href="mod.rs.html#115">Value</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="#560">SeqDeserializer</a> {
+<span class="kw">impl </span><a href="#557">SeqDeserializer</a> {
     <span class="kw">fn </span>new(vec: Vec&lt;<a href="mod.rs.html#115">Value</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#560">SeqDeserializer</a> {
-            iter: <a href="#565">vec</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>(),
+        <a href="#557">SeqDeserializer</a> {
+            iter: <a href="#562">vec</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>(),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; SeqAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#560">SeqDeserializer</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; SeqAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#557">SeqDeserializer</a> {
     <span class="kw">type </span>Error = <a href="../error.rs.html#15">Error</a>;
 
     <span class="kw">fn </span>next_element_seed&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T::Value&gt;, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><a class="self" href="#575">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>(value) =&gt; <a href="#575">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#580">value</a>).map(<span class="prelude-val">Some</span>),
+        <span class="kw">match </span><a class="self" href="#572">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="prelude-val">Some</span>(value) =&gt; <a href="#572">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#577">value</a>).map(<span class="prelude-val">Some</span>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
 
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#585">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>() {
-            (lower, <span class="prelude-val">Some</span>(upper)) <span class="kw">if </span><a href="#587">lower</a> == <a href="#587">upper</a> =&gt; <span class="prelude-val">Some</span>(<a href="#587">upper</a>),
+        <span class="kw">match </span><a class="self" href="#582">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>() {
+            (lower, <span class="prelude-val">Some</span>(upper)) <span class="kw">if </span><a href="#584">lower</a> == <a href="#584">upper</a> =&gt; <span class="prelude-val">Some</span>(<a href="#584">upper</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1981,29 +1969,29 @@
     value: <span class="prelude-ty">Option</span>&lt;<a href="mod.rs.html#115">Value</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="#593">MapDeserializer</a> {
+<span class="kw">impl </span><a href="#590">MapDeserializer</a> {
     <span class="kw">fn </span>new(map: Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="mod.rs.html#115">Value</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#593">MapDeserializer</a> {
-            iter: <a href="#599">map</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>(),
+        <a href="#590">MapDeserializer</a> {
+            iter: <a href="#596">map</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>(),
             value: <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; MapAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#593">MapDeserializer</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; MapAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#590">MapDeserializer</a> {
     <span class="kw">type </span>Error = <a href="../error.rs.html#15">Error</a>;
 
     <span class="kw">fn </span>next_key_seed&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T::Value&gt;, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><a class="self" href="#610">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+        <span class="kw">match </span><a class="self" href="#607">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
             <span class="prelude-val">Some</span>((key, value)) =&gt; {
-                <a class="self" href="#610">self</a>.value = <span class="prelude-val">Some</span>(<a href="#615">value</a>);
-                <span class="kw">let </span>key_de = <a href="#1125">MapKeyDeserializer</a> {
-                    key: Cow::Owned(<a href="#615">key</a>),
+                <a class="self" href="#607">self</a>.value = <span class="prelude-val">Some</span>(<a href="#612">value</a>);
+                <span class="kw">let </span>key_de = <a href="#1119">MapKeyDeserializer</a> {
+                    key: Cow::Owned(<a href="#612">key</a>),
                 };
-                <a href="#610">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#617">key_de</a>).map(<span class="prelude-val">Some</span>)
+                <a href="#607">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#614">key_de</a>).map(<span class="prelude-val">Some</span>)
             }
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
@@ -2013,15 +2001,15 @@
     <span class="kw">where
         </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><a class="self" href="#626">self</a>.value.take() {
-            <span class="prelude-val">Some</span>(value) =&gt; <a href="#626">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#631">value</a>),
+        <span class="kw">match </span><a class="self" href="#623">self</a>.value.take() {
+            <span class="prelude-val">Some</span>(value) =&gt; <a href="#623">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#628">value</a>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::custom</a>(<span class="string">&quot;value is missing&quot;</span>)),
         }
     }
 
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#636">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>() {
-            (lower, <span class="prelude-val">Some</span>(upper)) <span class="kw">if </span><a href="#638">lower</a> == <a href="#638">upper</a> =&gt; <span class="prelude-val">Some</span>(<a href="#638">upper</a>),
+        <span class="kw">match </span><a class="self" href="#633">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>() {
+            (lower, <span class="prelude-val">Some</span>(upper)) <span class="kw">if </span><a href="#635">lower</a> == <a href="#635">upper</a> =&gt; <span class="prelude-val">Some</span>(<a href="#635">upper</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2057,15 +2045,15 @@
 <span class="kw">where
     </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
 {
-    <span class="kw">let </span>len = <a href="#670">array</a>.len();
-    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = SeqRefDeserializer::new(<a href="#670">array</a>);
+    <span class="kw">let </span>len = <a href="#667">array</a>.len();
+    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = SeqRefDeserializer::new(<a href="#667">array</a>);
     <span class="kw">let </span>seq = <a class="macro" href="../lib.rs.html#388-395">tri!</a>(visitor.visit_seq(<span class="kw-2">&amp;mut </span>deserializer));
-    <span class="kw">let </span>remaining = <a href="#675">deserializer</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>();
+    <span class="kw">let </span>remaining = <a href="#672">deserializer</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>();
     <span class="kw">if </span>remaining == <span class="number">0 </span>{
-        <span class="prelude-val">Ok</span>(<a href="#676">seq</a>)
+        <span class="prelude-val">Ok</span>(<a href="#673">seq</a>)
     } <span class="kw">else </span>{
         <span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_length</a>(
-            <a href="#674">len</a>,
+            <a href="#671">len</a>,
             <span class="kw-2">&amp;</span><span class="string">&quot;fewer elements in array&quot;</span>,
         ))
     }
@@ -2075,15 +2063,15 @@
 <span class="kw">where
     </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
 {
-    <span class="kw">let </span>len = <a href="#688">object</a>.<a href="../map.rs.html#226">len</a>();
-    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = MapRefDeserializer::new(<a href="#688">object</a>);
+    <span class="kw">let </span>len = <a href="#685">object</a>.<a href="../map.rs.html#226">len</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>deserializer = MapRefDeserializer::new(<a href="#685">object</a>);
     <span class="kw">let </span>map = <a class="macro" href="../lib.rs.html#388-395">tri!</a>(visitor.visit_map(<span class="kw-2">&amp;mut </span>deserializer));
-    <span class="kw">let </span>remaining = <a href="#693">deserializer</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>();
+    <span class="kw">let </span>remaining = <a href="#690">deserializer</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">len</a>();
     <span class="kw">if </span>remaining == <span class="number">0 </span>{
-        <span class="prelude-val">Ok</span>(<a href="#694">map</a>)
+        <span class="prelude-val">Ok</span>(<a href="#691">map</a>)
     } <span class="kw">else </span>{
         <span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_length</a>(
-            <a href="#692">len</a>,
+            <a href="#689">len</a>,
             <span class="kw-2">&amp;</span><span class="string">&quot;fewer elements in map&quot;</span>,
         ))
     }
@@ -2096,39 +2084,36 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="self"><a href="#709">self</a> </span>{
-            <a href="mod.rs.html#123">Value::Null</a> =&gt; <a href="#709">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>(),
-            <a href="mod.rs.html#132">Value::Bool</a>(v) =&gt; <a href="#709">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="kw-2">*</span><a href="#715">v</a>),
-            <a href="mod.rs.html#141">Value::Number</a>(n) =&gt; <a href="#716">n</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_any</a>(<a href="#709">visitor</a>),
-            <a href="mod.rs.html#150">Value::String</a>(v) =&gt; <a href="#709">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="#717">v</a>),
-            <a href="mod.rs.html#159">Value::Array</a>(v) =&gt; <a href="#670-672">visit_array_ref</a>(<a href="#718">v</a>, <a href="#709">visitor</a>),
-            <a href="mod.rs.html#174">Value::Object</a>(v) =&gt; <a href="#688-690">visit_object_ref</a>(<a href="#719">v</a>, <a href="#709">visitor</a>),
+        <span class="kw">match </span><span class="self"><a href="#706">self</a> </span>{
+            <a href="mod.rs.html#123">Value::Null</a> =&gt; <a href="#706">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>(),
+            <a href="mod.rs.html#132">Value::Bool</a>(v) =&gt; <a href="#706">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="kw-2">*</span><a href="#712">v</a>),
+            <a href="mod.rs.html#141">Value::Number</a>(n) =&gt; <a href="#713">n</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_any</a>(<a href="#706">visitor</a>),
+            <a href="mod.rs.html#150">Value::String</a>(v) =&gt; <a href="#706">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="#714">v</a>),
+            <a href="mod.rs.html#159">Value::Array</a>(v) =&gt; <a href="#667-669">visit_array_ref</a>(<a href="#715">v</a>, <a href="#706">visitor</a>),
+            <a href="mod.rs.html#174">Value::Object</a>(v) =&gt; <a href="#685-687">visit_object_ref</a>(<a href="#716">v</a>, <a href="#706">visitor</a>),
         }
     }
 
-    <a class="macro" href="#644-668">deserialize_value_ref_number!</a>(deserialize_i8);
-    <a class="macro" href="#644-668">deserialize_value_ref_number!</a>(deserialize_i16);
-    <a class="macro" href="#644-668">deserialize_value_ref_number!</a>(deserialize_i32);
-    <a class="macro" href="#644-668">deserialize_value_ref_number!</a>(deserialize_i64);
-    <a class="macro" href="#644-668">deserialize_value_ref_number!</a>(deserialize_u8);
-    <a class="macro" href="#644-668">deserialize_value_ref_number!</a>(deserialize_u16);
-    <a class="macro" href="#644-668">deserialize_value_ref_number!</a>(deserialize_u32);
-    <a class="macro" href="#644-668">deserialize_value_ref_number!</a>(deserialize_u64);
-    <a class="macro" href="#644-668">deserialize_value_ref_number!</a>(deserialize_f32);
-    <a class="macro" href="#644-668">deserialize_value_ref_number!</a>(deserialize_f64);
-
-    <span class="macro">serde_if_integer128! </span>{
-        <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_i128);
-        <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_u128);
-    }
+    <a class="macro" href="#641-665">deserialize_value_ref_number!</a>(deserialize_i8);
+    <a class="macro" href="#641-665">deserialize_value_ref_number!</a>(deserialize_i16);
+    <a class="macro" href="#641-665">deserialize_value_ref_number!</a>(deserialize_i32);
+    <a class="macro" href="#641-665">deserialize_value_ref_number!</a>(deserialize_i64);
+    <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_i128);
+    <a class="macro" href="#641-665">deserialize_value_ref_number!</a>(deserialize_u8);
+    <a class="macro" href="#641-665">deserialize_value_ref_number!</a>(deserialize_u16);
+    <a class="macro" href="#641-665">deserialize_value_ref_number!</a>(deserialize_u32);
+    <a class="macro" href="#641-665">deserialize_value_ref_number!</a>(deserialize_u64);
+    <a class="macro" href="#146-170">deserialize_number!</a>(deserialize_u128);
+    <a class="macro" href="#641-665">deserialize_value_ref_number!</a>(deserialize_f32);
+    <a class="macro" href="#641-665">deserialize_value_ref_number!</a>(deserialize_f64);
 
     <span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#739">self</a> </span>{
-            <a href="mod.rs.html#123">Value::Null</a> =&gt; <a href="#739">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_none</a>(),
-            <span class="kw">_ </span>=&gt; <a href="#739">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_some</a>(<a class="self" href="#739">self</a>),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#733">self</a> </span>{
+            <a href="mod.rs.html#123">Value::Null</a> =&gt; <a href="#733">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_none</a>(),
+            <span class="kw">_ </span>=&gt; <a href="#733">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_some</a>(<a class="self" href="#733">self</a>),
         }
     }
 
@@ -2141,11 +2126,11 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">let </span>(variant, value) = <span class="kw">match </span><span class="self"><a href="#750">self</a> </span>{
+        <span class="kw">let </span>(variant, value) = <span class="kw">match </span><span class="self"><a href="#744">self</a> </span>{
             <a href="mod.rs.html#174">Value::Object</a>(value) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>iter = <a href="#759">value</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
-                <span class="kw">let </span>(variant, value) = <span class="kw">match </span><a href="#760">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                    <span class="prelude-val">Some</span>(v) =&gt; <a href="#762">v</a>,
+                <span class="kw">let </span><span class="kw-2">mut </span>iter = <a href="#753">value</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
+                <span class="kw">let </span>(variant, value) = <span class="kw">match </span><a href="#754">iter</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+                    <span class="prelude-val">Some</span>(v) =&gt; <a href="#756">v</a>,
                     <span class="prelude-val">None </span>=&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_value</a>(
                             Unexpected::Map,
@@ -2160,18 +2145,18 @@
                         <span class="kw-2">&amp;</span><span class="string">&quot;map with a single key&quot;</span>,
                     ));
                 }
-                (<a href="#761">variant</a>, <span class="prelude-val">Some</span>(<a href="#761">value</a>))
+                (<a href="#755">variant</a>, <span class="prelude-val">Some</span>(<a href="#755">value</a>))
             }
-            <a href="mod.rs.html#150">Value::String</a>(variant) =&gt; (<a href="#779">variant</a>, <span class="prelude-val">None</span>),
+            <a href="mod.rs.html#150">Value::String</a>(variant) =&gt; (<a href="#773">variant</a>, <span class="prelude-val">None</span>),
             other =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_type</a>(
-                    <a href="#780">other</a>.<a href="#1276">unexpected</a>(),
+                    <a href="#774">other</a>.<a href="#1267">unexpected</a>(),
                     <span class="kw-2">&amp;</span><span class="string">&quot;string or map&quot;</span>,
                 ));
             }
         };
 
-        <a href="#753">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_enum</a>(<a href="#952">EnumRefDeserializer</a> { <a href="#758">variant</a>, <a href="#758">value</a> })
+        <a href="#747">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_enum</a>(<a href="#946">EnumRefDeserializer</a> { <a href="#752">variant</a>, <a href="#752">value</a> })
     }
 
     <span class="attribute">#[inline]
@@ -2192,17 +2177,17 @@
             }
         }
 
-        <span class="kw">let _ </span>= <a href="#794">name</a>;
-        <a href="#795">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_newtype_struct</a>(<a class="self" href="#793">self</a>)
+        <span class="kw">let _ </span>= <a href="#788">name</a>;
+        <a href="#789">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_newtype_struct</a>(<a class="self" href="#787">self</a>)
     }
 
     <span class="kw">fn </span>deserialize_bool&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#813">self</a> </span>{
-            <a href="mod.rs.html#132">Value::Bool</a>(v) =&gt; <a href="#813">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_bool</a>(<a href="#818">v</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#813">self</a>.<a href="#1268-1270">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#813">visitor</a>)),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#807">self</a> </span>{
+            <a href="mod.rs.html#132">Value::Bool</a>(v) =&gt; <a href="#807">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_bool</a>(<a href="#812">v</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#807">self</a>.<a href="#1259-1261">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#807">visitor</a>)),
         }
     }
 
@@ -2210,16 +2195,16 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#823">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="#823">visitor</a>)
+        <a class="self" href="#817">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="#817">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_str&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="self"><a href="#830">self</a> </span>{
-            <a href="mod.rs.html#150">Value::String</a>(v) =&gt; <a href="#830">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="#835">v</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#830">self</a>.<a href="#1268-1270">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#830">visitor</a>)),
+        <span class="kw">match </span><span class="self"><a href="#824">self</a> </span>{
+            <a href="mod.rs.html#150">Value::String</a>(v) =&gt; <a href="#824">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="#829">v</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#824">self</a>.<a href="#1259-1261">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#824">visitor</a>)),
         }
     }
 
@@ -2227,17 +2212,17 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#840">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="#840">visitor</a>)
+        <a class="self" href="#834">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="#834">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_bytes&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="self"><a href="#847">self</a> </span>{
-            <a href="mod.rs.html#150">Value::String</a>(v) =&gt; <a href="#847">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="#852">v</a>),
-            <a href="mod.rs.html#159">Value::Array</a>(v) =&gt; <a href="#670-672">visit_array_ref</a>(<a href="#853">v</a>, <a href="#847">visitor</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#847">self</a>.<a href="#1268-1270">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#847">visitor</a>)),
+        <span class="kw">match </span><span class="self"><a href="#841">self</a> </span>{
+            <a href="mod.rs.html#150">Value::String</a>(v) =&gt; <a href="#841">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="#846">v</a>),
+            <a href="mod.rs.html#159">Value::Array</a>(v) =&gt; <a href="#667-669">visit_array_ref</a>(<a href="#847">v</a>, <a href="#841">visitor</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#841">self</a>.<a href="#1259-1261">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#841">visitor</a>)),
         }
     }
 
@@ -2245,16 +2230,16 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#858">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_bytes</a>(<a href="#858">visitor</a>)
+        <a class="self" href="#852">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_bytes</a>(<a href="#852">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_unit&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#865">self</a> </span>{
-            <a href="mod.rs.html#123">Value::Null</a> =&gt; <a href="#865">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>(),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#865">self</a>.<a href="#1268-1270">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#865">visitor</a>)),
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#859">self</a> </span>{
+            <a href="mod.rs.html#123">Value::Null</a> =&gt; <a href="#859">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>(),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#859">self</a>.<a href="#1259-1261">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#859">visitor</a>)),
         }
     }
 
@@ -2262,16 +2247,16 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#875">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_unit</a>(<a href="#875">visitor</a>)
+        <a class="self" href="#869">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_unit</a>(<a href="#869">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_seq&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="self"><a href="#882">self</a> </span>{
-            <a href="mod.rs.html#159">Value::Array</a>(v) =&gt; <a href="#670-672">visit_array_ref</a>(<a href="#887">v</a>, <a href="#882">visitor</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#882">self</a>.<a href="#1268-1270">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#882">visitor</a>)),
+        <span class="kw">match </span><span class="self"><a href="#876">self</a> </span>{
+            <a href="mod.rs.html#159">Value::Array</a>(v) =&gt; <a href="#667-669">visit_array_ref</a>(<a href="#881">v</a>, <a href="#876">visitor</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#876">self</a>.<a href="#1259-1261">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#876">visitor</a>)),
         }
     }
 
@@ -2279,7 +2264,7 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#892">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a href="#892">visitor</a>)
+        <a class="self" href="#886">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a href="#886">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_tuple_struct&lt;V&gt;(
@@ -2291,16 +2276,16 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#900">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a href="#903">visitor</a>)
+        <a class="self" href="#894">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a href="#897">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_map&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="self"><a href="#911">self</a> </span>{
-            <a href="mod.rs.html#174">Value::Object</a>(v) =&gt; <a href="#688-690">visit_object_ref</a>(<a href="#916">v</a>, <a href="#911">visitor</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#911">self</a>.<a href="#1268-1270">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#911">visitor</a>)),
+        <span class="kw">match </span><span class="self"><a href="#905">self</a> </span>{
+            <a href="mod.rs.html#174">Value::Object</a>(v) =&gt; <a href="#685-687">visit_object_ref</a>(<a href="#910">v</a>, <a href="#905">visitor</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#905">self</a>.<a href="#1259-1261">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#905">visitor</a>)),
         }
     }
 
@@ -2313,10 +2298,10 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><span class="self"><a href="#922">self</a> </span>{
-            <a href="mod.rs.html#159">Value::Array</a>(v) =&gt; <a href="#670-672">visit_array_ref</a>(<a href="#931">v</a>, <a href="#925">visitor</a>),
-            <a href="mod.rs.html#174">Value::Object</a>(v) =&gt; <a href="#688-690">visit_object_ref</a>(<a href="#932">v</a>, <a href="#925">visitor</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#922">self</a>.<a href="#1268-1270">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#925">visitor</a>)),
+        <span class="kw">match </span><span class="self"><a href="#916">self</a> </span>{
+            <a href="mod.rs.html#159">Value::Array</a>(v) =&gt; <a href="#667-669">visit_array_ref</a>(<a href="#925">v</a>, <a href="#919">visitor</a>),
+            <a href="mod.rs.html#174">Value::Object</a>(v) =&gt; <a href="#685-687">visit_object_ref</a>(<a href="#926">v</a>, <a href="#919">visitor</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#916">self</a>.<a href="#1259-1261">invalid_type</a>(<span class="kw-2">&amp;</span><a href="#919">visitor</a>)),
         }
     }
 
@@ -2324,14 +2309,14 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#937">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="#937">visitor</a>)
+        <a class="self" href="#931">self</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="#931">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_ignored_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="#944">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>()
+        <a href="#938">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>()
     }
 }
 
@@ -2348,9 +2333,9 @@
     <span class="kw">where
         </span>V: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">let </span>variant = <a class="self" href="#961">self</a>.variant.<a href="../../../serde/de/trait.IntoDeserializer.html">into_deserializer</a>();
-        <span class="kw">let </span>visitor = <a href="#971">VariantRefDeserializer</a> { value: <a class="self" href="#961">self</a>.value };
-        <a href="#961">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#965">variant</a>).map(|v| (<a href="#967">v</a>, <a href="#966">visitor</a>))
+        <span class="kw">let </span>variant = <a class="self" href="#955">self</a>.variant.<a href="../../../serde/de/trait.IntoDeserializer.html">into_deserializer</a>();
+        <span class="kw">let </span>visitor = <a href="#965">VariantRefDeserializer</a> { value: <a class="self" href="#955">self</a>.value };
+        <a href="#955">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#959">variant</a>).map(|v| (<a href="#961">v</a>, <a href="#960">visitor</a>))
     }
 }
 
@@ -2362,8 +2347,8 @@
     <span class="kw">type </span>Error = <a href="../error.rs.html#15">Error</a>;
 
     <span class="kw">fn </span>unit_variant(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#15">Error</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#978">self</a>.value {
-            <span class="prelude-val">Some</span>(value) =&gt; <a href="../../../serde/de/trait.Deserialize.html">Deserialize::deserialize</a>(<a href="#980">value</a>),
+        <span class="kw">match </span><a class="self" href="#972">self</a>.value {
+            <span class="prelude-val">Some</span>(value) =&gt; <a href="../../../serde/de/trait.Deserialize.html">Deserialize::deserialize</a>(<a href="#974">value</a>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(()),
         }
     }
@@ -2372,8 +2357,8 @@
     <span class="kw">where
         </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><a class="self" href="#985">self</a>.value {
-            <span class="prelude-val">Some</span>(value) =&gt; <a href="#985">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#990">value</a>),
+        <span class="kw">match </span><a class="self" href="#979">self</a>.value {
+            <span class="prelude-val">Some</span>(value) =&gt; <a href="#979">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#984">value</a>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_type</a>(
                 Unexpected::UnitVariant,
                 <span class="kw-2">&amp;</span><span class="string">&quot;newtype variant&quot;</span>,
@@ -2385,16 +2370,16 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><a class="self" href="#998">self</a>.value {
+        <span class="kw">match </span><a class="self" href="#992">self</a>.value {
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="mod.rs.html#159">Value::Array</a>(<span class="kw-2">ref </span>v)) =&gt; {
                 <span class="kw">if </span>v.is_empty() {
-                    <a href="#998">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>()
+                    <a href="#992">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_unit</a>()
                 } <span class="kw">else </span>{
-                    <a href="#670-672">visit_array_ref</a>(<a href="#1003">v</a>, <a href="#998">visitor</a>)
+                    <a href="#667-669">visit_array_ref</a>(<a href="#997">v</a>, <a href="#992">visitor</a>)
                 }
             }
             <span class="prelude-val">Some</span>(other) =&gt; <span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_type</a>(
-                <a href="#1010">other</a>.<a href="#1276">unexpected</a>(),
+                <a href="#1004">other</a>.<a href="#1267">unexpected</a>(),
                 <span class="kw-2">&amp;</span><span class="string">&quot;tuple variant&quot;</span>,
             )),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_type</a>(
@@ -2412,10 +2397,10 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><a class="self" href="#1022">self</a>.value {
-            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="mod.rs.html#174">Value::Object</a>(<span class="kw-2">ref </span>v)) =&gt; <a href="#688-690">visit_object_ref</a>(<a href="#1030">v</a>, <a href="#1024">visitor</a>),
+        <span class="kw">match </span><a class="self" href="#1016">self</a>.value {
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><a href="mod.rs.html#174">Value::Object</a>(<span class="kw-2">ref </span>v)) =&gt; <a href="#685-687">visit_object_ref</a>(<a href="#1024">v</a>, <a href="#1018">visitor</a>),
             <span class="prelude-val">Some</span>(other) =&gt; <span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_type</a>(
-                <a href="#1031">other</a>.<a href="#1276">unexpected</a>(),
+                <a href="#1025">other</a>.<a href="#1267">unexpected</a>(),
                 <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>,
             )),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_type</a>(
@@ -2432,7 +2417,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; SeqRefDeserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
     <span class="kw">fn </span>new(slice: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>[<a href="mod.rs.html#115">Value</a>]) -&gt; <span class="self">Self </span>{
-        <a href="#1043">SeqRefDeserializer</a> { iter: <a href="#1048">slice</a>.iter() }
+        <a href="#1037">SeqRefDeserializer</a> { iter: <a href="#1042">slice</a>.iter() }
     }
 }
 
@@ -2443,15 +2428,15 @@
     <span class="kw">where
         </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><a class="self" href="#1056">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>(value) =&gt; <a href="#1056">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#1061">value</a>).map(<span class="prelude-val">Some</span>),
+        <span class="kw">match </span><a class="self" href="#1050">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+            <span class="prelude-val">Some</span>(value) =&gt; <a href="#1050">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#1055">value</a>).map(<span class="prelude-val">Some</span>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
 
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#1066">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>() {
-            (lower, <span class="prelude-val">Some</span>(upper)) <span class="kw">if </span><a href="#1068">lower</a> == <a href="#1068">upper</a> =&gt; <span class="prelude-val">Some</span>(<a href="#1068">upper</a>),
+        <span class="kw">match </span><a class="self" href="#1060">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>() {
+            (lower, <span class="prelude-val">Some</span>(upper)) <span class="kw">if </span><a href="#1062">lower</a> == <a href="#1062">upper</a> =&gt; <span class="prelude-val">Some</span>(<a href="#1062">upper</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2464,8 +2449,8 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; MapRefDeserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
     <span class="kw">fn </span>new(map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>Map&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="mod.rs.html#115">Value</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#1074">MapRefDeserializer</a> {
-            iter: <a href="#1080">map</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>(),
+        <a href="#1068">MapRefDeserializer</a> {
+            iter: <a href="#1074">map</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>(),
             value: <span class="prelude-val">None</span>,
         }
     }
@@ -2478,13 +2463,13 @@
     <span class="kw">where
         </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><a class="self" href="#1091">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+        <span class="kw">match </span><a class="self" href="#1085">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
             <span class="prelude-val">Some</span>((key, value)) =&gt; {
-                <a class="self" href="#1091">self</a>.value = <span class="prelude-val">Some</span>(<a href="#1096">value</a>);
-                <span class="kw">let </span>key_de = <a href="#1125">MapKeyDeserializer</a> {
-                    key: Cow::Borrowed(<span class="kw-2">&amp;**</span><a href="#1096">key</a>),
+                <a class="self" href="#1085">self</a>.value = <span class="prelude-val">Some</span>(<a href="#1090">value</a>);
+                <span class="kw">let </span>key_de = <a href="#1119">MapKeyDeserializer</a> {
+                    key: Cow::Borrowed(<span class="kw-2">&amp;**</span><a href="#1090">key</a>),
                 };
-                <a href="#1091">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#1098">key_de</a>).map(<span class="prelude-val">Some</span>)
+                <a href="#1085">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#1092">key_de</a>).map(<span class="prelude-val">Some</span>)
             }
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
@@ -2494,15 +2479,15 @@
     <span class="kw">where
         </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><a class="self" href="#1107">self</a>.value.take() {
-            <span class="prelude-val">Some</span>(value) =&gt; <a href="#1107">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#1112">value</a>),
+        <span class="kw">match </span><a class="self" href="#1101">self</a>.value.take() {
+            <span class="prelude-val">Some</span>(value) =&gt; <a href="#1101">seed</a>.<a href="../../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#1106">value</a>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a href="../../../serde/de/trait.Error.html">serde::de::Error::custom</a>(<span class="string">&quot;value is missing&quot;</span>)),
         }
     }
 
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">match </span><a class="self" href="#1117">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>() {
-            (lower, <span class="prelude-val">Some</span>(upper)) <span class="kw">if </span><a href="#1119">lower</a> == <a href="#1119">upper</a> =&gt; <span class="prelude-val">Some</span>(<a href="#1119">upper</a>),
+        <span class="kw">match </span><a class="self" href="#1111">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>() {
+            (lower, <span class="prelude-val">Some</span>(upper)) <span class="kw">if </span><a href="#1113">lower</a> == <a href="#1113">upper</a> =&gt; <span class="prelude-val">Some</span>(<a href="#1113">upper</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -2535,22 +2520,19 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        BorrowedCowStrDeserializer::new(<a class="self" href="#1148">self</a>.key).<a href="../../../serde/de/trait.Deserializer.html">deserialize_any</a>(<a href="#1148">visitor</a>)
+        BorrowedCowStrDeserializer::new(<a class="self" href="#1142">self</a>.key).<a href="../../../serde/de/trait.Deserializer.html">deserialize_any</a>(<a href="#1142">visitor</a>)
     }
 
-    <a class="macro" href="#1129-1143">deserialize_integer_key!</a>(deserialize_i8 =&gt; visit_i8);
-    <a class="macro" href="#1129-1143">deserialize_integer_key!</a>(deserialize_i16 =&gt; visit_i16);
-    <a class="macro" href="#1129-1143">deserialize_integer_key!</a>(deserialize_i32 =&gt; visit_i32);
-    <a class="macro" href="#1129-1143">deserialize_integer_key!</a>(deserialize_i64 =&gt; visit_i64);
-    <a class="macro" href="#1129-1143">deserialize_integer_key!</a>(deserialize_u8 =&gt; visit_u8);
-    <a class="macro" href="#1129-1143">deserialize_integer_key!</a>(deserialize_u16 =&gt; visit_u16);
-    <a class="macro" href="#1129-1143">deserialize_integer_key!</a>(deserialize_u32 =&gt; visit_u32);
-    <a class="macro" href="#1129-1143">deserialize_integer_key!</a>(deserialize_u64 =&gt; visit_u64);
-
-    <span class="macro">serde_if_integer128! </span>{
-        <a class="macro" href="#1129-1143">deserialize_integer_key!</a>(deserialize_i128 =&gt; visit_i128);
-        <a class="macro" href="#1129-1143">deserialize_integer_key!</a>(deserialize_u128 =&gt; visit_u128);
-    }
+    <a class="macro" href="#1123-1137">deserialize_integer_key!</a>(deserialize_i8 =&gt; visit_i8);
+    <a class="macro" href="#1123-1137">deserialize_integer_key!</a>(deserialize_i16 =&gt; visit_i16);
+    <a class="macro" href="#1123-1137">deserialize_integer_key!</a>(deserialize_i32 =&gt; visit_i32);
+    <a class="macro" href="#1123-1137">deserialize_integer_key!</a>(deserialize_i64 =&gt; visit_i64);
+    <a class="macro" href="#1123-1137">deserialize_integer_key!</a>(deserialize_i128 =&gt; visit_i128);
+    <a class="macro" href="#1123-1137">deserialize_integer_key!</a>(deserialize_u8 =&gt; visit_u8);
+    <a class="macro" href="#1123-1137">deserialize_integer_key!</a>(deserialize_u16 =&gt; visit_u16);
+    <a class="macro" href="#1123-1137">deserialize_integer_key!</a>(deserialize_u32 =&gt; visit_u32);
+    <a class="macro" href="#1123-1137">deserialize_integer_key!</a>(deserialize_u64 =&gt; visit_u64);
+    <a class="macro" href="#1123-1137">deserialize_integer_key!</a>(deserialize_u128 =&gt; visit_u128);
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, <a href="../error.rs.html#15">Error</a>&gt;
@@ -2558,7 +2540,7 @@
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="comment">// Map keys cannot be null.
-        </span><a href="#1170">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_some</a>(<a class="self" href="#1170">self</a>)
+        </span><a href="#1161">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_some</a>(<a class="self" href="#1161">self</a>)
     }
 
     <span class="attribute">#[inline]
@@ -2570,7 +2552,7 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="#1182">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_newtype_struct</a>(<a class="self" href="#1180">self</a>)
+        <a href="#1173">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_newtype_struct</a>(<a class="self" href="#1171">self</a>)
     }
 
     <span class="kw">fn </span>deserialize_enum&lt;V&gt;(
@@ -2582,9 +2564,9 @@
     <span class="kw">where
         </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#1191">self</a>.key
+        <a class="self" href="#1182">self</a>.key
             .<a href="../../../serde/de/trait.IntoDeserializer.html">into_deserializer</a>()
-            .<a href="../../../serde/de/trait.Deserializer.html">deserialize_enum</a>(<a href="#1192">name</a>, <a href="#1193">variants</a>, <a href="#1194">visitor</a>)
+            .<a href="../../../serde/de/trait.Deserializer.html">deserialize_enum</a>(<a href="#1183">name</a>, <a href="#1184">variants</a>, <a href="#1185">visitor</a>)
     }
 
     <a class="macro" href="../../../serde/macro.forward_to_deserialize_any.html">forward_to_deserialize_any! </a>{
@@ -2603,34 +2585,34 @@
     </span>RawValue,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#1210">KeyClassifier</a> {
-    <span class="kw">type </span>Value = <a href="#1212">KeyClass</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#1201">KeyClassifier</a> {
+    <span class="kw">type </span>Value = <a href="#1203">KeyClass</a>;
 
     <span class="kw">fn </span>deserialize&lt;D&gt;(<span class="self">self</span>, deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, D::Error&gt;
     <span class="kw">where
         </span>D: serde::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="#1223">deserializer</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a class="self" href="#1223">self</a>)
+        <a href="#1214">deserializer</a>.<a href="../../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a class="self" href="#1214">self</a>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#1210">KeyClassifier</a> {
-    <span class="kw">type </span>Value = <a href="#1212">KeyClass</a>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#1201">KeyClassifier</a> {
+    <span class="kw">type </span>Value = <a href="#1203">KeyClass</a>;
 
     <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a href="#1234">formatter</a>.write_str(<span class="string">&quot;a string key&quot;</span>)
+        <a href="#1225">formatter</a>.write_str(<span class="string">&quot;a string key&quot;</span>)
     }
 
     <span class="kw">fn </span>visit_str&lt;E&gt;(<span class="self">self</span>, s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, E&gt;
     <span class="kw">where
         </span>E: <a href="../../../serde/de/trait.Error.html">de::Error</a>,
     {
-        <span class="kw">match </span><a href="#1238">s</a> {
+        <span class="kw">match </span><a href="#1229">s</a> {
             <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
             </span><span class="kw">crate</span>::number::TOKEN =&gt; <span class="prelude-val">Ok</span>(KeyClass::Number),
             <span class="attribute">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
             </span><span class="kw">crate</span>::raw::TOKEN =&gt; <span class="prelude-val">Ok</span>(KeyClass::RawValue),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#1213">KeyClass::Map</a>(<a href="#1238">s</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#1204">KeyClass::Map</a>(<a href="#1229">s</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())),
         }
     }
 
@@ -2639,12 +2621,12 @@
     <span class="kw">where
         </span>E: <a href="../../../serde/de/trait.Error.html">de::Error</a>,
     {
-        <span class="kw">match </span><a href="#1252">s</a>.as_str() {
+        <span class="kw">match </span><a href="#1243">s</a>.as_str() {
             <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
             </span><span class="kw">crate</span>::number::TOKEN =&gt; <span class="prelude-val">Ok</span>(KeyClass::Number),
             <span class="attribute">#[cfg(feature = <span class="string">&quot;raw_value&quot;</span>)]
             </span><span class="kw">crate</span>::raw::TOKEN =&gt; <span class="prelude-val">Ok</span>(KeyClass::RawValue),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#1213">KeyClass::Map</a>(<a href="#1252">s</a>)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<a href="#1204">KeyClass::Map</a>(<a href="#1243">s</a>)),
         }
     }
 }
@@ -2655,16 +2637,16 @@
     <span class="kw">where
         </span>E: <a href="../../../serde/de/trait.Error.html">serde::de::Error</a>,
     {
-        <a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_type</a>(<a class="self" href="#1268">self</a>.<a href="#1276">unexpected</a>(), <a href="#1268">exp</a>)
+        <a href="../../../serde/de/trait.Error.html">serde::de::Error::invalid_type</a>(<a class="self" href="#1259">self</a>.<a href="#1267">unexpected</a>(), <a href="#1259">exp</a>)
     }
 
     <span class="attribute">#[cold]
     </span><span class="kw">fn </span>unexpected(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../serde/de/enum.Unexpected.html">Unexpected</a> {
-        <span class="kw">match </span><span class="self"><a href="#1276">self</a> </span>{
+        <span class="kw">match </span><span class="self"><a href="#1267">self</a> </span>{
             <a href="mod.rs.html#123">Value::Null</a> =&gt; Unexpected::Unit,
-            <a href="mod.rs.html#132">Value::Bool</a>(b) =&gt; Unexpected::Bool(<span class="kw-2">*</span><a href="#1279">b</a>),
-            <a href="mod.rs.html#141">Value::Number</a>(n) =&gt; <a href="#1280">n</a>.<a href="../number.rs.html#753">unexpected</a>(),
-            <a href="mod.rs.html#150">Value::String</a>(s) =&gt; Unexpected::Str(<a href="#1281">s</a>),
+            <a href="mod.rs.html#132">Value::Bool</a>(b) =&gt; Unexpected::Bool(<span class="kw-2">*</span><a href="#1270">b</a>),
+            <a href="mod.rs.html#141">Value::Number</a>(n) =&gt; <a href="#1271">n</a>.<a href="../number.rs.html#732">unexpected</a>(),
+            <a href="mod.rs.html#150">Value::String</a>(s) =&gt; Unexpected::Str(<a href="#1272">s</a>),
             <a href="mod.rs.html#159">Value::Array</a>(<span class="kw">_</span>) =&gt; Unexpected::Seq,
             <a href="mod.rs.html#174">Value::Object</a>(<span class="kw">_</span>) =&gt; Unexpected::Map,
         }
@@ -2677,7 +2659,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; BorrowedCowStrDeserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
     <span class="kw">fn </span>new(value: Cow&lt;<span class="lifetime">&#39;de</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#1288">BorrowedCowStrDeserializer</a> { <a href="#1293">value</a> }
+        <a href="#1279">BorrowedCowStrDeserializer</a> { <a href="#1284">value</a> }
     }
 }
 
@@ -2688,10 +2670,10 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">match </span><a class="self" href="#1301">self</a>.value {
-            Cow::Borrowed(string) =&gt; <a href="#1301">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="#1306">string</a>),
+        <span class="kw">match </span><a class="self" href="#1292">self</a>.value {
+            Cow::Borrowed(string) =&gt; <a href="#1292">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="#1297">string</a>),
             <span class="attribute">#[cfg(any(feature = <span class="string">&quot;std&quot;</span>, feature = <span class="string">&quot;alloc&quot;</span>))]
-            </span>Cow::Owned(string) =&gt; <a href="#1301">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_string</a>(<a href="#1308">string</a>),
+            </span>Cow::Owned(string) =&gt; <a href="#1292">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_string</a>(<a href="#1299">string</a>),
         }
     }
 
@@ -2704,7 +2686,7 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="#1316">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_enum</a>(<a class="self" href="#1313">self</a>)
+        <a href="#1307">visitor</a>.<a href="../../../serde/de/trait.Visitor.html">visit_enum</a>(<a class="self" href="#1304">self</a>)
     }
 
     <a class="macro" href="../../../serde/macro.forward_to_deserialize_any.html">forward_to_deserialize_any! </a>{
@@ -2716,20 +2698,20 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>BorrowedCowStrDeserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
     <span class="kw">type </span>Error = <a href="../error.rs.html#15">Error</a>;
-    <span class="kw">type </span>Variant = <a href="#1344">UnitOnly</a>;
+    <span class="kw">type </span>Variant = <a href="#1335">UnitOnly</a>;
 
     <span class="kw">fn </span>variant_seed&lt;T&gt;(<span class="self">self</span>, seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;(T::Value, <span class="self">Self</span>::Variant), <a href="../error.rs.html#15">Error</a>&gt;
     <span class="kw">where
         </span>T: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span>value = seed.deserialize(<span class="self">self</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<a href="#1339">value</a>, <a href="#1344">UnitOnly</a>))
+        <span class="prelude-val">Ok</span>((<a href="#1330">value</a>, <a href="#1335">UnitOnly</a>))
     }
 }
 
 <span class="kw">struct </span>UnitOnly;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::VariantAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#1344">UnitOnly</a> {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::VariantAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><a href="#1335">UnitOnly</a> {
     <span class="kw">type </span>Error = <a href="../error.rs.html#15">Error</a>;
 
     <span class="kw">fn </span>unit_variant(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#15">Error</a>&gt; {
@@ -2771,4 +2753,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde_json" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde_json" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (95a3a7277 2022-10-31)" ></div></body></html>

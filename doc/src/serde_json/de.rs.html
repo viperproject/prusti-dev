@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.86/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../serde_json/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.87/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../serde_json/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -2601,23 +2601,12 @@
 <span id="2601">2601</span>
 <span id="2602">2602</span>
 <span id="2603">2603</span>
-<span id="2604">2604</span>
-<span id="2605">2605</span>
-<span id="2606">2606</span>
-<span id="2607">2607</span>
-<span id="2608">2608</span>
-<span id="2609">2609</span>
-<span id="2610">2610</span>
-<span id="2611">2611</span>
-<span id="2612">2612</span>
-<span id="2613">2613</span>
-<span id="2614">2614</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Deserialize JSON data to a Rust data structure.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::error::{<a href="error.rs.html#15">Error</a>, <a href="error.rs.html#181">ErrorCode</a>, <span class="prelude-ty">Result</span>};
 <span class="attribute">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::lexical;
-<span class="kw">use </span><a href="number.rs.html#25"><span class="kw">crate</span>::number::Number</a>;
+<span class="kw">use </span><a href="number.rs.html#22"><span class="kw">crate</span>::number::Number</a>;
 <span class="kw">use </span><span class="kw">crate</span>::read::{<a class="self" href="lib.rs.html#418">self</a>, <a href="read.rs.html#781">Fused</a>, <a href="read.rs.html#122">Reference</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">alloc::string::String</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html">alloc::vec::Vec</a>;
@@ -2628,7 +2617,7 @@
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/result/index.html">core::result</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">core::str::FromStr</a>;
 <span class="kw">use </span>serde::de::{<a class="self" href="../../serde/de/index.html">self</a>, <a href="../../serde/de/trait.Expected.html">Expected</a>, <a href="../../serde/de/enum.Unexpected.html">Unexpected</a>};
-<span class="kw">use </span>serde::{<a href="../../serde/macro.forward_to_deserialize_any.html">forward_to_deserialize_any</a>, <a href="../../serde/macro.serde_if_integer128.html">serde_if_integer128</a>};
+<span class="kw">use </span><a href="../../serde/macro.forward_to_deserialize_any.html">serde::forward_to_deserialize_any</a>;
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::number::NumberDeserializer;
@@ -2765,7 +2754,7 @@
         <span class="comment">// This cannot be an implementation of std::iter::IntoIterator because
         // we need the caller to choose what T is.
         </span><span class="kw">let </span>offset = <a class="self" href="#147">self</a>.read.<a href="read.rs.html#59">byte_offset</a>();
-        <a href="#2260">StreamDeserializer</a> {
+        <a href="#2249">StreamDeserializer</a> {
             de: <a class="self" href="#147">self</a>,
             <a href="#153">offset</a>,
             failed: <span class="bool-val">false</span>,
@@ -2877,33 +2866,33 @@
         <span class="kw">let </span>err = <span class="kw">match </span><a class="self" href="#262">self</a>.<a href="#216">peek_or_null</a>().unwrap_or(<span class="string">b&#39;\x00&#39;</span>) {
             <span class="string">b&#39;n&#39; </span>=&gt; {
                 <a class="self" href="#262">self</a>.<a href="#220">eat_char</a>();
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a class="self" href="#262">self</a>.<a href="#371">parse_ident</a>(<span class="string">b&quot;ull&quot;</span>) {
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a class="self" href="#262">self</a>.<a href="#365">parse_ident</a>(<span class="string">b&quot;ull&quot;</span>) {
                     <span class="kw">return </span><a href="#266">err</a>;
                 }
                 <a href="../../serde/de/trait.Error.html">de::Error::invalid_type</a>(Unexpected::Unit, <a href="#262">exp</a>)
             }
             <span class="string">b&#39;t&#39; </span>=&gt; {
                 <a class="self" href="#262">self</a>.<a href="#220">eat_char</a>();
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a class="self" href="#262">self</a>.<a href="#371">parse_ident</a>(<span class="string">b&quot;rue&quot;</span>) {
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a class="self" href="#262">self</a>.<a href="#365">parse_ident</a>(<span class="string">b&quot;rue&quot;</span>) {
                     <span class="kw">return </span><a href="#273">err</a>;
                 }
                 <a href="../../serde/de/trait.Error.html">de::Error::invalid_type</a>(Unexpected::Bool(<span class="bool-val">true</span>), <a href="#262">exp</a>)
             }
             <span class="string">b&#39;f&#39; </span>=&gt; {
                 <a class="self" href="#262">self</a>.<a href="#220">eat_char</a>();
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a class="self" href="#262">self</a>.<a href="#371">parse_ident</a>(<span class="string">b&quot;alse&quot;</span>) {
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <a class="self" href="#262">self</a>.<a href="#365">parse_ident</a>(<span class="string">b&quot;alse&quot;</span>) {
                     <span class="kw">return </span><a href="#280">err</a>;
                 }
                 <a href="../../serde/de/trait.Error.html">de::Error::invalid_type</a>(Unexpected::Bool(<span class="bool-val">false</span>), <a href="#262">exp</a>)
             }
             <span class="string">b&#39;-&#39; </span>=&gt; {
                 <a class="self" href="#262">self</a>.<a href="#220">eat_char</a>();
-                <span class="kw">match </span><a class="self" href="#262">self</a>.<a href="#856">parse_any_number</a>(<span class="bool-val">false</span>) {
+                <span class="kw">match </span><a class="self" href="#262">self</a>.<a href="#850">parse_any_number</a>(<span class="bool-val">false</span>) {
                     <span class="prelude-val">Ok</span>(n) =&gt; <a href="#288">n</a>.<a href="#124">invalid_type</a>(<a href="#262">exp</a>),
                     <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><a href="#289">err</a>,
                 }
             }
-            <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <span class="kw">match </span><a class="self" href="#262">self</a>.<a href="#856">parse_any_number</a>(<span class="bool-val">true</span>) {
+            <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <span class="kw">match </span><a class="self" href="#262">self</a>.<a href="#850">parse_any_number</a>(<span class="bool-val">true</span>) {
                 <span class="prelude-val">Ok</span>(n) =&gt; <a href="#293">n</a>.<a href="#124">invalid_type</a>(<a href="#262">exp</a>),
                 <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span><a href="#294">err</a>,
             },
@@ -2920,7 +2909,7 @@
             <span class="kw">_ </span>=&gt; <a class="self" href="#262">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#213">ErrorCode::ExpectedSomeValue</a>),
         };
 
-        <a class="self" href="#262">self</a>.<a href="#367">fix_position</a>(<a href="#263">err</a>)
+        <a class="self" href="#262">self</a>.<a href="#361">fix_position</a>(<a href="#263">err</a>)
     }
 
     <span class="kw">fn </span>deserialize_number&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
@@ -2945,41 +2934,35 @@
 
         <span class="kw">match </span><a href="#323">value</a> {
             <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#333">value</a>),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#312">self</a>.<a href="#367">fix_position</a>(<a href="#334">err</a>)),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#312">self</a>.<a href="#361">fix_position</a>(<a href="#334">err</a>)),
         }
     }
 
-    <span class="macro">serde_if_integer128! </span>{
-        <span class="kw">fn </span>scan_integer128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-            <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.next_char_or_null()) {
-                <span class="string">b&#39;0&#39; </span>=&gt; {
-                    <a href="#339">buf</a>.push(<span class="string">&#39;0&#39;</span>);
-                    <span class="comment">// There can be only one leading &#39;0&#39;.
-                    </span><span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.peek_or_null()) {
-                        <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {
-                            <span class="prelude-val">Err</span>(<a class="self" href="#339">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>))
-                        }
-                        <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(()),
-                    }
-                }
-                c @ <span class="string">b&#39;1&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {
-                    <a href="#339">buf</a>.push(<a href="#351">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>);
-                    <span class="kw">while let </span>c @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>= <span class="macro">tri!</span>(<span class="self">self</span>.peek_or_null()) {
-                        <span class="self">self</span>.eat_char();
-                        buf.push(c <span class="kw">as </span>char);
-                    }
-                    <span class="prelude-val">Ok</span>(())
-                }
-                <span class="kw">_ </span>=&gt; {
-                    <span class="prelude-val">Err</span>(<a class="self" href="#339">self</a>.<a href="#234">error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>))
+    <span class="kw">fn </span>scan_integer128(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.next_char_or_null()) {
+            <span class="string">b&#39;0&#39; </span>=&gt; {
+                <a href="#338">buf</a>.push(<span class="string">&#39;0&#39;</span>);
+                <span class="comment">// There can be only one leading &#39;0&#39;.
+                </span><span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.peek_or_null()) {
+                    <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#338">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>)),
+                    <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(()),
                 }
             }
+            c @ <span class="string">b&#39;1&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {
+                <a href="#338">buf</a>.push(<a href="#348">c</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>);
+                <span class="kw">while let </span>c @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>= <span class="macro">tri!</span>(<span class="self">self</span>.peek_or_null()) {
+                    <span class="self">self</span>.eat_char();
+                    buf.push(c <span class="kw">as </span>char);
+                }
+                <span class="prelude-val">Ok</span>(())
+            }
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#338">self</a>.<a href="#234">error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>)),
         }
     }
 
     <span class="attribute">#[cold]
     </span><span class="kw">fn </span>fix_position(<span class="kw-2">&amp;</span><span class="self">self</span>, err: <a href="error.rs.html#15">Error</a>) -&gt; <a href="error.rs.html#15">Error</a> {
-        <a href="#367">err</a>.<a href="error.rs.html#273-275">fix_position</a>(<span class="kw">move </span>|code| <a class="self" href="#367">self</a>.<a href="#234">error</a>(<a href="#368">code</a>))
+        <a href="#361">err</a>.<a href="error.rs.html#273-275">fix_position</a>(<span class="kw">move </span>|code| <a class="self" href="#361">self</a>.<a href="#234">error</a>(<a href="#362">code</a>))
     }
 
     <span class="kw">fn </span>parse_ident(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ident: <span class="kw-2">&amp;</span>[<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
@@ -3001,27 +2984,27 @@
 
     <span class="kw">fn </span>parse_integer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, positive: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#102">ParserNumber</a>&gt; {
         <span class="kw">let </span>next = <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.next_char()) {
-            <span class="prelude-val">Some</span>(b) =&gt; <a href="#390">b</a>,
+            <span class="prelude-val">Some</span>(b) =&gt; <a href="#384">b</a>,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#388">self</a>.<a href="#234">error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#382">self</a>.<a href="#234">error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
             }
         };
 
-        <span class="kw">match </span><a href="#389">next</a> {
+        <span class="kw">match </span><a href="#383">next</a> {
             <span class="string">b&#39;0&#39; </span>=&gt; {
                 <span class="comment">// There can be only one leading &#39;0&#39;.
                 </span><span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.peek_or_null()) {
-                    <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#388">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>)),
-                    <span class="kw">_ </span>=&gt; <a class="self" href="#388">self</a>.<a href="#435">parse_number</a>(<a href="#388">positive</a>, <span class="number">0</span>),
+                    <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#382">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>)),
+                    <span class="kw">_ </span>=&gt; <a class="self" href="#382">self</a>.<a href="#429">parse_number</a>(<a href="#382">positive</a>, <span class="number">0</span>),
                 }
             }
             c @ <span class="string">b&#39;1&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>significand = (<a href="#404">c</a> - <span class="string">b&#39;0&#39;</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+                <span class="kw">let </span><span class="kw-2">mut </span>significand = (<a href="#398">c</a> - <span class="string">b&#39;0&#39;</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
 
                 <span class="kw">loop </span>{
                     <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.peek_or_null()) {
                         c @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {
-                            <span class="kw">let </span>digit = (<a href="#409">c</a> - <span class="string">b&#39;0&#39;</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
+                            <span class="kw">let </span>digit = (<a href="#403">c</a> - <span class="string">b&#39;0&#39;</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
 
                             <span class="comment">// We need to be careful with overflow. If we can,
                             // try to keep the number as a `u64` until we grow
@@ -3033,16 +3016,16 @@
                                 )));
                             }
 
-                            <a class="self" href="#388">self</a>.<a href="#220">eat_char</a>();
-                            <a href="#405">significand</a> = <a href="#405">significand</a> * <span class="number">10 </span>+ <a href="#410">digit</a>;
+                            <a class="self" href="#382">self</a>.<a href="#220">eat_char</a>();
+                            <a href="#399">significand</a> = <a href="#399">significand</a> * <span class="number">10 </span>+ <a href="#404">digit</a>;
                         }
                         <span class="kw">_ </span>=&gt; {
-                            <span class="kw">return </span><a class="self" href="#388">self</a>.<a href="#435">parse_number</a>(<a href="#388">positive</a>, <a href="#405">significand</a>);
+                            <span class="kw">return </span><a class="self" href="#382">self</a>.<a href="#429">parse_number</a>(<a href="#382">positive</a>, <a href="#399">significand</a>);
                         }
                     }
                 }
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#388">self</a>.<a href="#234">error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#382">self</a>.<a href="#234">error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>)),
         }
     }
 
@@ -3052,15 +3035,15 @@
             <span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39; </span>=&gt; <a href="#103">ParserNumber::F64</a>(<a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_exponent(positive, significand, <span class="number">0</span>))),
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">if </span>positive {
-                    <a href="#104">ParserNumber::U64</a>(<a href="#435">significand</a>)
+                    <a href="#104">ParserNumber::U64</a>(<a href="#429">significand</a>)
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>neg = (<a href="#435">significand</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>).wrapping_neg();
+                    <span class="kw">let </span>neg = (<a href="#429">significand</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>).wrapping_neg();
 
                     <span class="comment">// Convert into a float if we underflow, or on `-0`.
                     </span><span class="kw">if </span>neg &gt;= <span class="number">0 </span>{
-                        <a href="#103">ParserNumber::F64</a>(-(<a href="#435">significand</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>))
+                        <a href="#103">ParserNumber::F64</a>(-(<a href="#429">significand</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>))
                     } <span class="kw">else </span>{
-                        <a href="#105">ParserNumber::I64</a>(<a href="#443">neg</a>)
+                        <a href="#105">ParserNumber::I64</a>(<a href="#437">neg</a>)
                     }
                 }
             }
@@ -3073,7 +3056,7 @@
         <span class="kw-2">mut </span>significand: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
         <span class="kw-2">mut </span>exponent: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt; {
-        <a class="self" href="#457">self</a>.<a href="#220">eat_char</a>();
+        <a class="self" href="#451">self</a>.<a href="#220">eat_char</a>();
 
         <span class="kw">while let </span>c @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>= <span class="macro">tri!</span>(<span class="self">self</span>.peek_or_null()) {
             <span class="kw">let </span>digit = (c - <span class="string">b&#39;0&#39;</span>) <span class="kw">as </span>u64;
@@ -3090,14 +3073,14 @@
         <span class="comment">// Error if there is not at least one digit after the decimal point.
         </span><span class="kw">if </span>exponent == <span class="number">0 </span>{
             <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.peek()) {
-                <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#457">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>)),
-                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#457">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>)),
+                <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#451">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>)),
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#451">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>)),
             }
         }
 
         <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.peek_or_null()) {
-            <span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39; </span>=&gt; <a class="self" href="#457">self</a>.<a href="#490-495">parse_exponent</a>(<a href="#458">positive</a>, <a href="#459">significand</a>, <a href="#460">exponent</a>),
-            <span class="kw">_ </span>=&gt; <a class="self" href="#457">self</a>.<a href="#562-567">f64_from_parts</a>(<a href="#458">positive</a>, <a href="#459">significand</a>, <a href="#460">exponent</a>),
+            <span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39; </span>=&gt; <a class="self" href="#451">self</a>.<a href="#484-489">parse_exponent</a>(<a href="#452">positive</a>, <a href="#453">significand</a>, <a href="#454">exponent</a>),
+            <span class="kw">_ </span>=&gt; <a class="self" href="#451">self</a>.<a href="#556-561">f64_from_parts</a>(<a href="#452">positive</a>, <a href="#453">significand</a>, <a href="#454">exponent</a>),
         }
     }
 
@@ -3107,32 +3090,32 @@
         significand: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
         starting_exp: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt; {
-        <a class="self" href="#491">self</a>.<a href="#220">eat_char</a>();
+        <a class="self" href="#485">self</a>.<a href="#220">eat_char</a>();
 
         <span class="kw">let </span>positive_exp = <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.peek_or_null()) {
             <span class="string">b&#39;+&#39; </span>=&gt; {
-                <a class="self" href="#491">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#485">self</a>.<a href="#220">eat_char</a>();
                 <span class="bool-val">true
             </span>}
             <span class="string">b&#39;-&#39; </span>=&gt; {
-                <a class="self" href="#491">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#485">self</a>.<a href="#220">eat_char</a>();
                 <span class="bool-val">false
             </span>}
             <span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
         };
 
         <span class="kw">let </span>next = <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.next_char()) {
-            <span class="prelude-val">Some</span>(b) =&gt; <a href="#511">b</a>,
+            <span class="prelude-val">Some</span>(b) =&gt; <a href="#505">b</a>,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#491">self</a>.<a href="#234">error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#485">self</a>.<a href="#234">error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
             }
         };
 
         <span class="comment">// Make sure a digit follows the exponent place.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>exp = <span class="kw">match </span><a href="#510">next</a> {
-            c @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; (<a href="#519">c</a> - <span class="string">b&#39;0&#39;</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
+        </span><span class="kw">let </span><span class="kw-2">mut </span>exp = <span class="kw">match </span><a href="#504">next</a> {
+            c @ <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; (<a href="#513">c</a> - <span class="string">b&#39;0&#39;</span>) <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
             <span class="kw">_ </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#491">self</a>.<a href="#234">error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#485">self</a>.<a href="#234">error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>));
             }
         };
 
@@ -3149,12 +3132,12 @@
         }
 
         <span class="kw">let </span>final_exp = <span class="kw">if </span>positive_exp {
-            <a href="#494">starting_exp</a>.saturating_add(<a href="#518">exp</a>)
+            <a href="#488">starting_exp</a>.saturating_add(<a href="#512">exp</a>)
         } <span class="kw">else </span>{
-            <a href="#494">starting_exp</a>.saturating_sub(<a href="#518">exp</a>)
+            <a href="#488">starting_exp</a>.saturating_sub(<a href="#512">exp</a>)
         };
 
-        <a class="self" href="#491">self</a>.<a href="#562-567">f64_from_parts</a>(<a href="#492">positive</a>, <a href="#493">significand</a>, <a href="#537">final_exp</a>)
+        <a class="self" href="#485">self</a>.<a href="#556-561">f64_from_parts</a>(<a href="#486">positive</a>, <a href="#487">significand</a>, <a href="#531">final_exp</a>)
     }
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
@@ -3179,17 +3162,17 @@
         significand: <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
         <span class="kw-2">mut </span>exponent: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>f = <a href="#565">significand</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>;
+        <span class="kw">let </span><span class="kw-2">mut </span>f = <a href="#559">significand</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>;
         <span class="kw">loop </span>{
-            <span class="kw">match </span><a href="#1228">POW10</a>.get(<a href="#566">exponent</a>.wrapping_abs() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
+            <span class="kw">match </span><a href="#1222">POW10</a>.get(<a href="#560">exponent</a>.wrapping_abs() <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
                 <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>pow) =&gt; {
                     <span class="kw">if </span>exponent &gt;= <span class="number">0 </span>{
-                        <a href="#568">f</a> <span class="kw-2">*</span>= <a href="#571">pow</a>;
+                        <a href="#562">f</a> <span class="kw-2">*</span>= <a href="#565">pow</a>;
                         <span class="kw">if </span>f.is_infinite() {
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#563">self</a>.<a href="#234">error</a>(<a href="error.rs.html#222">ErrorCode::NumberOutOfRange</a>));
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#557">self</a>.<a href="#234">error</a>(<a href="error.rs.html#222">ErrorCode::NumberOutOfRange</a>));
                         }
                     } <span class="kw">else </span>{
-                        <a href="#568">f</a> /= <a href="#571">pow</a>;
+                        <a href="#562">f</a> /= <a href="#565">pow</a>;
                     }
                     <span class="kw">break</span>;
                 }
@@ -3198,14 +3181,14 @@
                         <span class="kw">break</span>;
                     }
                     <span class="kw">if </span>exponent &gt;= <span class="number">0 </span>{
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#563">self</a>.<a href="#234">error</a>(<a href="error.rs.html#222">ErrorCode::NumberOutOfRange</a>));
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#557">self</a>.<a href="#234">error</a>(<a href="error.rs.html#222">ErrorCode::NumberOutOfRange</a>));
                     }
-                    <a href="#568">f</a> /= <span class="number">1e308</span>;
-                    <a href="#566">exponent</a> += <span class="number">308</span>;
+                    <a href="#562">f</a> /= <span class="number">1e308</span>;
+                    <a href="#560">exponent</a> += <span class="number">308</span>;
                 }
             }
         }
-        <span class="prelude-val">Ok</span>(<span class="kw">if </span>positive { <a href="#568">f</a> } <span class="kw">else </span>{ -<a href="#568">f</a> })
+        <span class="prelude-val">Ok</span>(<span class="kw">if </span>positive { <a href="#562">f</a> } <span class="kw">else </span>{ -<a href="#562">f</a> })
     }
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
@@ -3256,19 +3239,19 @@
         <span class="kw">loop </span>{
             <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.peek_or_null()) {
                 <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {
-                    <a class="self" href="#640">self</a>.<a href="#220">eat_char</a>();
+                    <a class="self" href="#634">self</a>.<a href="#220">eat_char</a>();
                     <span class="comment">// This could overflow... if your integer is gigabytes long.
                     // Ignore that possibility.
-                    </span><a href="#641">exponent</a> += <span class="number">1</span>;
+                    </span><a href="#635">exponent</a> += <span class="number">1</span>;
                 }
                 <span class="string">b&#39;.&#39; </span>=&gt; {
-                    <span class="kw">return </span><a class="self" href="#640">self</a>.<a href="#456-461">parse_decimal</a>(<a href="#640">positive</a>, <a href="#640">significand</a>, <a href="#641">exponent</a>);
+                    <span class="kw">return </span><a class="self" href="#634">self</a>.<a href="#450-455">parse_decimal</a>(<a href="#634">positive</a>, <a href="#634">significand</a>, <a href="#635">exponent</a>);
                 }
                 <span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39; </span>=&gt; {
-                    <span class="kw">return </span><a class="self" href="#640">self</a>.<a href="#490-495">parse_exponent</a>(<a href="#640">positive</a>, <a href="#640">significand</a>, <a href="#641">exponent</a>);
+                    <span class="kw">return </span><a class="self" href="#634">self</a>.<a href="#484-489">parse_exponent</a>(<a href="#634">positive</a>, <a href="#634">significand</a>, <a href="#635">exponent</a>);
                 }
                 <span class="kw">_ </span>=&gt; {
-                    <span class="kw">return </span><a class="self" href="#640">self</a>.<a href="#562-567">f64_from_parts</a>(<a href="#640">positive</a>, <a href="#640">significand</a>, <a href="#641">exponent</a>);
+                    <span class="kw">return </span><a class="self" href="#634">self</a>.<a href="#556-561">f64_from_parts</a>(<a href="#634">positive</a>, <a href="#634">significand</a>, <a href="#635">exponent</a>);
                 }
             }
         }
@@ -3384,8 +3367,8 @@
         }
 
         <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.peek_or_null()) {
-            <span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39; </span>=&gt; <a class="self" href="#761">self</a>.<a href="#490-495">parse_exponent</a>(<a href="#762">positive</a>, <a href="#763">significand</a>, <a href="#764">exponent</a>),
-            <span class="kw">_ </span>=&gt; <a class="self" href="#761">self</a>.<a href="#562-567">f64_from_parts</a>(<a href="#762">positive</a>, <a href="#763">significand</a>, <a href="#764">exponent</a>),
+            <span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39; </span>=&gt; <a class="self" href="#755">self</a>.<a href="#484-489">parse_exponent</a>(<a href="#756">positive</a>, <a href="#757">significand</a>, <a href="#758">exponent</a>),
+            <span class="kw">_ </span>=&gt; <a class="self" href="#755">self</a>.<a href="#556-561">f64_from_parts</a>(<a href="#756">positive</a>, <a href="#757">significand</a>, <a href="#758">exponent</a>),
         }
     }
 
@@ -3401,7 +3384,7 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>&gt; {
         <span class="comment">// Error instead of +/- infinity.
         </span><span class="kw">if </span>!zero_significand &amp;&amp; positive_exp {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#783">self</a>.<a href="#234">error</a>(<a href="error.rs.html#222">ErrorCode::NumberOutOfRange</a>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#777">self</a>.<a href="#234">error</a>(<a href="error.rs.html#222">ErrorCode::NumberOutOfRange</a>));
         }
 
         <span class="kw">while let </span><span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>= <span class="macro">tri!</span>(<span class="self">self</span>.peek_or_null()) {
@@ -3435,40 +3418,40 @@
 
     <span class="kw">fn </span>parse_any_signed_number(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#102">ParserNumber</a>&gt; {
         <span class="kw">let </span>peek = <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.peek()) {
-            <span class="prelude-val">Some</span>(b) =&gt; <a href="#824">b</a>,
+            <span class="prelude-val">Some</span>(b) =&gt; <a href="#818">b</a>,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#822">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#816">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
             }
         };
 
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="#823">peek</a> {
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#817">peek</a> {
             <span class="string">b&#39;-&#39; </span>=&gt; {
-                <a class="self" href="#822">self</a>.<a href="#220">eat_char</a>();
-                <a class="self" href="#822">self</a>.<a href="#856">parse_any_number</a>(<span class="bool-val">false</span>)
+                <a class="self" href="#816">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#816">self</a>.<a href="#850">parse_any_number</a>(<span class="bool-val">false</span>)
             }
-            <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <a class="self" href="#822">self</a>.<a href="#856">parse_any_number</a>(<span class="bool-val">true</span>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#822">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>)),
+            <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <a class="self" href="#816">self</a>.<a href="#850">parse_any_number</a>(<span class="bool-val">true</span>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#816">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>)),
         };
 
         <span class="kw">let </span>value = <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.peek()) {
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#822">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>)),
-            <span class="prelude-val">None </span>=&gt; <a href="#830">value</a>,
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#816">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>)),
+            <span class="prelude-val">None </span>=&gt; <a href="#824">value</a>,
         };
 
-        <span class="kw">match </span><a href="#839">value</a> {
-            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#845">value</a>),
+        <span class="kw">match </span><a href="#833">value</a> {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#839">value</a>),
             <span class="comment">// The de::Error impl creates errors with unknown line and column.
             // Fill in the position here by looking at the current index in the
             // input. There is no way to tell whether this should call `error`
             // or `peek_error` so pick the one that seems correct more often.
             // Worst case, the position is off by one character.
-            </span><span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#822">self</a>.<a href="#367">fix_position</a>(<a href="#851">err</a>)),
+            </span><span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#816">self</a>.<a href="#361">fix_position</a>(<a href="#845">err</a>)),
         }
     }
 
     <span class="attribute">#[cfg(not(feature = <span class="string">&quot;arbitrary_precision&quot;</span>))]
     </span><span class="kw">fn </span>parse_any_number(<span class="kw-2">&amp;mut </span><span class="self">self</span>, positive: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#102">ParserNumber</a>&gt; {
-        <a class="self" href="#856">self</a>.<a href="#388">parse_integer</a>(<a href="#856">positive</a>)
+        <a class="self" href="#850">self</a>.<a href="#382">parse_integer</a>(<a href="#850">positive</a>)
     }
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;arbitrary_precision&quot;</span>)]
@@ -3596,74 +3579,74 @@
     <span class="kw">fn </span>parse_object_colon(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
             <span class="prelude-val">Some</span>(<span class="string">b&#39;:&#39;</span>) =&gt; {
-                <a class="self" href="#982">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#976">self</a>.<a href="#220">eat_char</a>();
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#982">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#201">ErrorCode::ExpectedColon</a>)),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#982">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#192">ErrorCode::EofWhileParsingObject</a>)),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#976">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#201">ErrorCode::ExpectedColon</a>)),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#976">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#192">ErrorCode::EofWhileParsingObject</a>)),
         }
     }
 
     <span class="kw">fn </span>end_seq(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
             <span class="prelude-val">Some</span>(<span class="string">b&#39;]&#39;</span>) =&gt; {
-                <a class="self" href="#993">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#987">self</a>.<a href="#220">eat_char</a>();
                 <span class="prelude-val">Ok</span>(())
             }
             <span class="prelude-val">Some</span>(<span class="string">b&#39;,&#39;</span>) =&gt; {
-                <a class="self" href="#993">self</a>.<a href="#220">eat_char</a>();
-                <span class="kw">match </span><a class="self" href="#993">self</a>.<a href="#248">parse_whitespace</a>() {
-                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="string">b&#39;]&#39;</span>)) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#993">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#237">ErrorCode::TrailingComma</a>)),
-                    <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#993">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#240">ErrorCode::TrailingCharacters</a>)),
+                <a class="self" href="#987">self</a>.<a href="#220">eat_char</a>();
+                <span class="kw">match </span><a class="self" href="#987">self</a>.<a href="#248">parse_whitespace</a>() {
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="string">b&#39;]&#39;</span>)) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#987">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#237">ErrorCode::TrailingComma</a>)),
+                    <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#987">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#240">ErrorCode::TrailingCharacters</a>)),
                 }
             }
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#993">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#240">ErrorCode::TrailingCharacters</a>)),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#993">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#189">ErrorCode::EofWhileParsingList</a>)),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#987">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#240">ErrorCode::TrailingCharacters</a>)),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#987">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#189">ErrorCode::EofWhileParsingList</a>)),
         }
     }
 
     <span class="kw">fn </span>end_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
             <span class="prelude-val">Some</span>(<span class="string">b&#39;}&#39;</span>) =&gt; {
-                <a class="self" href="#1011">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#1005">self</a>.<a href="#220">eat_char</a>();
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;,&#39;</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1011">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#237">ErrorCode::TrailingComma</a>)),
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1011">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#240">ErrorCode::TrailingCharacters</a>)),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1011">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#192">ErrorCode::EofWhileParsingObject</a>)),
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;,&#39;</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1005">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#237">ErrorCode::TrailingComma</a>)),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1005">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#240">ErrorCode::TrailingCharacters</a>)),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1005">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#192">ErrorCode::EofWhileParsingObject</a>)),
         }
     }
 
     <span class="kw">fn </span>ignore_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <a class="self" href="#1023">self</a>.scratch.clear();
+        <a class="self" href="#1017">self</a>.scratch.clear();
         <span class="kw">let </span><span class="kw-2">mut </span>enclosing = <span class="prelude-val">None</span>;
 
         <span class="kw">loop </span>{
             <span class="kw">let </span>peek = <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
-                <span class="prelude-val">Some</span>(b) =&gt; <a href="#1029">b</a>,
+                <span class="prelude-val">Some</span>(b) =&gt; <a href="#1023">b</a>,
                 <span class="prelude-val">None </span>=&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1023">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1017">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
                 }
             };
 
-            <span class="kw">let </span>frame = <span class="kw">match </span><a href="#1028">peek</a> {
+            <span class="kw">let </span>frame = <span class="kw">match </span><a href="#1022">peek</a> {
                 <span class="string">b&#39;n&#39; </span>=&gt; {
-                    <a class="self" href="#1023">self</a>.<a href="#220">eat_char</a>();
+                    <a class="self" href="#1017">self</a>.<a href="#220">eat_char</a>();
                     <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_ident(<span class="string">b&quot;ull&quot;</span>));
                     <span class="prelude-val">None
                 </span>}
                 <span class="string">b&#39;t&#39; </span>=&gt; {
-                    <a class="self" href="#1023">self</a>.<a href="#220">eat_char</a>();
+                    <a class="self" href="#1017">self</a>.<a href="#220">eat_char</a>();
                     <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_ident(<span class="string">b&quot;rue&quot;</span>));
                     <span class="prelude-val">None
                 </span>}
                 <span class="string">b&#39;f&#39; </span>=&gt; {
-                    <a class="self" href="#1023">self</a>.<a href="#220">eat_char</a>();
+                    <a class="self" href="#1017">self</a>.<a href="#220">eat_char</a>();
                     <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_ident(<span class="string">b&quot;alse&quot;</span>));
                     <span class="prelude-val">None
                 </span>}
                 <span class="string">b&#39;-&#39; </span>=&gt; {
-                    <a class="self" href="#1023">self</a>.<a href="#220">eat_char</a>();
+                    <a class="self" href="#1017">self</a>.<a href="#220">eat_char</a>();
                     <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.ignore_integer());
                     <span class="prelude-val">None
                 </span>}
@@ -3672,24 +3655,24 @@
                     <span class="prelude-val">None
                 </span>}
                 <span class="string">b&#39;&quot;&#39; </span>=&gt; {
-                    <a class="self" href="#1023">self</a>.<a href="#220">eat_char</a>();
+                    <a class="self" href="#1017">self</a>.<a href="#220">eat_char</a>();
                     <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.read.ignore_str());
                     <span class="prelude-val">None
                 </span>}
                 frame @ <span class="string">b&#39;[&#39; </span>| frame @ <span class="string">b&#39;{&#39; </span>=&gt; {
-                    <a class="self" href="#1023">self</a>.scratch.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#1025">enclosing</a>.take());
-                    <a class="self" href="#1023">self</a>.<a href="#220">eat_char</a>();
-                    <span class="prelude-val">Some</span>(<a href="#1065">frame</a>)
+                    <a class="self" href="#1017">self</a>.scratch.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#1019">enclosing</a>.take());
+                    <a class="self" href="#1017">self</a>.<a href="#220">eat_char</a>();
+                    <span class="prelude-val">Some</span>(<a href="#1059">frame</a>)
                 }
-                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1023">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#213">ErrorCode::ExpectedSomeValue</a>)),
+                <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1017">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#213">ErrorCode::ExpectedSomeValue</a>)),
             };
 
-            <span class="kw">let </span>(<span class="kw-2">mut </span>accept_comma, <span class="kw-2">mut </span>frame) = <span class="kw">match </span><a href="#1035">frame</a> {
-                <span class="prelude-val">Some</span>(frame) =&gt; (<span class="bool-val">false</span>, <a href="#1074">frame</a>),
-                <span class="prelude-val">None </span>=&gt; <span class="kw">match </span><a href="#1025">enclosing</a>.take() {
-                    <span class="prelude-val">Some</span>(frame) =&gt; (<span class="bool-val">true</span>, <a href="#1076">frame</a>),
-                    <span class="prelude-val">None </span>=&gt; <span class="kw">match </span><a class="self" href="#1023">self</a>.scratch.pop() {
-                        <span class="prelude-val">Some</span>(frame) =&gt; (<span class="bool-val">true</span>, <a href="#1078">frame</a>),
+            <span class="kw">let </span>(<span class="kw-2">mut </span>accept_comma, <span class="kw-2">mut </span>frame) = <span class="kw">match </span><a href="#1029">frame</a> {
+                <span class="prelude-val">Some</span>(frame) =&gt; (<span class="bool-val">false</span>, <a href="#1068">frame</a>),
+                <span class="prelude-val">None </span>=&gt; <span class="kw">match </span><a href="#1019">enclosing</a>.take() {
+                    <span class="prelude-val">Some</span>(frame) =&gt; (<span class="bool-val">true</span>, <a href="#1070">frame</a>),
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">match </span><a class="self" href="#1017">self</a>.scratch.pop() {
+                        <span class="prelude-val">Some</span>(frame) =&gt; (<span class="bool-val">true</span>, <a href="#1072">frame</a>),
                         <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
                     },
                 },
@@ -3697,15 +3680,15 @@
 
             <span class="kw">loop </span>{
                 <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
-                    <span class="prelude-val">Some</span>(<span class="string">b&#39;,&#39;</span>) <span class="kw">if </span><a href="#1073">accept_comma</a> =&gt; {
-                        <a class="self" href="#1023">self</a>.<a href="#220">eat_char</a>();
+                    <span class="prelude-val">Some</span>(<span class="string">b&#39;,&#39;</span>) <span class="kw">if </span><a href="#1067">accept_comma</a> =&gt; {
+                        <a class="self" href="#1017">self</a>.<a href="#220">eat_char</a>();
                         <span class="kw">break</span>;
                     }
-                    <span class="prelude-val">Some</span>(<span class="string">b&#39;]&#39;</span>) <span class="kw">if </span><a href="#1073">frame</a> == <span class="string">b&#39;[&#39; </span>=&gt; {}
-                    <span class="prelude-val">Some</span>(<span class="string">b&#39;}&#39;</span>) <span class="kw">if </span><a href="#1073">frame</a> == <span class="string">b&#39;{&#39; </span>=&gt; {}
+                    <span class="prelude-val">Some</span>(<span class="string">b&#39;]&#39;</span>) <span class="kw">if </span><a href="#1067">frame</a> == <span class="string">b&#39;[&#39; </span>=&gt; {}
+                    <span class="prelude-val">Some</span>(<span class="string">b&#39;}&#39;</span>) <span class="kw">if </span><a href="#1067">frame</a> == <span class="string">b&#39;{&#39; </span>=&gt; {}
                     <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
                         <span class="kw">if </span>accept_comma {
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1023">self</a>.<a href="#241">peek_error</a>(<span class="kw">match </span><a href="#1073">frame</a> {
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1017">self</a>.<a href="#241">peek_error</a>(<span class="kw">match </span><a href="#1067">frame</a> {
                                 <span class="string">b&#39;[&#39; </span>=&gt; <a href="error.rs.html#204">ErrorCode::ExpectedListCommaOrEnd</a>,
                                 <span class="string">b&#39;{&#39; </span>=&gt; <a href="error.rs.html#207">ErrorCode::ExpectedObjectCommaOrEnd</a>,
                                 <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
@@ -3715,7 +3698,7 @@
                         }
                     }
                     <span class="prelude-val">None </span>=&gt; {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1023">self</a>.<a href="#241">peek_error</a>(<span class="kw">match </span><a href="#1073">frame</a> {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1017">self</a>.<a href="#241">peek_error</a>(<span class="kw">match </span><a href="#1067">frame</a> {
                             <span class="string">b&#39;[&#39; </span>=&gt; <a href="error.rs.html#189">ErrorCode::EofWhileParsingList</a>,
                             <span class="string">b&#39;{&#39; </span>=&gt; <a href="error.rs.html#192">ErrorCode::EofWhileParsingObject</a>,
                             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
@@ -3723,29 +3706,29 @@
                     }
                 }
 
-                <a class="self" href="#1023">self</a>.<a href="#220">eat_char</a>();
-                <a href="#1073">frame</a> = <span class="kw">match </span><a class="self" href="#1023">self</a>.scratch.pop() {
-                    <span class="prelude-val">Some</span>(frame) =&gt; <a href="#1114">frame</a>,
+                <a class="self" href="#1017">self</a>.<a href="#220">eat_char</a>();
+                <a href="#1067">frame</a> = <span class="kw">match </span><a class="self" href="#1017">self</a>.scratch.pop() {
+                    <span class="prelude-val">Some</span>(frame) =&gt; <a href="#1108">frame</a>,
                     <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(()),
                 };
-                <a href="#1073">accept_comma</a> = <span class="bool-val">true</span>;
+                <a href="#1067">accept_comma</a> = <span class="bool-val">true</span>;
             }
 
             <span class="kw">if </span>frame == <span class="string">b&#39;{&#39; </span>{
                 <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
-                    <span class="prelude-val">Some</span>(<span class="string">b&#39;&quot;&#39;</span>) =&gt; <a class="self" href="#1023">self</a>.<a href="#220">eat_char</a>(),
-                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1023">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#231">ErrorCode::KeyMustBeAString</a>)),
-                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1023">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#192">ErrorCode::EofWhileParsingObject</a>)),
+                    <span class="prelude-val">Some</span>(<span class="string">b&#39;&quot;&#39;</span>) =&gt; <a class="self" href="#1017">self</a>.<a href="#220">eat_char</a>(),
+                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1017">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#231">ErrorCode::KeyMustBeAString</a>)),
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1017">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#192">ErrorCode::EofWhileParsingObject</a>)),
                 }
                 <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.read.ignore_str());
                 <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
-                    <span class="prelude-val">Some</span>(<span class="string">b&#39;:&#39;</span>) =&gt; <a class="self" href="#1023">self</a>.<a href="#220">eat_char</a>(),
-                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1023">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#201">ErrorCode::ExpectedColon</a>)),
-                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1023">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#192">ErrorCode::EofWhileParsingObject</a>)),
+                    <span class="prelude-val">Some</span>(<span class="string">b&#39;:&#39;</span>) =&gt; <a class="self" href="#1017">self</a>.<a href="#220">eat_char</a>(),
+                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1017">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#201">ErrorCode::ExpectedColon</a>)),
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1017">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#192">ErrorCode::EofWhileParsingObject</a>)),
                 }
             }
 
-            <a href="#1025">enclosing</a> = <span class="prelude-val">Some</span>(<a href="#1073">frame</a>);
+            <a href="#1019">enclosing</a> = <span class="prelude-val">Some</span>(<a href="#1067">frame</a>);
         }
     }
 
@@ -3754,7 +3737,7 @@
             <span class="string">b&#39;0&#39; </span>=&gt; {
                 <span class="comment">// There can be only one leading &#39;0&#39;.
                 </span><span class="kw">if let </span><span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>= <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.peek_or_null()) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1138">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1132">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>));
                 }
             }
             <span class="string">b&#39;1&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {
@@ -3763,19 +3746,19 @@
                 }
             }
             <span class="kw">_ </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1138">self</a>.<a href="#234">error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1132">self</a>.<a href="#234">error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>));
             }
         }
 
         <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.peek_or_null()) {
-            <span class="string">b&#39;.&#39; </span>=&gt; <a class="self" href="#1138">self</a>.<a href="#1163">ignore_decimal</a>(),
-            <span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39; </span>=&gt; <a class="self" href="#1138">self</a>.<a href="#1182">ignore_exponent</a>(),
+            <span class="string">b&#39;.&#39; </span>=&gt; <a class="self" href="#1132">self</a>.<a href="#1157">ignore_decimal</a>(),
+            <span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39; </span>=&gt; <a class="self" href="#1132">self</a>.<a href="#1176">ignore_exponent</a>(),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(()),
         }
     }
 
     <span class="kw">fn </span>ignore_decimal(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <a class="self" href="#1163">self</a>.<a href="#220">eat_char</a>();
+        <a class="self" href="#1157">self</a>.<a href="#220">eat_char</a>();
 
         <span class="kw">let </span><span class="kw-2">mut </span>at_least_one_digit = <span class="bool-val">false</span>;
         <span class="kw">while let </span><span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>= <span class="macro">tri!</span>(<span class="self">self</span>.peek_or_null()) {
@@ -3784,20 +3767,20 @@
         }
 
         <span class="kw">if </span>!at_least_one_digit {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1163">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1157">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>));
         }
 
         <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.peek_or_null()) {
-            <span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39; </span>=&gt; <a class="self" href="#1163">self</a>.<a href="#1182">ignore_exponent</a>(),
+            <span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39; </span>=&gt; <a class="self" href="#1157">self</a>.<a href="#1176">ignore_exponent</a>(),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(()),
         }
     }
 
     <span class="kw">fn </span>ignore_exponent(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <a class="self" href="#1182">self</a>.<a href="#220">eat_char</a>();
+        <a class="self" href="#1176">self</a>.<a href="#220">eat_char</a>();
 
         <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.peek_or_null()) {
-            <span class="string">b&#39;+&#39; </span>| <span class="string">b&#39;-&#39; </span>=&gt; <a class="self" href="#1182">self</a>.<a href="#220">eat_char</a>(),
+            <span class="string">b&#39;+&#39; </span>| <span class="string">b&#39;-&#39; </span>=&gt; <a class="self" href="#1176">self</a>.<a href="#220">eat_char</a>(),
             <span class="kw">_ </span>=&gt; {}
         }
 
@@ -3805,7 +3788,7 @@
         </span><span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.next_char_or_null()) {
             <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {}
             <span class="kw">_ </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1182">self</a>.<a href="#234">error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1176">self</a>.<a href="#234">error</a>(<a href="error.rs.html#219">ErrorCode::InvalidNumber</a>));
             }
         }
 
@@ -3828,12 +3811,12 @@
     }
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for </span><a href="number.rs.html#25">Number</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a> <span class="kw">for </span><a href="number.rs.html#22">Number</a> {
     <span class="kw">type </span><span class="prelude-val">Err </span>= <a href="error.rs.html#15">Error</a>;
 
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; result::Result&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
-        Deserializer::from_str(<a href="#1220">s</a>)
-            .<a href="#822">parse_any_signed_number</a>()
+        Deserializer::from_str(<a href="#1214">s</a>)
+            .<a href="#816">parse_any_signed_number</a>()
             .map(<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">Into::into</a>)
     }
 }
@@ -3926,74 +3909,74 @@
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span>peek = <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
-            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1315">b</a>,
+            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1309">b</a>,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1310">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1304">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
             }
         };
 
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1314">peek</a> {
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1308">peek</a> {
             <span class="string">b&#39;n&#39; </span>=&gt; {
-                <a class="self" href="#1310">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#1304">self</a>.<a href="#220">eat_char</a>();
                 <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_ident(<span class="string">b&quot;ull&quot;</span>));
-                <a href="#1310">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_unit</a>()
+                <a href="#1304">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_unit</a>()
             }
             <span class="string">b&#39;t&#39; </span>=&gt; {
-                <a class="self" href="#1310">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#1304">self</a>.<a href="#220">eat_char</a>();
                 <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_ident(<span class="string">b&quot;rue&quot;</span>));
-                <a href="#1310">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">true</span>)
+                <a href="#1304">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">true</span>)
             }
             <span class="string">b&#39;f&#39; </span>=&gt; {
-                <a class="self" href="#1310">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#1304">self</a>.<a href="#220">eat_char</a>();
                 <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_ident(<span class="string">b&quot;alse&quot;</span>));
-                <a href="#1310">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">false</span>)
+                <a href="#1304">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">false</span>)
             }
             <span class="string">b&#39;-&#39; </span>=&gt; {
-                <a class="self" href="#1310">self</a>.<a href="#220">eat_char</a>();
-                <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_any_number(<span class="bool-val">false</span>)).<a href="#111-113">visit</a>(<a href="#1310">visitor</a>)
+                <a class="self" href="#1304">self</a>.<a href="#220">eat_char</a>();
+                <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_any_number(<span class="bool-val">false</span>)).<a href="#111-113">visit</a>(<a href="#1304">visitor</a>)
             }
-            <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_any_number(<span class="bool-val">true</span>)).<a href="#111-113">visit</a>(<a href="#1310">visitor</a>),
+            <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_any_number(<span class="bool-val">true</span>)).<a href="#111-113">visit</a>(<a href="#1304">visitor</a>),
             <span class="string">b&#39;&quot;&#39; </span>=&gt; {
-                <a class="self" href="#1310">self</a>.<a href="#220">eat_char</a>();
-                <a class="self" href="#1310">self</a>.scratch.clear();
+                <a class="self" href="#1304">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#1304">self</a>.scratch.clear();
                 <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.read.parse_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>.scratch)) {
-                    <a href="read.rs.html#126">Reference::Borrowed</a>(s) =&gt; <a href="#1310">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="#1346">s</a>),
-                    <a href="read.rs.html#127">Reference::Copied</a>(s) =&gt; <a href="#1310">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_str</a>(<a href="#1347">s</a>),
+                    <a href="read.rs.html#126">Reference::Borrowed</a>(s) =&gt; <a href="#1304">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="#1340">s</a>),
+                    <a href="read.rs.html#127">Reference::Copied</a>(s) =&gt; <a href="#1304">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_str</a>(<a href="#1341">s</a>),
                 }
             }
             <span class="string">b&#39;[&#39; </span>=&gt; {
-                <a class="macro" href="#1289-1304">check_recursion! </a>{
+                <a class="macro" href="#1283-1298">check_recursion! </a>{
                     <span class="self">self</span>.<a href="#220">eat_char</a>();
-                    <span class="kw">let </span>ret = <a href="#1310">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_seq</a>(SeqAccess::new(<a class="self" href="#1310">self</a>));
+                    <span class="kw">let </span>ret = <a href="#1304">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_seq</a>(SeqAccess::new(<a class="self" href="#1304">self</a>));
                 }
 
-                <span class="kw">match </span>(<a href="#1353">ret</a>, <a class="self" href="#1310">self</a>.<a href="#993">end_seq</a>()) {
-                    (<span class="prelude-val">Ok</span>(ret), <span class="prelude-val">Ok</span>(())) =&gt; <span class="prelude-val">Ok</span>(<a href="#1357">ret</a>),
-                    (<span class="prelude-val">Err</span>(err), <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#1358">err</a>),
+                <span class="kw">match </span>(<a href="#1347">ret</a>, <a class="self" href="#1304">self</a>.<a href="#987">end_seq</a>()) {
+                    (<span class="prelude-val">Ok</span>(ret), <span class="prelude-val">Ok</span>(())) =&gt; <span class="prelude-val">Ok</span>(<a href="#1351">ret</a>),
+                    (<span class="prelude-val">Err</span>(err), <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#1352">err</a>),
                 }
             }
             <span class="string">b&#39;{&#39; </span>=&gt; {
-                <a class="macro" href="#1289-1304">check_recursion! </a>{
+                <a class="macro" href="#1283-1298">check_recursion! </a>{
                     <span class="self">self</span>.<a href="#220">eat_char</a>();
-                    <span class="kw">let </span>ret = <a href="#1310">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_map</a>(MapAccess::new(<a class="self" href="#1310">self</a>));
+                    <span class="kw">let </span>ret = <a href="#1304">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_map</a>(MapAccess::new(<a class="self" href="#1304">self</a>));
                 }
 
-                <span class="kw">match </span>(<a href="#1364">ret</a>, <a class="self" href="#1310">self</a>.<a href="#1011">end_map</a>()) {
-                    (<span class="prelude-val">Ok</span>(ret), <span class="prelude-val">Ok</span>(())) =&gt; <span class="prelude-val">Ok</span>(<a href="#1368">ret</a>),
-                    (<span class="prelude-val">Err</span>(err), <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#1369">err</a>),
+                <span class="kw">match </span>(<a href="#1358">ret</a>, <a class="self" href="#1304">self</a>.<a href="#1005">end_map</a>()) {
+                    (<span class="prelude-val">Ok</span>(ret), <span class="prelude-val">Ok</span>(())) =&gt; <span class="prelude-val">Ok</span>(<a href="#1362">ret</a>),
+                    (<span class="prelude-val">Err</span>(err), <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#1363">err</a>),
                 }
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1310">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#213">ErrorCode::ExpectedSomeValue</a>)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1304">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#213">ErrorCode::ExpectedSomeValue</a>)),
         };
 
-        <span class="kw">match </span><a href="#1321">value</a> {
-            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1376">value</a>),
+        <span class="kw">match </span><a href="#1315">value</a> {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1370">value</a>),
             <span class="comment">// The de::Error impl creates errors with unknown line and column.
             // Fill in the position here by looking at the current index in the
             // input. There is no way to tell whether this should call `error`
             // or `peek_error` so pick the one that seems correct more often.
             // Worst case, the position is off by one character.
-            </span><span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1310">self</a>.<a href="#367">fix_position</a>(<a href="#1382">err</a>)),
+            </span><span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1304">self</a>.<a href="#361">fix_position</a>(<a href="#1376">err</a>)),
         }
     }
 
@@ -4002,43 +3985,43 @@
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span>peek = <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
-            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1391">b</a>,
+            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1385">b</a>,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1386">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1380">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
             }
         };
 
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1390">peek</a> {
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1384">peek</a> {
             <span class="string">b&#39;t&#39; </span>=&gt; {
-                <a class="self" href="#1386">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#1380">self</a>.<a href="#220">eat_char</a>();
                 <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_ident(<span class="string">b&quot;rue&quot;</span>));
-                <a href="#1386">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">true</span>)
+                <a href="#1380">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">true</span>)
             }
             <span class="string">b&#39;f&#39; </span>=&gt; {
-                <a class="self" href="#1386">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#1380">self</a>.<a href="#220">eat_char</a>();
                 <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_ident(<span class="string">b&quot;alse&quot;</span>));
-                <a href="#1386">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">false</span>)
+                <a href="#1380">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bool</a>(<span class="bool-val">false</span>)
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1386">self</a>.<a href="#262">peek_invalid_type</a>(<span class="kw-2">&amp;</span><a href="#1386">visitor</a>)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1380">self</a>.<a href="#262">peek_invalid_type</a>(<span class="kw-2">&amp;</span><a href="#1380">visitor</a>)),
         };
 
-        <span class="kw">match </span><a href="#1397">value</a> {
-            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1412">value</a>),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1386">self</a>.<a href="#367">fix_position</a>(<a href="#1413">err</a>)),
+        <span class="kw">match </span><a href="#1391">value</a> {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1406">value</a>),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1380">self</a>.<a href="#361">fix_position</a>(<a href="#1407">err</a>)),
         }
     }
 
-    <a class="macro" href="#1262-1271">deserialize_number!</a>(deserialize_i8);
-    <a class="macro" href="#1262-1271">deserialize_number!</a>(deserialize_i16);
-    <a class="macro" href="#1262-1271">deserialize_number!</a>(deserialize_i32);
-    <a class="macro" href="#1262-1271">deserialize_number!</a>(deserialize_i64);
-    <a class="macro" href="#1262-1271">deserialize_number!</a>(deserialize_u8);
-    <a class="macro" href="#1262-1271">deserialize_number!</a>(deserialize_u16);
-    <a class="macro" href="#1262-1271">deserialize_number!</a>(deserialize_u32);
-    <a class="macro" href="#1262-1271">deserialize_number!</a>(deserialize_u64);
+    <a class="macro" href="#1256-1265">deserialize_number!</a>(deserialize_i8);
+    <a class="macro" href="#1256-1265">deserialize_number!</a>(deserialize_i16);
+    <a class="macro" href="#1256-1265">deserialize_number!</a>(deserialize_i32);
+    <a class="macro" href="#1256-1265">deserialize_number!</a>(deserialize_i64);
+    <a class="macro" href="#1256-1265">deserialize_number!</a>(deserialize_u8);
+    <a class="macro" href="#1256-1265">deserialize_number!</a>(deserialize_u16);
+    <a class="macro" href="#1256-1265">deserialize_number!</a>(deserialize_u32);
+    <a class="macro" href="#1256-1265">deserialize_number!</a>(deserialize_u64);
     <span class="attribute">#[cfg(not(feature = <span class="string">&quot;float_roundtrip&quot;</span>))]
-    </span><a class="macro" href="#1262-1271">deserialize_number!</a>(deserialize_f32);
-    <a class="macro" href="#1262-1271">deserialize_number!</a>(deserialize_f64);
+    </span><a class="macro" href="#1256-1265">deserialize_number!</a>(deserialize_f32);
+    <a class="macro" href="#1256-1265">deserialize_number!</a>(deserialize_f64);
 
     <span class="attribute">#[cfg(feature = <span class="string">&quot;float_roundtrip&quot;</span>)]
     </span><span class="kw">fn </span>deserialize_f32&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
@@ -4051,67 +4034,65 @@
         val
     }
 
-    <span class="macro">serde_if_integer128! </span>{
-        <span class="kw">fn </span>deserialize_i128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
-        <span class="kw">where
-            </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
-        {
-            <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+    <span class="kw">fn </span>deserialize_i128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+    {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
 
-            <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
-                    <a class="self" href="#1441">self</a>.<a href="#220">eat_char</a>();
-                    <a href="#1445">buf</a>.push(<span class="string">&#39;-&#39;</span>);
-                }
-                <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
-                <span class="prelude-val">None </span>=&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1441">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
-                }
-            };
+        <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
+                <a class="self" href="#1434">self</a>.<a href="#220">eat_char</a>();
+                <a href="#1438">buf</a>.push(<span class="string">&#39;-&#39;</span>);
+            }
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1434">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
+            }
+        };
 
-            <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.scan_integer128(<span class="kw-2">&amp;mut </span>buf));
+        <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.scan_integer128(<span class="kw-2">&amp;mut </span>buf));
 
-            <span class="kw">let </span>value = <span class="kw">match </span><a href="#1445">buf</a>.parse() {
-                <span class="prelude-val">Ok</span>(int) =&gt; <a href="#1441">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_i128</a>(<a href="#1461">int</a>),
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1441">self</a>.<a href="#234">error</a>(<a href="error.rs.html#222">ErrorCode::NumberOutOfRange</a>));
-                }
-            };
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1438">buf</a>.parse() {
+            <span class="prelude-val">Ok</span>(int) =&gt; <a href="#1434">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_i128</a>(<a href="#1454">int</a>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1434">self</a>.<a href="#234">error</a>(<a href="error.rs.html#222">ErrorCode::NumberOutOfRange</a>));
+            }
+        };
 
-            <span class="kw">match </span><a href="#1460">value</a> {
-                <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1468">value</a>),
-                <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1441">self</a>.<a href="#367">fix_position</a>(<a href="#1469">err</a>)),
+        <span class="kw">match </span><a href="#1453">value</a> {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1461">value</a>),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1434">self</a>.<a href="#361">fix_position</a>(<a href="#1462">err</a>)),
+        }
+    }
+
+    <span class="kw">fn </span>deserialize_u128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">where
+        </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+    {
+        <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1466">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#222">ErrorCode::NumberOutOfRange</a>));
+            }
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1466">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
             }
         }
 
-        <span class="kw">fn </span>deserialize_u128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
-        <span class="kw">where
-            </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
-        {
-            <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1473">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#222">ErrorCode::NumberOutOfRange</a>));
-                }
-                <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
-                <span class="prelude-val">None </span>=&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1473">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
-                }
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+        <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.scan_integer128(<span class="kw-2">&amp;mut </span>buf));
+
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1480">buf</a>.parse() {
+            <span class="prelude-val">Ok</span>(int) =&gt; <a href="#1466">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_u128</a>(<a href="#1484">int</a>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1466">self</a>.<a href="#234">error</a>(<a href="error.rs.html#222">ErrorCode::NumberOutOfRange</a>));
             }
+        };
 
-            <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
-            <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.scan_integer128(<span class="kw-2">&amp;mut </span>buf));
-
-            <span class="kw">let </span>value = <span class="kw">match </span><a href="#1487">buf</a>.parse() {
-                <span class="prelude-val">Ok</span>(int) =&gt; <a href="#1473">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_u128</a>(<a href="#1491">int</a>),
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1473">self</a>.<a href="#234">error</a>(<a href="error.rs.html#222">ErrorCode::NumberOutOfRange</a>));
-                }
-            };
-
-            <span class="kw">match </span><a href="#1490">value</a> {
-                <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1498">value</a>),
-                <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1473">self</a>.<a href="#367">fix_position</a>(<a href="#1499">err</a>)),
-            }
+        <span class="kw">match </span><a href="#1483">value</a> {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1491">value</a>),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1466">self</a>.<a href="#361">fix_position</a>(<a href="#1492">err</a>)),
         }
     }
 
@@ -4119,7 +4100,7 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#1504">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="#1504">visitor</a>)
+        <a class="self" href="#1496">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="#1496">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_str&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
@@ -4127,27 +4108,27 @@
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span>peek = <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
-            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1516">b</a>,
+            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1508">b</a>,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1511">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1503">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
             }
         };
 
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1515">peek</a> {
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1507">peek</a> {
             <span class="string">b&#39;&quot;&#39; </span>=&gt; {
-                <a class="self" href="#1511">self</a>.<a href="#220">eat_char</a>();
-                <a class="self" href="#1511">self</a>.scratch.clear();
+                <a class="self" href="#1503">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#1503">self</a>.scratch.clear();
                 <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.read.parse_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>.scratch)) {
-                    <a href="read.rs.html#126">Reference::Borrowed</a>(s) =&gt; <a href="#1511">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="#1527">s</a>),
-                    <a href="read.rs.html#127">Reference::Copied</a>(s) =&gt; <a href="#1511">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_str</a>(<a href="#1528">s</a>),
+                    <a href="read.rs.html#126">Reference::Borrowed</a>(s) =&gt; <a href="#1503">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="#1519">s</a>),
+                    <a href="read.rs.html#127">Reference::Copied</a>(s) =&gt; <a href="#1503">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_str</a>(<a href="#1520">s</a>),
                 }
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1511">self</a>.<a href="#262">peek_invalid_type</a>(<span class="kw-2">&amp;</span><a href="#1511">visitor</a>)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1503">self</a>.<a href="#262">peek_invalid_type</a>(<span class="kw-2">&amp;</span><a href="#1503">visitor</a>)),
         };
 
-        <span class="kw">match </span><a href="#1522">value</a> {
-            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1535">value</a>),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1511">self</a>.<a href="#367">fix_position</a>(<a href="#1536">err</a>)),
+        <span class="kw">match </span><a href="#1514">value</a> {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1527">value</a>),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1503">self</a>.<a href="#361">fix_position</a>(<a href="#1528">err</a>)),
         }
     }
 
@@ -4155,7 +4136,7 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#1540">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="#1540">visitor</a>)
+        <a class="self" href="#1532">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="#1532">visitor</a>)
     }
 
     <span class="doccomment">/// Parses a JSON string as bytes. Note that this function does not check
@@ -4233,28 +4214,28 @@
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span>peek = <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
-            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1622">b</a>,
+            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1614">b</a>,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1617">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1609">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
             }
         };
 
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1621">peek</a> {
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1613">peek</a> {
             <span class="string">b&#39;&quot;&#39; </span>=&gt; {
-                <a class="self" href="#1617">self</a>.<a href="#220">eat_char</a>();
-                <a class="self" href="#1617">self</a>.scratch.clear();
+                <a class="self" href="#1609">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#1609">self</a>.scratch.clear();
                 <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.read.parse_str_raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>.scratch)) {
-                    <a href="read.rs.html#126">Reference::Borrowed</a>(b) =&gt; <a href="#1617">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_borrowed_bytes</a>(<a href="#1633">b</a>),
-                    <a href="read.rs.html#127">Reference::Copied</a>(b) =&gt; <a href="#1617">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bytes</a>(<a href="#1634">b</a>),
+                    <a href="read.rs.html#126">Reference::Borrowed</a>(b) =&gt; <a href="#1609">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_borrowed_bytes</a>(<a href="#1625">b</a>),
+                    <a href="read.rs.html#127">Reference::Copied</a>(b) =&gt; <a href="#1609">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_bytes</a>(<a href="#1626">b</a>),
                 }
             }
-            <span class="string">b&#39;[&#39; </span>=&gt; <a class="self" href="#1617">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a href="#1617">visitor</a>),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1617">self</a>.<a href="#262">peek_invalid_type</a>(<span class="kw-2">&amp;</span><a href="#1617">visitor</a>)),
+            <span class="string">b&#39;[&#39; </span>=&gt; <a class="self" href="#1609">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a href="#1609">visitor</a>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1609">self</a>.<a href="#262">peek_invalid_type</a>(<span class="kw-2">&amp;</span><a href="#1609">visitor</a>)),
         };
 
-        <span class="kw">match </span><a href="#1628">value</a> {
-            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1642">value</a>),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1617">self</a>.<a href="#367">fix_position</a>(<a href="#1643">err</a>)),
+        <span class="kw">match </span><a href="#1620">value</a> {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1634">value</a>),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1609">self</a>.<a href="#361">fix_position</a>(<a href="#1635">err</a>)),
         }
     }
 
@@ -4263,7 +4244,7 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#1648">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_bytes</a>(<a href="#1648">visitor</a>)
+        <a class="self" href="#1640">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_bytes</a>(<a href="#1640">visitor</a>)
     }
 
     <span class="doccomment">/// Parses a `null` as a None, and any other values as a `Some(...)`.
@@ -4274,11 +4255,11 @@
     {
         <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
             <span class="prelude-val">Some</span>(<span class="string">b&#39;n&#39;</span>) =&gt; {
-                <a class="self" href="#1657">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#1649">self</a>.<a href="#220">eat_char</a>();
                 <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_ident(<span class="string">b&quot;ull&quot;</span>));
-                <a href="#1657">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_none</a>()
+                <a href="#1649">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_none</a>()
             }
-            <span class="kw">_ </span>=&gt; <a href="#1657">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_some</a>(<a class="self" href="#1657">self</a>),
+            <span class="kw">_ </span>=&gt; <a href="#1649">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_some</a>(<a class="self" href="#1649">self</a>),
         }
     }
 
@@ -4287,24 +4268,24 @@
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span>peek = <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
-            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1676">b</a>,
+            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1668">b</a>,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1671">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1663">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
             }
         };
 
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1675">peek</a> {
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1667">peek</a> {
             <span class="string">b&#39;n&#39; </span>=&gt; {
-                <a class="self" href="#1671">self</a>.<a href="#220">eat_char</a>();
+                <a class="self" href="#1663">self</a>.<a href="#220">eat_char</a>();
                 <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_ident(<span class="string">b&quot;ull&quot;</span>));
-                <a href="#1671">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_unit</a>()
+                <a href="#1663">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_unit</a>()
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1671">self</a>.<a href="#262">peek_invalid_type</a>(<span class="kw-2">&amp;</span><a href="#1671">visitor</a>)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1663">self</a>.<a href="#262">peek_invalid_type</a>(<span class="kw-2">&amp;</span><a href="#1663">visitor</a>)),
         };
 
-        <span class="kw">match </span><a href="#1682">value</a> {
-            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1692">value</a>),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1671">self</a>.<a href="#367">fix_position</a>(<a href="#1693">err</a>)),
+        <span class="kw">match </span><a href="#1674">value</a> {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1684">value</a>),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1663">self</a>.<a href="#361">fix_position</a>(<a href="#1685">err</a>)),
         }
     }
 
@@ -4312,7 +4293,7 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#1697">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_unit</a>(<a href="#1697">visitor</a>)
+        <a class="self" href="#1689">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_unit</a>(<a href="#1689">visitor</a>)
     }
 
     <span class="doccomment">/// Parses a newtype struct as the underlying value.
@@ -4328,8 +4309,8 @@
             }
         }
 
-        <span class="kw">let _ </span>= <a href="#1706">name</a>;
-        <a href="#1706">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_newtype_struct</a>(<a class="self" href="#1706">self</a>)
+        <span class="kw">let _ </span>= <a href="#1698">name</a>;
+        <a href="#1698">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_newtype_struct</a>(<a class="self" href="#1698">self</a>)
     }
 
     <span class="kw">fn </span>deserialize_seq&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
@@ -4337,30 +4318,30 @@
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span>peek = <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
-            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1726">b</a>,
+            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1718">b</a>,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1721">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1713">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
             }
         };
 
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1725">peek</a> {
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1717">peek</a> {
             <span class="string">b&#39;[&#39; </span>=&gt; {
-                <a class="macro" href="#1289-1304">check_recursion! </a>{
+                <a class="macro" href="#1283-1298">check_recursion! </a>{
                     <span class="self">self</span>.<a href="#220">eat_char</a>();
-                    <span class="kw">let </span>ret = <a href="#1721">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_seq</a>(SeqAccess::new(<a class="self" href="#1721">self</a>));
+                    <span class="kw">let </span>ret = <a href="#1713">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_seq</a>(SeqAccess::new(<a class="self" href="#1713">self</a>));
                 }
 
-                <span class="kw">match </span>(<a href="#1736">ret</a>, <a class="self" href="#1721">self</a>.<a href="#993">end_seq</a>()) {
-                    (<span class="prelude-val">Ok</span>(ret), <span class="prelude-val">Ok</span>(())) =&gt; <span class="prelude-val">Ok</span>(<a href="#1740">ret</a>),
-                    (<span class="prelude-val">Err</span>(err), <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#1741">err</a>),
+                <span class="kw">match </span>(<a href="#1728">ret</a>, <a class="self" href="#1713">self</a>.<a href="#987">end_seq</a>()) {
+                    (<span class="prelude-val">Ok</span>(ret), <span class="prelude-val">Ok</span>(())) =&gt; <span class="prelude-val">Ok</span>(<a href="#1732">ret</a>),
+                    (<span class="prelude-val">Err</span>(err), <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#1733">err</a>),
                 }
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1721">self</a>.<a href="#262">peek_invalid_type</a>(<span class="kw-2">&amp;</span><a href="#1721">visitor</a>)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1713">self</a>.<a href="#262">peek_invalid_type</a>(<span class="kw-2">&amp;</span><a href="#1713">visitor</a>)),
         };
 
-        <span class="kw">match </span><a href="#1732">value</a> {
-            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1748">value</a>),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1721">self</a>.<a href="#367">fix_position</a>(<a href="#1749">err</a>)),
+        <span class="kw">match </span><a href="#1724">value</a> {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1740">value</a>),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1713">self</a>.<a href="#361">fix_position</a>(<a href="#1741">err</a>)),
         }
     }
 
@@ -4368,7 +4349,7 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#1753">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a href="#1753">visitor</a>)
+        <a class="self" href="#1745">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a href="#1745">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_tuple_struct&lt;V&gt;(
@@ -4380,7 +4361,7 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#1761">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a href="#1764">visitor</a>)
+        <a class="self" href="#1753">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_seq</a>(<a href="#1756">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_map&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
@@ -4388,30 +4369,30 @@
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span>peek = <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
-            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1777">b</a>,
+            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1769">b</a>,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1772">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1764">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
             }
         };
 
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1776">peek</a> {
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1768">peek</a> {
             <span class="string">b&#39;{&#39; </span>=&gt; {
-                <a class="macro" href="#1289-1304">check_recursion! </a>{
+                <a class="macro" href="#1283-1298">check_recursion! </a>{
                     <span class="self">self</span>.<a href="#220">eat_char</a>();
-                    <span class="kw">let </span>ret = <a href="#1772">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_map</a>(MapAccess::new(<a class="self" href="#1772">self</a>));
+                    <span class="kw">let </span>ret = <a href="#1764">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_map</a>(MapAccess::new(<a class="self" href="#1764">self</a>));
                 }
 
-                <span class="kw">match </span>(<a href="#1787">ret</a>, <a class="self" href="#1772">self</a>.<a href="#1011">end_map</a>()) {
-                    (<span class="prelude-val">Ok</span>(ret), <span class="prelude-val">Ok</span>(())) =&gt; <span class="prelude-val">Ok</span>(<a href="#1791">ret</a>),
-                    (<span class="prelude-val">Err</span>(err), <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#1792">err</a>),
+                <span class="kw">match </span>(<a href="#1779">ret</a>, <a class="self" href="#1764">self</a>.<a href="#1005">end_map</a>()) {
+                    (<span class="prelude-val">Ok</span>(ret), <span class="prelude-val">Ok</span>(())) =&gt; <span class="prelude-val">Ok</span>(<a href="#1783">ret</a>),
+                    (<span class="prelude-val">Err</span>(err), <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#1784">err</a>),
                 }
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1772">self</a>.<a href="#262">peek_invalid_type</a>(<span class="kw-2">&amp;</span><a href="#1772">visitor</a>)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1764">self</a>.<a href="#262">peek_invalid_type</a>(<span class="kw-2">&amp;</span><a href="#1764">visitor</a>)),
         };
 
-        <span class="kw">match </span><a href="#1783">value</a> {
-            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1799">value</a>),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1772">self</a>.<a href="#367">fix_position</a>(<a href="#1800">err</a>)),
+        <span class="kw">match </span><a href="#1775">value</a> {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1791">value</a>),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1764">self</a>.<a href="#361">fix_position</a>(<a href="#1792">err</a>)),
         }
     }
 
@@ -4425,41 +4406,41 @@
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span>peek = <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
-            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1814">b</a>,
+            <span class="prelude-val">Some</span>(b) =&gt; <a href="#1806">b</a>,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1805">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1797">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>));
             }
         };
 
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1813">peek</a> {
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1805">peek</a> {
             <span class="string">b&#39;[&#39; </span>=&gt; {
-                <a class="macro" href="#1289-1304">check_recursion! </a>{
+                <a class="macro" href="#1283-1298">check_recursion! </a>{
                     <span class="self">self</span>.<a href="#220">eat_char</a>();
-                    <span class="kw">let </span>ret = <a href="#1808">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_seq</a>(SeqAccess::new(<a class="self" href="#1805">self</a>));
+                    <span class="kw">let </span>ret = <a href="#1800">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_seq</a>(SeqAccess::new(<a class="self" href="#1797">self</a>));
                 }
 
-                <span class="kw">match </span>(<a href="#1824">ret</a>, <a class="self" href="#1805">self</a>.<a href="#993">end_seq</a>()) {
-                    (<span class="prelude-val">Ok</span>(ret), <span class="prelude-val">Ok</span>(())) =&gt; <span class="prelude-val">Ok</span>(<a href="#1828">ret</a>),
-                    (<span class="prelude-val">Err</span>(err), <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#1829">err</a>),
+                <span class="kw">match </span>(<a href="#1816">ret</a>, <a class="self" href="#1797">self</a>.<a href="#987">end_seq</a>()) {
+                    (<span class="prelude-val">Ok</span>(ret), <span class="prelude-val">Ok</span>(())) =&gt; <span class="prelude-val">Ok</span>(<a href="#1820">ret</a>),
+                    (<span class="prelude-val">Err</span>(err), <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#1821">err</a>),
                 }
             }
             <span class="string">b&#39;{&#39; </span>=&gt; {
-                <a class="macro" href="#1289-1304">check_recursion! </a>{
+                <a class="macro" href="#1283-1298">check_recursion! </a>{
                     <span class="self">self</span>.<a href="#220">eat_char</a>();
-                    <span class="kw">let </span>ret = <a href="#1808">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_map</a>(MapAccess::new(<a class="self" href="#1805">self</a>));
+                    <span class="kw">let </span>ret = <a href="#1800">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_map</a>(MapAccess::new(<a class="self" href="#1797">self</a>));
                 }
 
-                <span class="kw">match </span>(<a href="#1835">ret</a>, <a class="self" href="#1805">self</a>.<a href="#1011">end_map</a>()) {
-                    (<span class="prelude-val">Ok</span>(ret), <span class="prelude-val">Ok</span>(())) =&gt; <span class="prelude-val">Ok</span>(<a href="#1839">ret</a>),
-                    (<span class="prelude-val">Err</span>(err), <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#1840">err</a>),
+                <span class="kw">match </span>(<a href="#1827">ret</a>, <a class="self" href="#1797">self</a>.<a href="#1005">end_map</a>()) {
+                    (<span class="prelude-val">Ok</span>(ret), <span class="prelude-val">Ok</span>(())) =&gt; <span class="prelude-val">Ok</span>(<a href="#1831">ret</a>),
+                    (<span class="prelude-val">Err</span>(err), <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="prelude-val">Err</span>(err)) =&gt; <span class="prelude-val">Err</span>(<a href="#1832">err</a>),
                 }
             }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1805">self</a>.<a href="#262">peek_invalid_type</a>(<span class="kw-2">&amp;</span><a href="#1808">visitor</a>)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1797">self</a>.<a href="#262">peek_invalid_type</a>(<span class="kw-2">&amp;</span><a href="#1800">visitor</a>)),
         };
 
-        <span class="kw">match </span><a href="#1820">value</a> {
-            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1847">value</a>),
-            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1805">self</a>.<a href="#367">fix_position</a>(<a href="#1848">err</a>)),
+        <span class="kw">match </span><a href="#1812">value</a> {
+            <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(<a href="#1839">value</a>),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1797">self</a>.<a href="#361">fix_position</a>(<a href="#1840">err</a>)),
         }
     }
 
@@ -4477,23 +4458,23 @@
     {
         <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
             <span class="prelude-val">Some</span>(<span class="string">b&#39;{&#39;</span>) =&gt; {
-                <a class="macro" href="#1289-1304">check_recursion! </a>{
+                <a class="macro" href="#1283-1298">check_recursion! </a>{
                     <span class="self">self</span>.<a href="#220">eat_char</a>();
                     <span class="kw">let </span>value = <a class="macro" href="lib.rs.html#388-395">tri!</a>(visitor.visit_enum(VariantAccess::new(<span class="self">self</span>)));
                 }
 
                 <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.parse_whitespace()) {
                     <span class="prelude-val">Some</span>(<span class="string">b&#39;}&#39;</span>) =&gt; {
-                        <a class="self" href="#1856">self</a>.<a href="#220">eat_char</a>();
-                        <span class="prelude-val">Ok</span>(<a href="#1868">value</a>)
+                        <a class="self" href="#1848">self</a>.<a href="#220">eat_char</a>();
+                        <span class="prelude-val">Ok</span>(<a href="#1860">value</a>)
                     }
-                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1856">self</a>.<a href="#234">error</a>(<a href="error.rs.html#213">ErrorCode::ExpectedSomeValue</a>)),
-                    <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1856">self</a>.<a href="#234">error</a>(<a href="error.rs.html#192">ErrorCode::EofWhileParsingObject</a>)),
+                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1848">self</a>.<a href="#234">error</a>(<a href="error.rs.html#213">ErrorCode::ExpectedSomeValue</a>)),
+                    <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1848">self</a>.<a href="#234">error</a>(<a href="error.rs.html#192">ErrorCode::EofWhileParsingObject</a>)),
                 }
             }
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;&quot;&#39;</span>) =&gt; <a href="#1859">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_enum</a>(UnitVariantAccess::new(<a class="self" href="#1856">self</a>)),
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1856">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#213">ErrorCode::ExpectedSomeValue</a>)),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1856">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>)),
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;&quot;&#39;</span>) =&gt; <a href="#1851">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_enum</a>(UnitVariantAccess::new(<a class="self" href="#1848">self</a>)),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1848">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#213">ErrorCode::ExpectedSomeValue</a>)),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1848">self</a>.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>)),
         }
     }
 
@@ -4501,7 +4482,7 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#1886">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="#1886">visitor</a>)
+        <a class="self" href="#1878">self</a>.<a href="../../serde/de/trait.Deserializer.html">deserialize_str</a>(<a href="#1878">visitor</a>)
     }
 
     <span class="kw">fn </span>deserialize_ignored_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
@@ -4509,7 +4490,7 @@
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.ignore_value());
-        <a href="#1893">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_unit</a>()
+        <a href="#1885">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_unit</a>()
     }
 }
 
@@ -4520,7 +4501,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: <span class="lifetime">&#39;a</span>&gt; SeqAccess&lt;<span class="lifetime">&#39;a</span>, R&gt; {
     <span class="kw">fn </span>new(de: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Deserializer&lt;R&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#1902">SeqAccess</a> { <a href="#1908">de</a>, first: <span class="bool-val">true </span>}
+        <a href="#1894">SeqAccess</a> { <a href="#1900">de</a>, first: <span class="bool-val">true </span>}
     }
 }
 
@@ -4535,27 +4516,27 @@
             <span class="prelude-val">Some</span>(<span class="string">b&#39;]&#39;</span>) =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;,&#39;</span>) <span class="kw">if </span>!<a class="self" href="#1916">self</a>.first =&gt; {
-                <a class="self" href="#1916">self</a>.de.<a href="#220">eat_char</a>();
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;,&#39;</span>) <span class="kw">if </span>!<a class="self" href="#1908">self</a>.first =&gt; {
+                <a class="self" href="#1908">self</a>.de.<a href="#220">eat_char</a>();
                 <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.de.parse_whitespace())
             }
             <span class="prelude-val">Some</span>(b) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.first {
-                    <a class="self" href="#1916">self</a>.first = <span class="bool-val">false</span>;
-                    <span class="prelude-val">Some</span>(<a href="#1928">b</a>)
+                    <a class="self" href="#1908">self</a>.first = <span class="bool-val">false</span>;
+                    <span class="prelude-val">Some</span>(<a href="#1920">b</a>)
                 } <span class="kw">else </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1916">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#204">ErrorCode::ExpectedListCommaOrEnd</a>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1908">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#204">ErrorCode::ExpectedListCommaOrEnd</a>));
                 }
             }
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1916">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#189">ErrorCode::EofWhileParsingList</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1908">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#189">ErrorCode::EofWhileParsingList</a>));
             }
         };
 
-        <span class="kw">match </span><a href="#1920">peek</a> {
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;]&#39;</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1916">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#237">ErrorCode::TrailingComma</a>)),
+        <span class="kw">match </span><a href="#1912">peek</a> {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;]&#39;</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1908">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#237">ErrorCode::TrailingComma</a>)),
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="macro" href="lib.rs.html#388-395">tri!</a>(seed.deserialize(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.de)))),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1916">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>)),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1908">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>)),
         }
     }
 }
@@ -4567,7 +4548,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: <span class="lifetime">&#39;a</span>&gt; MapAccess&lt;<span class="lifetime">&#39;a</span>, R&gt; {
     <span class="kw">fn </span>new(de: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Deserializer&lt;R&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#1949">MapAccess</a> { <a href="#1955">de</a>, first: <span class="bool-val">true </span>}
+        <a href="#1941">MapAccess</a> { <a href="#1947">de</a>, first: <span class="bool-val">true </span>}
     }
 }
 
@@ -4582,28 +4563,28 @@
             <span class="prelude-val">Some</span>(<span class="string">b&#39;}&#39;</span>) =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;,&#39;</span>) <span class="kw">if </span>!<a class="self" href="#1963">self</a>.first =&gt; {
-                <a class="self" href="#1963">self</a>.de.<a href="#220">eat_char</a>();
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;,&#39;</span>) <span class="kw">if </span>!<a class="self" href="#1955">self</a>.first =&gt; {
+                <a class="self" href="#1955">self</a>.de.<a href="#220">eat_char</a>();
                 <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.de.parse_whitespace())
             }
             <span class="prelude-val">Some</span>(b) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.first {
-                    <a class="self" href="#1963">self</a>.first = <span class="bool-val">false</span>;
-                    <span class="prelude-val">Some</span>(<a href="#1975">b</a>)
+                    <a class="self" href="#1955">self</a>.first = <span class="bool-val">false</span>;
+                    <span class="prelude-val">Some</span>(<a href="#1967">b</a>)
                 } <span class="kw">else </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1963">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#207">ErrorCode::ExpectedObjectCommaOrEnd</a>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1955">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#207">ErrorCode::ExpectedObjectCommaOrEnd</a>));
                 }
             }
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1963">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#192">ErrorCode::EofWhileParsingObject</a>));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a class="self" href="#1955">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#192">ErrorCode::EofWhileParsingObject</a>));
             }
         };
 
-        <span class="kw">match </span><a href="#1967">peek</a> {
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;&quot;&#39;</span>) =&gt; <a href="#1963">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#2122">MapKey</a> { de: <span class="kw-2">&amp;mut *</span><a class="self" href="#1963">self</a>.de }).map(<span class="prelude-val">Some</span>),
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;}&#39;</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1963">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#237">ErrorCode::TrailingComma</a>)),
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1963">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#231">ErrorCode::KeyMustBeAString</a>)),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1963">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>)),
+        <span class="kw">match </span><a href="#1959">peek</a> {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;&quot;&#39;</span>) =&gt; <a href="#1955">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a href="#2114">MapKey</a> { de: <span class="kw-2">&amp;mut *</span><a class="self" href="#1955">self</a>.de }).map(<span class="prelude-val">Some</span>),
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;}&#39;</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1955">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#237">ErrorCode::TrailingComma</a>)),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1955">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#231">ErrorCode::KeyMustBeAString</a>)),
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<a class="self" href="#1955">self</a>.de.<a href="#241">peek_error</a>(<a href="error.rs.html#198">ErrorCode::EofWhileParsingValue</a>)),
         }
     }
 
@@ -4613,7 +4594,7 @@
     {
         <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.de.parse_object_colon());
 
-        <a href="#1996">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#1996">self</a>.de)
+        <a href="#1988">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<span class="kw-2">&amp;mut *</span><a class="self" href="#1988">self</a>.de)
     }
 }
 
@@ -4623,7 +4604,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: <span class="lifetime">&#39;a</span>&gt; VariantAccess&lt;<span class="lifetime">&#39;a</span>, R&gt; {
     <span class="kw">fn </span>new(de: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Deserializer&lt;R&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#2006">VariantAccess</a> { <a href="#2011">de</a> }
+        <a href="#1998">VariantAccess</a> { <a href="#2003">de</a> }
     }
 }
 
@@ -4637,7 +4618,7 @@
     {
         <span class="kw">let </span>val = <a class="macro" href="lib.rs.html#388-395">tri!</a>(seed.deserialize(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.de));
         <a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.de.parse_object_colon());
-        <span class="prelude-val">Ok</span>((<a href="#2024">val</a>, <a class="self" href="#2020">self</a>))
+        <span class="prelude-val">Ok</span>((<a href="#2016">val</a>, <a class="self" href="#2012">self</a>))
     }
 }
 
@@ -4645,28 +4626,28 @@
     <span class="kw">type </span>Error = <a href="error.rs.html#15">Error</a>;
 
     <span class="kw">fn </span>unit_variant(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <a href="../../serde/de/trait.Deserialize.html">de::Deserialize::deserialize</a>(<a class="self" href="#2033">self</a>.de)
+        <a href="../../serde/de/trait.Deserialize.html">de::Deserialize::deserialize</a>(<a class="self" href="#2025">self</a>.de)
     }
 
     <span class="kw">fn </span>newtype_variant_seed&lt;T&gt;(<span class="self">self</span>, seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;T::Value&gt;
     <span class="kw">where
         </span>T: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="#2037">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a class="self" href="#2037">self</a>.de)
+        <a href="#2029">seed</a>.<a href="../../serde/de/trait.DeserializeSeed.html">deserialize</a>(<a class="self" href="#2029">self</a>.de)
     }
 
     <span class="kw">fn </span>tuple_variant&lt;V&gt;(<span class="self">self</span>, _len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="../../serde/de/trait.Deserializer.html">de::Deserializer::deserialize_seq</a>(<a class="self" href="#2044">self</a>.de, <a href="#2044">visitor</a>)
+        <a href="../../serde/de/trait.Deserializer.html">de::Deserializer::deserialize_seq</a>(<a class="self" href="#2036">self</a>.de, <a href="#2036">visitor</a>)
     }
 
     <span class="kw">fn </span>struct_variant&lt;V&gt;(<span class="self">self</span>, fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>], visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a href="../../serde/de/trait.Deserializer.html">de::Deserializer::deserialize_struct</a>(<a class="self" href="#2051">self</a>.de, <span class="string">&quot;&quot;</span>, <a href="#2051">fields</a>, <a href="#2051">visitor</a>)
+        <a href="../../serde/de/trait.Deserializer.html">de::Deserializer::deserialize_struct</a>(<a class="self" href="#2043">self</a>.de, <span class="string">&quot;&quot;</span>, <a href="#2043">fields</a>, <a href="#2043">visitor</a>)
     }
 }
 
@@ -4676,7 +4657,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: <span class="lifetime">&#39;a</span>&gt; UnitVariantAccess&lt;<span class="lifetime">&#39;a</span>, R&gt; {
     <span class="kw">fn </span>new(de: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Deserializer&lt;R&gt;) -&gt; <span class="self">Self </span>{
-        <a href="#2059">UnitVariantAccess</a> { <a href="#2064">de</a> }
+        <a href="#2051">UnitVariantAccess</a> { <a href="#2056">de</a> }
     }
 }
 
@@ -4689,7 +4670,7 @@
         </span>V: de::DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span>variant = <a class="macro" href="lib.rs.html#388-395">tri!</a>(seed.deserialize(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.de));
-        <span class="prelude-val">Ok</span>((<a href="#2077">variant</a>, <a class="self" href="#2073">self</a>))
+        <span class="prelude-val">Ok</span>((<a href="#2069">variant</a>, <a class="self" href="#2065">self</a>))
     }
 }
 
@@ -4766,27 +4747,24 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#2151">self</a>.de.<a href="#220">eat_char</a>();
-        <a class="self" href="#2151">self</a>.de.scratch.clear();
+        <a class="self" href="#2143">self</a>.de.<a href="#220">eat_char</a>();
+        <a class="self" href="#2143">self</a>.de.scratch.clear();
         <span class="kw">match </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(<span class="self">self</span>.de.read.parse_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>.de.scratch)) {
-            <a href="read.rs.html#126">Reference::Borrowed</a>(s) =&gt; <a href="#2151">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="#2158">s</a>),
-            <a href="read.rs.html#127">Reference::Copied</a>(s) =&gt; <a href="#2151">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_str</a>(<a href="#2159">s</a>),
+            <a href="read.rs.html#126">Reference::Borrowed</a>(s) =&gt; <a href="#2143">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_borrowed_str</a>(<a href="#2150">s</a>),
+            <a href="read.rs.html#127">Reference::Copied</a>(s) =&gt; <a href="#2143">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_str</a>(<a href="#2151">s</a>),
         }
     }
 
-    <a class="macro" href="#2126-2142">deserialize_integer_key!</a>(deserialize_i8 =&gt; visit_i8);
-    <a class="macro" href="#2126-2142">deserialize_integer_key!</a>(deserialize_i16 =&gt; visit_i16);
-    <a class="macro" href="#2126-2142">deserialize_integer_key!</a>(deserialize_i32 =&gt; visit_i32);
-    <a class="macro" href="#2126-2142">deserialize_integer_key!</a>(deserialize_i64 =&gt; visit_i64);
-    <a class="macro" href="#2126-2142">deserialize_integer_key!</a>(deserialize_u8 =&gt; visit_u8);
-    <a class="macro" href="#2126-2142">deserialize_integer_key!</a>(deserialize_u16 =&gt; visit_u16);
-    <a class="macro" href="#2126-2142">deserialize_integer_key!</a>(deserialize_u32 =&gt; visit_u32);
-    <a class="macro" href="#2126-2142">deserialize_integer_key!</a>(deserialize_u64 =&gt; visit_u64);
-
-    <span class="macro">serde_if_integer128! </span>{
-        <a class="macro" href="#2126-2142">deserialize_integer_key!</a>(deserialize_i128 =&gt; visit_i128);
-        <a class="macro" href="#2126-2142">deserialize_integer_key!</a>(deserialize_u128 =&gt; visit_u128);
-    }
+    <a class="macro" href="#2118-2134">deserialize_integer_key!</a>(deserialize_i8 =&gt; visit_i8);
+    <a class="macro" href="#2118-2134">deserialize_integer_key!</a>(deserialize_i16 =&gt; visit_i16);
+    <a class="macro" href="#2118-2134">deserialize_integer_key!</a>(deserialize_i32 =&gt; visit_i32);
+    <a class="macro" href="#2118-2134">deserialize_integer_key!</a>(deserialize_i64 =&gt; visit_i64);
+    <a class="macro" href="#2118-2134">deserialize_integer_key!</a>(deserialize_i128 =&gt; visit_i128);
+    <a class="macro" href="#2118-2134">deserialize_integer_key!</a>(deserialize_u8 =&gt; visit_u8);
+    <a class="macro" href="#2118-2134">deserialize_integer_key!</a>(deserialize_u16 =&gt; visit_u16);
+    <a class="macro" href="#2118-2134">deserialize_integer_key!</a>(deserialize_u32 =&gt; visit_u32);
+    <a class="macro" href="#2118-2134">deserialize_integer_key!</a>(deserialize_u64 =&gt; visit_u64);
+    <a class="macro" href="#2118-2134">deserialize_integer_key!</a>(deserialize_u128 =&gt; visit_u128);
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
@@ -4794,7 +4772,7 @@
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="comment">// Map keys cannot be null.
-        </span><a href="#2178">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_some</a>(<a class="self" href="#2178">self</a>)
+        </span><a href="#2167">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_some</a>(<a class="self" href="#2167">self</a>)
     }
 
     <span class="attribute">#[inline]
@@ -4809,8 +4787,8 @@
             }
         }
 
-        <span class="kw">let _ </span>= <a href="#2187">name</a>;
-        <a href="#2187">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_newtype_struct</a>(<a class="self" href="#2187">self</a>)
+        <span class="kw">let _ </span>= <a href="#2176">name</a>;
+        <a href="#2176">visitor</a>.<a href="../../serde/de/trait.Visitor.html">visit_newtype_struct</a>(<a class="self" href="#2176">self</a>)
     }
 
     <span class="attribute">#[inline]
@@ -4823,7 +4801,7 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#2204">self</a>.de.<a href="../../serde/de/trait.Deserializer.html">deserialize_enum</a>(<a href="#2205">name</a>, <a href="#2206">variants</a>, <a href="#2207">visitor</a>)
+        <a class="self" href="#2193">self</a>.de.<a href="../../serde/de/trait.Deserializer.html">deserialize_enum</a>(<a href="#2194">name</a>, <a href="#2195">variants</a>, <a href="#2196">visitor</a>)
     }
 
     <span class="attribute">#[inline]
@@ -4831,7 +4809,7 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#2216">self</a>.de.<a href="../../serde/de/trait.Deserializer.html">deserialize_bytes</a>(<a href="#2216">visitor</a>)
+        <a class="self" href="#2205">self</a>.de.<a href="../../serde/de/trait.Deserializer.html">deserialize_bytes</a>(<a href="#2205">visitor</a>)
     }
 
     <span class="attribute">#[inline]
@@ -4839,7 +4817,7 @@
     <span class="kw">where
         </span>V: de::Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <a class="self" href="#2224">self</a>.de.<a href="../../serde/de/trait.Deserializer.html">deserialize_bytes</a>(<a href="#2224">visitor</a>)
+        <a class="self" href="#2213">self</a>.de.<a href="../../serde/de/trait.Deserializer.html">deserialize_bytes</a>(<a href="#2213">visitor</a>)
     }
 
     <a class="macro" href="../../serde/macro.forward_to_deserialize_any.html">forward_to_deserialize_any! </a>{
@@ -4893,10 +4871,10 @@
     ///   - Deserializer::from_slice(...).into_iter()
     ///   - Deserializer::from_reader(...).into_iter()
     </span><span class="kw">pub fn </span>new(read: R) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>offset = <a href="#2281">read</a>.<a href="read.rs.html#59">byte_offset</a>();
-        <a href="#2260">StreamDeserializer</a> {
-            de: Deserializer::new(<a href="#2281">read</a>),
-            <a href="#2282">offset</a>,
+        <span class="kw">let </span>offset = <a href="#2270">read</a>.<a href="read.rs.html#59">byte_offset</a>();
+        <a href="#2249">StreamDeserializer</a> {
+            de: Deserializer::new(<a href="#2270">read</a>),
+            <a href="#2271">offset</a>,
             failed: <span class="bool-val">false</span>,
             output: PhantomData,
             lifetime: PhantomData,
@@ -4935,7 +4913,7 @@
     ///
     /// [serde-rs/json#70]: https://github.com/serde-rs/json/issues/70
     </span><span class="kw">pub fn </span>byte_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#2323">self</a>.offset
+        <a class="self" href="#2312">self</a>.offset
     }
 
     <span class="kw">fn </span>peek_end_of_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
@@ -4943,11 +4921,11 @@
             <span class="prelude-val">Some</span>(<span class="string">b&#39; &#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;\n&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;\t&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;\r&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;&quot;&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;[&#39;</span>)
             | <span class="prelude-val">Some</span>(<span class="string">b&#39;]&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;{&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;}&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;,&#39;</span>) | <span class="prelude-val">Some</span>(<span class="string">b&#39;:&#39;</span>) | <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(()),
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>position = <a class="self" href="#2327">self</a>.de.read.<a href="read.rs.html#54">peek_position</a>();
+                <span class="kw">let </span>position = <a class="self" href="#2316">self</a>.de.read.<a href="read.rs.html#54">peek_position</a>();
                 <span class="prelude-val">Err</span>(Error::syntax(
                     <a href="error.rs.html#240">ErrorCode::TrailingCharacters</a>,
-                    <a href="#2332">position</a>.line,
-                    <a href="#2332">position</a>.column,
+                    <a href="#2321">position</a>.line,
+                    <a href="#2321">position</a>.column,
                 ))
             }
         }
@@ -4969,40 +4947,40 @@
         <span class="comment">// skip whitespaces, if any
         // this helps with trailing whitespaces, since whitespaces between
         // values are handled for us.
-        </span><span class="kw">match </span><a class="self" href="#2350">self</a>.de.<a href="#248">parse_whitespace</a>() {
+        </span><span class="kw">match </span><a class="self" href="#2339">self</a>.de.<a href="#248">parse_whitespace</a>() {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
-                <a class="self" href="#2350">self</a>.offset = <a class="self" href="#2350">self</a>.de.read.<a href="read.rs.html#59">byte_offset</a>();
+                <a class="self" href="#2339">self</a>.offset = <a class="self" href="#2339">self</a>.de.read.<a href="read.rs.html#59">byte_offset</a>();
                 <span class="prelude-val">None
             </span>}
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(b)) =&gt; {
                 <span class="comment">// If the value does not have a clear way to show the end of the value
                 // (like numbers, null, true etc.) we have to look for whitespace or
                 // the beginning of a self-delineated value.
-                </span><span class="kw">let </span>self_delineated_value = <span class="kw">match </span><a href="#2363">b</a> {
+                </span><span class="kw">let </span>self_delineated_value = <span class="kw">match </span><a href="#2352">b</a> {
                     <span class="string">b&#39;[&#39; </span>| <span class="string">b&#39;&quot;&#39; </span>| <span class="string">b&#39;{&#39; </span>=&gt; <span class="bool-val">true</span>,
                     <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
                 };
-                <a class="self" href="#2350">self</a>.offset = <a class="self" href="#2350">self</a>.de.read.<a href="read.rs.html#59">byte_offset</a>();
-                <span class="kw">let </span>result = <a href="../../serde/de/trait.Deserialize.html">de::Deserialize::deserialize</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#2350">self</a>.de);
+                <a class="self" href="#2339">self</a>.offset = <a class="self" href="#2339">self</a>.de.read.<a href="read.rs.html#59">byte_offset</a>();
+                <span class="kw">let </span>result = <a href="../../serde/de/trait.Deserialize.html">de::Deserialize::deserialize</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#2339">self</a>.de);
 
-                <span class="prelude-val">Some</span>(<span class="kw">match </span><a href="#2372">result</a> {
+                <span class="prelude-val">Some</span>(<span class="kw">match </span><a href="#2361">result</a> {
                     <span class="prelude-val">Ok</span>(value) =&gt; {
-                        <a class="self" href="#2350">self</a>.offset = <a class="self" href="#2350">self</a>.de.read.<a href="read.rs.html#59">byte_offset</a>();
+                        <a class="self" href="#2339">self</a>.offset = <a class="self" href="#2339">self</a>.de.read.<a href="read.rs.html#59">byte_offset</a>();
                         <span class="kw">if </span>self_delineated_value {
-                            <span class="prelude-val">Ok</span>(<a href="#2375">value</a>)
+                            <span class="prelude-val">Ok</span>(<a href="#2364">value</a>)
                         } <span class="kw">else </span>{
-                            <a class="self" href="#2350">self</a>.<a href="#2327">peek_end_of_value</a>().map(|<span class="kw">_</span>| <a href="#2375">value</a>)
+                            <a class="self" href="#2339">self</a>.<a href="#2316">peek_end_of_value</a>().map(|<span class="kw">_</span>| <a href="#2364">value</a>)
                         }
                     }
                     <span class="prelude-val">Err</span>(e) =&gt; {
-                        <a class="self" href="#2350">self</a>.de.read.<a href="read.rs.html#114">set_failed</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#2350">self</a>.failed);
-                        <span class="prelude-val">Err</span>(<a href="#2383">e</a>)
+                        <a class="self" href="#2339">self</a>.de.read.<a href="read.rs.html#114">set_failed</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#2339">self</a>.failed);
+                        <span class="prelude-val">Err</span>(<a href="#2372">e</a>)
                     }
                 })
             }
             <span class="prelude-val">Err</span>(e) =&gt; {
-                <a class="self" href="#2350">self</a>.de.read.<a href="read.rs.html#114">set_failed</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#2350">self</a>.failed);
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="#2389">e</a>))
+                <a class="self" href="#2339">self</a>.de.read.<a href="read.rs.html#114">set_failed</a>(<span class="kw-2">&amp;mut </span><a class="self" href="#2339">self</a>.failed);
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a href="#2378">e</a>))
             }
         }
     }
@@ -5022,12 +5000,12 @@
     </span>R: Read&lt;<span class="lifetime">&#39;de</span>&gt;,
     T: de::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt;,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>de = Deserializer::new(<a href="#2406">read</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>de = Deserializer::new(<a href="#2395">read</a>);
     <span class="kw">let </span>value = <a class="macro" href="lib.rs.html#388-395">tri!</a>(de::Deserialize::deserialize(<span class="kw-2">&amp;mut </span>de));
 
     <span class="comment">// Make sure the whole stream has been consumed.
     </span><a class="macro" href="lib.rs.html#388-395">tri!</a>(de.end());
-    <span class="prelude-val">Ok</span>(<a href="#2412">value</a>)
+    <span class="prelude-val">Ok</span>(<a href="#2401">value</a>)
 }
 
 <span class="doccomment">/// Deserialize an instance of type `T` from an IO stream of JSON.
@@ -5140,7 +5118,7 @@
     </span>R: <a href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html"><span class="kw">crate</span>::io::Read</a>,
     T: <a href="../../serde/de/trait.DeserializeOwned.html">de::DeserializeOwned</a>,
 {
-    <a href="#2406-2409">from_trait</a>(read::IoRead::new(<a href="#2524">rdr</a>))
+    <a href="#2395-2398">from_trait</a>(read::IoRead::new(<a href="#2513">rdr</a>))
 }
 
 <span class="doccomment">/// Deserialize an instance of type `T` from bytes of JSON text.
@@ -5182,7 +5160,7 @@
 <span class="kw">where
     </span>T: de::Deserialize&lt;<span class="lifetime">&#39;a</span>&gt;,
 {
-    <a href="#2406-2409">from_trait</a>(read::SliceRead::new(<a href="#2567">v</a>))
+    <a href="#2395-2398">from_trait</a>(read::SliceRead::new(<a href="#2556">v</a>))
 }
 
 <span class="doccomment">/// Deserialize an instance of type `T` from a string of JSON text.
@@ -5224,7 +5202,7 @@
 <span class="kw">where
     </span>T: de::Deserialize&lt;<span class="lifetime">&#39;a</span>&gt;,
 {
-    <a href="#2406-2409">from_trait</a>(read::StrRead::new(<a href="#2609">s</a>))
+    <a href="#2395-2398">from_trait</a>(read::StrRead::new(<a href="#2598">s</a>))
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="serde_json" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="serde_json" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (95a3a7277 2022-10-31)" ></div></body></html>

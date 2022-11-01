@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/stream/stream/buffer_unordered.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer_unordered.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/stream/stream/buffer_unordered.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer_unordered.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -118,11 +118,7 @@
 <span id="118">118</span>
 <span id="119">119</span>
 <span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::stream::{<a href="fuse.rs.html#9-18">Fuse</a>, <a href="../futures_unordered/mod.rs.html#54">FuturesUnordered</a>, <a href="mod.rs.html#249">StreamExt</a>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::stream::{<a href="fuse.rs.html#9-18">Fuse</a>, <a href="../futures_unordered/mod.rs.html#55">FuturesUnordered</a>, <a href="mod.rs.html#249">StreamExt</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">futures_core::future::Future</a>;
@@ -165,11 +161,7 @@
     </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
     St::Item: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: St, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>St: <a href="../../../../futures_util/stream/trait.Stream.html">Stream</a>,
-        St::Item: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
-    {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(stream: St, n: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             stream: <span class="kw">super</span>::Fuse::new(<a href="#44">stream</a>),
             in_progress_queue: FuturesUnordered::new(),
@@ -188,7 +180,7 @@
     <span class="kw">type </span>Item = &lt;St::Item <span class="kw">as </span>Future&gt;::Output;
 
     <span class="kw">fn </span>poll_next(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#66">self</a>.<a href="#11-24">project</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>this = <a class="self" href="#62">self</a>.<a href="#11-24">project</a>();
 
         <span class="comment">// First up, try to spawn off as many futures as possible by filling up
         // our queue of futures.
@@ -200,8 +192,8 @@
         }
 
         <span class="comment">// Attempt to pull the next value from the in_progress_queue
-        </span><span class="kw">match </span><a href="#67">this</a>.in_progress_queue.<a href="mod.rs.html#1622-1624">poll_next_unpin</a>(<a href="#66">cx</a>) {
-            x @ Poll::Pending | x @ Poll::Ready(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; <span class="kw">return </span><a href="#80">x</a>,
+        </span><span class="kw">match </span><a href="#63">this</a>.in_progress_queue.<a href="mod.rs.html#1622-1624">poll_next_unpin</a>(<a href="#62">cx</a>) {
+            x @ Poll::Pending | x @ Poll::Ready(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; <span class="kw">return </span><a href="#76">x</a>,
             Poll::Ready(<span class="prelude-val">None</span>) =&gt; {}
         }
 
@@ -214,14 +206,14 @@
     }
 
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        <span class="kw">let </span>queue_len = <a class="self" href="#92">self</a>.in_progress_queue.<a href="../futures_unordered/mod.rs.html#144">len</a>();
-        <span class="kw">let </span>(lower, upper) = <a class="self" href="#92">self</a>.stream.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
-        <span class="kw">let </span>lower = <a href="#94">lower</a>.saturating_add(<a href="#93">queue_len</a>);
-        <span class="kw">let </span>upper = <span class="kw">match </span><a href="#94">upper</a> {
-            <span class="prelude-val">Some</span>(x) =&gt; <a href="#97">x</a>.checked_add(<a href="#93">queue_len</a>),
+        <span class="kw">let </span>queue_len = <a class="self" href="#88">self</a>.in_progress_queue.<a href="../futures_unordered/mod.rs.html#145">len</a>();
+        <span class="kw">let </span>(lower, upper) = <a class="self" href="#88">self</a>.stream.<a href="../../../../futures_util/stream/trait.Stream.html">size_hint</a>();
+        <span class="kw">let </span>lower = <a href="#90">lower</a>.saturating_add(<a href="#89">queue_len</a>);
+        <span class="kw">let </span>upper = <span class="kw">match </span><a href="#90">upper</a> {
+            <span class="prelude-val">Some</span>(x) =&gt; <a href="#93">x</a>.checked_add(<a href="#89">queue_len</a>),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         };
-        (<a href="#95">lower</a>, <a href="#96">upper</a>)
+        (<a href="#91">lower</a>, <a href="#92">upper</a>)
     }
 }
 
@@ -231,7 +223,7 @@
     St::Item: <a href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
 {
     <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#109">self</a>.in_progress_queue.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>() &amp;&amp; <a class="self" href="#109">self</a>.stream.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
+        <a class="self" href="#105">self</a>.in_progress_queue.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>() &amp;&amp; <a class="self" href="#105">self</a>.stream.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>()
     }
 }
 
@@ -247,4 +239,4 @@
     <a class="macro" href="../../lib.rs.html#56-83">delegate_sink!</a>(stream, Item);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (95a3a7277 2022-10-31)" ></div></body></html>

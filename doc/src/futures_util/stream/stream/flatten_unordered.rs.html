@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.24/src/stream/stream/flatten_unordered.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>flatten_unordered.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.25/src/stream/stream/flatten_unordered.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>flatten_unordered.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../futures_util/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -529,7 +529,7 @@
 </span><span class="kw">use </span><a href="../../../../futures_util/sink/trait.Sink.html">futures_sink::Sink</a>;
 <span class="kw">use </span>futures_task::{<a href="../../../../futures_util/task/fn.waker.html">waker</a>, <a href="../../../../futures_util/task/trait.ArcWake.html">ArcWake</a>};
 
-<span class="kw">use </span><a href="../futures_unordered/mod.rs.html#54"><span class="kw">crate</span>::stream::FuturesUnordered</a>;
+<span class="kw">use </span><a href="../futures_unordered/mod.rs.html#55"><span class="kw">crate</span>::stream::FuturesUnordered</a>;
 
 <span class="doccomment">/// There is nothing to poll and stream isn&#39;t being
 /// polled or waking at the moment.
@@ -880,7 +880,7 @@
 {
     <span class="doccomment">/// Checks if current `inner_streams` size is less than optional limit.
     </span><span class="kw">fn </span>is_exceeded_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#373">self</a>.limit.map_or(<span class="bool-val">false</span>, |limit| <a class="self" href="#373">self</a>.inner_streams.<a href="../futures_unordered/mod.rs.html#144">len</a>() &gt;= <a href="#374">limit</a>.get())
+        <a class="self" href="#373">self</a>.limit.map_or(<span class="bool-val">false</span>, |limit| <a class="self" href="#373">self</a>.inner_streams.<a href="../futures_unordered/mod.rs.html#145">len</a>() &gt;= <a href="#374">limit</a>.get())
     }
 }
 
@@ -890,7 +890,7 @@
     St::Item: <a href="../../../../futures_util/stream/trait.FusedStream.html">FusedStream</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
     <span class="kw">fn </span>is_terminated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#383">self</a>.stream.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>() &amp;&amp; <a class="self" href="#383">self</a>.inner_streams.<a href="../futures_unordered/mod.rs.html#150">is_empty</a>()
+        <a class="self" href="#383">self</a>.stream.<a href="../../../../futures_util/stream/trait.FusedStream.html">is_terminated</a>() &amp;&amp; <a class="self" href="#383">self</a>.inner_streams.<a href="../futures_unordered/mod.rs.html#151">is_empty</a>()
     }
 }
 
@@ -936,7 +936,7 @@
                     <span class="kw">match </span><a href="#399">this</a>.stream.as_mut().<a href="../../../../futures_util/stream/trait.Stream.html">poll_next</a>(<span class="kw-2">&amp;mut </span>Context::from_waker(<span class="kw-2">&amp;</span><a href="#411">stream_waker</a>)) {
                         Poll::Ready(<span class="prelude-val">Some</span>(inner_stream)) =&gt; {
                             <span class="comment">// Add new stream to the inner streams bucket
-                            </span><a href="#399">this</a>.inner_streams.as_mut().<a href="../futures_unordered/mod.rs.html#162">push</a>(PollStreamFut::new(<a href="#428">inner_stream</a>));
+                            </span><a href="#399">this</a>.inner_streams.as_mut().<a href="../futures_unordered/mod.rs.html#163">push</a>(PollStreamFut::new(<a href="#428">inner_stream</a>));
                             <span class="comment">// Inner streams must be polled afterward
                             </span><a href="#401">poll_state_value</a> |= <a href="#30">NEED_TO_POLL_INNER_STREAMS</a>;
                         }
@@ -964,7 +964,7 @@
             {
                 Poll::Ready(<span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>((item, next_item_fut)))) =&gt; {
                     <span class="comment">// Push next inner stream item future to the list of inner streams futures
-                    </span><a href="#399">this</a>.inner_streams.as_mut().<a href="../futures_unordered/mod.rs.html#162">push</a>(<a href="#456">next_item_fut</a>);
+                    </span><a href="#399">this</a>.inner_streams.as_mut().<a href="../futures_unordered/mod.rs.html#163">push</a>(<a href="#456">next_item_fut</a>);
                     <span class="comment">// Take the received item
                     </span><a href="#396">next_item</a> = <span class="prelude-val">Some</span>(<a href="#456">item</a>);
                     <span class="comment">// On the next iteration, inner streams must be polled again
@@ -992,7 +992,7 @@
         <span class="comment">// If state was changed during `POLLING` phase, need to manually call a waker
         </span><a href="#475">force_wake</a> |= <a href="#401">poll_state_value</a> &amp; <a href="#36">NEED_TO_POLL_ALL</a> != <a href="#27">NONE</a>;
 
-        <span class="kw">let </span>is_done = <span class="kw-2">*</span><a href="#399">this</a>.is_stream_done &amp;&amp; <a href="#399">this</a>.inner_streams.<a href="../futures_unordered/mod.rs.html#150">is_empty</a>();
+        <span class="kw">let </span>is_done = <span class="kw-2">*</span><a href="#399">this</a>.is_stream_done &amp;&amp; <a href="#399">this</a>.inner_streams.<a href="../futures_unordered/mod.rs.html#151">is_empty</a>();
 
         <span class="kw">if </span>next_item.is_some() || is_done {
             Poll::Ready(<a href="#396">next_item</a>)
@@ -1017,4 +1017,4 @@
     <a class="macro" href="../../lib.rs.html#56-83">delegate_sink!</a>(stream, Item);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (95a3a7277 2022-10-31)" ></div></body></html>

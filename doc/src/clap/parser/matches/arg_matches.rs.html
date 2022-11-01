@@ -1,6 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.22/src/parser/matches/arg_matches.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arg_matches.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><a class="sidebar-logo" href="../../../../clap/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../clap/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.18/src/parser/matches/arg_matches.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arg_matches.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../clap/index.html">
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1568,439 +1567,24 @@
 <span id="1566">1566</span>
 <span id="1567">1567</span>
 <span id="1568">1568</span>
-<span id="1569">1569</span>
-<span id="1570">1570</span>
-<span id="1571">1571</span>
-<span id="1572">1572</span>
-<span id="1573">1573</span>
-<span id="1574">1574</span>
-<span id="1575">1575</span>
-<span id="1576">1576</span>
-<span id="1577">1577</span>
-<span id="1578">1578</span>
-<span id="1579">1579</span>
-<span id="1580">1580</span>
-<span id="1581">1581</span>
-<span id="1582">1582</span>
-<span id="1583">1583</span>
-<span id="1584">1584</span>
-<span id="1585">1585</span>
-<span id="1586">1586</span>
-<span id="1587">1587</span>
-<span id="1588">1588</span>
-<span id="1589">1589</span>
-<span id="1590">1590</span>
-<span id="1591">1591</span>
-<span id="1592">1592</span>
-<span id="1593">1593</span>
-<span id="1594">1594</span>
-<span id="1595">1595</span>
-<span id="1596">1596</span>
-<span id="1597">1597</span>
-<span id="1598">1598</span>
-<span id="1599">1599</span>
-<span id="1600">1600</span>
-<span id="1601">1601</span>
-<span id="1602">1602</span>
-<span id="1603">1603</span>
-<span id="1604">1604</span>
-<span id="1605">1605</span>
-<span id="1606">1606</span>
-<span id="1607">1607</span>
-<span id="1608">1608</span>
-<span id="1609">1609</span>
-<span id="1610">1610</span>
-<span id="1611">1611</span>
-<span id="1612">1612</span>
-<span id="1613">1613</span>
-<span id="1614">1614</span>
-<span id="1615">1615</span>
-<span id="1616">1616</span>
-<span id="1617">1617</span>
-<span id="1618">1618</span>
-<span id="1619">1619</span>
-<span id="1620">1620</span>
-<span id="1621">1621</span>
-<span id="1622">1622</span>
-<span id="1623">1623</span>
-<span id="1624">1624</span>
-<span id="1625">1625</span>
-<span id="1626">1626</span>
-<span id="1627">1627</span>
-<span id="1628">1628</span>
-<span id="1629">1629</span>
-<span id="1630">1630</span>
-<span id="1631">1631</span>
-<span id="1632">1632</span>
-<span id="1633">1633</span>
-<span id="1634">1634</span>
-<span id="1635">1635</span>
-<span id="1636">1636</span>
-<span id="1637">1637</span>
-<span id="1638">1638</span>
-<span id="1639">1639</span>
-<span id="1640">1640</span>
-<span id="1641">1641</span>
-<span id="1642">1642</span>
-<span id="1643">1643</span>
-<span id="1644">1644</span>
-<span id="1645">1645</span>
-<span id="1646">1646</span>
-<span id="1647">1647</span>
-<span id="1648">1648</span>
-<span id="1649">1649</span>
-<span id="1650">1650</span>
-<span id="1651">1651</span>
-<span id="1652">1652</span>
-<span id="1653">1653</span>
-<span id="1654">1654</span>
-<span id="1655">1655</span>
-<span id="1656">1656</span>
-<span id="1657">1657</span>
-<span id="1658">1658</span>
-<span id="1659">1659</span>
-<span id="1660">1660</span>
-<span id="1661">1661</span>
-<span id="1662">1662</span>
-<span id="1663">1663</span>
-<span id="1664">1664</span>
-<span id="1665">1665</span>
-<span id="1666">1666</span>
-<span id="1667">1667</span>
-<span id="1668">1668</span>
-<span id="1669">1669</span>
-<span id="1670">1670</span>
-<span id="1671">1671</span>
-<span id="1672">1672</span>
-<span id="1673">1673</span>
-<span id="1674">1674</span>
-<span id="1675">1675</span>
-<span id="1676">1676</span>
-<span id="1677">1677</span>
-<span id="1678">1678</span>
-<span id="1679">1679</span>
-<span id="1680">1680</span>
-<span id="1681">1681</span>
-<span id="1682">1682</span>
-<span id="1683">1683</span>
-<span id="1684">1684</span>
-<span id="1685">1685</span>
-<span id="1686">1686</span>
-<span id="1687">1687</span>
-<span id="1688">1688</span>
-<span id="1689">1689</span>
-<span id="1690">1690</span>
-<span id="1691">1691</span>
-<span id="1692">1692</span>
-<span id="1693">1693</span>
-<span id="1694">1694</span>
-<span id="1695">1695</span>
-<span id="1696">1696</span>
-<span id="1697">1697</span>
-<span id="1698">1698</span>
-<span id="1699">1699</span>
-<span id="1700">1700</span>
-<span id="1701">1701</span>
-<span id="1702">1702</span>
-<span id="1703">1703</span>
-<span id="1704">1704</span>
-<span id="1705">1705</span>
-<span id="1706">1706</span>
-<span id="1707">1707</span>
-<span id="1708">1708</span>
-<span id="1709">1709</span>
-<span id="1710">1710</span>
-<span id="1711">1711</span>
-<span id="1712">1712</span>
-<span id="1713">1713</span>
-<span id="1714">1714</span>
-<span id="1715">1715</span>
-<span id="1716">1716</span>
-<span id="1717">1717</span>
-<span id="1718">1718</span>
-<span id="1719">1719</span>
-<span id="1720">1720</span>
-<span id="1721">1721</span>
-<span id="1722">1722</span>
-<span id="1723">1723</span>
-<span id="1724">1724</span>
-<span id="1725">1725</span>
-<span id="1726">1726</span>
-<span id="1727">1727</span>
-<span id="1728">1728</span>
-<span id="1729">1729</span>
-<span id="1730">1730</span>
-<span id="1731">1731</span>
-<span id="1732">1732</span>
-<span id="1733">1733</span>
-<span id="1734">1734</span>
-<span id="1735">1735</span>
-<span id="1736">1736</span>
-<span id="1737">1737</span>
-<span id="1738">1738</span>
-<span id="1739">1739</span>
-<span id="1740">1740</span>
-<span id="1741">1741</span>
-<span id="1742">1742</span>
-<span id="1743">1743</span>
-<span id="1744">1744</span>
-<span id="1745">1745</span>
-<span id="1746">1746</span>
-<span id="1747">1747</span>
-<span id="1748">1748</span>
-<span id="1749">1749</span>
-<span id="1750">1750</span>
-<span id="1751">1751</span>
-<span id="1752">1752</span>
-<span id="1753">1753</span>
-<span id="1754">1754</span>
-<span id="1755">1755</span>
-<span id="1756">1756</span>
-<span id="1757">1757</span>
-<span id="1758">1758</span>
-<span id="1759">1759</span>
-<span id="1760">1760</span>
-<span id="1761">1761</span>
-<span id="1762">1762</span>
-<span id="1763">1763</span>
-<span id="1764">1764</span>
-<span id="1765">1765</span>
-<span id="1766">1766</span>
-<span id="1767">1767</span>
-<span id="1768">1768</span>
-<span id="1769">1769</span>
-<span id="1770">1770</span>
-<span id="1771">1771</span>
-<span id="1772">1772</span>
-<span id="1773">1773</span>
-<span id="1774">1774</span>
-<span id="1775">1775</span>
-<span id="1776">1776</span>
-<span id="1777">1777</span>
-<span id="1778">1778</span>
-<span id="1779">1779</span>
-<span id="1780">1780</span>
-<span id="1781">1781</span>
-<span id="1782">1782</span>
-<span id="1783">1783</span>
-<span id="1784">1784</span>
-<span id="1785">1785</span>
-<span id="1786">1786</span>
-<span id="1787">1787</span>
-<span id="1788">1788</span>
-<span id="1789">1789</span>
-<span id="1790">1790</span>
-<span id="1791">1791</span>
-<span id="1792">1792</span>
-<span id="1793">1793</span>
-<span id="1794">1794</span>
-<span id="1795">1795</span>
-<span id="1796">1796</span>
-<span id="1797">1797</span>
-<span id="1798">1798</span>
-<span id="1799">1799</span>
-<span id="1800">1800</span>
-<span id="1801">1801</span>
-<span id="1802">1802</span>
-<span id="1803">1803</span>
-<span id="1804">1804</span>
-<span id="1805">1805</span>
-<span id="1806">1806</span>
-<span id="1807">1807</span>
-<span id="1808">1808</span>
-<span id="1809">1809</span>
-<span id="1810">1810</span>
-<span id="1811">1811</span>
-<span id="1812">1812</span>
-<span id="1813">1813</span>
-<span id="1814">1814</span>
-<span id="1815">1815</span>
-<span id="1816">1816</span>
-<span id="1817">1817</span>
-<span id="1818">1818</span>
-<span id="1819">1819</span>
-<span id="1820">1820</span>
-<span id="1821">1821</span>
-<span id="1822">1822</span>
-<span id="1823">1823</span>
-<span id="1824">1824</span>
-<span id="1825">1825</span>
-<span id="1826">1826</span>
-<span id="1827">1827</span>
-<span id="1828">1828</span>
-<span id="1829">1829</span>
-<span id="1830">1830</span>
-<span id="1831">1831</span>
-<span id="1832">1832</span>
-<span id="1833">1833</span>
-<span id="1834">1834</span>
-<span id="1835">1835</span>
-<span id="1836">1836</span>
-<span id="1837">1837</span>
-<span id="1838">1838</span>
-<span id="1839">1839</span>
-<span id="1840">1840</span>
-<span id="1841">1841</span>
-<span id="1842">1842</span>
-<span id="1843">1843</span>
-<span id="1844">1844</span>
-<span id="1845">1845</span>
-<span id="1846">1846</span>
-<span id="1847">1847</span>
-<span id="1848">1848</span>
-<span id="1849">1849</span>
-<span id="1850">1850</span>
-<span id="1851">1851</span>
-<span id="1852">1852</span>
-<span id="1853">1853</span>
-<span id="1854">1854</span>
-<span id="1855">1855</span>
-<span id="1856">1856</span>
-<span id="1857">1857</span>
-<span id="1858">1858</span>
-<span id="1859">1859</span>
-<span id="1860">1860</span>
-<span id="1861">1861</span>
-<span id="1862">1862</span>
-<span id="1863">1863</span>
-<span id="1864">1864</span>
-<span id="1865">1865</span>
-<span id="1866">1866</span>
-<span id="1867">1867</span>
-<span id="1868">1868</span>
-<span id="1869">1869</span>
-<span id="1870">1870</span>
-<span id="1871">1871</span>
-<span id="1872">1872</span>
-<span id="1873">1873</span>
-<span id="1874">1874</span>
-<span id="1875">1875</span>
-<span id="1876">1876</span>
-<span id="1877">1877</span>
-<span id="1878">1878</span>
-<span id="1879">1879</span>
-<span id="1880">1880</span>
-<span id="1881">1881</span>
-<span id="1882">1882</span>
-<span id="1883">1883</span>
-<span id="1884">1884</span>
-<span id="1885">1885</span>
-<span id="1886">1886</span>
-<span id="1887">1887</span>
-<span id="1888">1888</span>
-<span id="1889">1889</span>
-<span id="1890">1890</span>
-<span id="1891">1891</span>
-<span id="1892">1892</span>
-<span id="1893">1893</span>
-<span id="1894">1894</span>
-<span id="1895">1895</span>
-<span id="1896">1896</span>
-<span id="1897">1897</span>
-<span id="1898">1898</span>
-<span id="1899">1899</span>
-<span id="1900">1900</span>
-<span id="1901">1901</span>
-<span id="1902">1902</span>
-<span id="1903">1903</span>
-<span id="1904">1904</span>
-<span id="1905">1905</span>
-<span id="1906">1906</span>
-<span id="1907">1907</span>
-<span id="1908">1908</span>
-<span id="1909">1909</span>
-<span id="1910">1910</span>
-<span id="1911">1911</span>
-<span id="1912">1912</span>
-<span id="1913">1913</span>
-<span id="1914">1914</span>
-<span id="1915">1915</span>
-<span id="1916">1916</span>
-<span id="1917">1917</span>
-<span id="1918">1918</span>
-<span id="1919">1919</span>
-<span id="1920">1920</span>
-<span id="1921">1921</span>
-<span id="1922">1922</span>
-<span id="1923">1923</span>
-<span id="1924">1924</span>
-<span id="1925">1925</span>
-<span id="1926">1926</span>
-<span id="1927">1927</span>
-<span id="1928">1928</span>
-<span id="1929">1929</span>
-<span id="1930">1930</span>
-<span id="1931">1931</span>
-<span id="1932">1932</span>
-<span id="1933">1933</span>
-<span id="1934">1934</span>
-<span id="1935">1935</span>
-<span id="1936">1936</span>
-<span id="1937">1937</span>
-<span id="1938">1938</span>
-<span id="1939">1939</span>
-<span id="1940">1940</span>
-<span id="1941">1941</span>
-<span id="1942">1942</span>
-<span id="1943">1943</span>
-<span id="1944">1944</span>
-<span id="1945">1945</span>
-<span id="1946">1946</span>
-<span id="1947">1947</span>
-<span id="1948">1948</span>
-<span id="1949">1949</span>
-<span id="1950">1950</span>
-<span id="1951">1951</span>
-<span id="1952">1952</span>
-<span id="1953">1953</span>
-<span id="1954">1954</span>
-<span id="1955">1955</span>
-<span id="1956">1956</span>
-<span id="1957">1957</span>
-<span id="1958">1958</span>
-<span id="1959">1959</span>
-<span id="1960">1960</span>
-<span id="1961">1961</span>
-<span id="1962">1962</span>
-<span id="1963">1963</span>
-<span id="1964">1964</span>
-<span id="1965">1965</span>
-<span id="1966">1966</span>
-<span id="1967">1967</span>
-<span id="1968">1968</span>
-<span id="1969">1969</span>
-<span id="1970">1970</span>
-<span id="1971">1971</span>
-<span id="1972">1972</span>
-<span id="1973">1973</span>
-<span id="1974">1974</span>
-<span id="1975">1975</span>
-<span id="1976">1976</span>
-<span id="1977">1977</span>
-<span id="1978">1978</span>
-<span id="1979">1979</span>
-<span id="1980">1980</span>
 </pre><pre class="rust"><code><span class="comment">// Std
 </span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">std::any::Any</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
 <span class="kw">use </span>std::ffi::{<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>, <a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>};
-<span class="kw">use </span>std::fmt::{<a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">Debug</a>, <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>};
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">std::fmt::Debug</a>;
 <span class="kw">use </span>std::iter::{<a href="https://doc.rust-lang.org/nightly/core/iter/adapters/cloned/struct.Cloned.html">Cloned</a>, <a href="https://doc.rust-lang.org/nightly/core/iter/adapters/flatten/struct.Flatten.html">Flatten</a>, <a href="https://doc.rust-lang.org/nightly/core/iter/adapters/map/struct.Map.html">Map</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/slice/iter/struct.Iter.html">std::slice::Iter</a>;
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">std::str::FromStr</a>;
-
-<span class="comment">// Third Party
-</span><span class="kw">use </span><a href="../../../../indexmap/map/struct.IndexMap.html">indexmap::IndexMap</a>;
 
 <span class="comment">// Internal
-</span><span class="kw">use </span><a href="any_value.rs.html#2"><span class="kw">crate</span>::parser::AnyValue</a>;
+</span><span class="attribute">#[cfg(debug_assertions)]
+</span><span class="kw">use </span><a href="../../builder/str.rs.html#6"><span class="kw">crate</span>::builder::Str</a>;
+<span class="kw">use </span><a href="any_value.rs.html#2"><span class="kw">crate</span>::parser::AnyValue</a>;
 <span class="kw">use </span><a href="any_value.rs.html#42"><span class="kw">crate</span>::parser::AnyValueId</a>;
 <span class="kw">use </span><a href="matched_arg.rs.html#16"><span class="kw">crate</span>::parser::MatchedArg</a>;
-<span class="kw">use </span><a href="../error.rs.html#7"><span class="kw">crate</span>::parser::MatchesError</a>;
+<span class="kw">use </span><a href="../error.rs.html#5"><span class="kw">crate</span>::parser::MatchesError</a>;
 <span class="kw">use </span><a href="value_source.rs.html#4"><span class="kw">crate</span>::parser::ValueSource</a>;
-<span class="kw">use </span><span class="kw">crate</span>::util::{<a href="../../util/id.rs.html#11">Id</a>, <a href="../../util/fnv.rs.html#9">Key</a>};
-<span class="kw">use </span><a href="../../error/mod.rs.html#40"><span class="kw">crate</span>::Error</a>;
-<span class="kw">use </span><a href="../../lib.rs.html#189"><span class="kw">crate</span>::INTERNAL_ERROR_MSG</a>;
+<span class="kw">use </span><a href="../../util/flat_map.rs.html#9"><span class="kw">crate</span>::util::FlatMap</a>;
+<span class="kw">use </span><a href="../../util/id.rs.html#9"><span class="kw">crate</span>::util::Id</a>;
+<span class="kw">use </span><a href="../../lib.rs.html#157"><span class="kw">crate</span>::INTERNAL_ERROR_MSG</a>;
 
 <span class="doccomment">/// Container for parse results.
 ///
@@ -2011,16 +1595,17 @@
 /// # Examples
 ///
 /// ```no_run
-/// # use clap::{Command, Arg, ValueSource};
+/// # use clap::{Command, Arg, ArgAction};
+/// # use clap::parser::ValueSource;
 /// let matches = Command::new(&quot;MyApp&quot;)
 ///     .arg(Arg::new(&quot;out&quot;)
 ///         .long(&quot;output&quot;)
 ///         .required(true)
-///         .takes_value(true)
+///         .action(ArgAction::Set)
 ///         .default_value(&quot;-&quot;))
 ///     .arg(Arg::new(&quot;cfg&quot;)
 ///         .short(&#39;c&#39;)
-///         .takes_value(true))
+///         .action(ArgAction::Set))
 ///     .get_matches(); // builds the instance of ArgMatches
 ///
 /// // to get information about the &quot;cfg&quot; argument we created, such as the value supplied we use
@@ -2049,20 +1634,18 @@
 </span><span class="attribute">#[derive(Debug, Clone, Default, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>ArgMatches {
     <span class="attribute">#[cfg(debug_assertions)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) valid_args: Vec&lt;<a href="../../util/id.rs.html#11">Id</a>&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) valid_args: Vec&lt;<a href="../../util/id.rs.html#9">Id</a>&gt;,
     <span class="attribute">#[cfg(debug_assertions)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) valid_subcommands: Vec&lt;<a href="../../util/id.rs.html#11">Id</a>&gt;,
-    <span class="attribute">#[cfg(debug_assertions)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) disable_asserts: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) args: IndexMap&lt;<a href="../../util/id.rs.html#11">Id</a>, <a href="matched_arg.rs.html#16">MatchedArg</a>&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) subcommand: <span class="prelude-ty">Option</span>&lt;Box&lt;<a href="#1462">SubCommand</a>&gt;&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) valid_subcommands: Vec&lt;<a href="../../builder/str.rs.html#6">Str</a>&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) args: FlatMap&lt;<a href="../../util/id.rs.html#9">Id</a>, <a href="matched_arg.rs.html#16">MatchedArg</a>&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) subcommand: <span class="prelude-ty">Option</span>&lt;Box&lt;<a href="#1152">SubCommand</a>&gt;&gt;,
 }
 
 <span class="doccomment">/// # Arguments
-</span><span class="kw">impl </span><a href="#68">ArgMatches</a> {
+</span><span class="kw">impl </span><a href="#66">ArgMatches</a> {
     <span class="doccomment">/// Gets the value of a specific option or positional argument.
     ///
-    /// i.e. an argument that [takes an additional value][crate::Arg::takes_value] at runtime.
+    /// i.e. an argument that [takes an additional value][crate::Arg::num_args] at runtime.
     ///
     /// Returns an error if the wrong type was used.
     ///
@@ -2079,11 +1662,11 @@
     /// # Examples
     ///
     /// ```rust
-    /// # use clap::{Command, Arg, value_parser};
+    /// # use clap::{Command, Arg, value_parser, ArgAction};
     /// let m = Command::new(&quot;myapp&quot;)
     ///     .arg(Arg::new(&quot;port&quot;)
     ///         .value_parser(value_parser!(usize))
-    ///         .takes_value(true)
+    ///         .action(ArgAction::Set)
     ///         .required(true))
     ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;2020&quot;]);
     ///
@@ -2092,13 +1675,11 @@
     ///     .expect(&quot;`port`is required&quot;);
     /// assert_eq!(port, 2020);
     /// ```
-    /// [option]: crate::Arg::takes_value()
     /// [positional]: crate::Arg::index()
     /// [`default_value`]: crate::Arg::default_value()
-    </span><span class="attribute">#[track_caller]
+    </span><span class="attribute">#[cfg_attr(debug_assertions, track_caller)]
     </span><span class="kw">pub fn </span>get_one&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <span class="kw">let </span>internal_id = Id::from(<a href="#117">id</a>);
-        MatchesError::unwrap(<span class="kw-2">&amp;</span><a href="#118">internal_id</a>, <a class="self" href="#117">self</a>.<a href="#1224-1227">try_get_one</a>(<a href="#117">id</a>))
+        MatchesError::unwrap(<a href="#112">id</a>, <a class="self" href="#112">self</a>.<a href="#940-943">try_get_one</a>(<a href="#112">id</a>))
     }
 
     <span class="doccomment">/// Gets the value of a specific [`ArgAction::Count`][crate::ArgAction::Count] flag
@@ -2125,10 +1706,10 @@
     ///     2
     /// );
     /// ```
-    </span><span class="attribute">#[track_caller]
+    </span><span class="attribute">#[cfg_attr(debug_assertions, track_caller)]
     </span><span class="kw">pub fn </span>get_count(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <span class="kw-2">*</span><span class="self"><a href="#147">self</a>
-            </span>.<a href="#117">get_one</a>::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;(<a href="#147">id</a>)
+        <span class="kw-2">*</span><span class="self"><a href="#141">self</a>
+            </span>.<a href="#112">get_one</a>::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt;(<a href="#141">id</a>)
             .expect(<span class="string">&quot;ArgAction::Count is defaulted&quot;</span>)
     }
 
@@ -2150,17 +1731,17 @@
     ///             .action(clap::ArgAction::SetTrue)
     ///     );
     ///
-    /// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;--flag&quot;]).unwrap();
+    /// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;]).unwrap();
     /// assert!(matches.contains_id(&quot;flag&quot;));
     /// assert_eq!(
     ///     matches.get_flag(&quot;flag&quot;),
     ///     true
     /// );
     /// ```
-    </span><span class="attribute">#[track_caller]
+    </span><span class="attribute">#[cfg_attr(debug_assertions, track_caller)]
     </span><span class="kw">pub fn </span>get_flag(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw-2">*</span><span class="self"><a href="#179">self</a>
-            </span>.<a href="#117">get_one</a>::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(<a href="#179">id</a>)
+        <span class="kw-2">*</span><span class="self"><a href="#173">self</a>
+            </span>.<a href="#112">get_one</a>::&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;(<a href="#173">id</a>)
             .expect(<span class="string">&quot;ArgAction::SetTrue / ArgAction::SetFalse is defaulted&quot;</span>)
     }
 
@@ -2186,7 +1767,6 @@
     ///         .action(ArgAction::Append)
     ///         .value_parser(value_parser!(usize))
     ///         .short(&#39;p&#39;)
-    ///         .takes_value(true)
     ///         .required(true))
     ///     .get_matches_from(vec![
     ///         &quot;myprog&quot;, &quot;-p&quot;, &quot;22&quot;, &quot;-p&quot;, &quot;80&quot;, &quot;-p&quot;, &quot;2020&quot;
@@ -2197,13 +1777,12 @@
     ///     .collect();
     /// assert_eq!(vals, [22, 80, 2020]);
     /// ```
-    </span><span class="attribute">#[track_caller]
+    </span><span class="attribute">#[cfg_attr(debug_assertions, track_caller)]
     </span><span class="kw">pub fn </span>get_many&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;ValuesRef&lt;T&gt;&gt; {
-        <span class="kw">let </span>internal_id = Id::from(<a href="#221">id</a>);
-        MatchesError::unwrap(<span class="kw-2">&amp;</span><a href="#223">internal_id</a>, <a class="self" href="#220">self</a>.<a href="#1243-1246">try_get_many</a>(<a href="#221">id</a>))
+        MatchesError::unwrap(<a href="#214">id</a>, <a class="self" href="#213">self</a>.<a href="#958-961">try_get_many</a>(<a href="#214">id</a>))
     }
 
     <span class="doccomment">/// Iterate over the original argument values.
@@ -2247,15 +1826,14 @@
     /// [`OsSt`]: std::ffi::OsStr
     /// [values]: OsValues
     /// [`String`]: std::string::String
-    </span><span class="attribute">#[track_caller]
+    </span><span class="attribute">#[cfg_attr(debug_assertions, track_caller)]
     </span><span class="kw">pub fn </span>get_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;RawValues&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
-        <span class="kw">let </span>internal_id = Id::from(<a href="#269">id</a>);
-        MatchesError::unwrap(<span class="kw-2">&amp;</span><a href="#270">internal_id</a>, <a class="self" href="#269">self</a>.<a href="#1263">try_get_raw</a>(<a href="#269">id</a>))
+        MatchesError::unwrap(<a href="#261">id</a>, <a class="self" href="#261">self</a>.<a href="#977">try_get_raw</a>(<a href="#261">id</a>))
     }
 
     <span class="doccomment">/// Returns the value of a specific option or positional argument.
     ///
-    /// i.e. an argument that [takes an additional value][crate::Arg::takes_value] at runtime.
+    /// i.e. an argument that [takes an additional value][crate::Arg::num_args] at runtime.
     ///
     /// Returns an error if the wrong type was used.  No item will have been removed.
     ///
@@ -2272,11 +1850,11 @@
     /// # Examples
     ///
     /// ```rust
-    /// # use clap::{Command, Arg, value_parser};
+    /// # use clap::{Command, Arg, value_parser, ArgAction};
     /// let mut m = Command::new(&quot;myprog&quot;)
     ///     .arg(Arg::new(&quot;file&quot;)
     ///         .required(true)
-    ///         .takes_value(true))
+    ///         .action(ArgAction::Set))
     ///     .get_matches_from(vec![
     ///         &quot;myprog&quot;, &quot;file.txt&quot;,
     ///     ]);
@@ -2284,13 +1862,11 @@
     ///     .expect(&quot;`file`is required&quot;);
     /// assert_eq!(vals, &quot;file.txt&quot;);
     /// ```
-    /// [option]: crate::Arg::takes_value()
     /// [positional]: crate::Arg::index()
     /// [`default_value`]: crate::Arg::default_value()
-    </span><span class="attribute">#[track_caller]
+    </span><span class="attribute">#[cfg_attr(debug_assertions, track_caller)]
     </span><span class="kw">pub fn </span>remove_one&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <span class="kw">let </span>internal_id = Id::from(<a href="#309">id</a>);
-        MatchesError::unwrap(<span class="kw-2">&amp;</span><a href="#310">internal_id</a>, <a class="self" href="#309">self</a>.<a href="#1279-1282">try_remove_one</a>(<a href="#309">id</a>))
+        MatchesError::unwrap(<a href="#299">id</a>, <a class="self" href="#299">self</a>.<a href="#992-995">try_remove_one</a>(<a href="#299">id</a>))
     }
 
     <span class="doccomment">/// Return values of a specific option or positional argument.
@@ -2313,9 +1889,8 @@
     /// let mut m = Command::new(&quot;myprog&quot;)
     ///     .arg(Arg::new(&quot;file&quot;)
     ///         .action(ArgAction::Append)
-    ///         .multiple_values(true)
-    ///         .required(true)
-    ///         .takes_value(true))
+    ///         .num_args(1..)
+    ///         .required(true))
     ///     .get_matches_from(vec![
     ///         &quot;myprog&quot;, &quot;file1.txt&quot;, &quot;file2.txt&quot;, &quot;file3.txt&quot;, &quot;file4.txt&quot;,
     ///     ]);
@@ -2324,13 +1899,12 @@
     ///     .collect();
     /// assert_eq!(vals, [&quot;file1.txt&quot;, &quot;file2.txt&quot;, &quot;file3.txt&quot;, &quot;file4.txt&quot;]);
     /// ```
-    </span><span class="attribute">#[track_caller]
+    </span><span class="attribute">#[cfg_attr(debug_assertions, track_caller)]
     </span><span class="kw">pub fn </span>remove_many&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Values2&lt;T&gt;&gt; {
-        <span class="kw">let </span>internal_id = Id::from(<a href="#348">id</a>);
-        MatchesError::unwrap(<span class="kw-2">&amp;</span><a href="#350">internal_id</a>, <a class="self" href="#347">self</a>.<a href="#1295-1298">try_remove_many</a>(<a href="#348">id</a>))
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Values&lt;T&gt;&gt; {
+        MatchesError::unwrap(<a href="#336">id</a>, <a class="self" href="#335">self</a>.<a href="#1007-1010">try_remove_many</a>(<a href="#336">id</a>))
     }
 
     <span class="doccomment">/// Check if values are present for the argument or group id
@@ -2346,10 +1920,11 @@
     /// # Examples
     ///
     /// ```rust
-    /// # use clap::{Command, Arg};
+    /// # use clap::{Command, Arg, ArgAction};
     /// let m = Command::new(&quot;myprog&quot;)
     ///     .arg(Arg::new(&quot;debug&quot;)
-    ///         .short(&#39;d&#39;))
+    ///         .short(&#39;d&#39;)
+    ///         .action(ArgAction::SetTrue))
     ///     .get_matches_from(vec![
     ///         &quot;myprog&quot;, &quot;-d&quot;
     ///     ]);
@@ -2359,8 +1934,34 @@
     ///
     /// [`default_value`]: crate::Arg::default_value()
     </span><span class="kw">pub fn </span>contains_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>internal_id = Id::from(<a href="#379">id</a>);
-        MatchesError::unwrap(<span class="kw-2">&amp;</span><a href="#380">internal_id</a>, <a class="self" href="#379">self</a>.<a href="#1315">try_contains_id</a>(<a href="#379">id</a>))
+        MatchesError::unwrap(<a href="#367">id</a>, <a class="self" href="#367">self</a>.<a href="#1026">try_contains_id</a>(<a href="#367">id</a>))
+    }
+
+    <span class="doccomment">/// Iterate over [`Arg`][crate::Arg] and [`ArgGroup`][crate::ArgGroup] [`Id`][crate::Id]s via [`ArgMatches::ids`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use clap::{Command, arg, value_parser};
+    ///
+    /// let m = Command::new(&quot;myprog&quot;)
+    ///     .arg(arg!(--color &lt;when&gt;)
+    ///         .value_parser([&quot;auto&quot;, &quot;always&quot;, &quot;never&quot;]))
+    ///     .arg(arg!(--config &lt;path&gt;)
+    ///         .value_parser(value_parser!(std::path::PathBuf)))
+    ///     .get_matches_from([&quot;myprog&quot;, &quot;--config=config.toml&quot;, &quot;--color=auto&quot;]);
+    /// assert_eq!(m.ids().len(), 2);
+    /// assert_eq!(
+    ///     m.ids()
+    ///         .map(|id| id.as_str())
+    ///         .collect::&lt;Vec&lt;_&gt;&gt;(),
+    ///     [&quot;config&quot;, &quot;color&quot;]
+    /// );
+    /// ```
+    </span><span class="kw">pub fn </span>ids(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IdsRef&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <a href="#1178">IdsRef</a> {
+            iter: <a class="self" href="#392">self</a>.args.<a href="../../util/flat_map.rs.html#117">keys</a>(),
+        }
     }
 
     <span class="doccomment">/// Check if any args were present on the command line
@@ -2368,10 +1969,10 @@
     /// # Examples
     ///
     /// ```rust
-    /// # use clap::{Command, Arg};
+    /// # use clap::{Command, Arg, ArgAction};
     /// let mut cmd = Command::new(&quot;myapp&quot;)
     ///     .arg(Arg::new(&quot;output&quot;)
-    ///         .takes_value(true));
+    ///         .action(ArgAction::Set));
     ///
     /// let m = cmd
     ///     .try_get_matches_from_mut(vec![&quot;myapp&quot;, &quot;something&quot;])
@@ -2383,91 +1984,7 @@
     ///     .unwrap();
     /// assert!(! m.args_present());
     </span><span class="kw">pub fn </span>args_present(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        !<a class="self" href="#403">self</a>.args.is_empty()
-    }
-
-    <span class="doccomment">/// Deprecated, replaced with [`ArgMatches::get_one()`]
-    ///
-    /// Replace `m.value_of(...)` with `m.get_one::&lt;String&gt;(...).map(|s| s.as_str())`
-    </span><span class="attribute">#[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(
-            since = <span class="string">&quot;3.2.0&quot;</span>,
-            note = <span class="string">&quot;Replaced with `ArgMatches::get_one()`
-
-Replace `m.value_of(...)` with `m.get_one::&lt;String&gt;(...).map(|s| s.as_str())`
-&quot;
-        </span>)
-    )]
-    #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>value_of&lt;T: <a href="../../util/fnv.rs.html#9">Key</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: T) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <span class="kw">let </span>id = Id::from(<a href="#421">id</a>);
-        <span class="kw">let </span>arg = <span class="self">self</span>.get_arg(<span class="kw-2">&amp;</span>id)<span class="question-mark">?</span>;
-        <span class="kw">let </span>v = <a href="#1850">unwrap_string_arg</a>(<span class="kw-2">&amp;</span><a href="#422">id</a>, arg.first()<span class="question-mark">?</span>);
-        <span class="prelude-val">Some</span>(<a href="#424">v</a>)
-    }
-
-    <span class="doccomment">/// Deprecated, replaced with [`ArgMatches::get_one()`]
-    ///
-    /// Replace `m.value_of(...)` with `m.get_one::&lt;String&gt;(...).map(|s| s.as_str())`
-    </span><span class="attribute">#[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(
-            since = <span class="string">&quot;3.2.0&quot;</span>,
-            note = <span class="string">&quot;Replaced with `ArgMatches::get_one()`
-
-Replace `m.value_of(...)` with `m.get_one::&lt;String&gt;(...).map(|s| s.as_str())`
-&quot;
-        </span>)
-    )]
-    #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>value_of_lossy&lt;T: <a href="../../util/fnv.rs.html#9">Key</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: T) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, <a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt; {
-        <span class="kw">let </span>id = Id::from(<a href="#442">id</a>);
-        <span class="kw">let </span>arg = <span class="self">self</span>.get_arg(<span class="kw-2">&amp;</span>id)<span class="question-mark">?</span>;
-        <span class="kw">let </span>v = <a href="#1875">unwrap_os_string_arg</a>(<span class="kw-2">&amp;</span><a href="#443">id</a>, arg.first()<span class="question-mark">?</span>);
-        <span class="prelude-val">Some</span>(<a href="#445">v</a>.to_string_lossy())
-    }
-
-    <span class="doccomment">/// Deprecated, replaced with [`ArgMatches::get_one()`]
-    ///
-    /// Replace `m.value_of(...)` with `m.get_one::&lt;OsString&gt;(...).map(|s| s.as_os_str())`
-    </span><span class="attribute">#[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(
-            since = <span class="string">&quot;3.2.0&quot;</span>,
-            note = <span class="string">&quot;Replaced with `ArgMatches::get_one()`
-
-Replace `m.value_of(...)` with `m.get_one::&lt;OsString&gt;(...).map(|s| s.as_os_str())`
-&quot;
-        </span>)
-    )]
-    #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>value_of_os&lt;T: <a href="../../util/fnv.rs.html#9">Key</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: T) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; {
-        <span class="kw">let </span>id = Id::from(<a href="#463">id</a>);
-        <span class="kw">let </span>arg = <span class="self">self</span>.get_arg(<span class="kw-2">&amp;</span>id)<span class="question-mark">?</span>;
-        <span class="kw">let </span>v = <a href="#1875">unwrap_os_string_arg</a>(<span class="kw-2">&amp;</span><a href="#464">id</a>, arg.first()<span class="question-mark">?</span>);
-        <span class="prelude-val">Some</span>(<a href="#466">v</a>)
-    }
-
-    <span class="doccomment">/// Deprecated, replaced with [`ArgMatches::get_many()`]
-    </span><span class="attribute">#[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(
-            since = <span class="string">&quot;3.2.0&quot;</span>,
-            note = <span class="string">&quot;Replaced with `ArgMatches::get_many()`
-&quot;
-        </span>)
-    )]
-    #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>values_of&lt;T: <a href="../../util/fnv.rs.html#9">Key</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: T) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#1655">Values</a>&gt; {
-        <span class="attribute">#![allow(deprecated)]
-        </span><span class="kw">let </span>id = Id::from(<a href="#480">id</a>);
-        <span class="kw">let </span>arg = <span class="self">self</span>.get_arg(<span class="kw-2">&amp;</span>id)<span class="question-mark">?</span>;
-        <span class="kw">let </span>v = <a href="#1655">Values</a> {
-            iter: <a href="#483">arg</a>.<a href="matched_arg.rs.html#102">vals_flatten</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="#1839">unwrap_string</a>),
-            len: <a href="#483">arg</a>.<a href="matched_arg.rs.html#137">num_vals</a>(),
-        };
-        <span class="prelude-val">Some</span>(<a href="#484">v</a>)
+        !<a class="self" href="#417">self</a>.args.<a href="../../util/flat_map.rs.html#78">is_empty</a>()
     }
 
     <span class="doccomment">/// Get an [`Iterator`] over groups of values of a specific option.
@@ -2494,7 +2011,7 @@ Replace `m.value_of(...)` with `m.get_one::&lt;OsString&gt;(...).map(|s| s.as_os
     /// let m = Command::new(&quot;myprog&quot;)
     ///     .arg(Arg::new(&quot;exec&quot;)
     ///         .short(&#39;x&#39;)
-    ///         .min_values(1)
+    ///         .num_args(1..)
     ///         .action(ArgAction::Append)
     ///         .value_terminator(&quot;;&quot;))
     ///     .get_matches_from(vec![
@@ -2505,165 +2022,13 @@ Replace `m.value_of(...)` with `m.get_one::&lt;OsString&gt;(...).map(|s| s.as_os
     /// [`Iterator`]: std::iter::Iterator
     </span><span class="attribute">#[cfg(feature = <span class="string">&quot;unstable-grouped&quot;</span>)]
     #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>grouped_values_of&lt;T: Key&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: T) -&gt; <span class="prelude-ty">Option</span>&lt;GroupedValues&gt; {
-        <span class="kw">let </span>id = Id::from(id);
-        <span class="kw">let </span>arg = <span class="self">self</span>.get_arg(<span class="kw-2">&amp;</span>id)<span class="question-mark">?</span>;
+    </span><span class="kw">pub fn </span>grouped_values_of(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;GroupedValues&gt; {
+        <span class="kw">let </span>arg = <span class="macro">some!</span>(<span class="self">self</span>.get_arg(id));
         <span class="kw">let </span>v = GroupedValues {
             iter: arg.vals().map(|g| g.iter().map(unwrap_string).collect()),
             len: arg.vals().len(),
         };
         <span class="prelude-val">Some</span>(v)
-    }
-
-    <span class="doccomment">/// Deprecated, replaced with [`ArgMatches::get_many()`]
-    </span><span class="attribute">#[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(since = <span class="string">&quot;3.2.0&quot;</span>, note = <span class="string">&quot;Replaced with `ArgMatches::get_many()`&quot;</span>)
-    )]
-    #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>values_of_lossy&lt;T: <a href="../../util/fnv.rs.html#9">Key</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: T) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt; {
-        <span class="kw">let </span>id = Id::from(<a href="#542">id</a>);
-        <span class="kw">let </span>arg = <span class="self">self</span>.get_arg(<span class="kw-2">&amp;</span>id)<span class="question-mark">?</span>;
-        <span class="kw">let </span>v = <a href="#544">arg</a>
-            .<a href="matched_arg.rs.html#102">vals_flatten</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|v| <a href="#1875">unwrap_os_string_arg</a>(<span class="kw-2">&amp;</span><a href="#543">id</a>, <a href="#547">v</a>).to_string_lossy().into_owned())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="prelude-val">Some</span>(<a href="#545">v</a>)
-    }
-
-    <span class="doccomment">/// Deprecated, replaced with [`ArgMatches::get_many()`]
-    </span><span class="attribute">#[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(since = <span class="string">&quot;3.2.0&quot;</span>, note = <span class="string">&quot;Replaced with `ArgMatches::get_many()`&quot;</span>)
-    )]
-    #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>values_of_os&lt;T: <a href="../../util/fnv.rs.html#9">Key</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: T) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#1740">OsValues</a>&gt; {
-        <span class="attribute">#![allow(deprecated)]
-        </span><span class="kw">let </span>id = Id::from(<a href="#558">id</a>);
-        <span class="kw">let </span>arg = <span class="self">self</span>.get_arg(<span class="kw-2">&amp;</span>id)<span class="question-mark">?</span>;
-        <span class="kw">let </span>v = <a href="#1740">OsValues</a> {
-            iter: <a href="#561">arg</a>.<a href="matched_arg.rs.html#102">vals_flatten</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a href="#1864">unwrap_os_string</a>),
-            len: <a href="#561">arg</a>.<a href="matched_arg.rs.html#137">num_vals</a>(),
-        };
-        <span class="prelude-val">Some</span>(<a href="#562">v</a>)
-    }
-
-    <span class="doccomment">/// Deprecated, replaced with [`ArgMatches::get_one()`]
-    </span><span class="attribute">#[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(since = <span class="string">&quot;3.2.0&quot;</span>, note = <span class="string">&quot;Replaced with `ArgMatches::get_one()`&quot;</span>)
-    )]
-    #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>value_of_t&lt;R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;R, <a href="../../error/mod.rs.html#40">Error</a>&gt;
-    <span class="kw">where
-        </span>R: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a>,
-        &lt;R <span class="kw">as </span>FromStr&gt;::Err: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>,
-    {
-        <span class="attribute">#![allow(deprecated)]
-        </span><span class="kw">let </span>v = <span class="self">self
-            </span>.value_of(name)
-            .ok_or_else(|| Error::argument_not_found_auto(name.to_string()))<span class="question-mark">?</span>;
-        <a href="#581">v</a>.parse::&lt;R&gt;().map_err(|e| {
-            <span class="kw">let </span>message = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-                <span class="string">&quot;The argument &#39;{}&#39; isn&#39;t a valid value for &#39;{}&#39;: {}&quot;</span>,
-                v, name, e
-            );
-
-            Error::value_validation(<a href="#575">name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#581">v</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#585">message</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-        })
-    }
-
-    <span class="doccomment">/// Deprecated, replaced with [`ArgMatches::get_one()`]
-    </span><span class="attribute">#[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(since = <span class="string">&quot;3.2.0&quot;</span>, note = <span class="string">&quot;Replaced with `ArgMatches::get_one()`&quot;</span>)
-    )]
-    #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>value_of_t_or_exit&lt;R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; R
-    <span class="kw">where
-        </span>R: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a>,
-        &lt;R <span class="kw">as </span>FromStr&gt;::Err: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>,
-    {
-        <span class="attribute">#![allow(deprecated)]
-        </span><a class="self" href="#600">self</a>.<a href="#575-578">value_of_t</a>(<a href="#600">name</a>).unwrap_or_else(|e| <a href="#606">e</a>.<a href="../../error/mod.rs.html#119">exit</a>())
-    }
-
-    <span class="doccomment">/// Deprecated, replaced with [`ArgMatches::get_many()`]
-    </span><span class="attribute">#[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(since = <span class="string">&quot;3.2.0&quot;</span>, note = <span class="string">&quot;Replaced with `ArgMatches::get_many()`&quot;</span>)
-    )]
-    #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>values_of_t&lt;R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;R&gt;, <a href="../../error/mod.rs.html#40">Error</a>&gt;
-    <span class="kw">where
-        </span>R: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a>,
-        &lt;R <span class="kw">as </span>FromStr&gt;::Err: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>,
-    {
-        <span class="attribute">#![allow(deprecated)]
-        </span><span class="kw">let </span>v = <span class="self">self
-            </span>.values_of(name)
-            .ok_or_else(|| Error::argument_not_found_auto(name.to_string()))<span class="question-mark">?</span>;
-        <a href="#621">v</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|v| {
-            <a href="#624">v</a>.parse::&lt;R&gt;().map_err(|e| {
-                <span class="kw">let </span>message = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;The argument &#39;{}&#39; isn&#39;t a valid value: {}&quot;</span>, v, e);
-
-                Error::value_validation(<a href="#615">name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#624">v</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#626">message</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-            })
-        })
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
-    }
-
-    <span class="doccomment">/// Deprecated, replaced with [`ArgMatches::get_many()`]
-    </span><span class="attribute">#[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(since = <span class="string">&quot;3.2.0&quot;</span>, note = <span class="string">&quot;Replaced with `ArgMatches::get_many()`&quot;</span>)
-    )]
-    #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>values_of_t_or_exit&lt;R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; Vec&lt;R&gt;
-    <span class="kw">where
-        </span>R: <a href="https://doc.rust-lang.org/nightly/core/str/traits/trait.FromStr.html">FromStr</a>,
-        &lt;R <span class="kw">as </span>FromStr&gt;::Err: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a>,
-    {
-        <span class="attribute">#![allow(deprecated)]
-        </span><a class="self" href="#640">self</a>.<a href="#615-618">values_of_t</a>(<a href="#640">name</a>).unwrap_or_else(|e| <a href="#646">e</a>.<a href="../../error/mod.rs.html#119">exit</a>())
-    }
-
-    <span class="doccomment">/// Deprecated, replaced with [`ArgAction::SetTrue`][crate::ArgAction] or
-    /// [`ArgMatches::contains_id`].
-    ///
-    /// With `ArgAction::SetTrue` becoming the new flag default in clap v4, flags will always be present.
-    /// To make the migration easier, we&#39;ve renamed this function so people can identify when they actually
-    /// care about an arg being present or if they need to update to the new way to check a flag&#39;s
-    /// presence.
-    ///
-    /// For flags, call `arg.action(ArgAction::SetTrue)` and lookup the value with `matches.get_flag(...)`
-    ///
-    /// For presence, replace `matches.is_present(...)` with `matches.contains_id(...)`
-    </span><span class="attribute">#[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(
-            since = <span class="string">&quot;3.2.0&quot;</span>,
-            note = <span class="string">&quot;Replaced with either `ArgAction::SetTrue` or `ArgMatches::contains_id(...)` to avoid confusion over new semantics
-
-With `ArgAction::SetTrue` becoming the new flag default in clap v4, flags will always be present.
-To make the migration easier, we&#39;ve renamed this function so people can identify when they actually
-care about an arg being present or if they need to update to the new way to check a flag&#39;s
-presence.
-
-For flags, call `arg.action(ArgAction::SetTrue)` and lookup the value with `matches.get_flag(...)`
-
-For presence, replace `matches.is_present(...)` with `matches.contains_id(...)`
-&quot;
-        </span>)
-    )]
-    #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>is_present&lt;T: <a href="../../util/fnv.rs.html#9">Key</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>id = Id::from(<a href="#678">id</a>);
-
-        <span class="attribute">#[cfg(debug_assertions)]
-        </span><a class="self" href="#678">self</a>.<a href="#1410">get_arg</a>(<span class="kw-2">&amp;</span><a href="#679">id</a>);
-
-        <a class="self" href="#678">self</a>.args.contains_key(<span class="kw-2">&amp;</span><a href="#679">id</a>)
     }
 
     <span class="doccomment">/// Report where argument value came from
@@ -2675,10 +2040,12 @@ For presence, replace `matches.is_present(...)` with `matches.contains_id(...)`
     /// # Examples
     ///
     /// ```rust
-    /// # use clap::{Command, Arg, ValueSource};
+    /// # use clap::{Command, Arg, ArgAction};
+    /// # use clap::parser::ValueSource;
     /// let m = Command::new(&quot;myprog&quot;)
     ///     .arg(Arg::new(&quot;debug&quot;)
-    ///         .short(&#39;d&#39;))
+    ///         .short(&#39;d&#39;)
+    ///         .action(ArgAction::SetTrue))
     ///     .get_matches_from(vec![
     ///         &quot;myprog&quot;, &quot;-d&quot;
     ///     ]);
@@ -2688,45 +2055,10 @@ For presence, replace `matches.is_present(...)` with `matches.contains_id(...)`
     ///
     /// [`default_value`]: crate::Arg::default_value()
     </span><span class="attribute">#[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>value_source&lt;T: <a href="../../util/fnv.rs.html#9">Key</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: T) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="value_source.rs.html#4">ValueSource</a>&gt; {
-        <span class="kw">let </span>id = Id::from(<a href="#709">id</a>);
+    </span><span class="kw">pub fn </span>value_source(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="value_source.rs.html#4">ValueSource</a>&gt; {
+        <span class="kw">let </span>value = <a class="self" href="#489">self</a>.<a href="#1113">get_arg</a>(<a href="#489">id</a>);
 
-        <span class="kw">let </span>value = <a class="self" href="#709">self</a>.<a href="#1410">get_arg</a>(<span class="kw-2">&amp;</span><a href="#710">id</a>);
-
-        <a href="#712">value</a>.and_then(MatchedArg::source)
-    }
-
-    <span class="doccomment">/// Deprecated, replaced with  [`ArgAction::Count`][crate::ArgAction],
-    /// [`ArgMatches::get_many`]`.len()`, or [`ArgMatches::value_source`].
-    ///
-    /// `occurrences_of`s meaning was overloaded and we are replacing it with more direct approaches.
-    ///
-    /// For counting flags, call `arg.action(ArgAction::Count)` and lookup the value with `matches.get_count(...)`
-    ///
-    /// To check if a user explicitly passed in a value, check the source with `matches.value_source(...)`
-    ///
-    /// To see how many values there are, call `matches.get_many::&lt;T&gt;(...).map(|v| v.len())`
-    </span><span class="attribute">#[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(
-            since = <span class="string">&quot;3.2.0&quot;</span>,
-            note = <span class="string">&quot;Replaced with either `ArgAction::Count`, `ArgMatches::get_many(...).len()`, or `ArgMatches::value_source`
-
-`occurrences_of`s meaning was overloaded and we are replacing it with more direct approaches.
-
-For counting flags, call `arg.action(ArgAction::Count)` and lookup the value with `matches.get_count(...)`
-
-To check if a user explicitly passed in a value, check the source with `matches.value_source(...)`
-
-To see how many values there are, call `matches.get_many::&lt;T&gt;(...).map(|v| v.len())`
-&quot;
-        </span>)
-    )]
-    #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>occurrences_of&lt;T: <a href="../../util/fnv.rs.html#9">Key</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="attribute">#![allow(deprecated)]
-        </span><a class="self" href="#744">self</a>.<a href="#1410">get_arg</a>(<span class="kw-2">&amp;</span>Id::from(<a href="#744">id</a>))
-            .map_or(<span class="number">0</span>, |a| <a href="#747">a</a>.<a href="matched_arg.rs.html#81">get_occurrences</a>())
+        <a href="#490">value</a>.and_then(MatchedArg::source)
     }
 
     <span class="doccomment">/// The first index of that an argument showed up.
@@ -2758,13 +2090,14 @@ To see how many values there are, call `matches.get_many::&lt;T&gt;(...).map(|v|
     /// in an `ArgMatches` struct for querying.
     ///
     /// ```rust
-    /// # use clap::{Command, Arg};
+    /// # use clap::{Command, Arg, ArgAction};
     /// let m = Command::new(&quot;myapp&quot;)
     ///     .arg(Arg::new(&quot;flag&quot;)
-    ///         .short(&#39;f&#39;))
+    ///         .short(&#39;f&#39;)
+    ///         .action(ArgAction::SetTrue))
     ///     .arg(Arg::new(&quot;option&quot;)
     ///         .short(&#39;o&#39;)
-    ///         .takes_value(true))
+    ///         .action(ArgAction::Set))
     ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-f&quot;, &quot;-o&quot;, &quot;val&quot;]);
     ///            // ARGV indices: ^0       ^1    ^2    ^3
     ///            // clap indices:          ^1          ^3
@@ -2776,13 +2109,14 @@ To see how many values there are, call `matches.get_many::&lt;T&gt;(...).map(|v|
     /// Now notice, if we use one of the other styles of options:
     ///
     /// ```rust
-    /// # use clap::{Command, Arg};
+    /// # use clap::{Command, Arg, ArgAction};
     /// let m = Command::new(&quot;myapp&quot;)
     ///     .arg(Arg::new(&quot;flag&quot;)
-    ///         .short(&#39;f&#39;))
+    ///         .short(&#39;f&#39;)
+    ///         .action(ArgAction::SetTrue))
     ///     .arg(Arg::new(&quot;option&quot;)
     ///         .short(&#39;o&#39;)
-    ///         .takes_value(true))
+    ///         .action(ArgAction::Set))
     ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-f&quot;, &quot;-o=val&quot;]);
     ///            // ARGV indices: ^0       ^1    ^2
     ///            // clap indices:          ^1       ^3
@@ -2795,17 +2129,20 @@ To see how many values there are, call `matches.get_many::&lt;T&gt;(...).map(|v|
     /// flags. Let&#39;s also throw in the final option style for good measure.
     ///
     /// ```rust
-    /// # use clap::{Command, Arg};
+    /// # use clap::{Command, Arg, ArgAction};
     /// let m = Command::new(&quot;myapp&quot;)
     ///     .arg(Arg::new(&quot;flag&quot;)
-    ///         .short(&#39;f&#39;))
+    ///         .short(&#39;f&#39;)
+    ///         .action(ArgAction::SetTrue))
     ///     .arg(Arg::new(&quot;flag2&quot;)
-    ///         .short(&#39;F&#39;))
+    ///         .short(&#39;F&#39;)
+    ///         .action(ArgAction::SetTrue))
     ///     .arg(Arg::new(&quot;flag3&quot;)
-    ///         .short(&#39;z&#39;))
+    ///         .short(&#39;z&#39;)
+    ///         .action(ArgAction::SetTrue))
     ///     .arg(Arg::new(&quot;option&quot;)
     ///         .short(&#39;o&#39;)
-    ///         .takes_value(true))
+    ///         .action(ArgAction::Set))
     ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-fzF&quot;, &quot;-oval&quot;]);
     ///            // ARGV indices: ^0      ^1       ^2
     ///            // clap indices:         ^1,2,3    ^5
@@ -2821,17 +2158,20 @@ To see how many values there are, call `matches.get_many::&lt;T&gt;(...).map(|v|
     /// One final combination of flags/options to see how they combine:
     ///
     /// ```rust
-    /// # use clap::{Command, Arg};
+    /// # use clap::{Command, Arg, ArgAction};
     /// let m = Command::new(&quot;myapp&quot;)
     ///     .arg(Arg::new(&quot;flag&quot;)
-    ///         .short(&#39;f&#39;))
+    ///         .short(&#39;f&#39;)
+    ///         .action(ArgAction::SetTrue))
     ///     .arg(Arg::new(&quot;flag2&quot;)
-    ///         .short(&#39;F&#39;))
+    ///         .short(&#39;F&#39;)
+    ///         .action(ArgAction::SetTrue))
     ///     .arg(Arg::new(&quot;flag3&quot;)
-    ///         .short(&#39;z&#39;))
+    ///         .short(&#39;z&#39;)
+    ///         .action(ArgAction::SetTrue))
     ///     .arg(Arg::new(&quot;option&quot;)
     ///         .short(&#39;o&#39;)
-    ///         .takes_value(true))
+    ///         .action(ArgAction::Set))
     ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-fzFoval&quot;]);
     ///            // ARGV indices: ^0       ^1
     ///            // clap indices:          ^1,2,3^5
@@ -2851,8 +2191,8 @@ To see how many values there are, call `matches.get_many::&lt;T&gt;(...).map(|v|
     /// let m = Command::new(&quot;myapp&quot;)
     ///     .arg(Arg::new(&quot;option&quot;)
     ///         .short(&#39;o&#39;)
-    ///         .use_value_delimiter(true)
-    ///         .multiple_values(true))
+    ///         .value_delimiter(&#39;,&#39;)
+    ///         .num_args(1..))
     ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-o=val1,val2,val3&quot;]);
     ///            // ARGV indices: ^0       ^1
     ///            // clap indices:             ^2   ^3   ^4
@@ -2864,10 +2204,10 @@ To see how many values there are, call `matches.get_many::&lt;T&gt;(...).map(|v|
     /// ```
     /// [delimiter]: crate::Arg::value_delimiter()
     </span><span class="attribute">#[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>index_of&lt;T: <a href="../../util/fnv.rs.html#9">Key</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: T) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <span class="kw">let </span>arg = <span class="self">self</span>.get_arg(<span class="kw-2">&amp;</span>Id::from(id))<span class="question-mark">?</span>;
-        <span class="kw">let </span>i = arg.get_index(<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>(<a href="#887">i</a>)
+    </span><span class="kw">pub fn </span>index_of(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
+        <span class="kw">let </span>arg = <a class="macro" href="../../macros.rs.html#676-685">some!</a>(<span class="self">self</span>.get_arg(id));
+        <span class="kw">let </span>i = <a class="macro" href="../../macros.rs.html#676-685">some!</a>(arg.get_index(<span class="number">0</span>));
+        <span class="prelude-val">Some</span>(<a href="#640">i</a>)
     }
 
     <span class="doccomment">/// All indices an argument appeared at when parsing.
@@ -2893,8 +2233,7 @@ To see how many values there are, call `matches.get_many::&lt;T&gt;(...).map(|v|
     /// let m = Command::new(&quot;myapp&quot;)
     ///     .arg(Arg::new(&quot;option&quot;)
     ///         .short(&#39;o&#39;)
-    ///         .use_value_delimiter(true)
-    ///         .multiple_values(true))
+    ///         .value_delimiter(&#39;,&#39;))
     ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-o=val1,val2,val3&quot;]);
     ///            // ARGV indices: ^0       ^1
     ///            // clap indices:             ^2   ^3   ^4
@@ -2911,7 +2250,7 @@ To see how many values there are, call `matches.get_many::&lt;T&gt;(...).map(|v|
     /// let m = Command::new(&quot;myapp&quot;)
     ///     .arg(Arg::new(&quot;option&quot;)
     ///         .short(&#39;o&#39;)
-    ///         .takes_value(true)
+    ///         .action(ArgAction::Set)
     ///         .action(ArgAction::Append))
     ///     .arg(Arg::new(&quot;flag&quot;)
     ///         .short(&#39;f&#39;)
@@ -2930,12 +2269,12 @@ To see how many values there are, call `matches.get_many::&lt;T&gt;(...).map(|v|
     /// index.
     ///
     /// ```rust
-    /// # use clap::{Command, Arg};
+    /// # use clap::{Command, Arg, ArgAction};
     /// let m = Command::new(&quot;myapp&quot;)
     ///     .arg(Arg::new(&quot;option&quot;)
     ///         .short(&#39;o&#39;)
-    ///         .takes_value(true)
-    ///         .multiple_values(true))
+    ///         .action(ArgAction::Set)
+    ///         .num_args(1..))
     ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-o=val1,val2,val3&quot;]);
     ///            // ARGV indices: ^0       ^1
     ///            // clap indices:             ^2
@@ -2947,56 +2286,18 @@ To see how many values there are, call `matches.get_many::&lt;T&gt;(...).map(|v|
     /// [`ArgMatches::index_of`]: ArgMatches::index_of()
     /// [delimiter]: Arg::value_delimiter()
     </span><span class="attribute">#[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">pub fn </span>indices_of&lt;T: <a href="../../util/fnv.rs.html#9">Key</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: T) -&gt; <span class="prelude-ty">Option</span>&lt;Indices&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
-        <span class="kw">let </span>arg = <span class="self">self</span>.get_arg(<span class="kw-2">&amp;</span>Id::from(id))<span class="question-mark">?</span>;
-        <span class="kw">let </span>i = <a href="#1801">Indices</a> {
-            iter: <a href="#969">arg</a>.<a href="matched_arg.rs.html#85">indices</a>(),
-            len: <a href="#969">arg</a>.<a href="matched_arg.rs.html#137">num_vals</a>(),
+    </span><span class="kw">pub fn </span>indices_of(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;Indices&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+        <span class="kw">let </span>arg = <a class="macro" href="../../macros.rs.html#676-685">some!</a>(<span class="self">self</span>.get_arg(id));
+        <span class="kw">let </span>i = <a href="#1439">Indices</a> {
+            iter: <a href="#721">arg</a>.<a href="matched_arg.rs.html#66">indices</a>(),
+            len: <a href="#721">arg</a>.<a href="matched_arg.rs.html#118">num_vals</a>(),
         };
-        <span class="prelude-val">Some</span>(<a href="#970">i</a>)
-    }
-
-    <span class="attribute">#[inline]
-    #[doc(hidden)]
-    #[cfg_attr(
-        feature = <span class="string">&quot;deprecated&quot;</span>,
-        deprecated(
-            since = <span class="string">&quot;3.2.0&quot;</span>,
-            note = <span class="string">&quot;Replaced with `ArgMatches::try_get_one()`
-
-When helping to catch mistyped argument IDs, we overlooked the use cases for more dynamic lookups
-of arguments, so we added `is_valid_arg` as a short-term hack.  Since then, we&#39;ve generalized
-`value_of` as `try_get_one` to give callers all the relevant information they need.
-
-So replace
-```
-if matches.is_valid_arg(...) {
-    matches.value_of(...)
-}
-```
-with
-```
-if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
-}
-```
-&quot;
-        </span>)
-    )]
-    </span><span class="kw">pub fn </span>is_valid_arg(<span class="kw-2">&amp;</span><span class="self">self</span>, _id: <span class="kw">impl </span><a href="../../util/fnv.rs.html#9">Key</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="attribute">#[cfg(debug_assertions)]
-        </span>{
-            <span class="kw">let </span>id = Id::from(<a href="#1003">_id</a>);
-            <a class="self" href="#1003">self</a>.disable_asserts || <a href="#1006">id</a> == Id::empty_hash() || <a class="self" href="#1003">self</a>.valid_args.contains(<span class="kw-2">&amp;</span><a href="#1006">id</a>)
-        }
-        <span class="attribute">#[cfg(not(debug_assertions))]
-        </span>{
-            <span class="bool-val">true
-        </span>}
+        <span class="prelude-val">Some</span>(<a href="#722">i</a>)
     }
 }
 
 <span class="doccomment">/// # Subcommands
-</span><span class="kw">impl </span><a href="#68">ArgMatches</a> {
+</span><span class="kw">impl </span><a href="#66">ArgMatches</a> {
     <span class="doccomment">/// The name and `ArgMatches` of the current [subcommand].
     ///
     /// Subcommand values are put in a child [`ArgMatches`]
@@ -3026,6 +2327,8 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     /// with pattern matching!
     ///
     /// ```rust
+    /// # use std::ffi::OsString;
+    /// # use std::ffi::OsStr;
     /// # use clap::Command;
     /// // Assume there is an external subcommand named &quot;subcmd&quot;
     /// let app_m = Command::new(&quot;myprog&quot;)
@@ -3038,8 +2341,8 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     /// // string argument name
     /// match app_m.subcommand() {
     ///     Some((external, sub_m)) =&gt; {
-    ///          let ext_args: Vec&lt;&amp;str&gt; = sub_m.get_many::&lt;String&gt;(&quot;&quot;)
-    ///             .unwrap().map(|s| s.as_str()).collect();
+    ///          let ext_args: Vec&lt;&amp;OsStr&gt; = sub_m.get_many::&lt;OsString&gt;(&quot;&quot;)
+    ///             .unwrap().map(|s| s.as_os_str()).collect();
     ///          assert_eq!(external, &quot;subcmd&quot;);
     ///          assert_eq!(ext_args, [&quot;--option&quot;, &quot;value&quot;, &quot;-fff&quot;, &quot;--flag&quot;]);
     ///     },
@@ -3048,8 +2351,8 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     /// ```
     /// [subcommand]: crate::Command::subcommand
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>subcommand(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><a href="#68">ArgMatches</a>)&gt; {
-        <a class="self" href="#1069">self</a>.subcommand.as_ref().map(|sc| (<span class="kw-2">&amp;*</span><a href="#1070">sc</a>.name, <span class="kw-2">&amp;</span><a href="#1070">sc</a>.matches))
+    </span><span class="kw">pub fn </span>subcommand(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;</span><a href="#66">ArgMatches</a>)&gt; {
+        <a class="self" href="#785">self</a>.subcommand.as_ref().map(|sc| (<span class="kw-2">&amp;*</span><a href="#786">sc</a>.name, <span class="kw-2">&amp;</span><a href="#786">sc</a>.matches))
     }
 
     <span class="doccomment">/// Return the name and `ArgMatches` of the current [subcommand].
@@ -3083,6 +2386,7 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     /// with pattern matching!
     ///
     /// ```rust
+    /// # use std::ffi::OsString;
     /// # use clap::Command;
     /// // Assume there is an external subcommand named &quot;subcmd&quot;
     /// let mut app_m = Command::new(&quot;myprog&quot;)
@@ -3095,7 +2399,7 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     /// // string argument name
     /// match app_m.remove_subcommand() {
     ///     Some((external, mut sub_m)) =&gt; {
-    ///          let ext_args: Vec&lt;String&gt; = sub_m.remove_many(&quot;&quot;)
+    ///          let ext_args: Vec&lt;OsString&gt; = sub_m.remove_many(&quot;&quot;)
     ///             .expect(&quot;`file`is required&quot;)
     ///             .collect();
     ///          assert_eq!(external, &quot;subcmd&quot;);
@@ -3105,8 +2409,8 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     /// }
     /// ```
     /// [subcommand]: crate::Command::subcommand
-    </span><span class="kw">pub fn </span>remove_subcommand(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="#68">ArgMatches</a>)&gt; {
-        <a class="self" href="#1126">self</a>.subcommand.take().map(|sc| (<a href="#1127">sc</a>.name, <a href="#1127">sc</a>.matches))
+    </span><span class="kw">pub fn </span>remove_subcommand(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="#66">ArgMatches</a>)&gt; {
+        <a class="self" href="#843">self</a>.subcommand.take().map(|sc| (<a href="#844">sc</a>.name, <a href="#844">sc</a>.matches))
     }
 
     <span class="doccomment">/// The `ArgMatches` for the current [subcommand].
@@ -3131,7 +2435,7 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     ///     .subcommand(Command::new(&quot;test&quot;)
     ///         .arg(Arg::new(&quot;opt&quot;)
     ///             .long(&quot;option&quot;)
-    ///             .takes_value(true)))
+    ///             .action(ArgAction::Set)))
     ///     .get_matches_from(vec![
     ///         &quot;myprog&quot;, &quot;-d&quot;, &quot;test&quot;, &quot;--option&quot;, &quot;val&quot;
     ///     ]);
@@ -3148,8 +2452,8 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     ///
     /// [subcommand]: crate::Command::subcommand
     /// [`Command`]: crate::Command
-    </span><span class="kw">pub fn </span>subcommand_matches&lt;T: <a href="../../util/fnv.rs.html#9">Key</a>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, id: T) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#68">ArgMatches</a>&gt; {
-        <a class="self" href="#1169">self</a>.<a href="#1434">get_subcommand</a>(<span class="kw-2">&amp;</span><a href="#1169">id</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).map(|sc| <span class="kw-2">&amp;</span><a href="#1170">sc</a>.matches)
+    </span><span class="kw">pub fn </span>subcommand_matches(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#66">ArgMatches</a>&gt; {
+        <a class="self" href="#886">self</a>.<a href="#1132">get_subcommand</a>(<a href="#886">name</a>).map(|sc| <span class="kw-2">&amp;</span><a href="#887">sc</a>.matches)
     }
 
     <span class="doccomment">/// The name of the current [subcommand].
@@ -3177,7 +2481,7 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     /// [`Command`]: crate::Command
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>subcommand_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#1197">self</a>.subcommand.as_ref().map(|sc| <span class="kw-2">&amp;*</span><a href="#1198">sc</a>.name)
+        <a class="self" href="#914">self</a>.subcommand.as_ref().map(|sc| <span class="kw-2">&amp;*</span><a href="#915">sc</a>.name)
     }
 
     <span class="doccomment">/// Check if a subcommand can be queried
@@ -3187,11 +2491,10 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     /// before they do a query on `ArgMatches`.
     </span><span class="attribute">#[inline]
     #[doc(hidden)]
-    </span><span class="kw">pub fn </span>is_valid_subcommand(<span class="kw-2">&amp;</span><span class="self">self</span>, _id: <span class="kw">impl </span><a href="../../util/fnv.rs.html#9">Key</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    </span><span class="kw">pub fn </span>is_valid_subcommand(<span class="kw-2">&amp;</span><span class="self">self</span>, _name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="attribute">#[cfg(debug_assertions)]
         </span>{
-            <span class="kw">let </span>id = Id::from(<a href="#1208">_id</a>);
-            <a class="self" href="#1208">self</a>.disable_asserts || <a href="#1211">id</a> == Id::empty_hash() || <a class="self" href="#1208">self</a>.valid_subcommands.contains(<span class="kw-2">&amp;</span><a href="#1211">id</a>)
+            <a href="#925">_name</a>.is_empty() || <a class="self" href="#925">self</a>.valid_subcommands.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|s| <span class="kw-2">*</span><a href="#928">s</a> == <a href="#925">_name</a>)
         }
         <span class="attribute">#[cfg(not(debug_assertions))]
         </span>{
@@ -3201,73 +2504,69 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
 }
 
 <span class="doccomment">/// # Advanced
-</span><span class="kw">impl </span><a href="#68">ArgMatches</a> {
+</span><span class="kw">impl </span><a href="#66">ArgMatches</a> {
     <span class="doccomment">/// Non-panicking version of [`ArgMatches::get_one`]
     </span><span class="kw">pub fn </span>try_get_one&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;, <a href="../error.rs.html#7">MatchesError</a>&gt; {
-        <span class="kw">let </span>id = Id::from(<a href="#1226">id</a>);
-        <span class="kw">let </span>arg = <span class="self">self</span>.try_get_arg_t::&lt;T&gt;(<span class="kw-2">&amp;</span>id)<span class="question-mark">?</span>;
-        <span class="kw">let </span>value = <span class="kw">match </span><a href="#1229">arg</a>.and_then(|a| <a href="#1230">a</a>.<a href="matched_arg.rs.html#114">first</a>()) {
-            <span class="prelude-val">Some</span>(value) =&gt; <a href="#1231">value</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;, <a href="../error.rs.html#5">MatchesError</a>&gt; {
+        <span class="kw">let </span>arg = <a class="macro" href="../../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.try_get_arg_t::&lt;T&gt;(id));
+        <span class="kw">let </span>value = <span class="kw">match </span><a href="#944">arg</a>.and_then(|a| <a href="#945">a</a>.<a href="matched_arg.rs.html#95">first</a>()) {
+            <span class="prelude-val">Some</span>(value) =&gt; <a href="#946">value</a>,
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
         };
-        <span class="prelude-val">Ok</span>(<a href="#1230">value</a>
+        <span class="prelude-val">Ok</span>(<a href="#945">value</a>
             .<a href="any_value.rs.html#16-18">downcast_ref</a>::&lt;T&gt;()
             .map(<span class="prelude-val">Some</span>)
-            .expect(<a href="../../lib.rs.html#189">INTERNAL_ERROR_MSG</a>)) <span class="comment">// enforced by `try_get_arg_t`
+            .expect(<a href="../../lib.rs.html#157">INTERNAL_ERROR_MSG</a>)) <span class="comment">// enforced by `try_get_arg_t`
     </span>}
 
     <span class="doccomment">/// Non-panicking version of [`ArgMatches::get_many`]
     </span><span class="kw">pub fn </span>try_get_many&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ValuesRef&lt;T&gt;&gt;, <a href="../error.rs.html#7">MatchesError</a>&gt; {
-        <span class="kw">let </span>id = Id::from(<a href="#1245">id</a>);
-        <span class="kw">let </span>arg = <span class="kw">match </span><span class="self">self</span>.try_get_arg_t::&lt;T&gt;(<span class="kw-2">&amp;</span>id)<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(arg) =&gt; <a href="#1249">arg</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ValuesRef&lt;T&gt;&gt;, <a href="../error.rs.html#5">MatchesError</a>&gt; {
+        <span class="kw">let </span>arg = <span class="kw">match </span><a class="macro" href="../../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.try_get_arg_t::&lt;T&gt;(id)) {
+            <span class="prelude-val">Some</span>(arg) =&gt; <a href="#963">arg</a>,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
-        <span class="kw">let </span>len = <a href="#1248">arg</a>.<a href="matched_arg.rs.html#137">num_vals</a>();
-        <span class="kw">let </span>values = <a href="#1248">arg</a>.<a href="matched_arg.rs.html#102">vals_flatten</a>();
-        <span class="kw">let </span>values = <a href="#1547">ValuesRef</a> {
+        <span class="kw">let </span>len = <a href="#962">arg</a>.<a href="matched_arg.rs.html#118">num_vals</a>();
+        <span class="kw">let </span>values = <a href="#962">arg</a>.<a href="matched_arg.rs.html#83">vals_flatten</a>();
+        <span class="kw">let </span>values = <a href="#1278">ValuesRef</a> {
             <span class="comment">// enforced by `try_get_arg_t`
-            </span>iter: <a href="#1253">values</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|v| <a href="#1256">v</a>.<a href="any_value.rs.html#16-18">downcast_ref</a>::&lt;T&gt;().expect(<a href="../../lib.rs.html#189">INTERNAL_ERROR_MSG</a>)),
-            <a href="#1252">len</a>,
+            </span>iter: <a href="#967">values</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|v| <a href="#970">v</a>.<a href="any_value.rs.html#16-18">downcast_ref</a>::&lt;T&gt;().expect(<a href="../../lib.rs.html#157">INTERNAL_ERROR_MSG</a>)),
+            <a href="#966">len</a>,
         };
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#1254">values</a>))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#968">values</a>))
     }
 
     <span class="doccomment">/// Non-panicking version of [`ArgMatches::get_raw`]
-    </span><span class="kw">pub fn </span>try_get_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;RawValues&lt;<span class="lifetime">&#39;_</span>&gt;&gt;, <a href="../error.rs.html#7">MatchesError</a>&gt; {
-        <span class="kw">let </span>id = Id::from(<a href="#1263">id</a>);
-        <span class="kw">let </span>arg = <span class="kw">match </span><span class="self">self</span>.try_get_arg(<span class="kw-2">&amp;</span>id)<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(arg) =&gt; <a href="#1266">arg</a>,
+    </span><span class="kw">pub fn </span>try_get_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;RawValues&lt;<span class="lifetime">&#39;_</span>&gt;&gt;, <a href="../error.rs.html#5">MatchesError</a>&gt; {
+        <span class="kw">let </span>arg = <span class="kw">match </span><a class="macro" href="../../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.try_get_arg(id)) {
+            <span class="prelude-val">Some</span>(arg) =&gt; <a href="#979">arg</a>,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
-        <span class="kw">let </span>len = <a href="#1265">arg</a>.<a href="matched_arg.rs.html#137">num_vals</a>();
-        <span class="kw">let </span>values = <a href="#1265">arg</a>.<a href="matched_arg.rs.html#110">raw_vals_flatten</a>();
-        <span class="kw">let </span>values = <a href="#1608">RawValues</a> {
-            iter: <a href="#1270">values</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(OsString::as_os_str),
-            <a href="#1269">len</a>,
+        <span class="kw">let </span>len = <a href="#978">arg</a>.<a href="matched_arg.rs.html#118">num_vals</a>();
+        <span class="kw">let </span>values = <a href="#978">arg</a>.<a href="matched_arg.rs.html#91">raw_vals_flatten</a>();
+        <span class="kw">let </span>values = <a href="#1339">RawValues</a> {
+            iter: <a href="#983">values</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(OsString::as_os_str),
+            <a href="#982">len</a>,
         };
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#1271">values</a>))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#984">values</a>))
     }
 
     <span class="doccomment">/// Non-panicking version of [`ArgMatches::remove_one`]
     </span><span class="kw">pub fn </span>try_remove_one&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T&gt;, <a href="../error.rs.html#7">MatchesError</a>&gt; {
-        <span class="kw">let </span>id = Id::from(<a href="#1281">id</a>);
-        <span class="kw">match </span><span class="self">self</span>.try_remove_arg_t::&lt;T&gt;(<span class="kw-2">&amp;</span>id)<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(values) =&gt; <span class="prelude-val">Ok</span>(<a href="#1285">values</a>
-                .<a href="matched_arg.rs.html#106">into_vals_flatten</a>()
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T&gt;, <a href="../error.rs.html#5">MatchesError</a>&gt; {
+        <span class="kw">match </span><a class="macro" href="../../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.try_remove_arg_t::&lt;T&gt;(id)) {
+            <span class="prelude-val">Some</span>(values) =&gt; <span class="prelude-val">Ok</span>(<a href="#997">values</a>
+                .<a href="matched_arg.rs.html#87">into_vals_flatten</a>()
                 <span class="comment">// enforced by `try_get_arg_t`
-                </span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|v| <a href="#1288">v</a>.<a href="any_value.rs.html#22">downcast_into</a>::&lt;T&gt;().expect(<a href="../../lib.rs.html#189">INTERNAL_ERROR_MSG</a>))
+                </span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|v| <a href="#1000">v</a>.<a href="any_value.rs.html#22">downcast_into</a>::&lt;T&gt;().expect(<a href="../../lib.rs.html#157">INTERNAL_ERROR_MSG</a>))
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
@@ -3277,103 +2576,94 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     </span><span class="kw">pub fn </span>try_remove_many&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Values2&lt;T&gt;&gt;, <a href="../error.rs.html#7">MatchesError</a>&gt; {
-        <span class="kw">let </span>id = Id::from(<a href="#1297">id</a>);
-        <span class="kw">let </span>arg = <span class="kw">match </span><span class="self">self</span>.try_remove_arg_t::&lt;T&gt;(<span class="kw-2">&amp;</span>id)<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(arg) =&gt; <a href="#1301">arg</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Values&lt;T&gt;&gt;, <a href="../error.rs.html#5">MatchesError</a>&gt; {
+        <span class="kw">let </span>arg = <span class="kw">match </span><a class="macro" href="../../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.try_remove_arg_t::&lt;T&gt;(id)) {
+            <span class="prelude-val">Some</span>(arg) =&gt; <a href="#1012">arg</a>,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
-        <span class="kw">let </span>len = <a href="#1300">arg</a>.<a href="matched_arg.rs.html#137">num_vals</a>();
-        <span class="kw">let </span>values = <a href="#1300">arg</a>.<a href="matched_arg.rs.html#106">into_vals_flatten</a>();
-        <span class="kw">let </span>values = <a href="#1489">Values2</a> {
+        <span class="kw">let </span>len = <a href="#1011">arg</a>.<a href="matched_arg.rs.html#118">num_vals</a>();
+        <span class="kw">let </span>values = <a href="#1011">arg</a>.<a href="matched_arg.rs.html#87">into_vals_flatten</a>();
+        <span class="kw">let </span>values = <a href="#1221">Values</a> {
             <span class="comment">// enforced by `try_get_arg_t`
-            </span>iter: <a href="#1305">values</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|v| <a href="#1308">v</a>.<a href="any_value.rs.html#22">downcast_into</a>::&lt;T&gt;().expect(<a href="../../lib.rs.html#189">INTERNAL_ERROR_MSG</a>)),
-            <a href="#1304">len</a>,
+            </span>iter: <a href="#1016">values</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|v| <a href="#1019">v</a>.<a href="any_value.rs.html#22">downcast_into</a>::&lt;T&gt;().expect(<a href="../../lib.rs.html#157">INTERNAL_ERROR_MSG</a>)),
+            <a href="#1015">len</a>,
         };
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#1306">values</a>))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#1017">values</a>))
     }
 
     <span class="doccomment">/// Non-panicking version of [`ArgMatches::contains_id`]
-    </span><span class="kw">pub fn </span>try_contains_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="../error.rs.html#7">MatchesError</a>&gt; {
-        <span class="kw">let </span>id = Id::from(<a href="#1315">id</a>);
+    </span><span class="kw">pub fn </span>try_contains_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="../error.rs.html#5">MatchesError</a>&gt; {
+        <a class="macro" href="../../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.verify_arg(id));
 
-        <span class="self">self</span>.verify_arg(<span class="kw-2">&amp;</span>id)<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>presence = <a class="self" href="#1315">self</a>.args.contains_key(<span class="kw-2">&amp;</span><a href="#1316">id</a>);
-        <span class="prelude-val">Ok</span>(<a href="#1320">presence</a>)
+        <span class="kw">let </span>presence = <a class="self" href="#1026">self</a>.args.<a href="../../util/flat_map.rs.html#42-45">contains_key</a>(<a href="#1026">id</a>);
+        <span class="prelude-val">Ok</span>(<a href="#1029">presence</a>)
     }
 }
 
 <span class="comment">// Private methods
-</span><span class="kw">impl </span><a href="#68">ArgMatches</a> {
+</span><span class="kw">impl </span><a href="#66">ArgMatches</a> {
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>try_get_arg(<span class="kw-2">&amp;</span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span><a href="../../util/id.rs.html#11">Id</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="matched_arg.rs.html#16">MatchedArg</a>&gt;, <a href="../error.rs.html#7">MatchesError</a>&gt; {
-        <span class="self">self</span>.verify_arg(arg)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="#1328">self</a>.args.get(<a href="#1328">arg</a>))
+    </span><span class="kw">fn </span>try_get_arg(<span class="kw-2">&amp;</span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="matched_arg.rs.html#16">MatchedArg</a>&gt;, <a href="../error.rs.html#5">MatchesError</a>&gt; {
+        <a class="macro" href="../../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.verify_arg(arg));
+        <span class="prelude-val">Ok</span>(<a class="self" href="#1037">self</a>.args.<a href="../../util/flat_map.rs.html#91-94">get</a>(<a href="#1037">arg</a>))
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>try_get_arg_t&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        arg: <span class="kw-2">&amp;</span><a href="../../util/id.rs.html#11">Id</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="matched_arg.rs.html#16">MatchedArg</a>&gt;, <a href="../error.rs.html#7">MatchesError</a>&gt; {
-        <span class="kw">let </span>arg = <span class="kw">match </span><span class="self">self</span>.try_get_arg(arg)<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(arg) =&gt; <a href="#1339">arg</a>,
+        arg: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="matched_arg.rs.html#16">MatchedArg</a>&gt;, <a href="../error.rs.html#5">MatchesError</a>&gt; {
+        <span class="kw">let </span>arg = <span class="kw">match </span><a class="macro" href="../../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.try_get_arg(arg)) {
+            <span class="prelude-val">Some</span>(arg) =&gt; <a href="#1048">arg</a>,
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
         };
-        <span class="self">self</span>.verify_arg_t::&lt;T&gt;(arg)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#1338">arg</a>))
+        <a class="macro" href="../../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.verify_arg_t::&lt;T&gt;(arg));
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#1047">arg</a>))
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>try_remove_arg_t&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        arg: <span class="kw-2">&amp;</span><a href="../../util/id.rs.html#11">Id</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="matched_arg.rs.html#16">MatchedArg</a>&gt;, <a href="../error.rs.html#7">MatchesError</a>&gt; {
-        <span class="self">self</span>.verify_arg(arg)<span class="question-mark">?</span>;
-        <span class="kw">let </span>matched = <span class="kw">match </span><a class="self" href="#1350">self</a>.args.remove(<a href="#1351">arg</a>) {
-            <span class="prelude-val">Some</span>(matched) =&gt; <a href="#1355">matched</a>,
+        arg: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<a href="matched_arg.rs.html#16">MatchedArg</a>&gt;, <a href="../error.rs.html#5">MatchesError</a>&gt; {
+        <a class="macro" href="../../macros.rs.html#665-674">ok!</a>(<span class="self">self</span>.verify_arg(arg));
+        <span class="kw">let </span>(id, matched) = <span class="kw">match </span><a class="self" href="#1059">self</a>.args.<a href="../../util/flat_map.rs.html#63-66">remove_entry</a>(<a href="#1060">arg</a>) {
+            <span class="prelude-val">Some</span>((id, matched)) =&gt; (<a href="#1064">id</a>, <a href="#1064">matched</a>),
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
         };
 
         <span class="kw">let </span>expected = AnyValueId::of::&lt;T&gt;();
-        <span class="kw">let </span>actual = <a href="#1354">matched</a>.<a href="matched_arg.rs.html#185">infer_type_id</a>(<a href="#1361">expected</a>);
+        <span class="kw">let </span>actual = <a href="#1063">matched</a>.<a href="matched_arg.rs.html#166">infer_type_id</a>(<a href="#1070">expected</a>);
         <span class="kw">if </span>actual == expected {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#1354">matched</a>))
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a href="#1063">matched</a>))
         } <span class="kw">else </span>{
-            <a class="self" href="#1350">self</a>.args.insert(<a href="#1351">arg</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1354">matched</a>);
-            <span class="prelude-val">Err</span>(<a href="../error.rs.html#10">MatchesError::Downcast</a> { <a href="#1362">actual</a>, <a href="#1361">expected</a> })
+            <a class="self" href="#1059">self</a>.args.<a href="../../util/flat_map.rs.html#19">insert</a>(<a href="#1063">id</a>, <a href="#1063">matched</a>);
+            <span class="prelude-val">Err</span>(<a href="../error.rs.html#8">MatchesError::Downcast</a> { <a href="#1071">actual</a>, <a href="#1070">expected</a> })
         }
     }
 
     <span class="kw">fn </span>verify_arg_t&lt;T: <a href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> + <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> + <span class="lifetime">&#39;static</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         arg: <span class="kw-2">&amp;</span><a href="matched_arg.rs.html#16">MatchedArg</a>,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#7">MatchesError</a>&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#5">MatchesError</a>&gt; {
         <span class="kw">let </span>expected = AnyValueId::of::&lt;T&gt;();
-        <span class="kw">let </span>actual = <a href="#1373">arg</a>.<a href="matched_arg.rs.html#185">infer_type_id</a>(<a href="#1375">expected</a>);
+        <span class="kw">let </span>actual = <a href="#1082">arg</a>.<a href="matched_arg.rs.html#166">infer_type_id</a>(<a href="#1084">expected</a>);
         <span class="kw">if </span>expected == actual {
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<a href="../error.rs.html#10">MatchesError::Downcast</a> { <a href="#1376">actual</a>, <a href="#1375">expected</a> })
+            <span class="prelude-val">Err</span>(<a href="../error.rs.html#8">MatchesError::Downcast</a> { <a href="#1085">actual</a>, <a href="#1084">expected</a> })
         }
     }
 
     <span class="attribute">#[inline]
-    </span><span class="kw">fn </span>verify_arg(<span class="kw-2">&amp;</span><span class="self">self</span>, _arg: <span class="kw-2">&amp;</span><a href="../../util/id.rs.html#11">Id</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#7">MatchesError</a>&gt; {
+    </span><span class="kw">fn </span>verify_arg(<span class="kw-2">&amp;</span><span class="self">self</span>, _arg: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="../error.rs.html#5">MatchesError</a>&gt; {
         <span class="attribute">#[cfg(debug_assertions)]
         </span>{
-            <span class="kw">if </span><span class="self">self</span>.disable_asserts || <span class="kw-2">*</span>_arg == Id::empty_hash() || <span class="self">self</span>.valid_args.contains(_arg) {
-            } <span class="kw">else if </span><span class="self">self</span>.valid_subcommands.contains(_arg) {
-                <span class="macro">debug!</span>(
-                    <span class="string">&quot;Subcommand `{:?}` used where an argument or group name was expected.&quot;</span>,
-                    _arg
-                );
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../error.rs.html#18">MatchesError::UnknownArgument</a> {});
+            <span class="kw">if </span>_arg == Id::EXTERNAL || <span class="self">self</span>.valid_args.iter().any(|s| <span class="kw-2">*</span>s == _arg) {
             } <span class="kw">else </span>{
                 <span class="macro">debug!</span>(
                     <span class="string">&quot;`{:?}` is not an id of an argument or a group.\n\
@@ -3381,7 +2671,7 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
                      and not the name of short or long flags.&quot;</span>,
                     _arg
                 );
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../error.rs.html#18">MatchesError::UnknownArgument</a> {});
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../error.rs.html#16">MatchesError::UnknownArgument</a> {});
             }
         }
         <span class="prelude-val">Ok</span>(())
@@ -3389,15 +2679,10 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
 
     <span class="attribute">#[inline]
     #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">fn </span>get_arg(<span class="kw-2">&amp;</span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span><a href="../../util/id.rs.html#11">Id</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="matched_arg.rs.html#16">MatchedArg</a>&gt; {
+    </span><span class="kw">fn </span>get_arg&lt;<span class="lifetime">&#39;s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="self">self</span>, arg: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><a href="matched_arg.rs.html#16">MatchedArg</a>&gt; {
         <span class="attribute">#[cfg(debug_assertions)]
         </span>{
-            <span class="kw">if </span><span class="self">self</span>.disable_asserts || <span class="kw-2">*</span>arg == Id::empty_hash() || <span class="self">self</span>.valid_args.contains(arg) {
-            } <span class="kw">else if </span><span class="self">self</span>.valid_subcommands.contains(arg) {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
-                    <span class="string">&quot;Subcommand `{:?}` used where an argument or group name was expected.&quot;</span>,
-                    arg
-                );
+            <span class="kw">if </span>arg == Id::EXTERNAL || <span class="self">self</span>.valid_args.iter().any(|s| <span class="kw-2">*</span>s == arg) {
             } <span class="kw">else </span>{
                 <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
                     <span class="string">&quot;`{:?}` is not an id of an argument or a group.\n\
@@ -3408,31 +2693,23 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
             }
         }
 
-        <a class="self" href="#1410">self</a>.args.get(<a href="#1410">arg</a>)
+        <a class="self" href="#1113">self</a>.args.<a href="../../util/flat_map.rs.html#91-94">get</a>(<a href="#1113">arg</a>)
     }
 
     <span class="attribute">#[inline]
     #[cfg_attr(debug_assertions, track_caller)]
-    </span><span class="kw">fn </span>get_subcommand(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="kw-2">&amp;</span><a href="../../util/id.rs.html#11">Id</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#1462">SubCommand</a>&gt; {
+    </span><span class="kw">fn </span>get_subcommand(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#1152">SubCommand</a>&gt; {
         <span class="attribute">#[cfg(debug_assertions)]
         </span>{
-            <span class="kw">if </span><span class="self">self</span>.disable_asserts
-                || <span class="kw-2">*</span>id == Id::empty_hash()
-                || <span class="self">self</span>.valid_subcommands.contains(id)
-            {
-            } <span class="kw">else if </span><span class="self">self</span>.valid_args.contains(id) {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
-                    <span class="string">&quot;Argument or group `{:?}` used where a subcommand name was expected.&quot;</span>,
-                    id
-                );
+            <span class="kw">if </span>name.is_empty() || <span class="self">self</span>.valid_subcommands.iter().any(|s| <span class="kw-2">*</span>s == name) {
             } <span class="kw">else </span>{
-                <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;`{:?}` is not a name of a subcommand.&quot;</span>, id);
+                <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;`{}` is not a name of a subcommand.&quot;</span>, name);
             }
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>sc) = <a class="self" href="#1434">self</a>.subcommand {
-            <span class="kw">if </span>sc.id == <span class="kw-2">*</span>id {
-                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#1451">sc</a>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>sc) = <a class="self" href="#1132">self</a>.subcommand {
+            <span class="kw">if </span>sc.name == name {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#1141">sc</a>);
             }
         }
 
@@ -3442,10 +2719,53 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
 
 <span class="attribute">#[derive(Debug, Clone, PartialEq, Eq)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SubCommand {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) id: <a href="../../util/id.rs.html#11">Id</a>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) matches: <a href="#68">ArgMatches</a>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) matches: <a href="#66">ArgMatches</a>,
 }
+
+<span class="doccomment">/// Iterate over [`Arg`][crate::Arg] and [`ArgGroup`][crate::ArgGroup] [`Id`][crate::Id]s via [`ArgMatches::ids`].
+///
+/// # Examples
+///
+/// ```
+/// # use clap::{Command, arg, value_parser};
+///
+/// let m = Command::new(&quot;myprog&quot;)
+///     .arg(arg!(--color &lt;when&gt;)
+///         .value_parser([&quot;auto&quot;, &quot;always&quot;, &quot;never&quot;]))
+///     .arg(arg!(--config &lt;path&gt;)
+///         .value_parser(value_parser!(std::path::PathBuf)))
+///     .get_matches_from([&quot;myprog&quot;, &quot;--config=config.toml&quot;, &quot;--color=auto&quot;]);
+/// assert_eq!(
+///     m.ids()
+///         .map(|id| id.as_str())
+///         .collect::&lt;Vec&lt;_&gt;&gt;(),
+///     [&quot;config&quot;, &quot;color&quot;]
+/// );
+/// ```
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>IdsRef&lt;<span class="lifetime">&#39;a</span>&gt; {
+    iter: std::slice::Iter&lt;<span class="lifetime">&#39;a</span>, <a href="../../util/id.rs.html#9">Id</a>&gt;,
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>IdsRef&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../util/id.rs.html#9">Id</a>;
+
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../util/id.rs.html#9">Id</a>&gt; {
+        <a class="self" href="#1185">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+    }
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
+        <a class="self" href="#1188">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>()
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>IdsRef&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="../../util/id.rs.html#9">Id</a>&gt; {
+        <a class="self" href="#1194">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>IdsRef&lt;<span class="lifetime">&#39;a</span>&gt; {}
 
 <span class="doccomment">/// Iterate over multiple values for an argument via [`ArgMatches::remove_many`].
 ///
@@ -3456,8 +2776,7 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
 /// let mut m = Command::new(&quot;myapp&quot;)
 ///     .arg(Arg::new(&quot;output&quot;)
 ///         .short(&#39;o&#39;)
-///         .action(ArgAction::Append)
-///         .takes_value(true))
+///         .action(ArgAction::Append))
 ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-o&quot;, &quot;val1&quot;, &quot;-o&quot;, &quot;val2&quot;]);
 ///
 /// let mut values = m.remove_many::&lt;String&gt;(&quot;output&quot;)
@@ -3468,37 +2787,37 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
 /// assert_eq!(values.next(), None);
 /// ```
 </span><span class="attribute">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>Values2&lt;T&gt; {
+</span><span class="kw">pub struct </span>Values&lt;T&gt; {
     <span class="attribute">#[allow(clippy::type_complexity)]
     </span>iter: Map&lt;Flatten&lt;std::vec::IntoIter&lt;Vec&lt;<a href="any_value.rs.html#2">AnyValue</a>&gt;&gt;&gt;, <span class="kw">fn</span>(<a href="any_value.rs.html#2">AnyValue</a>) -&gt; T&gt;,
     len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Values2&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Values&lt;T&gt; {
     <span class="kw">type </span>Item = T;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="#1498">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <a class="self" href="#1230">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
     }
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<a class="self" href="#1501">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1501">self</a>.len))
+        (<a class="self" href="#1233">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1233">self</a>.len))
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Values2&lt;T&gt; {
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Values&lt;T&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="#1507">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
+        <a class="self" href="#1239">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>Values2&lt;T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>Values&lt;T&gt; {}
 
 <span class="doccomment">/// Creates an empty iterator.
-</span><span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>Values2&lt;T&gt; {
+</span><span class="kw">impl</span>&lt;T&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>Values&lt;T&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>empty: Vec&lt;Vec&lt;<a href="any_value.rs.html#2">AnyValue</a>&gt;&gt; = <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>();
-        <a href="#1489">Values2</a> {
-            iter: <a href="#1517">empty</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()),
+        <a href="#1221">Values</a> {
+            iter: <a href="#1249">empty</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()),
             len: <span class="number">0</span>,
         }
     }
@@ -3513,8 +2832,7 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
 /// let m = Command::new(&quot;myapp&quot;)
 ///     .arg(Arg::new(&quot;output&quot;)
 ///         .short(&#39;o&#39;)
-///         .action(ArgAction::Append)
-///         .takes_value(true))
+///         .action(ArgAction::Append))
 ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-o&quot;, &quot;val1&quot;, &quot;-o&quot;, &quot;val2&quot;]);
 ///
 /// let mut values = m.get_many::&lt;String&gt;(&quot;output&quot;)
@@ -3536,16 +2854,16 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="#1556">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <a class="self" href="#1287">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
     }
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<a class="self" href="#1559">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1559">self</a>.len))
+        (<a class="self" href="#1290">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1290">self</a>.len))
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>ValuesRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="#1565">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
+        <a class="self" href="#1296">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
     }
 }
 
@@ -3555,8 +2873,8 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>ValuesRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">static </span>EMPTY: [Vec&lt;<a href="any_value.rs.html#2">AnyValue</a>&gt;; <span class="number">0</span>] = [];
-        <a href="#1547">ValuesRef</a> {
-            iter: <a href="#1575">EMPTY</a>[..].iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()),
+        <a href="#1278">ValuesRef</a> {
+            iter: <a href="#1306">EMPTY</a>[..].iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()),
             len: <span class="number">0</span>,
         }
     }
@@ -3597,16 +2915,16 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; {
-        <a class="self" href="#1617">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <a class="self" href="#1348">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
     }
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<a class="self" href="#1620">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1620">self</a>.len))
+        (<a class="self" href="#1351">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1351">self</a>.len))
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>RawValues&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; {
-        <a class="self" href="#1626">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
+        <a class="self" href="#1357">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
     }
 }
 
@@ -3616,8 +2934,8 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
 </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>RawValues&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">static </span>EMPTY: [Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>&gt;; <span class="number">0</span>] = [];
-        <a href="#1608">RawValues</a> {
-            iter: <a href="#1636">EMPTY</a>[..].iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()),
+        <a href="#1339">RawValues</a> {
+            iter: <a href="#1367">EMPTY</a>[..].iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()),
             len: <span class="number">0</span>,
         }
     }
@@ -3628,53 +2946,7 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
 // commit: be5e1fa3c26e351761b33010ddbdaf5f05dbcc33
 // license: MIT - Copyright (c) 2015 The Rust Project Developers
 
-</span><span class="doccomment">/// Deprecated, replaced with [`ArgMatches::get_many()`]
-</span><span class="attribute">#[cfg_attr(
-    feature = <span class="string">&quot;deprecated&quot;</span>,
-    deprecated(since = <span class="string">&quot;3.2.0&quot;</span>, note = <span class="string">&quot;Replaced with `ArgMatches::get_many()`&quot;</span>)
-)]
-#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>Values&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="attribute">#[allow(clippy::type_complexity)]
-    </span>iter: Map&lt;Flatten&lt;Iter&lt;<span class="lifetime">&#39;a</span>, Vec&lt;<a href="any_value.rs.html#2">AnyValue</a>&gt;&gt;&gt;, <span class="kw">for</span>&lt;<span class="lifetime">&#39;r</span>&gt; <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="any_value.rs.html#2">AnyValue</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;,
-    len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-}
-
-<span class="attribute">#[allow(deprecated)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>Values&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>;
-
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#1665">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-    }
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<a class="self" href="#1668">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1668">self</a>.len))
-    }
-}
-
-<span class="attribute">#[allow(deprecated)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Values&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt; {
-        <a class="self" href="#1675">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
-    }
-}
-
-<span class="attribute">#[allow(deprecated)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>Values&lt;<span class="lifetime">&#39;a</span>&gt; {}
-
-<span class="doccomment">/// Creates an empty iterator.
-</span><span class="attribute">#[allow(deprecated)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>Values&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="kw">static </span>EMPTY: [Vec&lt;<a href="any_value.rs.html#2">AnyValue</a>&gt;; <span class="number">0</span>] = [];
-        <a href="#1655">Values</a> {
-            iter: <a href="#1687">EMPTY</a>[..].iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()),
-            len: <span class="number">0</span>,
-        }
-    }
-}
-
-<span class="attribute">#[derive(Clone)]
+</span><span class="attribute">#[derive(Clone)]
 #[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>GroupedValues&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="attribute">#[allow(clippy::type_complexity)]
@@ -3686,16 +2958,16 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     <span class="kw">type </span>Item = Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="#1706">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <a class="self" href="#1391">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
     }
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<a class="self" href="#1709">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1709">self</a>.len))
+        (<a class="self" href="#1394">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1394">self</a>.len))
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <a class="self" href="#1715">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
+        <a class="self" href="#1400">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
     }
 }
 
@@ -3704,56 +2976,9 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
 <span class="doccomment">/// Creates an empty iterator. Used for `unwrap_or_default()`.
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>GroupedValues&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="attribute">#![allow(deprecated)]
-        </span><span class="kw">static </span>EMPTY: [Vec&lt;<a href="any_value.rs.html#2">AnyValue</a>&gt;; <span class="number">0</span>] = [];
-        <a href="#1697">GroupedValues</a> {
-            iter: <a href="#1726">EMPTY</a>[..].iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()),
-            len: <span class="number">0</span>,
-        }
-    }
-}
-
-<span class="doccomment">/// Deprecated, replaced with [`ArgMatches::get_many()`]
-</span><span class="attribute">#[cfg_attr(
-    feature = <span class="string">&quot;deprecated&quot;</span>,
-    deprecated(since = <span class="string">&quot;3.2.0&quot;</span>, note = <span class="string">&quot;Replaced with `ArgMatches::get_many()`&quot;</span>)
-)]
-#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>OsValues&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="attribute">#[allow(clippy::type_complexity)]
-    </span>iter: Map&lt;Flatten&lt;Iter&lt;<span class="lifetime">&#39;a</span>, Vec&lt;<a href="any_value.rs.html#2">AnyValue</a>&gt;&gt;&gt;, <span class="kw">fn</span>(<span class="kw-2">&amp;</span><a href="any_value.rs.html#2">AnyValue</a>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt;,
-    len: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-}
-
-<span class="attribute">#[allow(deprecated)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for </span>OsValues&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>;
-
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; {
-        <a class="self" href="#1750">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
-    }
-    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<a class="self" href="#1753">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1753">self</a>.len))
-    }
-}
-
-<span class="attribute">#[allow(deprecated)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>OsValues&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>&gt; {
-        <a class="self" href="#1760">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
-    }
-}
-
-<span class="attribute">#[allow(deprecated)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/exact_size/trait.ExactSizeIterator.html">ExactSizeIterator</a> <span class="kw">for </span>OsValues&lt;<span class="lifetime">&#39;a</span>&gt; {}
-
-<span class="doccomment">/// Creates an empty iterator.
-</span><span class="attribute">#[allow(deprecated)]
-</span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span>OsValues&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">static </span>EMPTY: [Vec&lt;<a href="any_value.rs.html#2">AnyValue</a>&gt;; <span class="number">0</span>] = [];
-        <a href="#1740">OsValues</a> {
-            iter: <a href="#1772">EMPTY</a>[..].iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()),
+        <a href="#1382">GroupedValues</a> {
+            iter: <a href="#1410">EMPTY</a>[..].iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw">_</span>| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()),
             len: <span class="number">0</span>,
         }
     }
@@ -3764,12 +2989,12 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
 /// # Examples
 ///
 /// ```rust
-/// # use clap::{Command, Arg};
+/// # use clap::{Command, Arg, ArgAction};
 /// let m = Command::new(&quot;myapp&quot;)
 ///     .arg(Arg::new(&quot;output&quot;)
 ///         .short(&#39;o&#39;)
-///         .multiple_values(true)
-///         .takes_value(true))
+///         .num_args(1..)
+///         .action(ArgAction::Set))
 ///     .get_matches_from(vec![&quot;myapp&quot;, &quot;-o&quot;, &quot;val1&quot;, &quot;val2&quot;]);
 ///
 /// let mut indices = m.indices_of(&quot;output&quot;).unwrap();
@@ -3789,16 +3014,16 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     <span class="kw">type </span>Item = <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#1809">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+        <a class="self" href="#1447">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
     }
     <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt;) {
-        (<a class="self" href="#1812">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1812">self</a>.len))
+        (<a class="self" href="#1450">self</a>.len, <span class="prelude-val">Some</span>(<a class="self" href="#1450">self</a>.len))
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">DoubleEndedIterator</a> <span class="kw">for </span>Indices&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>next_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-        <a class="self" href="#1818">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
+        <a class="self" href="#1456">self</a>.iter.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/double_ended/trait.DoubleEndedIterator.html">next_back</a>()
     }
 }
 
@@ -3809,59 +3034,21 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="kw">static </span>EMPTY: [<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>; <span class="number">0</span>] = [];
         <span class="comment">// This is never called because the iterator is empty:
-        </span><a href="#1801">Indices</a> {
-            iter: <a href="#1828">EMPTY</a>[..].iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>(),
+        </span><a href="#1439">Indices</a> {
+            iter: <a href="#1466">EMPTY</a>[..].iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>(),
             len: <span class="number">0</span>,
         }
     }
 }
 
-<span class="attribute">#[cfg_attr(debug_assertions, track_caller)]
+<span class="attribute">#[cfg(feature = <span class="string">&quot;unstable-grouped&quot;</span>)]
+#[cfg_attr(debug_assertions, track_caller)]
 #[inline]
-</span><span class="kw">fn </span>unwrap_string(value: <span class="kw-2">&amp;</span><a href="any_value.rs.html#2">AnyValue</a>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">match </span><a href="#1839">value</a>.<a href="any_value.rs.html#16-18">downcast_ref</a>::&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;() {
-        <span class="prelude-val">Some</span>(value) =&gt; <a href="#1841">value</a>,
+</span><span class="kw">fn </span>unwrap_string(value: <span class="kw-2">&amp;</span>AnyValue) -&gt; <span class="kw-2">&amp;</span>str {
+    <span class="kw">match </span>value.downcast_ref::&lt;String&gt;() {
+        <span class="prelude-val">Some</span>(value) =&gt; value,
         <span class="prelude-val">None </span>=&gt; {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Must use `_os` lookups with `Arg::allow_invalid_utf8`&quot;</span>,)
-        }
-    }
-}
-
-<span class="attribute">#[cfg_attr(debug_assertions, track_caller)]
-#[inline]
-</span><span class="kw">fn </span>unwrap_string_arg&lt;<span class="lifetime">&#39;v</span>&gt;(id: <span class="kw-2">&amp;</span><a href="../../util/id.rs.html#11">Id</a>, value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><a href="any_value.rs.html#2">AnyValue</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-    <span class="kw">match </span><a href="#1850">value</a>.<a href="any_value.rs.html#16-18">downcast_ref</a>::&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;() {
-        <span class="prelude-val">Some</span>(value) =&gt; <a href="#1852">value</a>,
-        <span class="prelude-val">None </span>=&gt; {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
-                <span class="string">&quot;Must use `_os` lookups with `Arg::allow_invalid_utf8` at `{:?}`&quot;</span>,
-                id
-            )
-        }
-    }
-}
-
-<span class="attribute">#[cfg_attr(debug_assertions, track_caller)]
-#[inline]
-</span><span class="kw">fn </span>unwrap_os_string(value: <span class="kw-2">&amp;</span><a href="any_value.rs.html#2">AnyValue</a>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a> {
-    <span class="kw">match </span><a href="#1864">value</a>.<a href="any_value.rs.html#16-18">downcast_ref</a>::&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>&gt;() {
-        <span class="prelude-val">Some</span>(value) =&gt; <a href="#1866">value</a>,
-        <span class="prelude-val">None </span>=&gt; {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Must use `Arg::allow_invalid_utf8` with `_os` lookups&quot;</span>,)
-        }
-    }
-}
-
-<span class="attribute">#[cfg_attr(debug_assertions, track_caller)]
-#[inline]
-</span><span class="kw">fn </span>unwrap_os_string_arg&lt;<span class="lifetime">&#39;v</span>&gt;(id: <span class="kw-2">&amp;</span><a href="../../util/id.rs.html#11">Id</a>, value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><a href="any_value.rs.html#2">AnyValue</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a> {
-    <span class="kw">match </span><a href="#1875">value</a>.<a href="any_value.rs.html#16-18">downcast_ref</a>::&lt;<a href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>&gt;() {
-        <span class="prelude-val">Some</span>(value) =&gt; <a href="#1877">value</a>,
-        <span class="prelude-val">None </span>=&gt; {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
-                <span class="string">&quot;Must use `Arg::allow_invalid_utf8` with `_os` lookups at `{:?}`&quot;</span>,
-                id
-            )
+            <span class="macro">panic!</span>(<span class="string">&quot;Must use `_os` lookups with `Arg::allow_invalid_utf8`&quot;</span>,)
         }
     }
 }
@@ -3870,23 +3057,11 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
+    <span class="kw">use </span><span class="kw">crate</span>::ArgAction;
+
     <span class="attribute">#[test]
     </span><span class="kw">fn </span>check_auto_traits() {
         <span class="macro">static_assertions::assert_impl_all!</span>(ArgMatches: Send, Sync, Unpin);
-    }
-
-    <span class="attribute">#[test]
-    </span><span class="kw">fn </span>test_default_values() {
-        <span class="attribute">#![allow(deprecated)]
-        </span><span class="kw">let </span><span class="kw-2">mut </span>values: Values = Values::default();
-        <span class="macro">assert_eq!</span>(values.next(), <span class="prelude-val">None</span>);
-    }
-
-    <span class="attribute">#[test]
-    </span><span class="kw">fn </span>test_default_osvalues() {
-        <span class="attribute">#![allow(deprecated)]
-        </span><span class="kw">let </span><span class="kw-2">mut </span>values: OsValues = OsValues::default();
-        <span class="macro">assert_eq!</span>(values.next(), <span class="prelude-val">None</span>);
     }
 
     <span class="attribute">#[test]
@@ -3913,8 +3088,8 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
         <span class="kw">let </span>l = <span class="kw">crate</span>::Command::new(<span class="string">&quot;test&quot;</span>)
             .arg(
                 <span class="kw">crate</span>::Arg::new(<span class="string">&quot;POTATO&quot;</span>)
-                    .takes_value(<span class="bool-val">true</span>)
-                    .multiple_values(<span class="bool-val">true</span>)
+                    .action(ArgAction::Set)
+                    .num_args(<span class="number">1</span>..)
                     .required(<span class="bool-val">true</span>),
             )
             .try_get_matches_from([<span class="string">&quot;test&quot;</span>, <span class="string">&quot;one&quot;</span>])
@@ -3930,8 +3105,8 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
         <span class="kw">let </span>l = <span class="kw">crate</span>::Command::new(<span class="string">&quot;test&quot;</span>)
             .arg(
                 <span class="kw">crate</span>::Arg::new(<span class="string">&quot;POTATO&quot;</span>)
-                    .takes_value(<span class="bool-val">true</span>)
-                    .multiple_values(<span class="bool-val">true</span>)
+                    .action(ArgAction::Set)
+                    .num_args(<span class="number">1</span>..)
                     .value_parser(<span class="kw">crate</span>::builder::ValueParser::os_string())
                     .required(<span class="bool-val">true</span>),
             )
@@ -3948,8 +3123,8 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
         <span class="kw">let </span>l = <span class="kw">crate</span>::Command::new(<span class="string">&quot;test&quot;</span>)
             .arg(
                 <span class="kw">crate</span>::Arg::new(<span class="string">&quot;POTATO&quot;</span>)
-                    .takes_value(<span class="bool-val">true</span>)
-                    .multiple_values(<span class="bool-val">true</span>)
+                    .action(ArgAction::Set)
+                    .num_args(<span class="number">1</span>..)
                     .required(<span class="bool-val">true</span>),
             )
             .try_get_matches_from([<span class="string">&quot;test&quot;</span>, <span class="string">&quot;one&quot;</span>])
@@ -3961,4 +3136,4 @@ if let Ok(value) = matches.try_get_one::&lt;T&gt;(...) {
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (bf15a9e52 2022-10-14)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (95a3a7277 2022-10-31)" ></div></body></html>
