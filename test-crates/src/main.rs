@@ -20,6 +20,9 @@ use clap::Parser;
 /// `skip_unsupported_features=true`.
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
 enum TestKind {
+    /// Test that Prusti does not crash nor generate "internal/invalid" when the
+    /// `allow_unreachable_unsupported_code` flag is set.
+    NoErrorsWithUnreachableUnsupportedCode,
     /// Test that Prusti does not crash nor generate "internal/invalid" errors.
     NoErrors,
     /// Test that Prusti does not crash nor generate "invalid" errors.
@@ -323,6 +326,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                         // Do not report errors for unsupported language features
                         .env("PRUSTI_SKIP_UNSUPPORTED_FEATURES", "true");
                     match test_kind {
+                        TestKind::NoErrorsWithUnreachableUnsupportedCode => {
+                            command = command.env("PRUSTI_ALLOW_UNREACHABLE_UNSUPPORTED_CODE", "true");
+                        }
                         TestKind::NoErrors => {},
                         TestKind::NoCrash => {
                             // Report internal errors as warnings
