@@ -190,13 +190,17 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Str => vir::Type::Str,
 
             ty::TyKind::Array(elem_ty, size) => {
-                let (array_len, tail): (_, &[vir::Expression]) = if let Some((array_len, tail)) = const_arguments.split_first() {
-                    (array_len.clone(), tail)
-                } else {
-                    let array_len: usize = self.compute_array_len(*size)
-                        .with_span(self.get_definition_span())?.try_into().unwrap();
-                    (array_len.into(), &[])
-                };
+                let (array_len, tail): (_, &[vir::Expression]) =
+                    if let Some((array_len, tail)) = const_arguments.split_first() {
+                        (array_len.clone(), tail)
+                    } else {
+                        let array_len: usize = self
+                            .compute_array_len(*size)
+                            .with_span(self.get_definition_span())?
+                            .try_into()
+                            .unwrap();
+                        (array_len.into(), &[])
+                    };
                 let lifetimes = self.encoder.get_lifetimes_from_type_high(*elem_ty)?;
                 vir::Type::array(
                     vir::ty::ConstGenericArgument::new(Some(Box::new(array_len))),
