@@ -1991,7 +1991,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     used_lhs_label = true;
                     stmts.extend(self.encode_transfer_permissions(
                         expiring.clone().old(in_label),
-                        expiring.clone().old(&lhs_label),
+                        expiring.clone().old(lhs_label.clone()),
                         loan_location,
                         is_in_package_stmt,
                     ));
