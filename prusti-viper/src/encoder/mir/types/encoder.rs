@@ -6,7 +6,7 @@
 
 use super::{helpers::compute_discriminant_values, interface::MirTypeEncoderInterface};
 use crate::encoder::{
-    errors::{SpannedEncodingError, SpannedEncodingResult},
+    errors::{EncodingResult, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
         constants::ConstantsEncoderInterface, generics::MirGenericsEncoderInterface,
         specifications::SpecificationsInterface, types::helpers::compute_discriminant_ranges,
@@ -58,7 +58,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    fn compute_array_len(&self, size: ty::Const<'tcx>) -> u64 {
+    fn compute_array_len(&self, size: ty::Const<'tcx>) -> EncodingResult<u64> {
         self.encoder.compute_array_len(size)
     }
 
@@ -190,13 +190,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Str => vir::Type::Str,
 
             ty::TyKind::Array(elem_ty, size) => {
-                let (array_len, tail) = const_arguments
-                    .split_first()
-                    .map(|(array_len, tail)| (array_len.clone(), tail))
-                    .unwrap_or_else(|| {
-                        let array_len: usize = self.compute_array_len(*size).try_into().unwrap();
-                        (array_len.into(), &[])
-                    });
+                let (array_len, tail): (_, &[vir::Expression]) = if let Some((array_len, tail)) = const_arguments.split_first() {
+                    (array_len.clone(), tail)
+                } else {
+                    let array_len: usize = self.compute_array_len(*size)
+                        .with_span(self.get_definition_span())?.try_into().unwrap();
+                    (array_len.into(), &[])
+                };
                 let lifetimes = self.encoder.get_lifetimes_from_type_high(*elem_ty)?;
                 vir::Type::array(
                     vir::ty::ConstGenericArgument::new(Some(Box::new(array_len))),

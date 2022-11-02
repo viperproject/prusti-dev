@@ -649,13 +649,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_target: vir_crate::high::Expression,
         source: &mir::Rvalue<'tcx>,
     ) -> SpannedEncodingResult<()> {
+        let span = self.encoder.get_mir_location_span(self.mir, location);
         match source {
             mir::Rvalue::Use(operand) => {
                 self.encode_assign_operand(block_builder, location, encoded_target, operand)?;
             }
             mir::Rvalue::Repeat(operand, count) => {
                 let encoded_operand = self.encode_statement_operand(location, operand)?;
-                let encoded_count = self.encoder.compute_array_len(*count);
+                let encoded_count = self.encoder.compute_array_len(*count).with_span(span)?;
                 let encoded_rvalue = vir_high::Rvalue::repeat(encoded_operand, encoded_count);
                 let assign_statement = vir_high::Statement::assign(
                     encoded_target,
