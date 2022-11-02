@@ -81,6 +81,11 @@
 <span id="81">81</span>
 <span id="82">82</span>
 <span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A module that invokes the verifier `prusti-viper`
 
 </span><span class="kw">use </span>log::{<a href="../../log/macro.debug.html">debug</a>, <a href="../../log/macro.trace.html">trace</a>, <a href="../../log/macro.warn.html">warn</a>};
@@ -157,7 +162,12 @@
             }
             VerificationResult::Failure =&gt; {
                 user::message(<span class="string">&quot;Verification failed&quot;</span>);
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(env.diagnostic.has_errors() || config::internal_errors_as_warnings());
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+                    env.diagnostic.has_errors()
+                        || config::internal_errors_as_warnings()
+                        || (config::skip_unsupported_features()
+                            &amp;&amp; config::allow_unreachable_unsupported_code())
+                );
             }
         };
     }

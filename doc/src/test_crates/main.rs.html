@@ -380,6 +380,12 @@
 <span id="380">380</span>
 <span id="381">381</span>
 <span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -402,6 +408,9 @@
 /// `skip_unsupported_features=true`.
 </span><span class="attribute">#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
 </span><span class="kw">enum </span>TestKind {
+    <span class="doccomment">/// Test that Prusti does not crash nor generate &quot;internal/invalid&quot; when the
+    /// `allow_unreachable_unsupported_code` flag is set.
+    </span>NoErrorsWithUnreachableUnsupportedCode,
     <span class="doccomment">/// Test that Prusti does not crash nor generate &quot;internal/invalid&quot; errors.
     </span>NoErrors,
     <span class="doccomment">/// Test that Prusti does not crash nor generate &quot;invalid&quot; errors.
@@ -419,11 +428,11 @@
 
 <span class="kw">fn </span>setup_logs() {
     <span class="kw">let </span><span class="kw-2">mut </span>env = env_logger::Builder::new();
-    <a href="#39">env</a>.filter_module(<span class="string">&quot;test_crates&quot;</span>, log::LevelFilter::Info);
+    <a href="#42">env</a>.filter_module(<span class="string">&quot;test_crates&quot;</span>, log::LevelFilter::Info);
     <span class="kw">if let </span><span class="prelude-val">Ok</span>(content) = std::env::var(<span class="string">&quot;TEST_CRATES_LOG&quot;</span>) {
-        <a href="#39">env</a>.parse_filters(<span class="kw-2">&amp;</span><a href="#41">content</a>);
+        <a href="#42">env</a>.parse_filters(<span class="kw-2">&amp;</span><a href="#44">content</a>);
     }
-    rustwide::logging::init_with(<a href="#39">env</a>.build());
+    rustwide::logging::init_with(<a href="#42">env</a>.build());
 }
 
 <span class="kw">struct </span>CargoPrusti {
@@ -433,27 +442,27 @@
     java_home: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../rustwide/cmd/trait.Runnable.html">cmd::Runnable</a> <span class="kw">for </span><a href="#47">CargoPrusti</a> {
+<span class="kw">impl </span><a href="../../rustwide/cmd/trait.Runnable.html">cmd::Runnable</a> <span class="kw">for </span><a href="#50">CargoPrusti</a> {
     <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../rustwide/cmd/enum.Binary.html">cmd::Binary</a> {
-        cmd::Binary::Global(<a class="self" href="#55">self</a>.prusti_home.join(<span class="string">&quot;cargo-prusti&quot;</span>))
+        cmd::Binary::Global(<a class="self" href="#58">self</a>.prusti_home.join(<span class="string">&quot;cargo-prusti&quot;</span>))
     }
 
     <span class="kw">fn </span>prepare_command&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;pl</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, cmd: cmd::Command&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;pl</span>&gt;) -&gt; cmd::Command&lt;<span class="lifetime">&#39;w</span>, <span class="lifetime">&#39;pl</span>&gt; {
-        <span class="kw">let </span>java_home = <span class="self"><a href="#59">self</a>
+        <span class="kw">let </span>java_home = <span class="self"><a href="#62">self</a>
             </span>.java_home
             .as_ref()
-            .map(|p| <a href="#63">p</a>.to_str().unwrap())
+            .map(|p| <a href="#66">p</a>.to_str().unwrap())
             .unwrap_or(<span class="string">&quot;/usr/lib/jvm/default-java&quot;</span>);
-        <a href="#59">cmd</a>.env(<span class="string">&quot;VIPER_HOME&quot;</span>, <a class="self" href="#59">self</a>.viper_home.to_str().unwrap())
-            .env(<span class="string">&quot;Z3_EXE&quot;</span>, <a class="self" href="#59">self</a>.z3_exe.join(<span class="string">&quot;z3&quot;</span>).to_str().unwrap())
-            .env(<span class="string">&quot;JAVA_HOME&quot;</span>, <a href="#60">java_home</a>)
+        <a href="#62">cmd</a>.env(<span class="string">&quot;VIPER_HOME&quot;</span>, <a class="self" href="#62">self</a>.viper_home.to_str().unwrap())
+            .env(<span class="string">&quot;Z3_EXE&quot;</span>, <a class="self" href="#62">self</a>.z3_exe.join(<span class="string">&quot;z3&quot;</span>).to_str().unwrap())
+            .env(<span class="string">&quot;JAVA_HOME&quot;</span>, <a href="#63">java_home</a>)
             .env(<span class="string">&quot;PRUSTI_CARGO_PATH&quot;</span>, <span class="string">&quot;/opt/rustwide/cargo-home/bin/cargo&quot;</span>)
     }
 }
 
 <span class="attribute">#[derive(Deserialize)]
 </span><span class="kw">struct </span>RustToolchainFile {
-    toolchain: <a href="#78">RustToolchain</a>,
+    toolchain: <a href="#81">RustToolchain</a>,
 }
 
 <span class="attribute">#[derive(Deserialize)]
@@ -462,11 +471,11 @@
     components: <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;,
 }
 
-<span class="kw">fn </span>get_rust_toolchain() -&gt; <a href="#78">RustToolchain</a> {
+<span class="kw">fn </span>get_rust_toolchain() -&gt; <a href="#81">RustToolchain</a> {
     <span class="kw">let </span>content = <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.include_str.html">include_str!</a>(<span class="string">&quot;../../rust-toolchain&quot;</span>);
-    <span class="kw">let </span>rust_toolchain: <a href="#73">RustToolchainFile</a> =
-        toml::from_str(<a href="#84">content</a>).expect(<span class="string">&quot;failed to parse rust-toolchain file&quot;</span>);
-    <a href="#85">rust_toolchain</a>.toolchain
+    <span class="kw">let </span>rust_toolchain: <a href="#76">RustToolchainFile</a> =
+        toml::from_str(<a href="#87">content</a>).expect(<span class="string">&quot;failed to parse rust-toolchain file&quot;</span>);
+    <a href="#88">rust_toolchain</a>.toolchain
 }
 
 <span class="doccomment">/// Find the Java home directory
@@ -477,8 +486,8 @@
         .output()
         .ok()
         .and_then(|output| {
-            <span class="kw">let </span>stdout = String::from_utf8_lossy(<span class="kw-2">&amp;</span><a href="#97">output</a>.stdout);
-            <span class="kw">let </span>stderr = String::from_utf8_lossy(<span class="kw-2">&amp;</span><a href="#97">output</a>.stderr);
+            <span class="kw">let </span>stdout = String::from_utf8_lossy(<span class="kw-2">&amp;</span><a href="#100">output</a>.stdout);
+            <span class="kw">let </span>stderr = String::from_utf8_lossy(<span class="kw-2">&amp;</span><a href="#100">output</a>.stderr);
             <span class="kw">for </span>line <span class="kw">in </span>stdout.lines().chain(stderr.lines()) {
                 <span class="kw">if </span>line.contains(<span class="string">&quot;java.home&quot;</span>) {
                     <span class="kw">let </span>pos = line.find(<span class="string">&#39;=&#39;</span>).unwrap() + <span class="number">1</span>;
@@ -494,14 +503,14 @@
 </span><span class="kw">pub fn </span>collect_java_policies() -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>&gt; {
     glob::glob(<span class="string">&quot;/etc/java-*&quot;</span>)
         .unwrap()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|result| <a href="#115">result</a>.unwrap())
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|result| <a href="#118">result</a>.unwrap())
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
 }
 
 <span class="doccomment">/// A tool to test Prusti on a variety of public crates.
 </span><span class="attribute">#[derive(Parser, Debug)]
 #[clap(version, about, long_about = <span class="prelude-val">None</span>)]
-</span><span class="kw">struct </span><a href="#122">Args</a> {
+</span><span class="kw">struct </span><a href="#125">Args</a> {
     <span class="doccomment">/// Do not check whether the crates compile successfully without Prusti.
     </span><span class="attribute">#[clap(long)]
     </span>skip_build_check: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -543,7 +552,7 @@
 
 <span class="kw">fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span><a href="https://doc.rust-lang.org/nightly/core/error/trait.Error.html">Error</a>&gt;&gt; {
     color_backtrace::install();
-    <a href="#38">setup_logs</a>();
+    <a href="#41">setup_logs</a>();
 
     <span class="kw">let </span>args = Args::parse();
 
@@ -565,22 +574,22 @@
     <span class="kw">let </span>host_z3_home = Path::new(<span class="string">&quot;viper_tools/z3/bin&quot;</span>);
     <span class="kw">let </span>host_java_home = env::var(<span class="string">&quot;JAVA_HOME&quot;</span>)
         .ok()
-        .map(|s| <a href="#186">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
-        .or_else(<a href="#91">find_java_home</a>)
+        .map(|s| <a href="#189">s</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        .or_else(<a href="#94">find_java_home</a>)
         .expect(<span class="string">&quot;Please set JAVA_HOME&quot;</span>);
-    <span class="kw">let </span>host_java_policies = <a href="#112">collect_java_policies</a>();
+    <span class="kw">let </span>host_java_policies = <a href="#115">collect_java_policies</a>();
     <span class="kw">let </span>guest_prusti_home = Path::new(<span class="string">&quot;/opt/rustwide/prusti-home&quot;</span>);
     <span class="kw">let </span>guest_viper_home = Path::new(<span class="string">&quot;/opt/rustwide/viper-home&quot;</span>);
     <span class="kw">let </span>guest_z3_home = Path::new(<span class="string">&quot;/opt/rustwide/z3-home&quot;</span>);
     <span class="comment">// Map JAVA at exactly the same location on the guest so that symlinks work.
-    </span><span class="kw">let </span>guest_java_home = <a href="#184">host_java_home</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    </span><span class="kw">let </span>guest_java_home = <a href="#187">host_java_home</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
     <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Using host&#39;s Java home {:?}&quot;</span>, host_java_home);
-    <span class="kw">let </span>cargo_prusti = <a href="#47">CargoPrusti</a> {
-        prusti_home: <a href="#190">guest_prusti_home</a>.to_path_buf(),
-        viper_home: <a href="#191">guest_viper_home</a>.to_path_buf(),
-        z3_exe: <a href="#192">guest_z3_home</a>.to_path_buf(),
-        java_home: <span class="prelude-val">Some</span>(<a href="#194">guest_java_home</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+    <span class="kw">let </span>cargo_prusti = <a href="#50">CargoPrusti</a> {
+        prusti_home: <a href="#193">guest_prusti_home</a>.to_path_buf(),
+        viper_home: <a href="#194">guest_viper_home</a>.to_path_buf(),
+        z3_exe: <a href="#195">guest_z3_home</a>.to_path_buf(),
+        java_home: <span class="prelude-val">Some</span>(<a href="#197">guest_java_home</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
     };
 
     <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Crate a new workspace...&quot;</span>);
@@ -589,9 +598,9 @@
     </span><span class="kw">let </span>workspace = WorkspaceBuilder::new(workspace_path, <span class="string">&quot;prusti-test-crates&quot;</span>).init()<span class="question-mark">?</span>;
 
     <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Install the toolchain...&quot;</span>);
-    <span class="kw">let </span>rust_toolchain = <a href="#83">get_rust_toolchain</a>();
+    <span class="kw">let </span>rust_toolchain = <a href="#86">get_rust_toolchain</a>();
     <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;toolchain: {}&quot;</span>, rust_toolchain.channel);
-    <span class="kw">let </span>toolchain = Toolchain::dist(<span class="kw-2">&amp;</span><a href="#210">rust_toolchain</a>.channel);
+    <span class="kw">let </span>toolchain = Toolchain::dist(<span class="kw-2">&amp;</span><a href="#213">rust_toolchain</a>.channel);
     toolchain.install(<span class="kw-2">&amp;</span>workspace)<span class="question-mark">?</span>;
     <span class="kw">for </span>component <span class="kw">in </span>rust_toolchain.components.as_ref().unwrap_or(<span class="kw-2">&amp;</span><span class="macro">vec!</span>[]).iter() {
         <span class="kw">if </span>component != <span class="string">&quot;rustfmt&quot; </span>{
@@ -606,8 +615,8 @@
             .deserialize()
             .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;CrateRecord&gt;, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?
             </span>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|record| <a href="#227">record</a>.name.contains(<span class="kw-2">&amp;</span><a href="#166">args</a>.filter_crate_name))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|record| (Crate::crates_io(<span class="kw-2">&amp;</span><a href="#228">record</a>.name, <span class="kw-2">&amp;</span><a href="#228">record</a>.version), <a href="#228">record</a>.test_kind))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|record| <a href="#230">record</a>.name.contains(<span class="kw-2">&amp;</span><a href="#169">args</a>.filter_crate_name))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|record| (Crate::crates_io(<span class="kw-2">&amp;</span><a href="#231">record</a>.name, <span class="kw-2">&amp;</span><a href="#231">record</a>.version), <a href="#231">record</a>.test_kind))
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
     <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;There are {} crates in total.&quot;</span>, crates_list.len());
 
@@ -618,8 +627,8 @@
     <span class="comment">// List of crates on which Prusti succeed.
     </span><span class="kw">let </span><span class="kw-2">mut </span>successful_crates = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
 
-    <span class="kw">let </span>shard_crates_list: Vec&lt;<span class="kw-2">&amp;</span>(<a href="../../rustwide/crates/struct.Crate.html">Crate</a>, <a href="#22">TestKind</a>)&gt; = <a href="#222">crates_list</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<a href="#166">args</a>.shard_index)
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">step_by</a>(<a href="#166">args</a>.num_shards).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    <span class="kw">let </span>shard_crates_list: Vec&lt;<span class="kw-2">&amp;</span>(<a href="../../rustwide/crates/struct.Crate.html">Crate</a>, <a href="#22">TestKind</a>)&gt; = <a href="#225">crates_list</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<a href="#169">args</a>.shard_index)
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">step_by</a>(<a href="#169">args</a>.num_shards).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
     <a class="macro" href="../../log/macro.info.html">info!</a>(
         <span class="string">&quot;Iterate over the {} crates of the shard {}/{}...&quot;</span>,
         shard_crates_list.len(),
@@ -705,6 +714,9 @@
                         <span class="comment">// Do not report errors for unsupported language features
                         </span>.env(<span class="string">&quot;PRUSTI_SKIP_UNSUPPORTED_FEATURES&quot;</span>, <span class="string">&quot;true&quot;</span>);
                     <span class="kw">match </span>test_kind {
+                        TestKind::NoErrorsWithUnreachableUnsupportedCode =&gt; {
+                            command = command.env(<span class="string">&quot;PRUSTI_ALLOW_UNREACHABLE_UNSUPPORTED_CODE&quot;</span>, <span class="string">&quot;true&quot;</span>);
+                        }
                         TestKind::NoErrors =&gt; {},
                         TestKind::NoCrash =&gt; {
                             <span class="comment">// Report internal errors as warnings
