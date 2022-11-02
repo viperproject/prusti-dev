@@ -1226,8 +1226,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
 
         self.encode_execution_flag(bbi, curr_block)?;
-        self.encode_block_statements(bbi, curr_block)?;
-        let mir_successor: MirSuccessor = self.encode_block_terminator(bbi, curr_block)?;
+        let opt_successor = self.encode_block_statements(bbi, curr_block)?;
+        let mir_successor: MirSuccessor = if let Some(successor) = opt_successor {
+            // In case of unsupported statements, we do not encode the terminator
+            successor
+        } else {
+            self.encode_block_terminator(bbi, curr_block)?
+        };
 
         // Make sure that the
         let mir_targets = mir_successor.targets();
@@ -1289,12 +1294,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
-    /// Encode the statements of the block
+    /// Encode the statements of the block.
+    /// In case of unsupported statements, this function will return `MirSuccessor::Kill`.
     fn encode_block_statements(
         &mut self,
         bbi: BasicBlockIndex,
         cfg_block: CfgBlockIndex,
-    ) -> SpannedEncodingResult<()> {
+    ) -> SpannedEncodingResult<Option<MirSuccessor>> {
         debug_assert!(!self.procedure.is_spec_block(bbi));
         let bb_data = &self.mir.basic_blocks[bbi];
         let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
@@ -1308,13 +1314,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let (stmts, opt_succ) = self.encode_statement_at(location)?;
                 debug_assert!(matches!(opt_succ, None | Some(MirSuccessor::Kill)));
                 self.cfg_method.add_stmts(cfg_block, stmts);
+                if opt_succ.is_some() {
+                    // If the statement is unsupported, we stop encoding the block.
+                    // The fold-unfold would probably fail on the code after the unsupported
+                    // statement.
+                    return Ok(opt_succ);
+                }
             }
             {
                 let stmts = self.encode_expiring_borrows_at(location)?;
                 self.cfg_method.add_stmts(cfg_block, stmts);
             }
         }
-        Ok(())
+        Ok(None)
     }
 
     /// Encode the terminator of the block
