@@ -1617,18 +1617,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     /// Generate an unsupported encoding error for unhandled borrow kinds.
-    fn unsupported_borrow_kind(kind: mir::BorrowKind, span: impl Into<MultiSpan>) -> SpannedEncodingError {
+    fn unsupported_borrow_kind(kind: mir::BorrowKind) -> EncodingError {
         match kind {
             mir::BorrowKind::Unique => {
-                SpannedEncodingError::unsupported(
+                EncodingError::unsupported(
                     "unsuported creation of unique borrows (implicitly created in closure bindings)",
-                    span
                 )
             }
             mir::BorrowKind::Shallow => {
-                SpannedEncodingError::unsupported(
+                EncodingError::unsupported(
                     "unsupported creation of shallow borrows (implicitly created when lowering matches)",
-                    span
                 )
             }
             _ => unreachable!(),
@@ -1710,7 +1708,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let is_mut = match mir_borrow_kind {
                     mir::BorrowKind::Shared => false,
                     mir::BorrowKind::Mut { .. } => true,
-                    _ => return Err(Self::unsupported_borrow_kind(mir_borrow_kind, span)),
+                    _ => return Err(Self::unsupported_borrow_kind(mir_borrow_kind).with_span(span)),
                 };
                 let array_encode_kind = if is_mut { ArrayAccessKind::Mutable(None, location) } else { ArrayAccessKind::Shared };
                 let (expiring, restored, _) = encode(rhs_place, &mut stmts, array_encode_kind)?;
@@ -1750,7 +1748,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     if is_str(expr.ty()) {
                         None
                     } else {
-                        Some(self.encoder.encode_const_expr(expr.ty(), expr.literal).unwrap())
+                        Some(self.encoder.encode_const_expr(expr.ty(), expr.literal).with_span(span)?)
                     };
 
                 (expiring_base, restored, false, stmts)
@@ -6172,7 +6170,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::BorrowKind::Mut { .. } =>
                 (vir::AssignKind::MutableBorrow(loan.index().into()),
                  ArrayAccessKind::Mutable(Some(loan.index().into()), location)),
-            _ => return Err(Self::unsupported_borrow_kind(mir_borrow_kind, span)),
+            _ => return Err(Self::unsupported_borrow_kind(mir_borrow_kind).with_span(span)),
         };
         let (encoded_value, mut stmts, _, _) = self.encode_place(place, array_encode_kind, location)?;
         // Initialize ref_var.ref_field
