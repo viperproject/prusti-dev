@@ -4,14 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_common::vir::{optimizations::optimize_program};
 use prusti_common::{
     config, report::log, Stopwatch, vir::program::Program,
 };
 use vir_crate::common::check_mode::CheckMode;
-use crate::encoder::Encoder;
-use crate::encoder::counterexamples::counterexample_translation;
-use crate::encoder::counterexamples::counterexample_translation_refactored;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
@@ -22,192 +18,109 @@ use ::log::{info, debug, error};
 use prusti_server::{VerificationRequest, PrustiClient, process_verification_request, spawn_server_thread, ViperBackendConfig};
 use prusti_rustc_interface::span::DUMMY_SP;
 use prusti_server::tokio::runtime::Builder;
+use crate::encoder_interface::build_encoder;
 
-/// A verifier is an object for verifying a single crate, potentially
-/// many times.
-pub struct Verifier<'v, 'tcx>
-where
-    'tcx: 'v,
-{
-    env: &'v Environment<'tcx>,
-    encoder: Encoder<'v, 'tcx>,
-}
+/// Verify methods and types in a crate
+pub fn verify_task<'tcx>(
+    env: &Environment<'tcx>,
+    def_spec: typed::DefSpecificationMap,
+    task: &VerificationTask<'tcx>
+) -> VerificationResult {
+    info!("Received {} functions to be verified:", task.procedures.len());
 
-impl<'v, 'tcx> Verifier<'v, 'tcx> {
-    pub fn new(
-        env: &'v Environment<'tcx>,
-        def_spec: typed::DefSpecificationMap,
-    ) -> Self {
-        Verifier {
-            env,
-            encoder: Encoder::new(env, def_spec),
+    // Dump the configuration
+    if config::dump_debug_info() {
+        log::report("config", "prusti", config::dump());
+    }
+
+    let mut encoder = build_encoder(env, def_spec);
+
+    // Encode the verification task
+    for &proc_id in &task.procedures {
+        let proc_name = env.name.get_absolute_item_name(proc_id);
+        let proc_def_path = env.name.get_item_def_path(proc_id);
+        let proc_span = env.query.get_def_span(proc_id);
+        info!(" - {} ({})", proc_name, proc_def_path);
+        info!("   Source: {:?}", proc_span);
+    }
+    let mut stopwatch = Stopwatch::start("prusti-viper", "encoding to Viper");
+    let programs = encoder.encode_verification_task(task);
+
+    let encoding_errors_count = encoder.count_encoding_errors();
+    debug!("Number of encoding errors: {}", encoding_errors_count);
+
+    stopwatch.start_next("verifying Viper program");
+    let verification_results = verify_programs(env, programs);
+    stopwatch.finish();
+
+    // Group verification results
+    let mut verification_errors : Vec<_> = vec![];
+    let mut consistency_errors : Vec<_> = vec![];
+    let mut java_exceptions : Vec<_> = vec![];
+    for (name, result) in verification_results.into_iter() {
+        match result {
+            viper::VerificationResult::Success => {}
+            viper::VerificationResult::ConsistencyErrors(errors) => {
+                for error in errors.into_iter() {
+                    consistency_errors.push((name.clone(), error));
+                }
+            }
+            viper::VerificationResult::Failure(errors) => {
+                for error in errors.into_iter() {
+                    verification_errors.push((name.clone(), error));
+                }
+            }
+            viper::VerificationResult::JavaException(exception) => {
+                java_exceptions.push((name, exception));
+            }
         }
     }
 
-    pub fn verify(&mut self, task: &VerificationTask<'tcx>) -> VerificationResult {
-        info!(
-            "Received {} functions to be verified:",
-            task.procedures.len()
-        );
+    // Convert verification results to Prusti errors
+    let mut result = VerificationResult::Success;
 
-        let mut stopwatch = Stopwatch::start("prusti-viper", "encoding to Viper");
+    if encoding_errors_count != 0 {
+        result = VerificationResult::Failure;
+    }
 
-        // Dump the configuration
-        if config::dump_debug_info() {
-            log::report("config", "prusti", config::dump());
-        }
+    for (name, error) in consistency_errors.into_iter() {
+        PrustiError::internal(
+            format!("consistency error in {}: {}", name, error), DUMMY_SP.into()
+        ).emit(&env.diagnostic);
+        result = VerificationResult::Failure;
+    }
 
-        for &proc_id in &task.procedures {
-            let proc_name = self.env.name.get_absolute_item_name(proc_id);
-            let proc_def_path = self.env.name.get_item_def_path(proc_id);
-            let proc_span = self.env.query.get_def_span(proc_id);
-            info!(" - {} ({})", proc_name, proc_def_path);
-            info!("   Source: {:?}", proc_span);
-        }
-        for &proc_id in task.procedures.iter().rev() {
-            // FIXME: Use the loop above.
-            self.encoder.queue_procedure_encoding(proc_id);
-        }
-        for &type_id in task.types.iter().rev() {
-            // FIXME: Use the loop above.
-            self.encoder.queue_type_encoding(type_id);
-        }
-        self.encoder.process_encoding_queue();
+    for (name, exception) in java_exceptions.into_iter() {
+        error!("Java exception: {}", exception.get_stack_trace());
+        PrustiError::internal(
+            format!("Java exception in {}: {}", name, exception), DUMMY_SP.into()
+        ).emit(&env.diagnostic);
+        result = VerificationResult::Failure;
+    }
 
-        let encoding_errors_count = self.encoder.count_encoding_errors();
+    // Report verification errors
+    let mut prusti_errors: Vec<_> = vec![];
+    for (name, error) in &verification_errors {
+        debug!("Verification error in {}: {:?}", name, error);
+        let prusti_error = encoder.backtranslate_verification_error(error, name);
+        prusti_errors.push(prusti_error);
+    }
+    prusti_errors.sort();
 
-        let polymorphic_programs = self.encoder.get_viper_programs();
-
-        let mut programs: Vec<Program> = if config::simplify_encoding() {
-            stopwatch.start_next("optimizing Viper program");
-            let source_file_name = self.encoder.env().name.source_file_name();
-            polymorphic_programs.into_iter().map(
-                |program| Program::Legacy(optimize_program(program, &source_file_name).into())
-            ).collect()
+    for prusti_error in prusti_errors {
+        debug!("Prusti error: {:?}", prusti_error);
+        if prusti_error.is_disabled() {
+            prusti_error.cancel();
         } else {
-            polymorphic_programs.into_iter().map(
-                |program| Program::Legacy(program.into())
-            ).collect()
-        };
-        programs.extend(self.encoder.get_core_proof_programs());
-
-        stopwatch.start_next("verifying Viper program");
-        let verification_results = verify_programs(self.env, programs);
-        stopwatch.finish();
-
-        // Group verification results
-        let mut verification_errors : Vec<_> = vec![];
-        let mut consistency_errors : Vec<_> = vec![];
-        let mut java_exceptions : Vec<_> = vec![];
-        for (method_name, result) in verification_results.into_iter() {
-            match result {
-                viper::VerificationResult::Success => {}
-                viper::VerificationResult::ConsistencyErrors(errors) => {
-                    for error in errors.into_iter() {
-                        consistency_errors.push((method_name.clone(), error));
-                    }
-                }
-                viper::VerificationResult::Failure(errors) => {
-                    for error in errors.into_iter() {
-                        verification_errors.push((method_name.clone(), error));
-                    }
-                }
-                viper::VerificationResult::JavaException(exception) => {
-                    java_exceptions.push((method_name, exception));
-                }
-            }
+            prusti_error.emit(&env.diagnostic);
         }
-
-        // Convert verification results to Prusti errors
-        let error_manager = self.encoder.error_manager();
-        let mut result = VerificationResult::Success;
-
-        for (method, error) in consistency_errors.into_iter() {
-            PrustiError::internal(
-                format!("consistency error in {}: {}", method, error), DUMMY_SP.into()
-            ).emit(&self.env.diagnostic);
-            result = VerificationResult::Failure;
-        }
-
-        for (method, exception) in java_exceptions.into_iter() {
-            error!("Java exception: {}", exception.get_stack_trace());
-            PrustiError::internal(
-                format!("in {}: {}", method, exception), DUMMY_SP.into()
-            ).emit(&self.env.diagnostic);
-            result = VerificationResult::Failure;
-        }
-
-        // Report verification errors
-        let mut prusti_errors: Vec<_> = vec![];
-        for (method, verification_error) in verification_errors.into_iter() {
-            debug!("Verification error in {}: {:?}", method, verification_error);
-            let mut prusti_error = error_manager.translate_verification_error(&verification_error);
-
-            // annotate with counterexample, if requested
-            if config::counterexample() {
-                if config::unsafe_core_proof(){
-                    if let Some(silicon_counterexample) = &verification_error.counterexample {
-                        if let Some(def_id) = error_manager.get_def_id(&verification_error) {
-                            let counterexample = counterexample_translation_refactored::backtranslate(
-                                &self.encoder,
-                                error_manager.position_manager(),
-                                def_id,
-                                silicon_counterexample,
-                            );
-                            prusti_error = counterexample.annotate_error(prusti_error);
-                        } else {
-                            prusti_error = prusti_error.add_note(
-                                format!(
-                                    "the verifier produced a counterexample for {}, but it could not be mapped to source code",
-                                    method
-                                ),
-                                None,
-                            );
-                        }
-                    }
-                } else if let Some(silicon_counterexample) = &verification_error.counterexample {
-                    if let Some(def_id) = error_manager.get_def_id(&verification_error) {
-                        let counterexample = counterexample_translation::backtranslate(
-                            &self.encoder,
-                            def_id,
-                            silicon_counterexample,
-                        );
-                        prusti_error = counterexample.annotate_error(prusti_error);
-                    } else {
-                        prusti_error = prusti_error.add_note(
-                            format!(
-                                "the verifier produced a counterexample for {}, but it could not be mapped to source code",
-                                method
-                            ),
-                            None,
-                        );
-                    }
-                }
-            }
-
-            prusti_errors.push(prusti_error);
-        }
-        prusti_errors.sort();
-
-        for prusti_error in prusti_errors {
-            debug!("Prusti error: {:?}", prusti_error);
-            if prusti_error.is_disabled() {
-                prusti_error.cancel();
-            } else {
-                prusti_error.emit(&self.env.diagnostic);
-            }
-            result = VerificationResult::Failure;
-        }
-
-        if encoding_errors_count != 0 {
-            result = VerificationResult::Failure;
-        }
-
-        result
+        result = VerificationResult::Failure;
     }
+
+    result
 }
 
-/// Verify a list of programs.
+/// Verify a list of Viper programs.
 /// Returns a list of (program_name, verification_result) tuples.
 fn verify_programs(env: &Environment, programs: Vec<Program>)
     -> Vec<(String, viper::VerificationResult)>

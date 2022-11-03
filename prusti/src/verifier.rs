@@ -7,7 +7,7 @@ use prusti_interface::{
     environment::Environment,
     specs::typed,
 };
-use prusti_viper::verifier::Verifier;
+use prusti_viper::verifier::verify_task;
 
 pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
     trace!("[verify] enter");
@@ -51,8 +51,7 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
                 debug!("Dump borrow checker info...");
                 env.dump_borrowck_info(&verification_task.procedures);
 
-                let mut verifier = Verifier::new(&env, def_spec);
-                let verification_result = verifier.verify(&verification_task);
+                let verification_result = verify_task(&env, def_spec, &verification_task);
                 debug!("Verifier returned {:?}", verification_result);
 
                 verification_result
@@ -63,7 +62,7 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
                 if env.diagnostic.has_errors() {
                     user::message(
                         "Verification result is inconclusive because errors \
-                                       were encountered during encoding.",
+                        were encountered during encoding.",
                     );
                 } else {
                     user::message(format!(

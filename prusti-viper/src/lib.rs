@@ -23,3 +23,4 @@
 pub mod encoder;
 mod utils;
 pub mod verifier;
+mod encoder_interface;
