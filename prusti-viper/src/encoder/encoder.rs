@@ -15,9 +15,9 @@ use crate::encoder::foldunfold;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
 use crate::encoder::SpecFunctionKind;
 use crate::encoder::spec_function_encoder::SpecFunctionEncoder;
-use prusti_common::{vir_expr, vir_local};
-use prusti_common::config;
-use prusti_common::report::log;
+use prusti_common::{config, report::log, vir_expr, vir_local};
+use prusti_common::vir::optimizations::optimize_program;
+use prusti_common::{vir as common_vir};
 use prusti_interface::data::ProcedureDefId;
 use prusti_interface::environment::Environment;
 use prusti_interface::specs::typed;
@@ -34,12 +34,15 @@ use std::rc::Rc;
 use crate::encoder::stub_procedure_encoder::StubProcedureEncoder;
 use std::ops::AddAssign;
 use prusti_interface::specs::typed::ProcedureSpecificationKind;
+use prusti_interface::data::VerificationTask;
 use crate::encoder::name_interner::NameInterner;
 use crate::encoder::errors::EncodingResult;
 use crate::encoder::errors::SpannedEncodingResult;
 use crate::encoder::mirror_function_encoder::MirrorEncoder;
 use crate::encoder::snapshot::interface::{SnapshotEncoderInterface, SnapshotEncoderState};
 use crate::encoder::purifier;
+use crate::encoder::counterexamples::counterexample_translation;
+use crate::encoder::counterexamples::counterexample_translation_refactored;
 use super::high::builtin_functions::HighBuiltinFunctionEncoderState;
 use super::middle::core_proof::{MidCoreProofEncoderState, MidCoreProofEncoderInterface};
 use super::mir::{
@@ -64,6 +67,8 @@ use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
 use super::counterexamples::{MirProcedureMappingInterface, MirProcedureMapping};
 use super::counterexamples::DiscriminantsState;
 use super::high::to_typed::types::HighToTypedTypeEncoderState;
+use viper::VerificationError;
+use crate::encoder_interface::EncoderInterface;
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
@@ -256,10 +261,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             self.encoding_errors_counter.borrow_mut().add_assign(1);
         }
         prusti_error.emit(&self.env.diagnostic);
-    }
-
-    pub fn count_encoding_errors(&self) -> usize {
-        *self.encoding_errors_counter.borrow()
     }
 
     pub(super) fn get_mirror_domain(&self) -> Option<vir::Domain> {
@@ -847,5 +848,85 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     ) -> EncodingResult<vir::Expr> {
         let field = strct.field(self.encode_struct_field(field_name, ty)?);
         self.encode_value_expr(field, ty)
+    }
+}
+
+impl<'env, 'tcx> EncoderInterface<'env, 'tcx> for Encoder<'env, 'tcx> {
+    fn count_encoding_errors(&self) -> usize {
+        *self.encoding_errors_counter.borrow()
+    }
+
+    fn encode_verification_task(&mut self, task: &VerificationTask<'tcx>) -> Vec<common_vir::program::Program> {
+        for &proc_id in task.procedures.iter().rev() {
+            self.queue_procedure_encoding(proc_id);
+        }
+        for &type_id in task.types.iter().rev() {
+            self.queue_type_encoding(type_id);
+        }
+        self.process_encoding_queue();
+        let polymorphic_programs = self.get_viper_programs();
+
+        let mut programs: Vec<_> = if config::simplify_encoding() {
+            let source_file_name = self.env.name.source_file_name();
+            polymorphic_programs.into_iter().map(
+                |program| common_vir::program::Program::Legacy(optimize_program(program, &source_file_name).into())
+            ).collect()
+        } else {
+            polymorphic_programs.into_iter().map(
+                |program| common_vir::program::Program::Legacy(program.into())
+            ).collect()
+        };
+
+        programs.extend(self.get_core_proof_programs());
+        programs
+    }
+
+    fn backtranslate_verification_error(&self, verification_error: &VerificationError, name: &str) -> PrustiError {
+        let error_manager = self.error_manager();
+        let mut prusti_error = error_manager.translate_verification_error(verification_error);
+
+        // Annotate with counterexample, if requested
+        if config::counterexample() {
+            if config::unsafe_core_proof(){
+                if let Some(silicon_counterexample) = verification_error.counterexample.as_ref() {
+                    if let Some(def_id) = error_manager.get_def_id(verification_error) {
+                        let counterexample = counterexample_translation_refactored::backtranslate(
+                            self,
+                            error_manager.position_manager(),
+                            def_id,
+                            silicon_counterexample,
+                        );
+                        prusti_error = counterexample.annotate_error(prusti_error);
+                    } else {
+                        prusti_error = prusti_error.add_note(
+                            format!(
+                                "the verifier produced a counterexample for {}, but it could not be mapped to source code",
+                                name
+                            ),
+                            None,
+                        );
+                    }
+                }
+            } else if let Some(silicon_counterexample) = verification_error.counterexample.as_ref() {
+                if let Some(def_id) = error_manager.get_def_id(verification_error) {
+                    let counterexample = counterexample_translation::backtranslate(
+                        self,
+                        def_id,
+                        silicon_counterexample,
+                    );
+                    prusti_error = counterexample.annotate_error(prusti_error);
+                } else {
+                    prusti_error = prusti_error.add_note(
+                        format!(
+                            "the verifier produced a counterexample for {}, but it could not be mapped to source code",
+                            name
+                        ),
+                        None,
+                    );
+                }
+            }
+        }
+
+        prusti_error
     }
 }
