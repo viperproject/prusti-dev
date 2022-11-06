@@ -1,3 +1,5 @@
+// compile-flags: -Pdisable_function_unfold_trigger=false
+
 //! Issue #39 "Suspicious `_old_old_1` variable name"
 
 #![feature(nll)]
