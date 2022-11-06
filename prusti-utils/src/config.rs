@@ -102,6 +102,7 @@ lazy_static::lazy_static! {
         settings.set_default("assert_timeout", 10_000).unwrap();
         settings.set_default("smt_qi_eager_threshold", 1000).unwrap();
         settings.set_default("use_more_complete_exhale", true).unwrap();
+        settings.set_default("disable_function_unfold_trigger", true).unwrap();
         settings.set_default("skip_unsupported_features", false).unwrap();
         settings.set_default("internal_errors_as_warnings", false).unwrap();
         settings.set_default("allow_unreachable_unsupported_code", false).unwrap();
@@ -508,6 +509,13 @@ pub fn check_timeout() -> Option<u32> {
 /// `--enableMoreCompleteExhale`.
 pub fn use_more_complete_exhale() -> bool {
     read_setting("use_more_complete_exhale")
+}
+
+/// When enabled, disables unfolding of functions together with unfolding
+/// predicates. Equivalent to the verifier command-line argument
+/// `--disableFunctionUnfoldTrigger`.
+pub fn disable_function_unfold_trigger() -> bool {
+    read_setting("disable_function_unfold_trigger")
 }
 
 /// When enabled, prints the items collected for verification.
