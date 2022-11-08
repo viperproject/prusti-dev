@@ -13,6 +13,9 @@ fn main() {
     let _x: i64 = 0i64 + 0i64;
     let _x: i64 = 0i64 * 0i64;
     let _x: i64 = 0i64 - 0i64;
+    let _x: isize = 0isize + 0isize;
+    let _x: isize = 0isize * 0isize;
+    let _x: isize = 0isize - 0isize;
 
     let _x: u8 = 0u8 + 0u8;
     let _x: u8 = 0u8 * 0u8;
@@ -26,4 +29,7 @@ fn main() {
     let _x: u64 = 0u64 + 0u64;
     let _x: u64 = 0u64 * 0u64;
     let _x: u64 = 0u64 - 0u64;
+    let _x: usize = 0usize + 0usize;
+    let _x: usize = 0usize * 0usize;
+    let _x: usize = 0usize - 0usize;
 }
