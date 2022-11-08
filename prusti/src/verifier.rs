@@ -1,13 +1,14 @@
 //! A module that invokes the verifier `prusti-viper`
 
 use log::{debug, trace, warn};
-use prusti_common::{config, report::user};
+use prusti_common::{config::{self, print_hash}, report::user};
 use prusti_interface::{
     data::{VerificationResult, VerificationTask},
     environment::Environment,
     specs::typed,
 };
 use prusti_viper::verifier::Verifier;
+use crate::ide_helper::ide_info;
 
 pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
     trace!("[verify] enter");
@@ -42,6 +43,13 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
                     env.query.get_def_span(procedure)
                 );
             }
+        }
+        
+        if config::show_ide_info() {
+            let ideinf = ide_info::IdeInfo::collect_procedures(&env, &verification_task);
+            let out = serde_json::to_string(&ideinf).unwrap();
+            // probably should make this part of compilers output..
+            println!("IDE_Info: {}", out);
         }
 
         let verification_result =

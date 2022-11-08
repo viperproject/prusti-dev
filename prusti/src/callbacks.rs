@@ -100,6 +100,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                 }
             }
             CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
+
             if !config::no_verify() {
                 verify(env, def_spec);
             }

@@ -163,6 +163,10 @@ lazy_static::lazy_static! {
         settings.set_default::<Vec<String>>("verify_only_basic_block_path", vec![]).unwrap();
         settings.set_default::<Vec<String>>("delete_basic_blocks", vec![]).unwrap();
 
+        // Flags specifically for Prusti-Assistant:
+        settings.set_default("show_ide_info", false).unwrap();
+
+
         // Get the list of all allowed flags.
         let mut allowed_keys = get_keys(&settings);
         allowed_keys.insert("server_max_stored_verifiers".to_string());
@@ -964,4 +968,11 @@ pub fn cargo_command() -> String {
 /// `#[invariant(...)]` attribute.
 pub fn enable_type_invariants() -> bool {
     read_setting("enable_type_invariants")
+}
+
+/// When enabled, prusti should return various Data structures that are
+/// used by prusti-assistant, such as a list of method calls, 
+/// a list of all procedures to be verified, etc.
+pub fn show_ide_info() -> bool {
+    read_setting("show_ide_info")
 }
