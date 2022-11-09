@@ -148,6 +148,9 @@ impl Generic for Expr {
             Expr::PredicateAccessPredicate(predicate_access_predicate) => {
                 Expr::PredicateAccessPredicate(predicate_access_predicate.substitute(map))
             }
+            Expr::ResourceAccessPredicate(resource_access_predicate) => {
+                Expr::ResourceAccessPredicate(resource_access_predicate.substitute(map))
+            }
             Expr::FieldAccessPredicate(field_access_predicate) => {
                 Expr::FieldAccessPredicate(field_access_predicate.substitute(map))
             }
@@ -237,6 +240,14 @@ impl Generic for PredicateAccessPredicate {
         let mut predicate_access_predicate = self;
         *predicate_access_predicate.argument = predicate_access_predicate.argument.substitute(map);
         predicate_access_predicate
+    }
+}
+
+impl Generic for ResourceAccessPredicate {
+    fn substitute(self, map: &FxHashMap<TypeVar, Type>) -> Self {
+        let mut resource_access_predicate = self;
+        *resource_access_predicate.amount = resource_access_predicate.amount.substitute(map);
+        resource_access_predicate
     }
 }
 

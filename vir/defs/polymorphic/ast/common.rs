@@ -501,6 +501,32 @@ impl Type {
     }
 }
 
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash,
+)]
+pub enum ResourceType {
+    TimeCredits,
+    TimeReceipts,
+}
+
+impl fmt::Display for ResourceType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ResourceType::TimeCredits => write!(f, "TimeCredits"),
+            ResourceType::TimeReceipts => write!(f, "TimeReceipts"),
+        }
+    }
+}
+
+impl ResourceType {
+    pub fn encode_as_string(&self) -> String {
+        match self {
+            ResourceType::TimeCredits => "time_credits".to_string(),
+            ResourceType::TimeReceipts => "time_receipts".to_string(),
+        }
+    }
+}
+
 use crate::common::display;
 
 #[derive(

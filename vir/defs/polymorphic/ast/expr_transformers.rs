@@ -161,6 +161,19 @@ pub trait ExprFolder: Sized {
         })
     }
 
+    fn fold_resource_access_predicate(&mut self, expr: ResourceAccessPredicate) -> Expr {
+        let ResourceAccessPredicate {
+            resource_type,
+            amount,
+            position,
+        } = expr;
+        Expr::ResourceAccessPredicate(ResourceAccessPredicate {
+            resource_type,
+            amount: self.fold_boxed(amount),
+            position,
+        })
+    }
+
     fn fold_field_access_predicate(&mut self, expr: FieldAccessPredicate) -> Expr {
         let FieldAccessPredicate {
             base,
@@ -450,6 +463,9 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::PredicateAccessPredicate(predicate_access_predicate) => {
             this.fold_predicate_access_predicate(predicate_access_predicate)
         }
+        Expr::ResourceAccessPredicate(resource_access_predicate) => {
+            this.fold_resource_access_predicate(resource_access_predicate)
+        }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.fold_field_access_predicate(field_access_predicate)
         }
@@ -521,6 +537,10 @@ pub trait ExprWalker: Sized {
     fn walk_predicate_access_predicate(&mut self, expr: &PredicateAccessPredicate) {
         let PredicateAccessPredicate { argument, .. } = expr;
         self.walk(argument);
+    }
+    fn walk_resource_access_predicate(&mut self, expr: &ResourceAccessPredicate) {
+        let ResourceAccessPredicate { amount, .. } = expr;
+        self.walk(amount);
     }
     fn walk_field_access_predicate(&mut self, expr: &FieldAccessPredicate) {
         let FieldAccessPredicate { base, .. } = expr;
@@ -708,6 +728,9 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::PredicateAccessPredicate(predicate_access_predicate) => {
             this.walk_predicate_access_predicate(predicate_access_predicate)
         }
+        Expr::ResourceAccessPredicate(resource_access_predicate) => {
+            this.walk_resource_access_predicate(resource_access_predicate)
+        }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.walk_field_access_predicate(field_access_predicate)
         }
@@ -831,6 +854,22 @@ pub trait FallibleExprFolder: Sized {
             predicate_type,
             argument: self.fallible_fold_boxed(argument)?,
             permission,
+            position,
+        }))
+    }
+
+    fn fallible_fold_resource_access_predicate(
+        &mut self,
+        expr: ResourceAccessPredicate,
+    ) -> Result<Expr, Self::Error> {
+        let ResourceAccessPredicate {
+            resource_type,
+            amount,
+            position,
+        } = expr;
+        Ok(Expr::ResourceAccessPredicate(ResourceAccessPredicate {
+            resource_type,
+            amount: self.fallible_fold_boxed(amount)?,
             position,
         }))
     }
@@ -1152,6 +1191,9 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::PredicateAccessPredicate(predicate_access_predicate) => {
             this.fallible_fold_predicate_access_predicate(predicate_access_predicate)
         }
+        Expr::ResourceAccessPredicate(resource_access_predicate) => {
+            this.fallible_fold_resource_access_predicate(resource_access_predicate)
+        }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.fallible_fold_field_access_predicate(field_access_predicate)
         }
@@ -1233,6 +1275,13 @@ pub trait FallibleExprWalker: Sized {
     ) -> Result<(), Self::Error> {
         let PredicateAccessPredicate { argument, .. } = expr;
         self.fallible_walk(argument)
+    }
+    fn fallible_walk_resource_access_predicate(
+        &mut self,
+        expr: &ResourceAccessPredicate,
+    ) -> Result<(), Self::Error> {
+        let ResourceAccessPredicate { amount, .. } = expr;
+        self.fallible_walk(amount)
     }
     fn fallible_walk_field_access_predicate(
         &mut self,
@@ -1432,6 +1481,9 @@ pub fn default_fallible_walk_expr<U, T: FallibleExprWalker<Error = U>>(
         Expr::MagicWand(magic_wand) => this.fallible_walk_magic_wand(magic_wand),
         Expr::PredicateAccessPredicate(predicate_access_predicate) => {
             this.fallible_walk_predicate_access_predicate(predicate_access_predicate)
+        }
+        Expr::ResourceAccessPredicate(resource_access_predicate) => {
+            this.fallible_walk_resource_access_predicate(resource_access_predicate)
         }
         Expr::FieldAccessPredicate(field_access_predicate) => {
             this.fallible_walk_field_access_predicate(field_access_predicate)

@@ -428,32 +428,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             .with_span(span)?;
 
                         match full_func_proc_name {
-                            "prusti_contracts::old" => {
-                                assert_eq!(args.len(), 1);
-
-                                // Return an error for unsupported old(..) types
-
-                                let encoded_rhs = self.mir_encoder.encode_old_expr(
-                                    vir::Expr::snap_app(encoded_args[0].clone()),
-                                    PRECONDITION_LABEL,
-                                );
-                                let mut state = states[&target_block].clone();
-                                state.substitute_value(&encoded_lhs, encoded_rhs);
-                                state
-                            }
-
-                            "prusti_contracts::before_expiry" => {
-                                trace!("Encoding before_expiry expression {:?}", args[0]);
-                                assert_eq!(args.len(), 1);
-                                let encoded_rhs = self.mir_encoder.encode_old_expr(
-                                    vir::Expr::snap_app(encoded_args[0].clone()),
-                                    WAND_LHS_LABEL,
-                                );
-                                let mut state = states[&target_block].clone();
-                                state.substitute_value(&encoded_lhs, encoded_rhs);
-                                state
-                            }
-
                             "std::cmp::PartialEq::eq" | "core::cmp::PartialEq::eq"
                                 if self.encoder.has_structural_eq_impl(
                                     self.mir_encoder.get_operand_ty(&args[0]),
@@ -578,12 +552,34 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                             // Prusti-specific syntax
                             // TODO: check we are in a spec function
-                            "prusti_contracts::exists"
-                            | "prusti_contracts::forall"
-                            | "prusti_contracts::specification_entailment"
-                            | "prusti_contracts::call_description"
-                            | "prusti_contracts::snap"
-                            | "prusti_contracts::snapshot_equality" => {
+                            "prusti_contracts::old" => {
+                                trace!("Encoding old expression {:?}", args[0]);
+                                assert_eq!(args.len(), 1);
+
+                                // Return an error for unsupported old(..) types
+
+                                let encoded_rhs = self.mir_encoder.encode_old_expr(
+                                    vir::Expr::snap_app(encoded_args[0].clone()),
+                                    PRECONDITION_LABEL,
+                                );
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&encoded_lhs, encoded_rhs);
+                                state
+                            }
+
+                            "prusti_contracts::before_expiry" => {
+                                trace!("Encoding before_expiry expression {:?}", args[0]);
+                                assert_eq!(args.len(), 1);
+                                let encoded_rhs = self.mir_encoder.encode_old_expr(
+                                    vir::Expr::snap_app(encoded_args[0].clone()),
+                                    WAND_LHS_LABEL,
+                                );
+                                let mut state = states[&target_block].clone();
+                                state.substitute_value(&encoded_lhs, encoded_rhs);
+                                state
+                            }
+
+                            _ if full_func_proc_name.starts_with("prusti_contracts::") => {
                                 let expr = self.encoder.encode_prusti_operation(
                                     full_func_proc_name,
                                     span,

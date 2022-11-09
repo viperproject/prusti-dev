@@ -368,4 +368,17 @@ pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
     true
 }
 
+/// This function is used to specify the number of time credits required in a
+/// function specification. It defines the upper bound for its runtime.
+pub fn time_credits(_n: usize) -> bool {
+    true
+}
+
+/// This function is used to specify the number of time receipts ensured at the
+/// end of the execution of a function in its specification. It defined the
+/// lower bound for its runtime.
+pub fn time_receipts(_n: usize) -> bool {
+    true
+}
+
 pub use private::*;
