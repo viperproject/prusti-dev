@@ -31,6 +31,8 @@ pub enum Expr {
     MagicWand(Box<Expr>, Box<Expr>, Option<Borrow>, Position),
     /// PredicateAccessPredicate: predicate_name, arg, permission amount
     PredicateAccessPredicate(String, Box<Expr>, PermAmount, Position),
+    /// ResourceAccessPredicate: resource name, amount
+    ResourceAccessPredicate(String, Box<Expr>, Position),
     FieldAccessPredicate(Box<Expr>, PermAmount, Position),
     UnaryOp(UnaryOpKind, Box<Expr>, Position),
     BinOp(BinaryOpKind, Box<Expr>, Box<Expr>, Position),
@@ -192,6 +194,9 @@ impl fmt::Display for Expr {
             Expr::UnaryOp(op, ref expr, ref _pos) => write!(f, "{op}({expr})"),
             Expr::PredicateAccessPredicate(ref pred_name, ref arg, perm, ref _pos) => {
                 write!(f, "acc({pred_name}({arg}), {perm})")
+            }
+            Expr::ResourceAccessPredicate(resouce_name, amount, _pos) => {
+                write!(f, "acc({}(), {}/1)", resouce_name, amount)
             }
             Expr::FieldAccessPredicate(ref expr, perm, ref _pos) => {
                 write!(f, "acc({expr}, {perm})")
@@ -373,6 +378,7 @@ impl Expr {
             | Expr::LabelledOld(_, _, p)
             | Expr::MagicWand(_, _, _, p)
             | Expr::PredicateAccessPredicate(_, _, _, p)
+            | Expr::ResourceAccessPredicate(_, _, p)
             | Expr::FieldAccessPredicate(_, _, p)
             | Expr::UnaryOp(_, _, p)
             | Expr::BinOp(_, _, _, p)
@@ -407,6 +413,7 @@ impl Expr {
             Expr::PredicateAccessPredicate(x, y, z, _) => {
                 Expr::PredicateAccessPredicate(x, y, z, pos)
             }
+            Expr::ResourceAccessPredicate(n, a, _) => Expr::ResourceAccessPredicate(n, a, pos),
             Expr::FieldAccessPredicate(x, y, _) => Expr::FieldAccessPredicate(x, y, pos),
             Expr::UnaryOp(x, y, _) => Expr::UnaryOp(x, y, pos),
             Expr::BinOp(x, y, z, _) => Expr::BinOp(x, y, z, pos),
@@ -451,6 +458,11 @@ impl Expr {
     pub fn predicate_access_predicate<S: ToString>(name: S, place: Expr, perm: PermAmount) -> Self {
         let pos = place.pos();
         Expr::PredicateAccessPredicate(name.to_string(), box place, perm, pos)
+    }
+
+    pub fn resource_access_predicate<S: ToString>(name: S, amount: Expr) -> Self {
+        let pos = amount.pos();
+        Expr::ResourceAccessPredicate(name.to_string(), box amount, pos)
     }
 
     pub fn field_access_predicate(place: Expr, perm: PermAmount) -> Self {
@@ -773,7 +785,10 @@ impl Expr {
 
     pub fn is_only_permissions(&self) -> bool {
         match self {
-            Expr::PredicateAccessPredicate(..) | Expr::FieldAccessPredicate(..) => true,
+            Expr::PredicateAccessPredicate(..)
+            // TODO check this not sure
+            | Expr::ResourceAccessPredicate(..)
+            | Expr::FieldAccessPredicate(..) => true,
             Expr::BinOp(BinaryOpKind::And, box lhs, box rhs, _) => {
                 lhs.is_only_permissions() && rhs.is_only_permissions()
             }
@@ -1244,6 +1259,7 @@ impl Expr {
                 typ1?
             }
             Expr::ForAll(..) | Expr::Exists(..) => &Type::Bool,
+            Expr::ResourceAccessPredicate(..) => &Type::Bool,
             Expr::MagicWand(..)
             | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
@@ -1687,6 +1703,7 @@ impl Expr {
             fn fold(&mut self, e: Expr) -> Expr {
                 match e {
                     f @ Expr::PredicateAccessPredicate(..) => f,
+                    f @ Expr::ResourceAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
                     Expr::BinOp(BinaryOpKind::And, y, z, p) => {
                         self.fold_bin_op(BinaryOpKind::And, y, z, p)

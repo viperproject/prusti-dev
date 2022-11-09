@@ -32,6 +32,8 @@ pub enum Expr {
     MagicWand(MagicWand),
     /// PredicateAccessPredicate: predicate_type, arg, permission amount
     PredicateAccessPredicate(PredicateAccessPredicate),
+    /// ResourceAccessPredicate: resource_type, amount
+    ResourceAccessPredicate(ResourceAccessPredicate),
     FieldAccessPredicate(FieldAccessPredicate),
     UnaryOp(UnaryOp),
     BinOp(BinOp),
@@ -84,6 +86,9 @@ impl fmt::Display for Expr {
             Expr::MagicWand(magic_wand) => magic_wand.fmt(f),
             Expr::PredicateAccessPredicate(predicate_access_predicate) => {
                 predicate_access_predicate.fmt(f)
+            }
+            Expr::ResourceAccessPredicate(resource_access_predicate) => {
+                resource_access_predicate.fmt(f)
             }
             Expr::FieldAccessPredicate(field_access_predicate) => field_access_predicate.fmt(f),
             Expr::UnaryOp(unary_op) => unary_op.fmt(f),
@@ -169,6 +174,7 @@ impl Expr {
             | Expr::LabelledOld(LabelledOld { position, .. })
             | Expr::MagicWand(MagicWand { position, .. })
             | Expr::PredicateAccessPredicate(PredicateAccessPredicate { position, .. })
+            | Expr::ResourceAccessPredicate(ResourceAccessPredicate { position, .. })
             | Expr::FieldAccessPredicate(FieldAccessPredicate { position, .. })
             | Expr::UnaryOp(UnaryOp { position, .. })
             | Expr::BinOp(BinOp { position, .. })
@@ -220,6 +226,7 @@ impl Expr {
             LabelledOld,
             MagicWand,
             PredicateAccessPredicate,
+            ResourceAccessPredicate,
             FieldAccessPredicate,
             UnaryOp,
             BinOp,
@@ -264,6 +271,15 @@ impl Expr {
             predicate_type,
             argument: Box::new(place),
             permission: perm,
+            position: pos,
+        })
+    }
+
+    pub fn resource_access_predicate(resource_type: ResourceType, amount: Expr) -> Self {
+        let pos = amount.pos();
+        Expr::ResourceAccessPredicate(ResourceAccessPredicate {
+            resource_type,
+            amount: Box::new(amount),
             position: pos,
         })
     }
@@ -617,7 +633,10 @@ impl Expr {
 
     pub fn is_only_permissions(&self) -> bool {
         match self {
-            Expr::PredicateAccessPredicate(..) | Expr::FieldAccessPredicate(..) => true,
+            Expr::PredicateAccessPredicate(..)
+            // TODO check this not sure
+            | Expr::ResourceAccessPredicate(..) 
+            | Expr::FieldAccessPredicate(..) => true,
             Expr::BinOp(BinOp {
                 op_kind: BinaryOpKind::And,
                 left,
@@ -1048,6 +1067,7 @@ impl Expr {
                 typ1
             }
             Expr::ForAll(..) | Expr::Exists(..) => &Type::Bool,
+            Expr::ResourceAccessPredicate(..) => &Type::Bool,
             Expr::MagicWand(..)
             | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
@@ -1496,6 +1516,7 @@ impl Expr {
                 match e {
                     f @ Expr::PredicateAccessPredicate(..) => f,
                     f @ Expr::FieldAccessPredicate(..) => f,
+                    f @ Expr::ResourceAccessPredicate(..) => f,
                     Expr::BinOp(BinOp {
                         op_kind: BinaryOpKind::And,
                         left,
@@ -2056,6 +2077,26 @@ impl PartialEq for PredicateAccessPredicate {
 impl Hash for PredicateAccessPredicate {
     fn hash<H: Hasher>(&self, state: &mut H) {
         (&self.predicate_type, &self.argument, self.permission).hash(state);
+    }
+}
+
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
+pub struct ResourceAccessPredicate {
+    pub resource_type: ResourceType,
+    pub amount: Box<Expr>,
+    pub position: Position,
+}
+
+impl fmt::Display for ResourceAccessPredicate {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "acc({}(), {}/1)",
+            self.resource_type.encode_as_string(),
+            self.amount
+        )
     }
 }
 

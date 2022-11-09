@@ -150,6 +150,18 @@ pub trait ExprFolder: Sized {
             self.fold_position(pos),
         )
     }
+    fn fold_resource_access_predicate(
+        &mut self,
+        resource_name: String,
+        amount: Box<Expr>,
+        pos: Position,
+    ) -> Expr {
+        Expr::ResourceAccessPredicate(
+            resource_name,
+            self.fold_boxed(amount),
+            self.fold_position(pos),
+        )
+    }
     fn fold_field_access_predicate(
         &mut self,
         receiver: Box<Expr>,
@@ -358,6 +370,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::PredicateAccessPredicate(x, y, z, p) => {
             this.fold_predicate_access_predicate(x, y, z, p)
         }
+        Expr::ResourceAccessPredicate(n, a, p) => this.fold_resource_access_predicate(n, a, p),
         Expr::FieldAccessPredicate(x, y, p) => this.fold_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fold_unary_op(x, y, p),
         Expr::BinOp(x, y, z, p) => this.fold_bin_op(x, y, z, p),
@@ -436,6 +449,15 @@ pub trait ExprWalker: Sized {
         pos: &Position,
     ) {
         self.walk(arg);
+        self.walk_position(pos);
+    }
+    fn walk_resource_access_predicate(
+        &mut self,
+        _resource_name: &str,
+        amount: &Expr,
+        pos: &Position,
+    ) {
+        self.walk(amount);
         self.walk_position(pos);
     }
     fn walk_field_access_predicate(
@@ -621,6 +643,9 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::PredicateAccessPredicate(ref x, ref y, z, ref p) => {
             this.walk_predicate_access_predicate(x, y, z, p)
         }
+        Expr::ResourceAccessPredicate(ref n, ref a, ref p) => {
+            this.walk_resource_access_predicate(n, a, p)
+        }
         Expr::FieldAccessPredicate(ref x, y, ref p) => this.walk_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, ref y, ref p) => this.walk_unary_op(x, y, p),
         Expr::BinOp(x, ref y, ref z, ref p) => this.walk_bin_op(x, y, z, p),
@@ -723,6 +748,18 @@ pub trait FallibleExprFolder: Sized {
             name,
             self.fallible_fold_boxed(arg)?,
             perm_amount,
+            pos,
+        ))
+    }
+    fn fallible_fold_resource_access_predicate(
+        &mut self,
+        resource_name: String,
+        amount: Box<Expr>,
+        pos: Position,
+    ) -> Result<Expr, Self::Error> {
+        Ok(Expr::ResourceAccessPredicate(
+            resource_name,
+            self.fallible_fold_boxed(amount)?,
             pos,
         ))
     }
@@ -980,6 +1017,9 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::MagicWand(x, y, b, p) => this.fallible_fold_magic_wand(x, y, b, p),
         Expr::PredicateAccessPredicate(x, y, z, p) => {
             this.fallible_fold_predicate_access_predicate(x, y, z, p)
+        }
+        Expr::ResourceAccessPredicate(n, a, p) => {
+            this.fallible_fold_resource_access_predicate(n, a, p)
         }
         Expr::FieldAccessPredicate(x, y, p) => this.fallible_fold_field_access_predicate(x, y, p),
         Expr::UnaryOp(x, y, p) => this.fallible_fold_unary_op(x, y, p),

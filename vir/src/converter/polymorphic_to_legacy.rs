@@ -268,6 +268,13 @@ impl From<polymorphic::Expr> for legacy::Expr {
                     predicate_access_predicate.position.into(),
                 )
             }
+            polymorphic::Expr::ResourceAccessPredicate(resource_access_predicate) => {
+                legacy::Expr::ResourceAccessPredicate(
+                    resource_access_predicate.resource_type.encode_as_string(),
+                    Box::new((*resource_access_predicate.amount).into()),
+                    resource_access_predicate.position.into(),
+                )
+            }
             polymorphic::Expr::FieldAccessPredicate(field_access_predicate) => {
                 legacy::Expr::FieldAccessPredicate(
                     Box::new((*field_access_predicate.base).into()),
