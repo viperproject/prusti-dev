@@ -1,3 +1,14 @@
+//! This module contains the code for inferring ghost operations such as `fold`
+//! and `unfold`. Since in the presence of unsafe code we cannot be sure that
+//! this algorithm will always succeed, we track under which conditions a
+//! specific folding state exists. The key observation is that each
+//! stack-allocated variable is allocated and deallocated only as a whole.
+//! Threrefore, for each variable we track its unfolding state, which can be
+//! either unconditional (the state is the same on all incoming paths) or
+//! conditional (the state depends on the incoming path).
+//!
+//! The data structures used for tracking the state are in the `state` module.
+
 use self::{state::FoldUnfoldState, visitor::Visitor};
 use crate::encoder::{errors::SpannedEncodingResult, Encoder};
 use prusti_common::config;
