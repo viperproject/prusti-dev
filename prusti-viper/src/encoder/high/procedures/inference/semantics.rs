@@ -540,12 +540,10 @@ impl CollectPermissionChanges for vir_typed::ast::rvalue::Discriminant {
     fn collect<'v, 'tcx>(
         &self,
         _encoder: &mut Encoder<'v, 'tcx>,
-        consumed_permissions: &mut Vec<Permission>,
-        produced_permissions: &mut Vec<Permission>,
+        _consumed_permissions: &mut Vec<Permission>,
+        _produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
-        consumed_permissions.push(Permission::Owned(self.place.clone()));
-        produced_permissions.push(Permission::Owned(self.place.clone()));
-        Ok(())
+        unreachable!("Discriminants should be special-cased.");
     }
 }
 

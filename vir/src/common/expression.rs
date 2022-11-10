@@ -161,7 +161,7 @@ where
     fn disjoin(&mut self) -> E {
         if let Some(mut disjunction) = self.next() {
             for disjunct in self {
-                disjunction = E::and(disjunction, disjunct);
+                disjunction = E::or(disjunction, disjunct);
             }
             disjunction
         } else {

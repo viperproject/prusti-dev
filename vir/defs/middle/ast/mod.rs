@@ -19,7 +19,7 @@ pub mod statement;
 copy_module!(crate::typed::ast::ty);
 copy_module!(crate::typed::ast::type_decl);
 copy_module!(crate::typed::ast::variable);
-copy_module!(crate::typed::ast::rvalue);
+pub mod rvalue;
 
 pub use self::{
     expression::Expression, function::FunctionDecl, statement::Statement, type_decl::TypeDecl,
