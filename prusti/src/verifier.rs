@@ -13,6 +13,7 @@ use crate::ide_helper::ide_info;
 pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
     trace!("[verify] enter");
 
+
     if env.diagnostic.has_errors() {
         warn!("The compiler reported an error, so the program will not be verified.");
     } else {
@@ -49,7 +50,11 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
             let ideinf = ide_info::IdeInfo::collect_procedures(&env, &verification_task);
             let out = serde_json::to_string(&ideinf).unwrap();
             // probably should make this part of compilers output..
-            println!("IDE_Info: {}", out);
+            // actually not sure which way is better...
+            println!("Next line contains IDE-Info:");
+            println!("{}", out);
+        } else {
+            println!("IDE Info flag was not passed correctly");
         }
 
         let verification_result =

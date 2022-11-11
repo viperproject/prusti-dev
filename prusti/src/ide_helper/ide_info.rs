@@ -18,13 +18,30 @@ use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct IdeInfo {
-    procedure_defs: Vec<(String, VscSpan)>,
+    procedure_defs: Vec<ProcDef>,
     // additionally this will contain:
     // function_calls:
     // ... we'll see
 }
 
+#[derive(Serialize)]
+pub struct ProcDef {
+    name: String,
+    span: VscSpan,
+}
 
+/// a representation of spans that is more usable with VSCode.
+#[derive(Serialize)]
+pub struct VscSpan {
+    column_end: usize,
+    column_start: usize,
+    line_end: usize,
+    line_start: usize,
+    file_name: String,
+    is_primary: bool,
+    label: Option<()>,
+    expansion: Option<()>,
+}
 
 
 impl IdeInfo {
@@ -38,7 +55,11 @@ impl IdeInfo {
             let span = env.query.get_def_span(procedure);
             println!("found procedure: {}, span: {:?}", defpath, span);
             let vscspan = VscSpan::from_span(span, sourcemap).unwrap();
-            procs.push((defpath, vscspan));
+
+            procs.push(ProcDef{
+                name: defpath, 
+                span: vscspan
+            });
         }
         Self {
             procedure_defs: procs
@@ -49,13 +70,6 @@ impl IdeInfo {
 
 
 
-/// a representation of spans that is more usable with VSCode.
-#[derive(Serialize)]
-pub struct VscSpan {
-    from: (usize, usize),
-    to: (usize, usize),
-    filename: String,
-}
 
 impl VscSpan {
     pub fn from_span(sp: Span, sourcemap: &SourceMap) -> Option<Self> {
@@ -64,29 +78,20 @@ impl VscSpan {
         let fname = format!("{}", diag_filename);
 
         if let Ok((l1, l2)) = sourcemap.is_valid_span(sp) {
-            let loc1: Loc = l1;
-            let loc2: Loc = l2;
-            
-            let line1 = loc1.line;
-            let line2 = loc2.line;
-
-            let char1 = loc1.col.0;
-            let char2 = loc2.col.0;
-
             Some(Self {
-                from: (line1, char1),
-                to: (line2, char2),
-                filename: fname,
+                column_end: l2.col.0,
+                column_start: l1.col.0,
+                line_end: l2.line,
+                line_start: l2.line,
+                file_name: fname,
+                // the following 3 are not relevant here, we just want to be 
+                // able to reuse the existing methods and the parser
+                // for spans in VSCode
+                is_primary: false,
+                label: None,
+                expansion: None,
             })
         } else {
-        // println!("{:?}", lines);
-        // match lines {
-        //     Ok(fl) => {
-        //
-        //     },
-        //     Err(_) => 
-        // }
-        // let parent = format!("{:?}", sp.parent().unwrap());
             None
         }
     }
