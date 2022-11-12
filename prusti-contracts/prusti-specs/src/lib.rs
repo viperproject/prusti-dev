@@ -779,6 +779,9 @@ pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
             syn::Item::Mod(item_mod) => {
                 extern_spec_rewriter::mods::rewrite_mod(&item_mod, mod_path)
             }
+            syn::Item::ForeignMod(item_foreign_mod) => {
+                extern_spec_rewriter::foreign_mods::rewrite_extern_spec(&item_foreign_mod)
+            }
             // we're expecting function stubs, so they aren't represented as Item::Fn
             syn::Item::Verbatim(stub_tokens) => {
                 extern_spec_rewriter::functions::rewrite_stub(&stub_tokens, &mod_path)
