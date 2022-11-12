@@ -13,8 +13,8 @@ use uuid::Uuid;
 /// These allow for writing of generic code over these types.
 mod syn_extensions {
     use syn::{
-        Attribute, Generics, ImplItemMacro, ImplItemMethod, ItemFn, ItemImpl, ItemStruct,
-        ItemTrait, Macro, Signature, TraitItemMacro, TraitItemMethod,
+        Attribute, ForeignItemFn, Generics, ImplItemMacro, ImplItemMethod, ItemFn, ItemImpl,
+        ItemStruct, ItemTrait, Macro, Signature, TraitItemMacro, TraitItemMethod,
     };
 
     /// Trait which signals that the corresponding syn item contains generics
@@ -105,6 +105,16 @@ mod syn_extensions {
         }
     }
 
+    impl HasSignature for ForeignItemFn {
+        fn sig(&self) -> &Signature {
+            &self.sig
+        }
+
+        fn sig_mut(&mut self) -> &mut Signature {
+            &mut self.sig
+        }
+    }
+
     /// Abstraction over everything that has a [syn::Macro]
     pub(crate) trait HasMacro {
         fn mac(&self) -> &Macro;
@@ -140,6 +150,12 @@ mod syn_extensions {
     }
 
     impl HasAttributes for ItemFn {
+        fn attrs(&self) -> &Vec<Attribute> {
+            &self.attrs
+        }
+    }
+
+    impl HasAttributes for ForeignItemFn {
         fn attrs(&self) -> &Vec<Attribute> {
             &self.attrs
         }
