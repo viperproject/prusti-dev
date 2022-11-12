@@ -214,6 +214,24 @@ pub(crate) fn generate_extern_spec_function_stub<Input: HasSignature + HasAttrib
     }
 }
 
+pub(crate) fn generate_extern_spec_foreign_function_stub<Input: HasSignature + HasAttributes + Spanned, Output: syn::parse::Parse>(
+    function: &Input,
+    extern_spec_kind: ExternSpecKind,
+) -> Output {
+    let signature = function.sig();
+    // Make elided lifetimes explicit, if necessary.
+    let signature = with_explicit_lifetimes(signature).unwrap_or_else(|| signature.clone());
+    let attrs: Vec<syn::Attribute> = function.attrs().clone();
+    let extern_spec_kind_string: String = extern_spec_kind.into();
+    
+    parse_quote_spanned! {function.span()=>
+        #[trusted]
+        #[prusti::extern_spec = #extern_spec_kind_string]
+        #(#attrs)*
+        #signature;
+    }
+}
+
 /// Given a method signature with parameters, this function returns all typed parameters
 /// as they were used as arguments for the function call.
 /// # Example
