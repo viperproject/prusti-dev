@@ -756,6 +756,11 @@ pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
                 &mut item_mod
             ))
         }
+        syn::Item::ForeignMod(mut item_foreign_mod) => {
+            handle_result!(extern_spec_rewriter::foreign_mods::rewrite_extern_spec(
+                &mut item_foreign_mod
+            ))
+        }
         _ => syn::Error::new(attr.span(), "Extern specs cannot be attached to this item")
             .to_compile_error(),
     }
