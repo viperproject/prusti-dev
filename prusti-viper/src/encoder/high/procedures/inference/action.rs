@@ -4,6 +4,7 @@ use vir_crate::{
     typed as vir_typed,
 };
 
+#[derive(Debug)]
 pub(in super::super) enum Action {
     Unfold(FoldingActionState),
     Fold(FoldingActionState),
@@ -33,6 +34,7 @@ impl std::fmt::Display for Action {
     }
 }
 
+#[derive(Debug)]
 pub(in super::super) struct FoldingActionState {
     pub(in super::super) kind: PermissionKind,
     pub(in super::super) place: vir_typed::Expression,
@@ -41,17 +43,20 @@ pub(in super::super) struct FoldingActionState {
     pub(in super::super) enum_variant: Option<vir_typed::ty::VariantIndex>,
 }
 
+#[derive(Debug)]
 pub(in super::super) struct ConversionState {
     pub(in super::super) place: vir_typed::Expression,
     pub(in super::super) condition: Option<vir_mid::BlockMarkerCondition>,
 }
 
+#[derive(Debug)]
 pub(in super::super) struct RestorationState {
     pub(in super::super) lifetime: vir_typed::ty::LifetimeConst,
     pub(in super::super) place: vir_typed::Expression,
     pub(in super::super) condition: Option<vir_mid::BlockMarkerCondition>,
 }
 
+#[derive(Debug)]
 pub(in super::super) struct UnreachableState {
     pub(in super::super) position: vir_typed::Position,
     pub(in super::super) condition: Option<vir_mid::BlockMarkerCondition>,
