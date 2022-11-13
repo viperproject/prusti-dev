@@ -47,17 +47,17 @@ impl<'v, 'tcx> TypedToMiddleRvalueLowerer for crate::encoder::Encoder<'v, 'tcx> 
         })
     }
 
-    fn typed_to_middle_rvalue_variable_decl(
-        &self,
-        variable: vir_typed::VariableDecl,
-    ) -> Result<vir_mid::VariableDecl, Self::Error> {
-        variable.typed_to_middle_expression(self)
-    }
-
     fn typed_to_middle_rvalue_uniqueness(
         &self,
         uniqueness: vir_typed::ty::Uniqueness,
     ) -> Result<vir_mid::ty::Uniqueness, Self::Error> {
         uniqueness.typed_to_middle_type(self)
+    }
+
+    fn typed_to_middle_rvalue_discriminant(
+        &self,
+        _value: vir_typed::ast::rvalue::Discriminant,
+    ) -> Result<vir_mid::ast::rvalue::Discriminant, Self::Error> {
+        unreachable!("Discriminant rvalue cannot be lowered")
     }
 }

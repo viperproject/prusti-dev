@@ -15,3 +15,4 @@ copy_module!(crate::high::operations_internal::statement);
 copy_module!(crate::high::operations_internal::successor);
 pub mod ty;
 pub mod type_decl;
+copy_module!(crate::high::operations_internal::variable);

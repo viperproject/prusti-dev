@@ -75,6 +75,7 @@ RUSTFMT_PATHS = [
     'prusti-viper/src/encoder/lifetimes/mod.rs',
     'prusti-viper/src/encoder/definition_collector.rs',
     'prusti-viper/src/encoder/counterexamples/mod.rs',
+    'vir/defs/mod.rs',
 ]
 
 

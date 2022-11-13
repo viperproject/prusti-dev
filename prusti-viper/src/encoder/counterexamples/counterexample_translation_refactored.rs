@@ -31,7 +31,12 @@ pub fn backtranslate(
     let mut translator = CounterexampleTranslator::new(encoder, def_id, silicon_counterexample);
 
     translator.create_mapping(def_id, encoder); //creates the mapping between mir var and the corresponding snapshot var
-    let label_markers = translator.get_label_markers();
+    let label_markers = translator.get_label_markers(false);
+    if let Some(path) = config::save_failing_trace_to_file() {
+        let label_markers = translator.get_label_markers(true);
+        let mut file = std::fs::File::create(path).unwrap();
+        serde_json::to_writer_pretty(&mut file, &label_markers).unwrap();
+    }
 
     let counterexample_entry_vec = translator.process_entries(position_manager, &label_markers);
 
@@ -66,7 +71,13 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         }
     }
     ///get all label markers and there value in the counterexample
-    fn get_label_markers(&self) -> FxHashMap<String, bool> {
+    ///
+    /// `default_for_not_found` – the value to use for labels that are not
+    /// found. For counterexamples, it should be `false` to show only the blocks
+    /// that were certainly visited to the user. For generating the failing
+    /// trace, it should be `true` to not delete blocks that were potentially
+    /// visited.
+    fn get_label_markers(&self, default_for_not_found: bool) -> FxHashMap<String, bool> {
         self.var_mapping
             .labels_successor_mapping
             .keys()
@@ -78,7 +89,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     .get(&format!("{}$marker", label))
                 {
                     Some(ModelEntry::LitBool(b)) => (label.clone(), *b),
-                    _ => (label.clone(), false), //if label marker is not found, we treat it like it was not visited (should be impossible)
+                    _ => (label.clone(), default_for_not_found),
                 }
             })
             .collect::<FxHashMap<String, bool>>()

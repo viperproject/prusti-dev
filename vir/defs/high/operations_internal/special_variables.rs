@@ -1,5 +1,5 @@
 use super::super::ast::{
-    expression::{Expression, Local},
+    expression::{Expression, Field, Local},
     field::FieldDecl,
     ty::{self, Type},
     type_decl::Enum,
@@ -14,6 +14,13 @@ impl Expression {
     pub fn is_discriminant(&self) -> bool {
         if let Expression::Local(Local { variable, .. }) = self {
             variable.name == "discriminant$"
+        } else {
+            false
+        }
+    }
+    pub fn is_discriminant_field(&self) -> bool {
+        if let Expression::Field(Field { field, .. }) = self {
+            field.is_discriminant()
         } else {
             false
         }
