@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["SpecFunctionKind",""]],"mod":[["counterexamples",""]],"struct":[["Encoder",""]]};
+window.SIDEBAR_ITEMS = {"mod":[["counterexamples",""]],"struct":[["Encoder",""]]};
