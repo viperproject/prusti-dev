@@ -268,13 +268,21 @@
 <span id="268">268</span>
 <span id="269">269</span>
 <span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="self">self</span>::{
     <a href="domains/interface.rs.html#10">domains::DomainsLowererState</a>, <a href="functions/interface.rs.html#21">functions::FunctionsLowererState</a>, <a href="methods/interface.rs.html#6">methods::MethodsLowererState</a>,
     <a href="predicates/interface.rs.html#6">predicates::PredicatesLowererState</a>, <a href="variables/interface.rs.html#6">variables::VariablesLowererState</a>,
 };
 <span class="kw">use super</span>::{
     <a href="../adts/interface.rs.html#13">adts::AdtsState</a>,
-    <a href="../builtin_methods/interface.rs.html#50">builtin_methods::BuiltinMethodsState</a>,
+    <a href="../builtin_methods/interface.rs.html#54">builtin_methods::BuiltinMethodsState</a>,
     <a href="../compute_address/interface.rs.html#13">compute_address::ComputeAddressState</a>,
     <a href="../into_low/mod.rs.html#6">into_low::IntoLow</a>,
     <a href="../lifetimes/interface.rs.html#17">lifetimes::LifetimesState</a>,
@@ -284,11 +292,11 @@
     <a href="../types/interface.rs.html#38">types::TypesState</a>,
 };
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    <a href="../../../errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>, <a href="../builtin_methods/interface.rs.html#1265">middle::core_proof::builtin_methods::BuiltinMethodsInterface</a>,
+    <a href="../../../errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>, <a href="../builtin_methods/interface.rs.html#1269">middle::core_proof::builtin_methods::BuiltinMethodsInterface</a>,
     <a href="../../../encoder.rs.html#68">Encoder</a>,
 };
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">prusti_rustc_interface::hir::def_id::DefId</a>;
-<span class="kw">use </span><a href="../../../../../../rustc_hash/type.FxHashSet.html">rustc_hash::FxHashSet</a>;
+<span class="kw">use </span>rustc_hash::{<a href="../../../../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a href="../../../../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">std::collections::BTreeMap</a>;
 <span class="kw">use </span>vir_crate::{
     common::{<a href="../../../../../../vir/common/cfg/trait.Cfg.html">cfg::Cfg</a>, <a href="../../../../../../vir/common/check_mode/enum.CheckMode.html">check_mode::CheckMode</a>, <a href="../../../../../../vir/common/graphviz/trait.ToGraphviz.html">graphviz::ToGraphviz</a>},
@@ -322,7 +330,15 @@
     procedure: <a href="../../../../../../vir/gen/middle/cfg/procedure/struct.ProcedureDecl.html">vir_mid::ProcedureDecl</a>,
 ) -&gt; SpannedEncodingResult&lt;<a href="#41">LoweringResult</a>&gt; {
     <span class="kw">let </span>lowerer = <span class="self">self</span>::Lowerer::new(<a href="#50">encoder</a>);
-    <span class="kw">let </span>result = lowerer.lower_procedure(def_id, procedure)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>result = lowerer.lower_procedure(def_id, procedure)<span class="question-mark">?</span>;
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = prusti_common::config::execute_only_failing_trace() {
+        <span class="kw">let </span>label_markers: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; =
+            serde_json::from_reader(std::fs::File::open(<a href="#56">path</a>).unwrap()).unwrap();
+        <span class="kw">super</span>::transformations::remove_unvisited_blocks::remove_unvisited_blocks(
+            <span class="kw-2">&amp;mut </span>result.procedures,
+            <span class="kw-2">&amp;</span>label_markers,
+        )<span class="question-mark">?</span>;
+    }
     <span class="kw">if </span>prusti_common::config::dump_debug_info() {
         <span class="kw">let </span>source_filename = <a href="#50">encoder</a>.<a href="../../../encoder.rs.html#223">env</a>().name.source_file_name();
         <span class="kw">for </span>procedure <span class="kw">in </span><span class="kw-2">&amp;</span>result.procedures {
@@ -342,9 +358,9 @@
     ty: <a href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>,
     check_copy: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 ) -&gt; SpannedEncodingResult&lt;<a href="#41">LoweringResult</a>&gt; {
-    <span class="kw">let </span>lowerer = <span class="self">self</span>::Lowerer::new(<a href="#70">encoder</a>);
+    <span class="kw">let </span>lowerer = <span class="self">self</span>::Lowerer::new(<a href="#78">encoder</a>);
     <span class="kw">let </span>result = lowerer.lower_type(def_id, ty, check_copy)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<a href="#76">result</a>)
+    <span class="prelude-val">Ok</span>(<a href="#84">result</a>)
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Lowerer&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; {
@@ -357,7 +373,7 @@
     predicates_state: <a href="predicates/interface.rs.html#6">PredicatesLowererState</a>,
     methods_state: <a href="methods/interface.rs.html#6">MethodsLowererState</a>,
     <span class="kw">pub</span>(<span class="kw">super</span>) predicates_encoding_state: <a href="../predicates/state.rs.html#4">PredicatesState</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) builtin_methods_state: <a href="../builtin_methods/interface.rs.html#50">BuiltinMethodsState</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) builtin_methods_state: <a href="../builtin_methods/interface.rs.html#54">BuiltinMethodsState</a>,
     <span class="kw">pub</span>(<span class="kw">super</span>) compute_address_state: <a href="../compute_address/interface.rs.html#13">ComputeAddressState</a>,
     <span class="kw">pub</span>(<span class="kw">super</span>) snapshots_state: <a href="../snapshots/state.rs.html#11">SnapshotsState</a>,
     <span class="kw">pub</span>(<span class="kw">super</span>) types_state: <a href="../types/interface.rs.html#38">TypesState</a>,
@@ -369,7 +385,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; Lowerer&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><span class="kw-2">mut </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            <a href="#100">encoder</a>,
+            <a href="#108">encoder</a>,
             def_id: <span class="prelude-val">None</span>,
             check_mode: <span class="prelude-val">None</span>,
             variables_state: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
@@ -393,12 +409,12 @@
         def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
         <span class="kw-2">mut </span>procedure: <a href="../../../../../../vir/gen/middle/cfg/procedure/struct.ProcedureDecl.html">vir_mid::ProcedureDecl</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="#41">LoweringResult</a>&gt; {
-        <a class="self" href="#122">self</a>.def_id = <span class="prelude-val">Some</span>(<a href="#123">def_id</a>);
+        <a class="self" href="#130">self</a>.def_id = <span class="prelude-val">Some</span>(<a href="#131">def_id</a>);
         <span class="kw">let </span><span class="kw-2">mut </span>basic_blocks_map = BTreeMap::new();
         <span class="kw">let </span><span class="kw-2">mut </span>basic_block_edges = BTreeMap::new();
-        <span class="kw">let </span>predecessors = <a href="#124">procedure</a>.<a href="../../../../../../vir/common/cfg/trait.Cfg.html">predecessors_owned</a>();
-        <span class="kw">let </span>traversal_order = <a href="#124">procedure</a>.get_topological_sort();
-        <a class="self" href="#122">self</a>.check_mode = <span class="prelude-val">Some</span>(<a href="#124">procedure</a>.check_mode);
+        <span class="kw">let </span>predecessors = <a href="#132">procedure</a>.<a href="../../../../../../vir/common/cfg/trait.Cfg.html">predecessors_owned</a>();
+        <span class="kw">let </span>traversal_order = <a href="#132">procedure</a>.get_topological_sort();
+        <a class="self" href="#130">self</a>.check_mode = <span class="prelude-val">Some</span>(<a href="#132">procedure</a>.check_mode);
         <span class="kw">let </span><span class="kw-2">mut </span>marker_initialisation = Vec::new();
         <span class="kw">for </span>label <span class="kw">in </span><span class="kw-2">&amp;</span>traversal_order {
             <span class="self">self</span>.set_current_block_for_snapshots(label, <span class="kw-2">&amp;</span>predecessors, <span class="kw-2">&amp;mut </span>basic_block_edges)<span class="question-mark">?</span>;
@@ -428,9 +444,9 @@
             basic_blocks_map.insert(label.clone(), (statements, successor));
             <span class="self">self</span>.unset_current_block_for_snapshots(label.clone())<span class="question-mark">?</span>;
         }
-        <span class="kw">let </span>(entry_block_statements, <span class="kw">_</span>) = <a href="#127">basic_blocks_map</a>.get_mut(<span class="kw-2">&amp;</span><a href="#124">procedure</a>.entry).unwrap();
-        std::mem::swap(<a href="#161">entry_block_statements</a>, <span class="kw-2">&amp;mut </span><a href="#132">marker_initialisation</a>);
-        <a href="#161">entry_block_statements</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#132">marker_initialisation</a>);
+        <span class="kw">let </span>(entry_block_statements, <span class="kw">_</span>) = <a href="#135">basic_blocks_map</a>.get_mut(<span class="kw-2">&amp;</span><a href="#132">procedure</a>.entry).unwrap();
+        std::mem::swap(<a href="#169">entry_block_statements</a>, <span class="kw-2">&amp;mut </span><a href="#140">marker_initialisation</a>);
+        <a href="#169">entry_block_statements</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#140">marker_initialisation</a>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>basic_blocks = Vec::new();
         <span class="kw">for </span>basic_block_id <span class="kw">in </span>traversal_order {
@@ -460,47 +476,47 @@
         }
         <span class="kw">let </span><span class="kw-2">mut </span>removed_functions = FxHashSet::default();
         <span class="kw">if </span>procedure.check_mode == CheckMode::Specifications {
-            <a href="#191">removed_functions</a>.insert(<span class="self">self</span>.encode_memory_block_bytes_function_name()<span class="question-mark">?</span>);
+            <a href="#199">removed_functions</a>.insert(<span class="self">self</span>.encode_memory_block_bytes_function_name()<span class="question-mark">?</span>);
         }
         <span class="kw">let </span><span class="kw-2">mut </span>predicates = <span class="self">self</span>.collect_owned_predicate_decls()<span class="question-mark">?</span>;
-        <a href="#165">basic_blocks</a>[<span class="number">0</span>].statements.splice(
+        <a href="#173">basic_blocks</a>[<span class="number">0</span>].statements.splice(
             <span class="number">0</span>..<span class="number">0</span>,
-            <a class="self" href="#122">self</a>.lifetimes_state.<a href="../lifetimes/interface.rs.html#24">lifetime_is_alive_initialization</a>(),
+            <a class="self" href="#130">self</a>.lifetimes_state.<a href="../lifetimes/interface.rs.html#24">lifetime_is_alive_initialization</a>(),
         );
-        <span class="kw">let </span><span class="kw-2">mut </span>domains = <a class="self" href="#122">self</a>.domains_state.<a href="domains/interface.rs.html#16">destruct</a>();
-        <a href="#200">domains</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#122">self</a>.compute_address_state.<a href="../compute_address/interface.rs.html#21">destruct</a>());
-        <a href="#195">predicates</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#122">self</a>.predicates_state.<a href="predicates/interface.rs.html#11">destruct</a>());
+        <span class="kw">let </span><span class="kw-2">mut </span>domains = <a class="self" href="#130">self</a>.domains_state.<a href="domains/interface.rs.html#16">destruct</a>();
+        <a href="#208">domains</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#130">self</a>.compute_address_state.<a href="../compute_address/interface.rs.html#21">destruct</a>());
+        <a href="#203">predicates</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#130">self</a>.predicates_state.<a href="predicates/interface.rs.html#11">destruct</a>());
         <span class="kw">let </span><span class="kw-2">mut </span>lowered_procedure = <a href="../../../../../../vir/gen/low/cfg/procedure/struct.ProcedureDecl.html">vir_low::ProcedureDecl</a> {
-            name: <a href="#124">procedure</a>.name,
-            locals: <a class="self" href="#122">self</a>.variables_state.<a href="variables/interface.rs.html#13">destruct</a>(),
-            <a href="#165">basic_blocks</a>,
+            name: <a href="#132">procedure</a>.name,
+            locals: <a class="self" href="#130">self</a>.variables_state.<a href="variables/interface.rs.html#13">destruct</a>(),
+            <a href="#173">basic_blocks</a>,
         };
-        <span class="kw">let </span><span class="kw-2">mut </span>methods = <a class="self" href="#122">self</a>.methods_state.<a href="methods/interface.rs.html#11">destruct</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>functions = <a class="self" href="#122">self</a>.functions_state.<a href="functions/interface.rs.html#26">destruct</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>methods = <a class="self" href="#130">self</a>.methods_state.<a href="methods/interface.rs.html#11">destruct</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>functions = <a class="self" href="#130">self</a>.functions_state.<a href="functions/interface.rs.html#26">destruct</a>();
         <span class="kw">if </span>procedure.check_mode == CheckMode::Specifications {
             <a href="../transformations/remove_predicates.rs.html#5-10"><span class="kw">super</span>::transformations::remove_predicates::remove_predicates</a>(
-                <span class="kw-2">&amp;mut </span><a href="#203">lowered_procedure</a>,
-                <span class="kw-2">&amp;mut </span><a href="#208">methods</a>,
-                <span class="kw-2">&amp;</span><a href="#191">removed_functions</a>,
-                std::mem::take(<span class="kw-2">&amp;mut </span><a href="#195">predicates</a>),
+                <span class="kw-2">&amp;mut </span><a href="#211">lowered_procedure</a>,
+                <span class="kw-2">&amp;mut </span><a href="#216">methods</a>,
+                <span class="kw-2">&amp;</span><a href="#199">removed_functions</a>,
+                std::mem::take(<span class="kw-2">&amp;mut </span><a href="#203">predicates</a>),
             );
-            <a href="#209">functions</a>.retain(|function| !<a href="#191">removed_functions</a>.contains(<span class="kw-2">&amp;</span><a href="#217">function</a>.name));
+            <a href="#217">functions</a>.retain(|function| !<a href="#199">removed_functions</a>.contains(<span class="kw-2">&amp;</span><a href="#225">function</a>.name));
         };
         <span class="prelude-val">Ok</span>(<a href="#41">LoweringResult</a> {
             procedures: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[lowered_procedure],
-            <a href="#200">domains</a>,
-            <a href="#209">functions</a>,
-            <a href="#195">predicates</a>,
-            <a href="#208">methods</a>,
+            <a href="#208">domains</a>,
+            <a href="#217">functions</a>,
+            <a href="#203">predicates</a>,
+            <a href="#216">methods</a>,
         })
     }
 
     <span class="kw">fn </span>create_parameters(<span class="kw-2">&amp;</span><span class="self">self</span>, arguments: <span class="kw-2">&amp;</span>[<a href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>]) -&gt; Vec&lt;<a href="../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt; {
-        <a href="#228">arguments</a>
+        <a href="#236">arguments</a>
             .iter()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(index, arg)| {
-                vir_low::VariableDecl::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;_{}&quot;</span>, index), <a href="#232">arg</a>.<a href="../../../../../../vir/low/operations/ty/trait.Typed.html">get_type</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+                vir_low::VariableDecl::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;_{}&quot;</span>, index), <a href="#240">arg</a>.<a href="../../../../../../vir/low/operations/ty/trait.Typed.html">get_type</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
@@ -509,7 +525,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         label: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt; {
-        <a class="self" href="#239">self</a>.<a href="variables/interface.rs.html#22-26">create_variable</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$marker&quot;</span>, label), vir_low::Type::Bool)
+        <a class="self" href="#247">self</a>.<a href="variables/interface.rs.html#22-26">create_variable</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$marker&quot;</span>, label), vir_low::Type::Bool)
     }
 
     <span class="doccomment">/// If `check_copy` is true, encode `copy` builtin method.
@@ -519,22 +535,22 @@
         ty: <a href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>,
         check_copy: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="#41">LoweringResult</a>&gt; {
-        <a class="self" href="#247">self</a>.def_id = <a href="#248">def_id</a>;
+        <a class="self" href="#255">self</a>.def_id = <a href="#256">def_id</a>;
         <span class="self">self</span>.mark_owned_non_aliased_as_unfolded(<span class="kw-2">&amp;</span>ty)<span class="question-mark">?</span>;
         <span class="self">self</span>.encode_move_place_method(<span class="kw-2">&amp;</span>ty)<span class="question-mark">?</span>;
         <span class="kw">if </span>check_copy {
             <span class="self">self</span>.encode_copy_place_method(<span class="kw-2">&amp;</span>ty)<span class="question-mark">?</span>;
         }
         <span class="kw">let </span><span class="kw-2">mut </span>predicates = <span class="self">self</span>.collect_owned_predicate_decls()<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>domains = <a class="self" href="#247">self</a>.domains_state.<a href="domains/interface.rs.html#16">destruct</a>();
-        <a href="#259">domains</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#247">self</a>.compute_address_state.<a href="../compute_address/interface.rs.html#21">destruct</a>());
-        <a href="#258">predicates</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#247">self</a>.predicates_state.<a href="predicates/interface.rs.html#11">destruct</a>());
+        <span class="kw">let </span><span class="kw-2">mut </span>domains = <a class="self" href="#255">self</a>.domains_state.<a href="domains/interface.rs.html#16">destruct</a>();
+        <a href="#267">domains</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#255">self</a>.compute_address_state.<a href="../compute_address/interface.rs.html#21">destruct</a>());
+        <a href="#266">predicates</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#255">self</a>.predicates_state.<a href="predicates/interface.rs.html#11">destruct</a>());
         <span class="prelude-val">Ok</span>(<a href="#41">LoweringResult</a> {
             procedures: Vec::new(),
-            <a href="#259">domains</a>,
-            functions: <a class="self" href="#247">self</a>.functions_state.<a href="functions/interface.rs.html#26">destruct</a>(),
-            <a href="#258">predicates</a>,
-            methods: <a class="self" href="#247">self</a>.methods_state.<a href="methods/interface.rs.html#11">destruct</a>(),
+            <a href="#267">domains</a>,
+            functions: <a class="self" href="#255">self</a>.functions_state.<a href="functions/interface.rs.html#26">destruct</a>(),
+            <a href="#266">predicates</a>,
+            methods: <a class="self" href="#255">self</a>.methods_state.<a href="methods/interface.rs.html#11">destruct</a>(),
         })
     }
 }

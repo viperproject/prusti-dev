@@ -445,11 +445,35 @@
 <span id="445">445</span>
 <span id="446">446</span>
 <span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
     errors::{<a href="../../../../errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../../../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
     <a href="../../../../high/types/interface.rs.html#127">high::types::HighTypeEncoderInterface</a>,
     middle::core_proof::{
-        lowerer::{<a href="../../lowerer/mod.rs.html#80">Lowerer</a>, <a href="../../lowerer/variables/interface.rs.html#21">VariablesLowererInterface</a>},
+        lowerer::{<a href="../../lowerer/mod.rs.html#88">Lowerer</a>, <a href="../../lowerer/variables/interface.rs.html#21">VariablesLowererInterface</a>},
         <a href="../../references/interface.rs.html#45">references::ReferencesInterface</a>,
         snapshots::{
             <a href="../into_snapshot/procedure/traits.rs.html#32">IntoProcedureSnapshot</a>, <a href="../into_snapshot/context_independent/traits.rs.html#13">IntoSnapshot</a>, <a href="../validity/interface.rs.html#36">SnapshotValidityInterface</a>, <a href="../values/interface.rs.html#16">SnapshotValuesInterface</a>,
@@ -715,6 +739,15 @@
         statements: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="../../../../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low::Statement</a>&gt;,
         target: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/expression/enum.Expression.html">vir_mid::Expression</a>,
         position: <a href="../../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
+        new_snapshot: <span class="prelude-ty">Option</span>&lt;<a href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt;,
+    ) -&gt; SpannedEncodingResult&lt;()&gt;;
+    <span class="kw">fn </span>encode_snapshot_update_with_new_snapshot(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        statements: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="../../../../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low::Statement</a>&gt;,
+        target: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/expression/enum.Expression.html">vir_mid::Expression</a>,
+        value: <a href="../../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>,
+        position: <a href="../../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
+        new_snapshot: <span class="prelude-ty">Option</span>&lt;<a href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
     <span class="attribute">#[allow(clippy::ptr_arg)] </span><span class="comment">// Clippy false positive.
     </span><span class="kw">fn </span>encode_snapshot_update(
@@ -746,59 +779,78 @@
         variable: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/variable/struct.VariableDecl.html">vir_mid::VariableDecl</a>,
         position: <a href="../../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt; {
-        <span class="kw">let </span>new_version = <span class="self"><a href="#298">self</a>
+        <span class="kw">let </span>new_version = <span class="self"><a href="#307">self</a>
             </span>.snapshots_state
             .all_variables
-            .<a href="state.rs.html#55-59">new_version_or_default</a>(<a href="#299">variable</a>, <a href="#300">position</a>);
-        <a class="self" href="#298">self</a>.snapshots_state
+            .<a href="state.rs.html#55-59">new_version_or_default</a>(<a href="#308">variable</a>, <a href="#309">position</a>);
+        <a class="self" href="#307">self</a>.snapshots_state
             .current_variables
             .as_mut()
             .unwrap()
-            .<a href="state.rs.html#28">set</a>(<a href="#299">variable</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#302">new_version</a>);
-        <a class="self" href="#298">self</a>.<a href="#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a href="#299">variable</a>.name, <span class="kw-2">&amp;</span><a href="#299">variable</a>.ty, <a href="#302">new_version</a>)
+            .<a href="state.rs.html#28">set</a>(<a href="#308">variable</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#311">new_version</a>);
+        <a class="self" href="#307">self</a>.<a href="#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a href="#308">variable</a>.name, <span class="kw-2">&amp;</span><a href="#308">variable</a>.ty, <a href="#311">new_version</a>)
     }
     <span class="kw">fn </span>current_snapshot_variable_version(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variable: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/variable/struct.VariableDecl.html">vir_mid::VariableDecl</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt; {
-        <span class="kw">let </span>version = <span class="self"><a href="#314">self</a>
+        <span class="kw">let </span>version = <span class="self"><a href="#323">self</a>
             </span>.snapshots_state
             .current_variables
             .as_ref()
             .unwrap()
-            .<a href="state.rs.html#25">get_or_default</a>(<span class="kw-2">&amp;</span><a href="#315">variable</a>.name);
-        <a class="self" href="#314">self</a>.<a href="#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a href="#315">variable</a>.name, <span class="kw-2">&amp;</span><a href="#315">variable</a>.ty, <a href="#317">version</a>)
+            .<a href="state.rs.html#25">get_or_default</a>(<span class="kw-2">&amp;</span><a href="#324">variable</a>.name);
+        <a class="self" href="#323">self</a>.<a href="#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a href="#324">variable</a>.name, <span class="kw-2">&amp;</span><a href="#324">variable</a>.ty, <a href="#326">version</a>)
     }
     <span class="kw">fn </span>initial_snapshot_variable_version(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variable: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/variable/struct.VariableDecl.html">vir_mid::VariableDecl</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt; {
-        <a class="self" href="#326">self</a>.<a href="#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a href="#327">variable</a>.name, <span class="kw-2">&amp;</span><a href="#327">variable</a>.ty, <span class="number">0</span>)
+        <a class="self" href="#335">self</a>.<a href="#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a href="#336">variable</a>.name, <span class="kw-2">&amp;</span><a href="#336">variable</a>.ty, <span class="number">0</span>)
     }
     <span class="kw">fn </span>snapshot_variable_version_at_label(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         variable: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/variable/struct.VariableDecl.html">vir_mid::VariableDecl</a>,
         label: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt; {
-        <span class="kw">let </span>version = <span class="self"><a href="#332">self</a>
+        <span class="kw">let </span>version = <span class="self"><a href="#341">self</a>
             </span>.snapshots_state
             .variables_at_label
-            .get(<a href="#334">label</a>)
+            .get(<a href="#343">label</a>)
             .unwrap_or_else(|| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;not found label {}&quot;</span>, label))
-            .<a href="state.rs.html#25">get_or_default</a>(<span class="kw-2">&amp;</span><a href="#333">variable</a>.name);
-        <a class="self" href="#332">self</a>.<a href="#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a href="#333">variable</a>.name, <span class="kw-2">&amp;</span><a href="#333">variable</a>.ty, <a href="#336">version</a>)
+            .<a href="state.rs.html#25">get_or_default</a>(<span class="kw-2">&amp;</span><a href="#342">variable</a>.name);
+        <a class="self" href="#341">self</a>.<a href="#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a href="#342">variable</a>.name, <span class="kw-2">&amp;</span><a href="#342">variable</a>.ty, <a href="#345">version</a>)
     }
     <span class="kw">fn </span>encode_snapshot_havoc(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         statements: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="../../../../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low::Statement</a>&gt;,
         target: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/expression/enum.Expression.html">vir_mid::Expression</a>,
         position: <a href="../../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
+        new_snapshot: <span class="prelude-ty">Option</span>&lt;<a href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span>base = <a href="#347">target</a>.get_base();
+        <span class="kw">let </span>base = <a href="#356">target</a>.get_base();
         <span class="self">self</span>.ensure_type_definition(<span class="kw-2">&amp;</span>base.ty)<span class="question-mark">?</span>;
         <span class="kw">let </span>old_snapshot = base.to_procedure_snapshot(<span class="self">self</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>new_snapshot = <span class="self">self</span>.new_snapshot_variable_version(<span class="kw-2">&amp;</span>base, position)<span class="question-mark">?</span>;
+        <span class="kw">let </span>new_snapshot = <span class="kw">if let </span><span class="prelude-val">Some</span>(new_snapshot) = <a href="#358">new_snapshot</a> {
+            <a href="#363">new_snapshot</a>
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.new_snapshot_variable_version(<span class="kw-2">&amp;</span>base, position)<span class="question-mark">?
+        </span>};
         <span class="self">self</span>.snapshot_copy_except(statements, old_snapshot, new_snapshot, target, position)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
+    }
+    <span class="kw">fn </span>encode_snapshot_update_with_new_snapshot(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        statements: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="../../../../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low::Statement</a>&gt;,
+        target: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/expression/enum.Expression.html">vir_mid::Expression</a>,
+        value: <a href="../../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>,
+        position: <a href="../../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
+        new_snapshot: <span class="prelude-ty">Option</span>&lt;<a href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a>&gt;,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
+        <span class="self">self</span>.encode_snapshot_havoc(statements, target, position, new_snapshot)<span class="question-mark">?</span>;
+        <a href="#373">statements</a>
+            .push(<a class="macro" href="../../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp! </a>{ position =&gt; assume ([target.to_procedure_snapshot(<span class="self">self</span>)<span class="question-mark">?</span>] == [value]) });
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>encode_snapshot_update(
@@ -808,11 +860,7 @@
         value: <a href="../../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>,
         position: <a href="../../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
-        <span class="self">self</span>.encode_snapshot_havoc(statements, target, position)<span class="question-mark">?</span>;
-        <a href="#359">statements</a>
-            .push(<a class="macro" href="../../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp! </a>{ position =&gt; assume ([target.to_procedure_snapshot(<span class="self">self</span>)<span class="question-mark">?</span>] == [value]) });
-        <span class="prelude-val">Ok</span>(())
+        <a class="self" href="#386">self</a>.<a href="#273-280">encode_snapshot_update_with_new_snapshot</a>(<a href="#387">statements</a>, <a href="#388">target</a>, <a href="#389">value</a>, <a href="#390">position</a>, <span class="prelude-val">None</span>)
     }
     <span class="doccomment">/// `basic_block_edges` are statements to be executed then going from one
     /// block to another.
@@ -825,7 +873,7 @@
             BTreeMap&lt;<a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>, Vec&lt;<a href="../../../../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low::Statement</a>&gt;&gt;,
         &gt;,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span>predecessor_labels = <span class="kw-2">&amp;</span><a href="#375">predecessors</a>[<a href="#374">label</a>];
+        <span class="kw">let </span>predecessor_labels = <span class="kw-2">&amp;</span><a href="#399">predecessors</a>[<a href="#398">label</a>];
         <span class="kw">let </span><span class="kw-2">mut </span>new_map = VariableVersionMap::default();
         <span class="kw">for </span>variable <span class="kw">in </span><span class="self">self</span>.snapshots_state.all_variables.names_clone() {
             <span class="kw">let </span>predecessor_maps = predecessor_labels
@@ -867,14 +915,14 @@
                 new_map.set(variable, first_version);
             }
         }
-        <a class="self" href="#373">self</a>.snapshots_state.current_variables = <span class="prelude-val">Some</span>(<a href="#382">new_map</a>);
+        <a class="self" href="#397">self</a>.snapshots_state.current_variables = <span class="prelude-val">Some</span>(<a href="#406">new_map</a>);
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>unset_current_block_for_snapshots(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         label: <a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span>current_variables = <a class="self" href="#427">self</a>.snapshots_state.current_variables.take().unwrap();
+        <span class="kw">let </span>current_variables = <a class="self" href="#451">self</a>.snapshots_state.current_variables.take().unwrap();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self
             </span>.snapshots_state
             .variables
@@ -883,7 +931,7 @@
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>save_old_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span>current_variables = <a class="self" href="#438">self</a>.snapshots_state.current_variables.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap();
+        <span class="kw">let </span>current_variables = <a class="self" href="#462">self</a>.snapshots_state.current_variables.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self
             </span>.snapshots_state
             .variables_at_label

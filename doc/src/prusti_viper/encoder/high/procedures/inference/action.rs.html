@@ -134,120 +134,130 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="permission.rs.html#23"><span class="kw">super</span>::permission::PermissionKind</a>;
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+</pre><pre class="rust"><code><span class="kw">use </span><a href="permission.rs.html#43"><span class="kw">super</span>::permission::PermissionKind</a>;
 <span class="kw">use </span>vir_crate::{
     middle::{<span class="self"><a href="../../../../../../vir/middle/index.html">self</a> </span><span class="kw">as </span>vir_mid, <a href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">BlockMarkerCondition</a>},
     <a href="../../../../../../vir/typed/index.html">typed</a> <span class="kw">as </span>vir_typed,
 };
 
-<span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">enum </span>Action {
-    Unfold(<a href="#36">FoldingActionState</a>),
-    Fold(<a href="#36">FoldingActionState</a>),
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">enum </span>Action {
+    Unfold(<a href="#38">FoldingActionState</a>),
+    Fold(<a href="#38">FoldingActionState</a>),
     <span class="doccomment">/// Convert the specified `Owned(place)` into `MemoryBlock(place)`.
-    </span>OwnedIntoMemoryBlock(<a href="#44">ConversionState</a>),
-    RestoreMutBorrowed(<a href="#49">RestorationState</a>),
-    Unreachable(<a href="#55">UnreachableState</a>),
+    </span>OwnedIntoMemoryBlock(<a href="#47">ConversionState</a>),
+    RestoreMutBorrowed(<a href="#53">RestorationState</a>),
+    Unreachable(<a href="#60">UnreachableState</a>),
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for </span><a href="#7">Action</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for </span><a href="#8">Action</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="#17">self</a> </span>{
-            <a href="#8">Action::Unfold</a>(<a href="#36">FoldingActionState</a> { kind, place, .. }) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#17">f</a>, <span class="string">&quot;Unfold({kind:?}, {place})&quot;</span>)
+        <span class="kw">match </span><span class="self"><a href="#18">self</a> </span>{
+            <a href="#9">Action::Unfold</a>(<a href="#38">FoldingActionState</a> { kind, place, .. }) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#18">f</a>, <span class="string">&quot;Unfold({kind:?}, {place})&quot;</span>)
             }
-            <a href="#9">Action::Fold</a>(<a href="#36">FoldingActionState</a> { kind, place, .. }) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#17">f</a>, <span class="string">&quot;Fold({kind:?}, {place})&quot;</span>)
+            <a href="#10">Action::Fold</a>(<a href="#38">FoldingActionState</a> { kind, place, .. }) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#18">f</a>, <span class="string">&quot;Fold({kind:?}, {place})&quot;</span>)
             }
-            <a href="#11">Action::OwnedIntoMemoryBlock</a>(<a href="#44">ConversionState</a> { place, .. }) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#17">f</a>, <span class="string">&quot;OwnedIntoMemoryBlock({place})&quot;</span>)
+            <a href="#12">Action::OwnedIntoMemoryBlock</a>(<a href="#47">ConversionState</a> { place, .. }) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#18">f</a>, <span class="string">&quot;OwnedIntoMemoryBlock({place})&quot;</span>)
             }
-            <a href="#12">Action::RestoreMutBorrowed</a>(<a href="#49">RestorationState</a> { place, .. }) =&gt; {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#17">f</a>, <span class="string">&quot;RestoreMutBorrowed({place})&quot;</span>)
+            <a href="#13">Action::RestoreMutBorrowed</a>(<a href="#53">RestorationState</a> { place, .. }) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#18">f</a>, <span class="string">&quot;RestoreMutBorrowed({place})&quot;</span>)
             }
-            <a href="#13">Action::Unreachable</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#17">f</a>, <span class="string">&quot;Unreachable&quot;</span>),
+            <a href="#14">Action::Unreachable</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#18">f</a>, <span class="string">&quot;Unreachable&quot;</span>),
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">struct </span>FoldingActionState {
-    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) kind: <a href="permission.rs.html#23">PermissionKind</a>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">struct </span>FoldingActionState {
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) kind: <a href="permission.rs.html#43">PermissionKind</a>,
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) place: <a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) condition: <span class="prelude-ty">Option</span>&lt;<a href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a>&gt;,
     <span class="doccomment">/// If un/folding an enum, which of its variants.
     </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) enum_variant: <span class="prelude-ty">Option</span>&lt;<a href="../../../../../../vir/gen/typed/ast/ty/struct.VariantIndex.html">vir_typed::ty::VariantIndex</a>&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">struct </span>ConversionState {
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">struct </span>ConversionState {
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) place: <a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) condition: <span class="prelude-ty">Option</span>&lt;<a href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a>&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">struct </span>RestorationState {
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">struct </span>RestorationState {
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) lifetime: <a href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>,
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) place: <a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) condition: <span class="prelude-ty">Option</span>&lt;<a href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a>&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">struct </span>UnreachableState {
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">struct </span>UnreachableState {
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) position: <a href="../../../../../../vir/common/position/struct.Position.html">vir_typed::Position</a>,
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) condition: <span class="prelude-ty">Option</span>&lt;<a href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="#7">Action</a> {
+<span class="kw">impl </span><a href="#8">Action</a> {
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>set_condition(<span class="self">self</span>, condition: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">BlockMarkerCondition</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#61">self</a> </span>{
-            <span class="self">Self</span>::Unfold(state) =&gt; <span class="self">Self</span>::Unfold(<a href="#36">FoldingActionState</a> {
-                condition: <span class="prelude-val">Some</span>(<a href="#61">condition</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-                ..<a href="#63">state</a>
+        <span class="kw">match </span><span class="self"><a href="#66">self</a> </span>{
+            <span class="self">Self</span>::Unfold(state) =&gt; <span class="self">Self</span>::Unfold(<a href="#38">FoldingActionState</a> {
+                condition: <span class="prelude-val">Some</span>(<a href="#66">condition</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                ..<a href="#68">state</a>
             }),
-            <span class="self">Self</span>::Fold(state) =&gt; <span class="self">Self</span>::Fold(<a href="#36">FoldingActionState</a> {
-                condition: <span class="prelude-val">Some</span>(<a href="#61">condition</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-                ..<a href="#67">state</a>
+            <span class="self">Self</span>::Fold(state) =&gt; <span class="self">Self</span>::Fold(<a href="#38">FoldingActionState</a> {
+                condition: <span class="prelude-val">Some</span>(<a href="#66">condition</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                ..<a href="#72">state</a>
             }),
-            <span class="self">Self</span>::OwnedIntoMemoryBlock(state) =&gt; <span class="self">Self</span>::OwnedIntoMemoryBlock(<a href="#44">ConversionState</a> {
-                condition: <span class="prelude-val">Some</span>(<a href="#61">condition</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-                ..<a href="#71">state</a>
+            <span class="self">Self</span>::OwnedIntoMemoryBlock(state) =&gt; <span class="self">Self</span>::OwnedIntoMemoryBlock(<a href="#47">ConversionState</a> {
+                condition: <span class="prelude-val">Some</span>(<a href="#66">condition</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                ..<a href="#76">state</a>
             }),
-            <span class="self">Self</span>::RestoreMutBorrowed(state) =&gt; <span class="self">Self</span>::RestoreMutBorrowed(<a href="#49">RestorationState</a> {
-                condition: <span class="prelude-val">Some</span>(<a href="#61">condition</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-                ..<a href="#75">state</a>
+            <span class="self">Self</span>::RestoreMutBorrowed(state) =&gt; <span class="self">Self</span>::RestoreMutBorrowed(<a href="#53">RestorationState</a> {
+                condition: <span class="prelude-val">Some</span>(<a href="#66">condition</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                ..<a href="#80">state</a>
             }),
-            <span class="self">Self</span>::Unreachable(state) =&gt; <span class="self">Self</span>::Unreachable(<a href="#55">UnreachableState</a> {
-                condition: <span class="prelude-val">Some</span>(<a href="#61">condition</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-                ..<a href="#79">state</a>
+            <span class="self">Self</span>::Unreachable(state) =&gt; <span class="self">Self</span>::Unreachable(<a href="#60">UnreachableState</a> {
+                condition: <span class="prelude-val">Some</span>(<a href="#66">condition</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                ..<a href="#84">state</a>
             }),
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>unfold(
-        kind: <a href="permission.rs.html#23">PermissionKind</a>,
+        kind: <a href="permission.rs.html#43">PermissionKind</a>,
         place: <a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
         enum_variant: <span class="prelude-ty">Option</span>&lt;<a href="../../../../../../vir/gen/typed/ast/ty/struct.VariantIndex.html">vir_typed::ty::VariantIndex</a>&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::Unfold(<a href="#36">FoldingActionState</a> {
-            <a href="#87">kind</a>,
-            <a href="#88">place</a>,
-            <a href="#89">enum_variant</a>,
+        <span class="self">Self</span>::Unfold(<a href="#38">FoldingActionState</a> {
+            <a href="#92">kind</a>,
+            <a href="#93">place</a>,
+            <a href="#94">enum_variant</a>,
             condition: <span class="prelude-val">None</span>,
         })
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>fold(
-        kind: <a href="permission.rs.html#23">PermissionKind</a>,
+        kind: <a href="permission.rs.html#43">PermissionKind</a>,
         place: <a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
         enum_variant: <span class="prelude-ty">Option</span>&lt;<a href="../../../../../../vir/gen/typed/ast/ty/struct.VariantIndex.html">vir_typed::ty::VariantIndex</a>&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::Fold(<a href="#36">FoldingActionState</a> {
-            <a href="#100">kind</a>,
-            <a href="#101">place</a>,
-            <a href="#102">enum_variant</a>,
+        <span class="self">Self</span>::Fold(<a href="#38">FoldingActionState</a> {
+            <a href="#105">kind</a>,
+            <a href="#106">place</a>,
+            <a href="#107">enum_variant</a>,
             condition: <span class="prelude-val">None</span>,
         })
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>owned_into_memory_block(place: <a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::OwnedIntoMemoryBlock(<a href="#44">ConversionState</a> {
-            <a href="#112">place</a>,
+        <span class="self">Self</span>::OwnedIntoMemoryBlock(<a href="#47">ConversionState</a> {
+            <a href="#117">place</a>,
             condition: <span class="prelude-val">None</span>,
         })
     }
@@ -256,16 +266,16 @@
         lifetime: <a href="../../../../../../vir/gen/typed/ast/ty/struct.LifetimeConst.html">vir_typed::ty::LifetimeConst</a>,
         place: <a href="../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
     ) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::RestoreMutBorrowed(<a href="#49">RestorationState</a> {
-            <a href="#120">lifetime</a>,
-            <a href="#121">place</a>,
+        <span class="self">Self</span>::RestoreMutBorrowed(<a href="#53">RestorationState</a> {
+            <a href="#125">lifetime</a>,
+            <a href="#126">place</a>,
             condition: <span class="prelude-val">None</span>,
         })
     }
 
     <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>unreachable(position: <a href="../../../../../../vir/common/position/struct.Position.html">vir_typed::Position</a>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::Unreachable(<a href="#55">UnreachableState</a> {
-            <a href="#130">position</a>,
+        <span class="self">Self</span>::Unreachable(<a href="#60">UnreachableState</a> {
+            <a href="#135">position</a>,
             condition: <span class="prelude-val">None</span>,
         })
     }

@@ -1,0 +1,734 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/high/procedures/inference/state/fold_unfold_state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fold_unfold_state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../../../../normalize.css"><link rel="stylesheet" href="../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../../../../dark.css" disabled><link rel="stylesheet" href="../../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../../storage.js"></script><script defer src="../../../../../../../source-script.js"></script><script defer src="../../../../../../../source-files.js"></script><script defer src="../../../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
+    <a href="../../../../errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>, <a href="../permission.rs.html#4">high::procedures::inference::permission::Permission</a>,
+};
+<span class="kw">use </span><a href="../../../../../../../log/macro.debug.html">log::debug</a>;
+<span class="kw">use </span>std::collections::{<a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
+<span class="kw">use </span>vir_crate::{
+    middle::{<span class="self"><a href="../../../../../../../vir/middle/index.html">self</a> </span><span class="kw">as </span>vir_mid},
+    typed::{<span class="self"><a href="../../../../../../../vir/typed/index.html">self</a> </span><span class="kw">as </span>vir_typed},
+};
+
+<span class="kw">use </span><a href="predicate_state.rs.html#10"><span class="kw">super</span>::PredicateState</a>;
+
+<span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">struct </span>FoldUnfoldState {
+    <span class="doccomment">/// If this state is a merge of multiple incoming states, then
+    /// `incoming_labels` contains the list of basic blocks from where the
+    /// already merged states came.
+    </span>incoming_labels: Vec&lt;<a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>&gt;,
+    <span class="doccomment">/// `VariableDecl` indicates the root of the allocation. Currently, we
+    /// support only stack allocations. They can be uniquely identified by
+    /// `VariableDecl` of their base.
+    </span>predicates: BTreeMap&lt;<a href="../../../../../../../vir/gen/typed/ast/variable/struct.VariableDecl.html">vir_typed::VariableDecl</a>, <a href="predicate_state.rs.html#10">PredicateState</a>&gt;,
+}
+
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for </span><a href="#14">FoldUnfoldState</a> {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+        <span class="macro">write!</span>(f, <span class="string">&quot;incoming labels: &quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">for </span>label <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.incoming_labels {
+            <span class="macro">write!</span>(f, <span class="string">&quot;{}, &quot;</span>, label)<span class="question-mark">?</span>;
+        }
+        <span class="macro">writeln!</span>(f, <span class="string">&quot;\nstates:&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">for </span>(variable, predicate) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.predicates {
+            <span class="macro">writeln!</span>(f, <span class="string">&quot;{}:\n{}&quot;</span>, variable, predicate)<span class="question-mark">?</span>;
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+}
+
+<span class="kw">impl </span><a href="#14">FoldUnfoldState</a> {
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            incoming_labels: Vec::new(),
+            predicates: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+        }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>debug_print(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <a class="macro" href="../../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;state:\n{}&quot;</span>, <span class="self">self</span>);
+    }
+
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>contains_only_leakable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="#51">self</a>.predicates
+            .values()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|predicate| <a href="#54">predicate</a>.<a href="predicate_state.rs.html#61">contains_only_leakable</a>())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>reset_incoming_labels_with(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        incoming_label: <a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
+        path_disambiguators: <span class="kw-2">&amp;</span>[<a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>],
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <span class="kw">for </span>predicate_state <span class="kw">in </span><span class="self">self</span>.predicates.values_mut() {
+            <span class="kw">if let </span>PredicateState::Conditional(states) = predicate_state {
+                <span class="kw-2">*</span>states = std::mem::take(states)
+                    .into_iter()
+                    .map(|(<span class="kw-2">mut </span>labels, state)| {
+                        <span class="kw">for </span>non_incoming_label <span class="kw">in </span>path_disambiguators {
+                            labels.elements.push(vir_mid::BlockMarkerConditionElement {
+                                visited: <span class="bool-val">false</span>,
+                                basic_block_id: non_incoming_label.clone(),
+                            });
+                        }
+                        labels.elements.push(vir_mid::BlockMarkerConditionElement {
+                            visited: <span class="bool-val">true</span>,
+                            basic_block_id: incoming_label.clone(),
+                        });
+                        (labels, state)
+                    })
+                    .collect();
+            }
+        }
+        <a class="self" href="#58">self</a>.incoming_labels = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[incoming_label];
+        <a class="self" href="#58">self</a>.<a href="#351">check_no_default_position</a>();
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Merge `incoming_state` coming from block with label `incoming_label`
+    /// into `self`.
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>merge(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        incoming_label: <a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
+        current_label: <a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
+        path_disambiguators: <span class="kw-2">&amp;</span>BTreeMap&lt;
+            (<a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>, <a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>),
+            Vec&lt;<a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>&gt;,
+        &gt;,
+        <span class="kw-2">mut </span>incoming_state: <span class="self">Self</span>,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <span class="comment">// Roots that are available in both `self` and `incoming_state`.
+        </span><span class="kw">let </span>all_roots = <span class="self"><a href="#90">self</a>
+            </span>.predicates
+            .keys()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a href="#97">incoming_state</a>.predicates.keys())
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;BTreeSet&lt;<span class="kw">_</span>&gt;&gt;();
+
+        <span class="comment">// Merge `self` and `incoming_state` root by root.
+        </span><span class="kw">let </span>empty_vec = Vec::new();
+        <span class="kw">let </span>incoming_label_path_disambiguators = <a href="#93">path_disambiguators</a>
+            .get(<span class="kw-2">&amp;</span>(<a href="#91">incoming_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#92">current_label</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
+            .unwrap_or(<span class="kw-2">&amp;</span><a href="#108">empty_vec</a>);
+        <span class="kw">for </span>root <span class="kw">in </span>all_roots {
+            <span class="kw">let </span>self_state = <span class="self">self</span>.predicates.remove(<span class="kw-2">&amp;</span>root);
+            <span class="kw">let </span>incoming_predicate = incoming_state.predicates.remove(<span class="kw-2">&amp;</span>root);
+
+            <span class="kw">let </span><span class="kw-2">mut </span>unconditional = <span class="prelude-val">None</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>existing_self_conditional = <span class="prelude-val">None</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>new_self_conditional = <span class="prelude-val">None</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>existing_incoming_conditional = <span class="prelude-val">None</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>new_incoming_conditional = <span class="prelude-val">None</span>;
+            <span class="kw">match </span>(self_state, incoming_predicate) {
+                (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="macro">unreachable!</span>(),
+                (
+                    <span class="prelude-val">Some</span>(PredicateState::Unconditional(uself)),
+                    <span class="prelude-val">Some</span>(PredicateState::Unconditional(uincoming)),
+                ) =&gt; {
+                    <span class="kw">if </span>uself == uincoming {
+                        unconditional = <span class="prelude-val">Some</span>(uself);
+                    } <span class="kw">else </span>{
+                        new_self_conditional = <span class="prelude-val">Some</span>(uself);
+                        new_incoming_conditional = <span class="prelude-val">Some</span>(uincoming);
+                    }
+                }
+                (<span class="prelude-val">Some</span>(PredicateState::Unconditional(uself)), <span class="prelude-val">None</span>) =&gt; {
+                    new_self_conditional = <span class="prelude-val">Some</span>(uself);
+                }
+                (
+                    <span class="prelude-val">Some</span>(PredicateState::Unconditional(uself)),
+                    <span class="prelude-val">Some</span>(PredicateState::Conditional(cincoming)),
+                ) =&gt; {
+                    new_self_conditional = <span class="prelude-val">Some</span>(uself);
+                    existing_incoming_conditional = <span class="prelude-val">Some</span>(cincoming);
+                }
+                (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(PredicateState::Unconditional(uincoming))) =&gt; {
+                    new_incoming_conditional = <span class="prelude-val">Some</span>(uincoming);
+                }
+                (
+                    <span class="prelude-val">Some</span>(PredicateState::Conditional(cself)),
+                    <span class="prelude-val">Some</span>(PredicateState::Unconditional(uincoming)),
+                ) =&gt; {
+                    existing_self_conditional = <span class="prelude-val">Some</span>(cself);
+                    new_incoming_conditional = <span class="prelude-val">Some</span>(uincoming);
+                }
+                (
+                    <span class="prelude-val">Some</span>(PredicateState::Conditional(cself)),
+                    <span class="prelude-val">Some</span>(PredicateState::Conditional(cincoming)),
+                ) =&gt; {
+                    existing_self_conditional = <span class="prelude-val">Some</span>(cself);
+                    existing_incoming_conditional = <span class="prelude-val">Some</span>(cincoming);
+                }
+                (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(PredicateState::Conditional(cincoming))) =&gt; {
+                    existing_incoming_conditional = <span class="prelude-val">Some</span>(cincoming);
+                }
+                (<span class="prelude-val">Some</span>(PredicateState::Conditional(cself)), <span class="prelude-val">None</span>) =&gt; {
+                    existing_self_conditional = <span class="prelude-val">Some</span>(cself);
+                }
+            };
+            <span class="kw">let </span>merged_state = <span class="kw">if let </span><span class="prelude-val">Some</span>(unconditional) = unconditional {
+                <span class="macro">assert!</span>(existing_self_conditional.is_none());
+                <span class="macro">assert!</span>(new_self_conditional.is_none());
+                <span class="macro">assert!</span>(existing_incoming_conditional.is_none());
+                <span class="macro">assert!</span>(new_incoming_conditional.is_none());
+                PredicateState::Unconditional(unconditional)
+            } <span class="kw">else </span>{
+                <span class="kw">let </span><span class="kw-2">mut </span>states = BTreeMap::new();
+                <span class="comment">// Copy over conditional from self.
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(existing_self_conditional) = existing_self_conditional {
+                    states.extend(existing_self_conditional);
+                }
+                <span class="comment">// Copy over conditional from incoming.
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(existing_incoming_conditional) = existing_incoming_conditional {
+                    states.extend(existing_incoming_conditional.into_iter().map(
+                        |(<span class="kw-2">mut </span>labels, state)| {
+                            <span class="kw">for </span>non_incoming_label <span class="kw">in </span>incoming_label_path_disambiguators {
+                                labels.elements.push(vir_mid::BlockMarkerConditionElement {
+                                    visited: <span class="bool-val">false</span>,
+                                    basic_block_id: non_incoming_label.clone(),
+                                });
+                            }
+                            labels.elements.push(vir_mid::BlockMarkerConditionElement {
+                                visited: <span class="bool-val">true</span>,
+                                basic_block_id: incoming_label.clone(),
+                            });
+                            (labels, state)
+                        },
+                    ));
+                }
+                <span class="comment">// Create new conditionals from self.
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(new_self_conditional) = new_self_conditional {
+                    <span class="kw">for </span>label <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.incoming_labels {
+                        <span class="kw">let </span><span class="kw-2">mut </span>elements = <span class="macro">vec!</span>[vir_mid::BlockMarkerConditionElement {
+                            basic_block_id: label.clone(),
+                            visited: <span class="bool-val">true</span>,
+                        }];
+                        <span class="kw">for </span>disambiguator <span class="kw">in </span>path_disambiguators
+                            .get(<span class="kw-2">&amp;</span>(label.clone(), current_label.clone()))
+                            .unwrap_or(<span class="kw-2">&amp;</span>empty_vec)
+                        {
+                            elements.push(vir_mid::BlockMarkerConditionElement {
+                                visited: <span class="bool-val">false</span>,
+                                basic_block_id: disambiguator.clone(),
+                            });
+                        }
+                        states.insert(
+                            vir_mid::BlockMarkerCondition { elements },
+                            new_self_conditional.clone(),
+                        );
+                    }
+                }
+                <span class="comment">// Create new conditionals from incoming.
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(new_incoming_conditional) = new_incoming_conditional {
+                    <span class="kw">let </span><span class="kw-2">mut </span>elements = <span class="macro">vec!</span>[vir_mid::BlockMarkerConditionElement {
+                        basic_block_id: incoming_label.clone(),
+                        visited: <span class="bool-val">true</span>,
+                    }];
+                    <span class="kw">for </span>non_incoming_label <span class="kw">in </span>incoming_label_path_disambiguators {
+                        elements.push(vir_mid::BlockMarkerConditionElement {
+                            visited: <span class="bool-val">false</span>,
+                            basic_block_id: non_incoming_label.clone(),
+                        });
+                    }
+                    states.insert(
+                        vir_mid::BlockMarkerCondition { elements },
+                        new_incoming_conditional,
+                    );
+                }
+                PredicateState::Conditional(states)
+            };
+            <span class="self">self</span>.predicates.insert(root, merged_state);
+        }
+        <a class="self" href="#90">self</a>.incoming_labels.push(<a href="#91">incoming_label</a>);
+        <a class="self" href="#90">self</a>.<a href="#351">check_no_default_position</a>();
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>insert_permissions(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        permissions: Vec&lt;<a href="../permission.rs.html#4">Permission</a>&gt;,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <span class="kw">for </span>permission <span class="kw">in </span>permissions {
+            <span class="self">self</span>.insert_permission(permission)<span class="question-mark">?</span>;
+        }
+        <a class="self" href="#247">self</a>.<a href="#351">check_no_default_position</a>();
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>insert_permission(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        permission: <a href="../permission.rs.html#4">Permission</a>,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="self" href="#258">self</a>.<a href="#351">check_no_default_position</a>();
+        <span class="kw">let </span>place = <a href="#259">permission</a>.<a href="../permission.rs.html#26">get_place</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = <span class="self">self</span>.try_get_predicates_state(place)<span class="question-mark">? </span>{
+            state.insert_permission(permission)<span class="question-mark">?</span>;
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>base = <a href="#262">place</a>.get_base().erase_lifetime();
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self
+                </span>.predicates
+                .insert(base, PredicateState::new_unconditional(permission))
+                .is_none());
+        }
+        <a class="self" href="#258">self</a>.<a href="#351">check_no_default_position</a>();
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>remove_permissions(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        permissions: <span class="kw-2">&amp;</span>[<a href="../permission.rs.html#4">Permission</a>],
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="self" href="#277">self</a>.<a href="#351">check_no_default_position</a>();
+        <span class="kw">for </span>permission <span class="kw">in </span>permissions {
+            <span class="self">self</span>.remove_permission(permission)<span class="question-mark">?</span>;
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>remove_permission(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        permission: <span class="kw-2">&amp;</span><a href="../permission.rs.html#4">Permission</a>,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="self" href="#288">self</a>.<a href="#351">check_no_default_position</a>();
+        <span class="kw">let </span>place = <a href="#289">permission</a>.<a href="../permission.rs.html#26">get_place</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = <span class="self">self</span>.try_get_predicates_state(place)<span class="question-mark">? </span>{
+            state.remove_permission(permission)<span class="question-mark">?</span>;
+            <span class="kw">if </span>state.is_empty() {
+                <span class="kw">let </span>base = <a href="#292">place</a>.get_base().erase_lifetime();
+                <a class="self" href="#288">self</a>.predicates.remove(<span class="kw-2">&amp;</span><a href="#296">base</a>);
+            } <span class="kw">else </span>{
+                state.remove_empty_states()<span class="question-mark">?</span>;
+            }
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>iter_mut(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+    ) -&gt; SpannedEncodingResult&lt;<span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;mut </span><a href="predicate_state.rs.html#10">PredicateState</a>&gt;&gt; {
+        <a class="self" href="#306">self</a>.<a href="#351">check_no_default_position</a>();
+        <span class="prelude-val">Ok</span>(<a class="self" href="#306">self</a>.predicates.values_mut())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>get_predicates_state(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; SpannedEncodingResult&lt;<span class="kw-2">&amp;mut </span><a href="predicate_state.rs.html#10">PredicateState</a>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self
+            </span>.try_get_predicates_state(place)<span class="question-mark">?
+            </span>.unwrap_or_else(|| <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;place: {place}&quot;</span>)))
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>try_get_predicates_state(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        place: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/expression/enum.Expression.html">vir_typed::Expression</a>,
+    ) -&gt; SpannedEncodingResult&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span><a href="predicate_state.rs.html#10">PredicateState</a>&gt;&gt; {
+        <a class="self" href="#322">self</a>.<a href="#351">check_no_default_position</a>();
+        <span class="kw">let </span>base = <a href="#323">place</a>.get_base().erase_lifetime();
+        <span class="prelude-val">Ok</span>(<a class="self" href="#322">self</a>.predicates.get_mut(<span class="kw-2">&amp;</span><a href="#326">base</a>))
+    }
+
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>remove_empty_states(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        variable: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/typed/ast/variable/struct.VariableDecl.html">vir_typed::VariableDecl</a>,
+    ) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(predicate) = <a class="self" href="#331">self</a>.predicates.get_mut(<a href="#332">variable</a>) {
+            <span class="kw">if </span>predicate.is_empty() {
+                <a class="self" href="#331">self</a>.predicates.remove(<a href="#332">variable</a>);
+            } <span class="kw">else </span>{
+                predicate.remove_empty_states()<span class="question-mark">?</span>;
+            }
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Remove all permissions. This is intended to be used only by `LeakAll` statement.
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;()&gt; {
+        <a class="self" href="#345">self</a>.<a href="#351">check_no_default_position</a>();
+        <a class="self" href="#345">self</a>.predicates.clear();
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>check_no_default_position(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
+            <span class="kw">for </span>predicate <span class="kw">in </span><span class="self">self</span>.predicates.values() {
+                predicate.check_no_default_position();
+            }
+        }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">super</span>::<span class="kw">super</span>) <span class="kw">fn </span>check_consistency(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
+            <span class="kw">for </span>predicate <span class="kw">in </span><span class="self">self</span>.predicates.values() {
+                predicate.check_consistency();
+            }
+        }
+    }
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (95a3a7277 2022-10-31)" ></div></body></html>

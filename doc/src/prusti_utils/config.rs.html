@@ -965,6 +965,65 @@
 <span id="965">965</span>
 <span id="966">966</span>
 <span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
+<span id="979">979</span>
+<span id="980">980</span>
+<span id="981">981</span>
+<span id="982">982</span>
+<span id="983">983</span>
+<span id="984">984</span>
+<span id="985">985</span>
+<span id="986">986</span>
+<span id="987">987</span>
+<span id="988">988</span>
+<span id="989">989</span>
+<span id="990">990</span>
+<span id="991">991</span>
+<span id="992">992</span>
+<span id="993">993</span>
+<span id="994">994</span>
+<span id="995">995</span>
+<span id="996">996</span>
+<span id="997">997</span>
+<span id="998">998</span>
+<span id="999">999</span>
+<span id="1000">1000</span>
+<span id="1001">1001</span>
+<span id="1002">1002</span>
+<span id="1003">1003</span>
+<span id="1004">1004</span>
+<span id="1005">1005</span>
+<span id="1006">1006</span>
+<span id="1007">1007</span>
+<span id="1008">1008</span>
+<span id="1009">1009</span>
+<span id="1010">1010</span>
+<span id="1011">1011</span>
+<span id="1012">1012</span>
+<span id="1013">1013</span>
+<span id="1014">1014</span>
+<span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -1100,6 +1159,9 @@
         settings.set_default(<span class="string">&quot;hide_uuids&quot;</span>, <span class="bool-val">false</span>).unwrap();
         settings.set_default(<span class="string">&quot;counterexample&quot;</span>, <span class="bool-val">false</span>).unwrap();
         settings.set_default(<span class="string">&quot;print_counterexample_if_model_is_present&quot;</span>, <span class="bool-val">false</span>).unwrap();
+        settings.set_default::&lt;<span class="prelude-ty">Option</span>&lt;String&gt;&gt;(<span class="string">&quot;save_failing_trace_to_file&quot;</span>, <span class="prelude-val">None</span>).unwrap();
+        settings.set_default::&lt;<span class="prelude-ty">Option</span>&lt;String&gt;&gt;(<span class="string">&quot;execute_only_failing_trace&quot;</span>, <span class="prelude-val">None</span>).unwrap();
+        settings.set_default::&lt;<span class="prelude-ty">Option</span>&lt;String&gt;&gt;(<span class="string">&quot;dump_fold_unfold_state_of_blocks&quot;</span>, <span class="prelude-val">None</span>).unwrap();
         settings.set_default(<span class="string">&quot;print_hash&quot;</span>, <span class="bool-val">false</span>).unwrap();
         settings.set_default(<span class="string">&quot;enable_cache&quot;</span>, <span class="bool-val">true</span>).unwrap();
         settings.set_default(<span class="string">&quot;enable_ghost_constraints&quot;</span>, <span class="bool-val">false</span>).unwrap();
@@ -1187,7 +1249,7 @@
 }
 
 <span class="kw">fn </span>get_keys(settings: <span class="kw-2">&amp;</span><a href="../../config/config/struct.Config.html">Config</a>) -&gt; HashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-    <a href="#222">settings</a>
+    <a href="#225">settings</a>
         .cache
         .<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
         .into_table()
@@ -1214,39 +1276,39 @@
 
 <span class="doccomment">/// Generate a dump of the settings
 </span><span class="kw">pub fn </span>dump() -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <span class="kw">let </span>settings = <a href="#64-220">SETTINGS</a>.read().unwrap();
-    <span class="kw">let </span>map = <a href="../../config/source/trait.Source.html">config::Source::collect</a>(<span class="kw-2">&amp;*</span><a href="#250">settings</a>).unwrap();
-    <span class="kw">let </span><span class="kw-2">mut </span>pairs: Vec&lt;<span class="kw">_</span>&gt; = <a href="#251">map</a>
+    <span class="kw">let </span>settings = <a href="#64-223">SETTINGS</a>.read().unwrap();
+    <span class="kw">let </span>map = <a href="../../config/source/trait.Source.html">config::Source::collect</a>(<span class="kw-2">&amp;*</span><a href="#253">settings</a>).unwrap();
+    <span class="kw">let </span><span class="kw-2">mut </span>pairs: Vec&lt;<span class="kw">_</span>&gt; = <a href="#254">map</a>
         .iter()
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(key, value)| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}={:#?}&quot;</span>, key, value))
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-    <a href="#252">pairs</a>.sort();
-    <a href="#252">pairs</a>.join(<span class="string">&quot;\n\n&quot;</span>)
+    <a href="#255">pairs</a>.sort();
+    <a href="#255">pairs</a>.join(<span class="string">&quot;\n\n&quot;</span>)
 }
 
 <span class="kw">fn </span>read_optional_setting&lt;T&gt;(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;
 <span class="kw">where
     </span>T: Deserialize&lt;<span class="lifetime">&#39;static</span>&gt;,
 {
-    <a href="#64-220">SETTINGS</a>.read().unwrap().get(<a href="#260">name</a>).ok()
+    <a href="#64-223">SETTINGS</a>.read().unwrap().get(<a href="#263">name</a>).ok()
 }
 
 <span class="kw">fn </span>read_setting&lt;T&gt;(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; T
 <span class="kw">where
     </span>T: Deserialize&lt;<span class="lifetime">&#39;static</span>&gt;,
 {
-    <a href="#64-220">SETTINGS</a>
+    <a href="#64-223">SETTINGS</a>
         .read()
         .unwrap()
-        .get(<a href="#267">name</a>)
+        .get(<a href="#270">name</a>)
         .unwrap_or_else(|e| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Failed to read setting {} due to {}&quot;</span>, name, e))
 }
 
 <span class="kw">fn </span>write_setting&lt;T: Into&lt;<a href="../../config/value/struct.Value.html">config::Value</a>&gt;&gt;(key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, value: T) {
-    <a href="#64-220">SETTINGS</a>
+    <a href="#64-223">SETTINGS</a>
         .write()
         .unwrap()
-        .set(<a href="#278">key</a>, <a href="#278">value</a>)
+        .set(<a href="#281">key</a>, <a href="#281">value</a>)
         .unwrap_or_else(|e| <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Failed to write setting {} due to {}&quot;</span>, key, e));
 }
 
@@ -1257,13 +1319,13 @@
 
 </span><span class="doccomment">/// When enabled, Prusti will behave like `rustc`.
 </span><span class="kw">pub fn </span>be_rustc() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;be_rustc&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;be_rustc&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, additional, *slow*, checks for the `fold`/`unfold` algorithm
 /// will be generated.
 </span><span class="kw">pub fn </span>check_foldunfold_state() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;check_foldunfold_state&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;check_foldunfold_state&quot;</span>)
 }
 
 <span class="doccomment">/// Verification backend to use. Possible values:
@@ -1303,13 +1365,13 @@
 /// configuration flag to the correct path.
 </span><span class="kw">pub fn </span>viper_home() -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = read_setting::&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;&gt;(<span class="string">&quot;viper_home&quot;</span>) {
-        <a href="#338">path</a>
+        <a href="#341">path</a>
     } <span class="kw">else </span>{
         <span class="comment">// If we are running tests, the VIPER_HOME should be in a directory
         // relative to us.
         </span><span class="kw">let </span>current_executable_dir = <a href="launch/mod.rs.html#25">get_current_executable_dir</a>();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = <a href="launch/mod.rs.html#185">find_viper_home</a>(<span class="kw-2">&amp;</span><a href="#343">current_executable_dir</a>) {
-            <a href="#344">path</a>.to_str().unwrap().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = <a href="launch/mod.rs.html#185">find_viper_home</a>(<span class="kw-2">&amp;</span><a href="#346">current_executable_dir</a>) {
+            <a href="#347">path</a>.to_str().unwrap().<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()
         } <span class="kw">else </span>{
             <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Failed to detect Vipe home, please set viper_home configuration flag&quot;</span>)
         }
@@ -1325,76 +1387,76 @@
 
 <span class="doccomment">/// When enabled, Prusti will check for an absence of `panic!`s.
 </span><span class="kw">pub fn </span>check_panics() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;check_panics&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;check_panics&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, the encoded program is simplified before it is passed to
 /// the Viper backend.
 </span><span class="kw">pub fn </span>simplify_encoding() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;simplify_encoding&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;simplify_encoding&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, debug files will be created.
 </span><span class="kw">pub fn </span>dump_debug_info() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;dump_debug_info&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;dump_debug_info&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, the state of the fold-unfold algorithm after each step will
 /// be dumped to a file.
 </span><span class="kw">pub fn </span>dump_debug_info_during_fold() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;dump_debug_info_during_fold&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;dump_debug_info_during_fold&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, dumps Polonius nll-facts in the log directory.
 </span><span class="kw">pub fn </span>dump_nll_facts() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;dump_nll_facts&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;dump_nll_facts&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, debug files dumped by `rustc` will not contain lifetime
 /// regions.
 </span><span class="kw">pub fn </span>ignore_regions() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;ignore_regions&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;ignore_regions&quot;</span>)
 }
 
 <span class="doccomment">/// Maximum allowed length of a log file name. If this is exceeded, the file
 /// name is truncated.
 </span><span class="kw">pub fn </span>max_log_file_name_length() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;max_log_file_name_length&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;max_log_file_name_length&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, branch context state will be output in debug files.
 </span><span class="kw">pub fn </span>dump_path_ctxt_in_debug_info() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;dump_path_ctxt_in_debug_info&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;dump_path_ctxt_in_debug_info&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, reborrowing DAGs will be output in debug files.
 </span><span class="kw">pub fn </span>dump_reborrowing_dag_in_debug_info() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;dump_reborrowing_dag_in_debug_info&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;dump_reborrowing_dag_in_debug_info&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, borrow checking info will be output.
 </span><span class="kw">pub fn </span>dump_borrowck_info() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;dump_borrowck_info&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;dump_borrowck_info&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, the encoded Viper program will be output.
 </span><span class="kw">pub fn </span>dump_viper_program() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;dump_viper_program&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;dump_viper_program&quot;</span>)
 }
 
 <span class="doccomment">/// Filter for `fold`/`unfold` nodes when debug info is dumped.
 </span><span class="kw">pub fn </span>foldunfold_state_filter() -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;foldunfold_state_filter&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;foldunfold_state_filter&quot;</span>)
 }
 
 <span class="doccomment">/// Set the log level of `env_logger`.
 </span><span class="kw">pub fn </span>log() -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;log&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;log&quot;</span>)
 }
 
 <span class="doccomment">/// Set the log style when logging is enabled by `log`.
 </span><span class="kw">pub fn </span>log_style() -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;log_style&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;log_style&quot;</span>)
 }
 
 <span class="doccomment">/// Path to directory in which log files and dumped output will be stored.
@@ -1413,48 +1475,48 @@
 <span class="doccomment">/// When enabled, binary operations and numeric casts will be checked for
 /// overflows.
 </span><span class="kw">pub fn </span>check_overflows() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;check_overflows&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;check_overflows&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, non-negativity of unsigned integers will be encoded and
 /// checked.
 </span><span class="kw">pub fn </span>encode_unsigned_num_constraint() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;encode_unsigned_num_constraint&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;encode_unsigned_num_constraint&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, bitwise integer operations are encoded using bitvectors.
 ///
 /// **Note:** this option is highly experimental.
 </span><span class="kw">pub fn </span>encode_bitvectors() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;encode_bitvectors&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;encode_bitvectors&quot;</span>)
 }
 
 <span class="doccomment">/// Additional arguments to pass to the JVM when launching a verifier backend.
 </span><span class="kw">pub fn </span>extra_jvm_args() -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;extra_jvm_args&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;extra_jvm_args&quot;</span>)
 }
 
 <span class="doccomment">/// Additional arguments to pass to the verifier backend.
 </span><span class="kw">pub fn </span>extra_verifier_args() -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;extra_verifier_args&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;extra_verifier_args&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, user messages are not printed. Otherwise, message output
 /// into `stderr`.
 </span><span class="kw">pub fn </span>quiet() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;quiet&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;quiet&quot;</span>)
 }
 
 <span class="doccomment">/// Maximum time (in milliseconds) for the verifier to spend on a single
 /// assertion. Set to `0` to disable timeout. Maps to the verifier command-line
 /// argument `--assertTimeout`.
 </span><span class="kw">pub fn </span>assert_timeout() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;assert_timeout&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;assert_timeout&quot;</span>)
 }
 
 <span class="doccomment">/// Set `qi.eager_threshold` value to the given one.
 </span><span class="kw">pub fn </span>smt_qi_eager_threshold() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;smt_qi_eager_threshold&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;smt_qi_eager_threshold&quot;</span>)
 }
 
 <span class="doccomment">/// Maximum time (in milliseconds) for the verifier to spend on checks.
@@ -1463,7 +1525,7 @@
 ///
 /// For more information see https://github.com/viperproject/silicon/blob/4c70514379f89e7ec6f96588290ade32518f0527/src/main/scala/Config.scala#L203
 </span><span class="kw">pub fn </span>check_timeout() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt; {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;check_timeout&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;check_timeout&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, a more complete `exhale` version is used in the verifier.
@@ -1471,40 +1533,96 @@
 /// Equivalent to the verifier command-line argument
 /// `--enableMoreCompleteExhale`.
 </span><span class="kw">pub fn </span>use_more_complete_exhale() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;use_more_complete_exhale&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;use_more_complete_exhale&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, prints the items collected for verification.
 </span><span class="kw">pub fn </span>print_collected_verification_items() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;print_collected_verification_items&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;print_collected_verification_items&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, prints the AST with desugared specifications.
 </span><span class="kw">pub fn </span>print_desugared_specs() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;print_desugared_specs&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;print_desugared_specs&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, prints the type-checked specifications.
 </span><span class="kw">pub fn </span>print_typeckd_specs() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;print_typeckd_specs&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;print_typeckd_specs&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, UUIDs of expressions and specifications printed with
 /// `PRINT_TYPECKD_SPECS` are hidden.
 </span><span class="kw">pub fn </span>hide_uuids() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;hide_uuids&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;hide_uuids&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, Prusti will try to find and print a counterexample for any
 /// failed assertion or specification.
 </span><span class="kw">pub fn </span>counterexample() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;counterexample&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;counterexample&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, Prusti will print a counterexample for a model and its original
 /// type
 </span><span class="kw">pub fn </span>print_counterexample_if_model_is_present() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;print_counterexample_if_model_is_present&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;print_counterexample_if_model_is_present&quot;</span>)
+}
+
+<span class="doccomment">/// If this is set to a path, Prusti will extract the information about the
+/// trace that led to the error and save it to the given file.
+///
+/// Note: This requires the `counterexample` and `unsafe_core_proof` options to
+/// be enabled.
+</span><span class="kw">pub fn </span>save_failing_trace_to_file() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
+    <span class="kw">let </span>value: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = <a href="#270-272">read_setting</a>(<span class="string">&quot;save_failing_trace_to_file&quot;</span>);
+    <span class="kw">if </span>value.is_some() {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+            unsafe_core_proof(),
+            <span class="string">&quot;Unsafe core proof needs to be enabled to save failing trace to file&quot;
+        </span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+            counterexample(),
+            <span class="string">&quot;Counterexamples need to be enabled to save failing trace to file&quot;
+        </span>);
+    }
+    <a href="#552">value</a>
+}
+
+<span class="doccomment">/// Execute only the failing trace that was saved with
+/// `save_failing_trace_to_file`. This is done by replacing all non-executed
+/// basic blocks with `assume false`.
+///
+/// Note: This requires the `unsafe_core_proof` option to be enabled.
+///
+/// Note: This assumes that the program contains only a single method.
+</span><span class="kw">pub fn </span>execute_only_failing_trace() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
+    <span class="kw">let </span>value: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = <a href="#270-272">read_setting</a>(<span class="string">&quot;execute_only_failing_trace&quot;</span>);
+    <span class="kw">if </span>value.is_some() {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+            unsafe_core_proof(),
+            <span class="string">&quot;Unsafe core proof needs to be enabled to save failing trace to file&quot;
+        </span>);
+    }
+    <a href="#574">value</a>
+}
+
+<span class="doccomment">/// Dump additional information about the fold-unfold state of the specified
+/// blocks. The blocks are expected to be generated by
+/// `save_failing_trace_to_file` (and potentially edited by hand if needed).
+///
+/// Note: This requires the `unsafe_core_proof` option to be enabled.
+///
+/// Note: This assumes that the program contains only a single method.
+</span><span class="kw">pub fn </span>dump_fold_unfold_state_of_blocks() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
+    <span class="kw">let </span>value: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = <a href="#270-272">read_setting</a>(<span class="string">&quot;dump_fold_unfold_state_of_blocks&quot;</span>);
+    <span class="kw">if </span>value.is_some() {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+            unsafe_core_proof(),
+            <span class="string">&quot;Unsafe core proof needs to be enabled to save failing trace to file&quot;
+        </span>);
+    }
+    <a href="#592">value</a>
 }
 
 <span class="doccomment">/// When enabled, prints the hash of a verification request (the hash is used
@@ -1512,7 +1630,7 @@
 /// verification -- it is similar to `NO_VERIFY`, except that this flag stops
 /// the verification process at a later stage.
 </span><span class="kw">pub fn </span>print_hash() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;print_hash&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;print_hash&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, verification requests (to verify individual `fn`s) are cached
@@ -1520,7 +1638,7 @@
 /// memory (of the `prusti-server` if enabled). For long-running verification
 /// projects use `CACHE_PATH` to save to disk.
 </span><span class="kw">pub fn </span>enable_cache() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;enable_cache&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;enable_cache&quot;</span>)
 }
 
 <span class="doccomment">/// Maximum amount of instantiated Viper verifiers the server will keep around
@@ -1536,14 +1654,14 @@
 </span><span class="kw">pub fn </span>server_max_stored_verifiers() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
     <span class="comment">// TODO: default to below in prusti-server
     // TODO: warn if lower than below
-    </span><a href="#260-262">read_optional_setting</a>(<span class="string">&quot;server_max_stored_verifiers&quot;</span>)
+    </span><a href="#263-265">read_optional_setting</a>(<span class="string">&quot;server_max_stored_verifiers&quot;</span>)
 }
 
 <span class="doccomment">/// Maximum amount of verification requests the server will work on
 /// concurrently. If not set, defaults to the number of (logical) cores on
 /// the system.
 </span><span class="kw">pub fn </span>server_max_concurrency() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>&gt; {
-    <a href="#260-262">read_optional_setting</a>(<span class="string">&quot;server_max_concurrency&quot;</span>)
+    <a href="#263-265">read_optional_setting</a>(<span class="string">&quot;server_max_concurrency&quot;</span>)
 }
 
 <span class="doccomment">/// When set to an address and port (e.g. `&quot;127.0.0.1:2468&quot;`), Prusti will
@@ -1552,13 +1670,13 @@
 /// When set to `&quot;MOCK&quot;`, the server is run off-thread, effectively mocking
 /// connecting to a server without having to start it up separately.
 </span><span class="kw">pub fn </span>server_address() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-    <a href="#260-262">read_optional_setting</a>(<span class="string">&quot;server_address&quot;</span>)
+    <a href="#263-265">read_optional_setting</a>(<span class="string">&quot;server_address&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, communication with the server will be encoded as JSON
 /// instead of the default bincode.
 </span><span class="kw">pub fn </span>json_communication() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;json_communication&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;json_communication&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, Viper name mangling will be disabled.
@@ -1566,7 +1684,7 @@
 /// **Note:** This is very likely to result in invalid programs being generated
 /// because of name collisions.
 </span><span class="kw">pub fn </span>disable_name_mangling() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;disable_name_mangling&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;disable_name_mangling&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, only the preamble will be verified: domains, functions,
@@ -1574,7 +1692,7 @@
 ///
 /// **Note:** With this flag enabled, no methods are verified!
 </span><span class="kw">pub fn </span>verify_only_preamble() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;verify_only_preamble&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;verify_only_preamble&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, only the path given in `VERIFY_ONLY_BASIC_BLOCK_PATH` will
@@ -1582,7 +1700,7 @@
 ///
 /// **Note:** This flag is only for debugging Prusti.
 </span><span class="kw">pub fn </span>enable_verify_only_basic_block_path() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;enable_verify_only_basic_block_path&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;enable_verify_only_basic_block_path&quot;</span>)
 }
 
 <span class="doccomment">/// Verify only the single execution path goes through the given basic blocks.
@@ -1591,7 +1709,7 @@
 ///
 /// **Note:** This option is only for debugging Prusti.
 </span><span class="kw">pub fn </span>verify_only_basic_block_path() -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;verify_only_basic_block_path&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;verify_only_basic_block_path&quot;</span>)
 }
 
 <span class="doccomment">/// Comma-separated list of optimizations to enable, or `&quot;all&quot;` to enable all.
@@ -1630,7 +1748,7 @@
         }
     }
 
-    <a href="#646">opt</a>
+    <a href="#705">opt</a>
 }
 
 <span class="doccomment">/// When enabled, impure methods are optimized using the purification
@@ -1639,7 +1757,7 @@
 ///
 /// **Note:** this option is highly experimental.
 </span><span class="kw">pub fn </span>enable_purification_optimization() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;enable_purification_optimization&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;enable_purification_optimization&quot;</span>)
 }
 
 <span class="doccomment">/// Deadline (in seconds) within which Prusti should encode and verify
@@ -1649,7 +1767,7 @@
 /// be used for tests that aim to catch performance regressions.
 </span><span class="kw">pub fn </span>verification_deadline() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
     read_setting::&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>&gt;&gt;(<span class="string">&quot;verification_deadline&quot;</span>).map(|value| {
-        <a href="#684">value</a>
+        <a href="#743">value</a>
             .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>()
             .expect(<span class="string">&quot;verification_deadline must be a valid u64&quot;</span>)
     })
@@ -1659,11 +1777,11 @@
 /// statistics. This must be set to `true` to use any of the
 /// `smt_qi_bound_*`.
 </span><span class="kw">pub fn </span>use_smt_wrapper() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;use_smt_wrapper&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;use_smt_wrapper&quot;</span>)
 }
 
 <span class="kw">fn </span>read_smt_wrapper_dependent_bool(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">let </span>value = <a href="#267-269">read_setting</a>(<a href="#698">name</a>);
+    <span class="kw">let </span>value = <a href="#270-272">read_setting</a>(<a href="#757">name</a>);
     <span class="kw">if </span>value {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
             use_smt_wrapper(),
@@ -1671,11 +1789,11 @@
             name
         );
     }
-    <a href="#699">value</a>
+    <a href="#758">value</a>
 }
 
 <span class="kw">fn </span>read_smt_wrapper_dependent_option(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-    <span class="kw">let </span>value: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; = <a href="#267-269">read_setting</a>(<a href="#710">name</a>);
+    <span class="kw">let </span>value: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; = <a href="#270-272">read_setting</a>(<a href="#769">name</a>);
     <span class="kw">if </span>value.is_some() {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
             use_smt_wrapper(),
@@ -1683,12 +1801,12 @@
             name
         );
     }
-    <a href="#711">value</a>
+    <a href="#770">value</a>
 }
 
 <span class="doccomment">/// Whether the built-in quantifiers should be ignored when comparing bounds.
 </span><span class="kw">pub fn </span>smt_qi_ignore_builtin() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;smt_qi_ignore_builtin&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;smt_qi_ignore_builtin&quot;</span>)
 }
 
 <span class="doccomment">/// Limit how many quantifier instantiations Z3 can make while verifying the
@@ -1699,7 +1817,7 @@
 /// This flag is intended to be used for tests that aim to catch performance
 /// regressions and matching loops.
 </span><span class="kw">pub fn </span>smt_qi_bound_global() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-    <a href="#710">read_smt_wrapper_dependent_option</a>(<span class="string">&quot;smt_qi_bound_global&quot;</span>)
+    <a href="#769">read_smt_wrapper_dependent_option</a>(<span class="string">&quot;smt_qi_bound_global&quot;</span>)
 }
 
 <span class="doccomment">/// Limit how many quantifier instantiations Z3 can make while verifying the
@@ -1711,7 +1829,7 @@
 /// This flag is intended to be used for tests that aim to catch performance
 /// regressions and matching loops.
 </span><span class="kw">pub fn </span>smt_qi_bound_global_kind() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-    <a href="#710">read_smt_wrapper_dependent_option</a>(<span class="string">&quot;smt_qi_bound_global_kind&quot;</span>)
+    <a href="#769">read_smt_wrapper_dependent_option</a>(<span class="string">&quot;smt_qi_bound_global_kind&quot;</span>)
 }
 
 <span class="doccomment">/// Limit how many quantifier instantiations Z3 can make while verifying the
@@ -1724,7 +1842,7 @@
 /// This flag is intended to be used for tests that aim to catch performance
 /// regressions and matching loops.
 </span><span class="kw">pub fn </span>smt_qi_bound_trace() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-    <a href="#710">read_smt_wrapper_dependent_option</a>(<span class="string">&quot;smt_qi_bound_trace&quot;</span>)
+    <a href="#769">read_smt_wrapper_dependent_option</a>(<span class="string">&quot;smt_qi_bound_trace&quot;</span>)
 }
 
 <span class="doccomment">/// Limit how many quantifier instantiations Z3 can make while verifying the
@@ -1737,40 +1855,40 @@
 /// This flag is intended to be used for tests that aim to catch performance
 /// regressions and matching loops.
 </span><span class="kw">pub fn </span>smt_qi_bound_trace_kind() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-    <a href="#710">read_smt_wrapper_dependent_option</a>(<span class="string">&quot;smt_qi_bound_trace_kind&quot;</span>)
+    <a href="#769">read_smt_wrapper_dependent_option</a>(<span class="string">&quot;smt_qi_bound_trace_kind&quot;</span>)
 }
 
 <span class="doccomment">/// Limit how many unique triggers per quantifier Z3 can instantiate.
 </span><span class="kw">pub fn </span>smt_unique_triggers_bound() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-    <a href="#710">read_smt_wrapper_dependent_option</a>(<span class="string">&quot;smt_unique_triggers_bound&quot;</span>)
+    <a href="#769">read_smt_wrapper_dependent_option</a>(<span class="string">&quot;smt_unique_triggers_bound&quot;</span>)
 }
 
 <span class="doccomment">/// Limit how many unique triggers in total Z3 can instantiate.
 </span><span class="kw">pub fn </span>smt_unique_triggers_bound_total() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-    <a href="#710">read_smt_wrapper_dependent_option</a>(<span class="string">&quot;smt_unique_triggers_bound_total&quot;</span>)
+    <a href="#769">read_smt_wrapper_dependent_option</a>(<span class="string">&quot;smt_unique_triggers_bound_total&quot;</span>)
 }
 
 <span class="doccomment">/// Preserve the Z3 trace files. Since the files can be huge, they are by
 /// default deleted once the required checks are made.
 </span><span class="kw">pub fn </span>preserve_smt_trace_files() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#698">read_smt_wrapper_dependent_bool</a>(<span class="string">&quot;preserve_smt_trace_files&quot;</span>)
+    <a href="#757">read_smt_wrapper_dependent_bool</a>(<span class="string">&quot;preserve_smt_trace_files&quot;</span>)
 }
 
 <span class="doccomment">/// Write the statistics colllected by the SMT wrapper into CSV files.
 </span><span class="kw">pub fn </span>write_smt_statistics() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#698">read_smt_wrapper_dependent_bool</a>(<span class="string">&quot;write_smt_statistics&quot;</span>)
+    <a href="#757">read_smt_wrapper_dependent_bool</a>(<span class="string">&quot;write_smt_statistics&quot;</span>)
 }
 
 <span class="doccomment">/// Log communication of Silicon with Z3.
 </span><span class="kw">pub fn </span>log_smt_wrapper_interaction() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#698">read_smt_wrapper_dependent_bool</a>(<span class="string">&quot;log_smt_wrapper_interaction&quot;</span>)
+    <a href="#757">read_smt_wrapper_dependent_bool</a>(<span class="string">&quot;log_smt_wrapper_interaction&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, the new core proof is used, suitable for unsafe code
 ///
 /// **Note:** This option is currently very incomplete.
 </span><span class="kw">pub fn </span>unsafe_core_proof() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;unsafe_core_proof&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;unsafe_core_proof&quot;</span>)
 }
 
 <span class="doccomment">/// Whether the core proof (memory safety) should be verified.
@@ -1778,7 +1896,7 @@
 /// **Note:** This option is taken into account only when `unsafe_core_proof` is
 /// true.
 </span><span class="kw">pub fn </span>verify_core_proof() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;verify_core_proof&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;verify_core_proof&quot;</span>)
 }
 
 <span class="doccomment">/// Whether the functional specifications should be verified.
@@ -1786,7 +1904,7 @@
 /// **Note:** This option is taken into account only when `unsafe_core_proof` is
 /// true.
 </span><span class="kw">pub fn </span>verify_specifications() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;verify_specifications&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;verify_specifications&quot;</span>)
 }
 
 <span class="doccomment">/// Whether the types should be verified.
@@ -1794,7 +1912,7 @@
 /// **Note:** This option is taken into account only when `unsafe_core_proof` is
 /// true.
 </span><span class="kw">pub fn </span>verify_types() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;verify_types&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;verify_types&quot;</span>)
 }
 
 <span class="doccomment">/// Whether when verifying functional specifications, the core proof should be
@@ -1803,7 +1921,7 @@
 /// **Note:** This option is taken into account only when `unsafe_core_proof` is
 /// true.
 </span><span class="kw">pub fn </span>verify_specifications_with_core_proof() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;verify_specifications_with_core_proof&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;verify_specifications_with_core_proof&quot;</span>)
 }
 
 <span class="doccomment">/// Verification backend to use for functional specification only.
@@ -1819,19 +1937,19 @@
 /// **Note:** This option is taken into account only when `unsafe_core_proof` is
 /// true.
 </span><span class="kw">pub fn </span>use_eval_axioms() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;use_eval_axioms&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;use_eval_axioms&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, inlines `caller_for` heap dependent functions.
 </span><span class="kw">pub fn </span>inline_caller_for() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;inline_caller_for&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;inline_caller_for&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, replaces calls to the drop function with `assert false`.
 ///
 /// **Note:** This option is used only for testing.
 </span><span class="kw">pub fn </span>check_no_drops() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;check_no_drops&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;check_no_drops&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, Prusti uses the new VIR encoder.
@@ -1843,64 +1961,64 @@
 /// If you run into `todo!()` or `unreachable!()`,
 /// then setting this flag to `false` may help.
 </span><span class="kw">pub fn </span>use_new_encoder() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;use_new_encoder&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;use_new_encoder&quot;</span>)
 }
 
 <span class="doccomment">/// How many parallel verifiers Silicon should use.
 </span><span class="kw">pub fn </span>number_of_parallel_verifiers() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>&gt; {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;number_of_parallel_verifiers&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;number_of_parallel_verifiers&quot;</span>)
 }
 
 <span class="doccomment">/// Throw a compilation error if using a lower prusti version.
 </span><span class="kw">pub fn </span>min_prusti_version() -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;min_prusti_version&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;min_prusti_version&quot;</span>)
 }
 
 <span class="doccomment">/// The given basic blocks will be replaced with `assume false`.
 </span><span class="kw">pub fn </span>delete_basic_blocks() -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;delete_basic_blocks&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;delete_basic_blocks&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, features not supported by Prusti will be reported as warnings
 /// rather than errors.
 </span><span class="kw">pub fn </span>skip_unsupported_features() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;skip_unsupported_features&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;skip_unsupported_features&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, internal errors are reported as warnings instead of errors.
 /// Used for testing.
 </span><span class="kw">pub fn </span>internal_errors_as_warnings() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;internal_errors_as_warnings&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;internal_errors_as_warnings&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, unsupported code is encoded as `assert false`. This way error
 /// messages are reported only for unsupported code that is actually reachable.
 </span><span class="kw">pub fn </span>allow_unreachable_unsupported_code() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;allow_unreachable_unsupported_code&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;allow_unreachable_unsupported_code&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, verification is skipped altogether.
 </span><span class="kw">pub fn </span>no_verify() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;no_verify&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;no_verify&quot;</span>)
 }
 <span class="kw">pub fn </span>set_no_verify(value: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-    <a href="#278">write_setting</a>(<span class="string">&quot;no_verify&quot;</span>, <a href="#919">value</a>);
+    <a href="#281">write_setting</a>(<span class="string">&quot;no_verify&quot;</span>, <a href="#978">value</a>);
 }
 
 <span class="doccomment">/// When enabled, verification is skipped for dependencies.
 </span><span class="kw">pub fn </span>no_verify_deps() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;no_verify_deps&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;no_verify_deps&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, compilation will continue and a binary will be generated
 /// after Prusti terminates.
 </span><span class="kw">pub fn </span>full_compilation() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;full_compilation&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;full_compilation&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, Viper identifiers are interned to shorten them when possible.
 </span><span class="kw">pub fn </span>intern_names() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;intern_names&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;intern_names&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, ghost constraints can be used in Prusti specifications.
@@ -1912,25 +2030,25 @@
 /// **This is an experimental feature**, because it is currently possible to
 /// introduce unsound verification behavior.
 </span><span class="kw">pub fn </span>enable_ghost_constraints() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;enable_ghost_constraints&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;enable_ghost_constraints&quot;</span>)
 }
 
 <span class="doccomment">/// Determines which cargo `cargo-prusti` should run (e.g. if &quot;cargo&quot; isn&#39;t in
 /// the path can point to it directly). Not relevant when only running as `prusti=rustc`.
 </span><span class="kw">pub fn </span>cargo_path() -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;cargo_path&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;cargo_path&quot;</span>)
 }
 
 <span class="doccomment">/// Determines which command `cargo-prusti` should run (default is &quot;check&quot;
 /// for `cargo check`). Not relevant when only running as `prusti=rustc`.
 </span><span class="kw">pub fn </span>cargo_command() -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;cargo_command&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;cargo_command&quot;</span>)
 }
 
 <span class="doccomment">/// When enabled, type invariants can be declared on types using the
 /// `#[invariant(...)]` attribute.
 </span><span class="kw">pub fn </span>enable_type_invariants() -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#267-269">read_setting</a>(<span class="string">&quot;enable_type_invariants&quot;</span>)
+    <a href="#270-272">read_setting</a>(<span class="string">&quot;enable_type_invariants&quot;</span>)
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (95a3a7277 2022-10-31)" ></div></body></html>

@@ -180,6 +180,19 @@
 <span id="180">180</span>
 <span id="181">181</span>
 <span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
 </pre><pre class="rust"><code><span class="kw">use </span>rustc_hash::{<a href="../../../../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a href="../../../../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
 <span class="kw">use </span><a href="../../../../../../vir/low/index.html">vir_crate::low</a> <span class="kw">as </span>vir_low;
 <span class="kw">use </span><a href="../../../../../../vir/gen/low/ast/expression/visitors/trait.ExpressionFolder.html">vir_low::expression::visitors::ExpressionFolder</a>;
@@ -273,9 +286,22 @@
                 <span class="kw">let </span>pure_expression = remover.fold_expression(expression);
                 statements.push(vir_low::Statement::inhale(pure_expression, unfold.position));
             }
-            vir_low::Statement::Fold(<span class="kw">_</span>)
-            | vir_low::Statement::ApplyMagicWand(<span class="kw">_</span>)
-            | vir_low::Statement::Conditional(<span class="kw">_</span>) =&gt; {}
+            vir_low::Statement::Fold(<span class="kw">_</span>) | vir_low::Statement::ApplyMagicWand(<span class="kw">_</span>) =&gt; {}
+            vir_low::Statement::Conditional(<span class="kw-2">mut </span>conditional) =&gt; {
+                from_statements(
+                    <span class="kw-2">&amp;mut </span>conditional.then_branch,
+                    removed_methods,
+                    removed_functions,
+                    predicates,
+                );
+                from_statements(
+                    <span class="kw-2">&amp;mut </span>conditional.else_branch,
+                    removed_methods,
+                    removed_functions,
+                    predicates,
+                );
+                statements.push(vir_low::Statement::Conditional(conditional));
+            }
         }
     }
 }
@@ -284,7 +310,7 @@
     expressions: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>&gt;,
     removed_functions: <span class="kw-2">&amp;</span>FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 ) {
-    <span class="kw">let </span><span class="kw-2">mut </span>remover = PredicateRemover::new(<a href="#103">removed_functions</a>);
+    <span class="kw">let </span><span class="kw-2">mut </span>remover = PredicateRemover::new(<a href="#116">removed_functions</a>);
     <span class="kw">for </span>expression <span class="kw">in </span>std::mem::take(expressions) {
         expressions.push(remover.fold_expression(expression));
     }
@@ -298,7 +324,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PredicateRemover&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>new(removed_functions: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            <a href="#117">removed_functions</a>,
+            <a href="#130">removed_functions</a>,
             drop_parent_binary_op: <span class="bool-val">false</span>,
         }
     }
@@ -316,20 +342,20 @@
         func_app: <a href="../../../../../../vir/gen/low/ast/expression/struct.FuncApp.html">vir_low::expression::FuncApp</a>,
     ) -&gt; <a href="../../../../../../vir/gen/low/ast/expression/struct.FuncApp.html">vir_low::expression::FuncApp</a> {
         <span class="kw">if </span><span class="self">self</span>.removed_functions.contains(<span class="kw-2">&amp;</span>func_app.function_name) {
-            <a class="self" href="#133">self</a>.drop_parent_binary_op = <span class="bool-val">true</span>;
+            <a class="self" href="#146">self</a>.drop_parent_binary_op = <span class="bool-val">true</span>;
         }
-        <a href="#134">func_app</a>
+        <a href="#147">func_app</a>
     }
     <span class="kw">fn </span>fold_binary_op_enum(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         binary_op: <a href="../../../../../../vir/gen/low/ast/expression/struct.BinaryOp.html">vir_low::expression::BinaryOp</a>,
     ) -&gt; <a href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a> {
-        <span class="kw">let </span>binary_op = <a class="self" href="#142">self</a>.<a href="../../../../../../vir/gen/low/ast/expression/visitors/trait.ExpressionFolder.html">fold_binary_op</a>(<a href="#143">binary_op</a>);
+        <span class="kw">let </span>binary_op = <a class="self" href="#155">self</a>.<a href="../../../../../../vir/gen/low/ast/expression/visitors/trait.ExpressionFolder.html">fold_binary_op</a>(<a href="#156">binary_op</a>);
         <span class="kw">if </span><span class="self">self</span>.drop_parent_binary_op {
-            <a class="self" href="#142">self</a>.drop_parent_binary_op = <span class="bool-val">false</span>;
+            <a class="self" href="#155">self</a>.drop_parent_binary_op = <span class="bool-val">false</span>;
             <span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
         } <span class="kw">else </span>{
-            vir_low::Expression::BinaryOp(<a href="#145">binary_op</a>)
+            vir_low::Expression::BinaryOp(<a href="#158">binary_op</a>)
         }
     }
 }
@@ -340,7 +366,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; PredicateInliner&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">fn </span>new(predicates: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="../../../../../../vir/gen/low/ast/predicate/struct.PredicateDecl.html">vir_low::PredicateDecl</a>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{ <a href="#160">predicates</a> }
+        <span class="self">Self </span>{ <a href="#173">predicates</a> }
     }
 }
 
@@ -349,14 +375,14 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         predicate: <a href="../../../../../../vir/gen/low/ast/expression/struct.PredicateAccessPredicate.html">vir_low::expression::PredicateAccessPredicate</a>,
     ) -&gt; <a href="../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a> {
-        <span class="kw">let </span>decl = <span class="kw-2">&amp;</span><a class="self" href="#167">self</a>.predicates[<span class="kw-2">&amp;</span><a href="#168">predicate</a>.name];
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(body) = <span class="kw-2">&amp;</span><a href="#170">decl</a>.body {
-            <span class="kw">let </span>replacements = <a href="#170">decl</a>
+        <span class="kw">let </span>decl = <span class="kw-2">&amp;</span><a class="self" href="#180">self</a>.predicates[<span class="kw-2">&amp;</span><a href="#181">predicate</a>.name];
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(body) = <span class="kw-2">&amp;</span><a href="#183">decl</a>.body {
+            <span class="kw">let </span>replacements = <a href="#183">decl</a>
                 .parameters
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a href="#168">predicate</a>.arguments.iter())
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<a href="#181">predicate</a>.arguments.iter())
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-            <a href="#171">body</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().substitute_variables(<span class="kw-2">&amp;</span><a href="#172">replacements</a>)
+            <a href="#184">body</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().substitute_variables(<span class="kw-2">&amp;</span><a href="#185">replacements</a>)
         } <span class="kw">else </span>{
             <span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
         }

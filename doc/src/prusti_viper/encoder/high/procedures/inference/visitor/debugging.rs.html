@@ -136,29 +136,98 @@
 <span id="136">136</span>
 <span id="137">137</span>
 <span id="138">138</span>
-</pre><pre class="rust"><code><span class="kw">use </span><a href="mod.rs.html#31"><span class="kw">super</span>::Visitor</a>;
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+</pre><pre class="rust"><code><span class="kw">use </span><a href="mod.rs.html#34"><span class="kw">super</span>::Visitor</a>;
+<span class="kw">use </span><a href="../../../../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
 <span class="kw">use </span>vir_crate::{
     common::graphviz::{<a href="../../../../../../../vir/common/graphviz/helpers/fn.escape_html.html">escape_html</a>, <a href="../../../../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a>, <a href="../../../../../../../vir/common/graphviz/builders/struct.NodeBuilder.html">NodeBuilder</a>},
     middle::{<span class="self"><a href="../../../../../../../vir/middle/index.html">self</a> </span><span class="kw">as </span>vir_mid},
 };
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; Visitor&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
-    <span class="kw">fn </span>render_crash_state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>to_crashing_graphviz(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        namespace: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+        label_markers: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;&gt;,
+    ) {
+        <span class="kw">let </span>graph = <a class="self" href="#10">self</a>.<a href="#40">render_crash_state</a>(<a href="#12">label_markers</a>);
+        <span class="kw">let </span>source_filename = <a class="self" href="#10">self</a>.encoder.<a href="../../../../encoder.rs.html#223">env</a>().name.source_file_name();
+        <span class="kw">let </span>procedure_name = <a class="self" href="#10">self</a>.procedure_name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().unwrap();
+        <span class="comment">// TODO: Include all relevant information:
+        // 1. Fold-unfold state.
+        // 2. Mark which nodes were successfully visited.
+        // 3. Mark which edges were successfully visited.
+        // 4. Mark where the crash happened.
+        </span>prusti_common::report::log::report_with_writer(
+            <a href="#11">namespace</a>,
+            <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.{}.dot&quot;</span>, source_filename, procedure_name),
+            |writer| <a href="#14">graph</a>.write(<a href="#25">writer</a>).unwrap(),
+        );
+    }
+    <span class="kw">fn </span>render_state(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        label: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
+        label_markers: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;&gt;,
+    ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(label_markers) = <a href="#31">label_markers</a> {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(should_display) = <a href="#33">label_markers</a>.get(<span class="kw-2">&amp;</span><a href="#30">label</a>.name) {
+                <span class="kw">return </span><span class="kw-2">*</span><a href="#34">should_display</a>;
+            }
+        }
+        <span class="bool-val">false
+    </span>}
+    <span class="kw">fn </span>render_crash_state(<span class="kw-2">&amp;</span><span class="self">self</span>, label_markers: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;&gt;) -&gt; <a href="../../../../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>graph = Graph::with_columns(<span class="kw-2">&amp;</span>[<span class="string">&quot;statement&quot;</span>]);
         <span class="kw">for </span>(label, block) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.basic_blocks {
             <span class="kw">let </span><span class="kw-2">mut </span>node_builder = <span class="self">self</span>.create_node_builder(label, <span class="kw-2">&amp;mut </span>graph);
-            <span class="self">self</span>.render_state_at_entry(label, <span class="kw-2">&amp;mut </span>node_builder);
+            <span class="kw">if </span><span class="self">self</span>.render_state(label, label_markers) {
+                <span class="self">self</span>.render_state_at_entry(label, <span class="kw-2">&amp;mut </span>node_builder);
+            }
             <span class="self">self</span>.render_block(label, block, <span class="kw-2">&amp;mut </span>node_builder);
-            <span class="self">self</span>.render_state_at_crash(label, <span class="kw-2">&amp;mut </span>node_builder);
-            <span class="self">self</span>.render_state_at_exit(label, <span class="kw-2">&amp;mut </span>node_builder);
+            <span class="kw">if </span><span class="self">self</span>.render_state(label, label_markers) {
+                <span class="self">self</span>.render_state_at_crash(label, <span class="kw-2">&amp;mut </span>node_builder);
+                <span class="self">self</span>.render_state_at_exit(label, <span class="kw-2">&amp;mut </span>node_builder);
+            }
             node_builder.build();
             <span class="self">self</span>.render_successor(label, <span class="kw-2">&amp;</span>block.successor, <span class="kw-2">&amp;mut </span>graph);
         }
-        <a href="#9">graph</a>
+        <a href="#41">graph</a>
     }
     <span class="kw">fn </span>is_crash_label(<span class="kw-2">&amp;</span><span class="self">self</span>, label: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(crash_label) = <a class="self" href="#21">self</a>.current_label.as_ref() {
-            <a href="#22">crash_label</a> == <a href="#21">label</a>
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(crash_label) = <a class="self" href="#57">self</a>.current_label.as_ref() {
+            <a href="#58">crash_label</a> == <a href="#57">label</a>
         } <span class="kw">else </span>{
             <span class="bool-val">false
         </span>}
@@ -169,11 +238,11 @@
         graph: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><a href="../../../../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a>,
     ) -&gt; NodeBuilder&lt;<span class="lifetime">&#39;a</span>&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_crash_label(label) {
-            <a href="#31">graph</a>.create_node_with_custom_style(<a href="#30">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <span class="string">&quot;bgcolor=\&quot;red\&quot;&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+            <a href="#67">graph</a>.create_node_with_custom_style(<a href="#66">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <span class="string">&quot;bgcolor=\&quot;red\&quot;&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
         } <span class="kw">else if </span><span class="self">self</span>.successfully_processed_blocks.contains(label) {
-            <a href="#31">graph</a>.create_node_with_custom_style(<a href="#30">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <span class="string">&quot;bgcolor=\&quot;green\&quot;&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+            <a href="#67">graph</a>.create_node_with_custom_style(<a href="#66">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <span class="string">&quot;bgcolor=\&quot;green\&quot;&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
         } <span class="kw">else </span>{
-            <a href="#31">graph</a>.create_node(<a href="#30">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+            <a href="#67">graph</a>.create_node(<a href="#66">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
         }
     }
     <span class="kw">fn </span>render_block(
@@ -193,30 +262,39 @@
         }
         <span class="kw">if </span><span class="self">self</span>.is_crash_label(label) {
             <span class="kw">for </span>statement <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.current_statements {
-                <span class="kw">let </span>statement_string = <span class="macro">format!</span>(<span class="string">&quot;&lt;font color=\&quot;red\&quot;&gt;{}&lt;/font&gt;&quot;</span>, statement);
+                <span class="kw">let </span>statement_string =
+                    <span class="macro">format!</span>(<span class="string">&quot;&lt;font color=\&quot;red\&quot;&gt;{}&lt;/font&gt;&quot;</span>, escape_html(statement));
                 node_builder.add_row_sequence(<span class="macro">vec!</span>[statement_string]);
             }
         }
     }
     <span class="kw">fn </span>render_state_at_entry(<span class="kw-2">&amp;</span><span class="self">self</span>, label: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>, node_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../../vir/common/graphviz/builders/struct.NodeBuilder.html">NodeBuilder</a>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = <a class="self" href="#63">self</a>.state_at_entry.get(<a href="#63">label</a>) {
-            <a href="#63">node_builder</a>.add_row_single(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-                <span class="string">&quot;&lt;font color=\&quot;brown\&quot;&gt;{}&lt;/font&gt;&quot;</span>,
-                escape_html(state.to_string())
-            ));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = <a class="self" href="#100">self</a>.state_at_entry.get(<a href="#100">label</a>) {
+            <span class="kw">for </span>line <span class="kw">in </span>state.to_string().split(<span class="string">&#39;\n&#39;</span>) {
+                <span class="kw">if </span>!line.is_empty() {
+                    node_builder.add_row_single(<span class="macro">format!</span>(
+                        <span class="string">&quot;&lt;font color=\&quot;brown\&quot;&gt;{}&lt;/font&gt;&quot;</span>,
+                        escape_html(line)
+                    ));
+                }
+            }
         }
     }
     <span class="kw">fn </span>render_state_at_exit(<span class="kw-2">&amp;</span><span class="self">self</span>, label: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>, node_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../../vir/common/graphviz/builders/struct.NodeBuilder.html">NodeBuilder</a>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = <a class="self" href="#71">self</a>.state_at_exit.get(<a href="#71">label</a>) {
-            <a href="#71">node_builder</a>.add_row_single(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-                <span class="string">&quot;&lt;font color=\&quot;brown\&quot;&gt;{}&lt;/font&gt;&quot;</span>,
-                escape_html(state.to_string())
-            ));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(state) = <a class="self" href="#112">self</a>.state_at_exit.get(<a href="#112">label</a>) {
+            <span class="kw">for </span>line <span class="kw">in </span>state.to_string().split(<span class="string">&#39;\n&#39;</span>) {
+                <span class="kw">if </span>!line.is_empty() {
+                    node_builder.add_row_single(<span class="macro">format!</span>(
+                        <span class="string">&quot;&lt;font color=\&quot;brown\&quot;&gt;{}&lt;/font&gt;&quot;</span>,
+                        escape_html(line)
+                    ));
+                }
+            }
         }
     }
     <span class="kw">fn </span>render_state_at_crash(<span class="kw-2">&amp;</span><span class="self">self</span>, label: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>, node_builder: <span class="kw-2">&amp;mut </span><a href="../../../../../../../vir/common/graphviz/builders/struct.NodeBuilder.html">NodeBuilder</a>) {
         <span class="kw">if </span><span class="self">self</span>.is_crash_label(label) {
-            <a href="#79">node_builder</a>.add_row_single(<span class="string">&quot;&lt;font color=\&quot;red\&quot;&gt;no state object&lt;/font&gt;&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+            <a href="#124">node_builder</a>.add_row_single(<span class="string">&quot;&lt;font color=\&quot;red\&quot;&gt;no state object&lt;/font&gt;&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
         }
     }
     <span class="kw">fn </span>render_successor(
@@ -225,10 +303,10 @@
         successor: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/cfg/procedure/enum.Successor.html">vir_mid::Successor</a>,
         graph: <span class="kw-2">&amp;mut </span><a href="../../../../../../../vir/common/graphviz/graph/struct.Graph.html">Graph</a>,
     ) {
-        <span class="kw">match </span><a href="#87">successor</a> {
-            vir_mid::Successor::Exit =&gt; <a href="#88">graph</a>.add_exit_edge(<a href="#86">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <span class="string">&quot;exit&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+        <span class="kw">match </span><a href="#132">successor</a> {
+            vir_mid::Successor::Exit =&gt; <a href="#133">graph</a>.add_exit_edge(<a href="#131">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <span class="string">&quot;exit&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
             vir_mid::Successor::Goto(target) =&gt; {
-                <a href="#88">graph</a>.add_regular_edge(<a href="#86">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#92">target</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
+                <a href="#133">graph</a>.add_regular_edge(<a href="#131">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#137">target</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
             }
             vir_mid::Successor::GotoSwitch(targets) =&gt; {
                 <span class="kw">for </span>(condition, target) <span class="kw">in </span>targets {
@@ -240,14 +318,14 @@
                 }
             }
             vir_mid::Successor::NonDetChoice(first, second) =&gt; {
-                <a href="#88">graph</a>.add_regular_annotated_edge(
-                    <a href="#86">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#104">first</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                <a href="#133">graph</a>.add_regular_annotated_edge(
+                    <a href="#131">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                    <a href="#149">first</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                     <span class="string">&quot;*&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                 );
-                <a href="#88">graph</a>.add_regular_annotated_edge(
-                    <a href="#86">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                    <a href="#104">second</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                <a href="#133">graph</a>.add_regular_annotated_edge(
+                    <a href="#131">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                    <a href="#149">second</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                     <span class="string">&quot;*&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                 );
             }
@@ -258,19 +336,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for </span>Visitor&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.graphviz_on_crash {
-            <span class="kw">let </span>graph = <a class="self" href="#121">self</a>.<a href="#8">render_crash_state</a>();
-            <span class="kw">let </span>source_filename = <a class="self" href="#121">self</a>.encoder.<a href="../../../../encoder.rs.html#223">env</a>().name.source_file_name();
-            <span class="kw">let </span>procedure_name = <a class="self" href="#121">self</a>.procedure_name.take().unwrap();
-            <span class="comment">// TODO: Include all relevant information:
-            // 1. Fold-unfold state.
-            // 2. Mark which nodes were successfully visited.
-            // 3. Mark which edges were successfully visited.
-            // 4. Mark where the crash happened.
-            </span>prusti_common::report::log::report_with_writer(
-                <span class="string">&quot;graphviz_method_crashing_foldunfold&quot;</span>,
-                <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.{}.dot&quot;</span>, source_filename, procedure_name),
-                |writer| <a href="#123">graph</a>.write(<a href="#134">writer</a>).unwrap(),
-            );
+            <a class="self" href="#166">self</a>.<a href="#9-13">to_crashing_graphviz</a>(<span class="string">&quot;graphviz_method_crashing_foldunfold&quot;</span>, <span class="prelude-val">None</span>);
         }
     }
 }
