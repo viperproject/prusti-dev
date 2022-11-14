@@ -13,7 +13,7 @@ pub(crate) trait ConstantsEncoderInterface<'tcx> {
         constant: &mir::Constant<'tcx>,
     ) -> EncodingResult<vir_high::Expression>;
 
-    fn compute_array_len(&self, size: ty::Const<'tcx>) -> u64;
+    fn compute_array_len(&self, size: ty::Const<'tcx>) -> EncodingResult<u64>;
 }
 
 impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
@@ -77,10 +77,8 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
         Ok(expr)
     }
 
-    fn compute_array_len(&self, size: ty::Const<'tcx>) -> u64 {
+    fn compute_array_len(&self, size: ty::Const<'tcx>) -> EncodingResult<u64> {
         self.const_eval_intlike(mir::ConstantKind::Ty(size))
-            .unwrap()
-            .to_u64()
-            .unwrap()
+            .map(|s| s.to_u64().unwrap())
     }
 }

@@ -127,13 +127,13 @@ pub(super) fn type_to_indent(ty: &syn::Type) -> Result<&syn::Ident, syn::Error> 
         } else {
             Err(syn::Error::new(
                 ty.span(),
-                &format!("cannot convert {:?} to ident", ty),
+                format!("cannot convert {:?} to ident", ty),
             ))
         }
     } else {
         Err(syn::Error::new(
             ty.span(),
-            &format!("cannot convert {:?} to ident", ty),
+            format!("cannot convert {:?} to ident", ty),
         ))
     }
 }

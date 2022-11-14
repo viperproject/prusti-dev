@@ -602,7 +602,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     ),
                     ty::TyKind::Int(ty::IntTy::I16) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i16::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::i16::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::i16::MAX.into()),
                     ),
                     ty::TyKind::Int(ty::IntTy::I32) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i32::MIN.into()),

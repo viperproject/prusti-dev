@@ -50,6 +50,28 @@ jobs:
         run: |
           python ./x.py clippy -- -D warnings
 
+  # Detect missing dependencies in workspace packages
+  # See: https://stackoverflow.com/a/74293494/2491528
+  check-deps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Set up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: '15'
+      - name: Set up the environment
+        run: python x.py setup
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "shared"
+      - name: Compile each workspace package individually
+        run: |
+          cargo install cargo-hack
+          python ./x.py hack build --workspace
+
   # Check that we depend on the compiler only through SMIR.
   smir-check:
     runs-on: ubuntu-latest
@@ -88,7 +110,7 @@ jobs:
   # Run a subset of the tests with the purification optimization enabled
   # to ensure that we do not introduce regressions.
   purification-tests:
-    needs: [fmt-check, clippy-check, smir-check, quick-tests]
+    needs: [fmt-check, clippy-check, check-deps, smir-check, quick-tests]
     runs-on: ubuntu-latest
     env:
       PRUSTI_ENABLE_PURIFICATION_OPTIMIZATION: true
@@ -183,7 +205,7 @@ jobs:
 
   # Run all the tests.
   all-tests:
-    needs: [fmt-check, clippy-check, smir-check, quick-tests]
+    needs: [fmt-check, clippy-check, check-deps, smir-check, quick-tests]
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -239,7 +261,7 @@ jobs:
   # Run Prusti on itself.
   # Disabled because of a bug when compiling jni-gen
   test-on-prusti:
-    needs: [fmt-check, clippy-check, smir-check, quick-tests]
+    needs: [fmt-check, clippy-check, check-deps, smir-check, quick-tests]
     runs-on: ubuntu-latest
     if: false
     steps:
@@ -268,7 +290,7 @@ jobs:
 
   # Test cargo-prusti on a collection of crates.
   test-crates:
-    needs: [fmt-check, clippy-check, smir-check, quick-tests]
+    needs: [fmt-check, clippy-check, check-deps, smir-check, quick-tests]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true

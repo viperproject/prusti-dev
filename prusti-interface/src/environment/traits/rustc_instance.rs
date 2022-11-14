@@ -222,7 +222,7 @@ fn resolve_associated_item<'tcx>(
             Err(CodegenObligationError::Ambiguity) => {
                 tcx.sess.delay_span_bug(
                     tcx.def_span(trait_item_id),
-                    &format!(
+                    format!(
                         "encountered ambiguity selecting `{:?}` during codegen, presuming due to \
                      overflow or prior type error",
                         trait_binder
@@ -329,7 +329,7 @@ fn resolve_associated_item<'tcx>(
                         resolved_ty,
                     );
                     let span = tcx.def_span(leaf_def.item.def_id);
-                    tcx.sess.delay_span_bug(span, &msg);
+                    tcx.sess.delay_span_bug(span, msg);
 
                     return Err(());
                 }
@@ -374,7 +374,7 @@ fn resolve_associated_item<'tcx>(
                 if name == sym::clone {
                     let self_ty = trait_ref.self_ty();
 
-                    let is_copy = self_ty.is_copy_modulo_regions(tcx.at(DUMMY_SP), param_env);
+                    let is_copy = self_ty.is_copy_modulo_regions(*tcx.at(DUMMY_SP), param_env);
                     match self_ty.kind() {
                         _ if is_copy => (),
                         ty::Closure(..) | ty::Tuple(..) => {}

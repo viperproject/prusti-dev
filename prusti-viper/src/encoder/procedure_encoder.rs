@@ -1226,8 +1226,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
 
         self.encode_execution_flag(bbi, curr_block)?;
-        self.encode_block_statements(bbi, curr_block)?;
-        let mir_successor: MirSuccessor = self.encode_block_terminator(bbi, curr_block)?;
+        let opt_successor = self.encode_block_statements(bbi, curr_block)?;
+        let mir_successor: MirSuccessor = if let Some(successor) = opt_successor {
+            // In case of unsupported statements, we do not encode the terminator
+            successor
+        } else {
+            self.encode_block_terminator(bbi, curr_block)?
+        };
 
         // Make sure that the
         let mir_targets = mir_successor.targets();
@@ -1289,12 +1294,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
-    /// Encode the statements of the block
+    /// Encode the statements of the block.
+    /// In case of unsupported statements, this function will return `MirSuccessor::Kill`.
     fn encode_block_statements(
         &mut self,
         bbi: BasicBlockIndex,
         cfg_block: CfgBlockIndex,
-    ) -> SpannedEncodingResult<()> {
+    ) -> SpannedEncodingResult<Option<MirSuccessor>> {
         debug_assert!(!self.procedure.is_spec_block(bbi));
         let bb_data = &self.mir.basic_blocks[bbi];
         let statements: &Vec<mir::Statement<'tcx>> = &bb_data.statements;
@@ -1306,15 +1312,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             };
             {
                 let (stmts, opt_succ) = self.encode_statement_at(location)?;
-                debug_assert!(opt_succ.is_none());
+                debug_assert!(matches!(opt_succ, None | Some(MirSuccessor::Kill)));
                 self.cfg_method.add_stmts(cfg_block, stmts);
+                if opt_succ.is_some() {
+                    // If the statement is unsupported, we stop encoding the block.
+                    // The fold-unfold would probably fail on the code after the unsupported
+                    // statement.
+                    return Ok(opt_succ);
+                }
             }
             {
                 let stmts = self.encode_expiring_borrows_at(location)?;
                 self.cfg_method.add_stmts(cfg_block, stmts);
             }
         }
-        Ok(())
+        Ok(None)
     }
 
     /// Encode the terminator of the block
@@ -1616,6 +1628,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         })
     }
 
+    /// Generate an unsupported encoding error for unhandled borrow kinds.
+    fn unsupported_borrow_kind(kind: mir::BorrowKind) -> EncodingError {
+        match kind {
+            mir::BorrowKind::Unique => {
+                EncodingError::unsupported(
+                    "unsuported creation of unique borrows (implicitly created in closure bindings)",
+                )
+            }
+            mir::BorrowKind::Shallow => {
+                EncodingError::unsupported(
+                    "unsupported creation of shallow borrows (implicitly created when lowering matches)",
+                )
+            }
+            _ => unreachable!(),
+        }
+    }
+
     /// Encode the lhs and the rhs of the assignment that create the loan
     fn encode_loan_places(&mut self, loan_places: &LoanPlaces<'tcx>) -> SpannedEncodingResult<(vir::Expr, Option<vir::Expr>, bool, Vec<vir::Stmt>)> {
         debug!("encode_loan_places '{:?}'", loan_places);
@@ -1690,9 +1719,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::Ref(_, mir_borrow_kind, rhs_place) => {
                 let is_mut = match mir_borrow_kind {
                     mir::BorrowKind::Shared => false,
-                    mir::BorrowKind::Shallow => unimplemented!(),
-                    mir::BorrowKind::Unique => unimplemented!(),
                     mir::BorrowKind::Mut { .. } => true,
+                    _ => return Err(Self::unsupported_borrow_kind(mir_borrow_kind).with_span(span)),
                 };
                 let array_encode_kind = if is_mut { ArrayAccessKind::Mutable(None, location) } else { ArrayAccessKind::Shared };
                 let (expiring, restored, _) = encode(rhs_place, &mut stmts, array_encode_kind)?;
@@ -1732,7 +1760,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     if is_str(expr.ty()) {
                         None
                     } else {
-                        Some(self.encoder.encode_const_expr(expr.ty(), expr.literal).unwrap())
+                        Some(self.encoder.encode_const_expr(expr.ty(), expr.literal).with_span(span)?)
                     };
 
                 (expiring_base, restored, false, stmts)
@@ -1964,16 +1992,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Move the permissions from the "in loans" ("reborrowing loans") to the current loan
         if node.incoming_zombies && restored.is_some() {
-            let lhs_label = self.get_label_after_location(loan_location).to_string();
+            let lhs_label = self.get_label_after_location(loan_location)?.unwrap().to_string();
             for &in_loan in node.reborrowing_loans.iter() {
                 // TODO: Is this the correct span?
                 if self.is_mutable_borrow(in_loan).with_span(span)? {
                     let in_location = self.polonius_info().get_loan_location(&in_loan);
-                    let in_label = self.get_label_after_location(in_location).to_string();
+                    let in_label = self.get_label_after_location(in_location)?.unwrap().to_string();
                     used_lhs_label = true;
                     stmts.extend(self.encode_transfer_permissions(
-                        expiring.clone().old(&in_label),
-                        expiring.clone().old(&lhs_label),
+                        expiring.clone().old(in_label),
+                        expiring.clone().old(lhs_label.clone()),
                         loan_location,
                         is_in_package_stmt,
                     ));
@@ -1982,14 +2010,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
 
         let lhs_place = if used_lhs_label {
-            let lhs_label = self.get_label_after_location(loan_location);
+            let lhs_label = self.get_label_after_location(loan_location)?.unwrap();
             expiring.old(lhs_label)
         } else {
             expiring
         };
         let rhs_place = match node.zombity {
             ReborrowingZombity::Zombie(rhs_location) if !node_is_leaf => {
-                let rhs_label = self.get_label_after_location(rhs_location);
+                let rhs_label = self.get_label_after_location(rhs_location)?.unwrap();
                 restored.map(|r| r.old(rhs_label))
             }
 
@@ -2044,11 +2072,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let loan_location = self.polonius_info().get_loan_location(&loan);
 
         // Get the borrow information.
-        debug_assert!(
-            self.label_after_location.contains_key(&loan_location),
-            "Location {:?} has not yet been encoded",
-            loan_location
-        );
         if !self.procedure_contracts.contains_key(&loan_location) {
             return Err(SpannedEncodingError::internal(
                 format!("There is no procedure contract for loan {:?}. This could happen if you \
@@ -2096,13 +2119,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     if node.incoming_zombies {
                         for &in_loan in node.reborrowing_loans.iter() {
                             let in_location = self.polonius_info().get_loan_location(&in_loan);
-                            let in_label = self.get_label_after_location(in_location).to_string();
-                            stmts.extend(self.encode_transfer_permissions(
-                                encoded_place.clone().old(&in_label),
-                                encoded_place.clone().old(&post_label),
-                                loan_location,
-                                is_in_package_stmt,
-                            ));
+                            let opt_in_label = self.get_label_after_location(in_location)?.cloned();
+                            if let Some(in_label) = opt_in_label {
+                                stmts.extend(self.encode_transfer_permissions(
+                                    encoded_place.clone().old(in_label),
+                                    encoded_place.clone().old(&post_label),
+                                    loan_location,
+                                    is_in_package_stmt,
+                                ));
+                            }
                         }
                     }
                     if !node.incoming_zombies || node.reborrowing_loans.is_empty() {
@@ -2797,7 +2822,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )?
         );
 
-        self.encode_transfer_args_permissions(location, args,  &mut stmts, label.clone(), false)?;
+        self.encode_transfer_args_permissions(location, args,  &mut stmts, &label, false)?;
 
         // Store a label for permissions got back from the call
         debug!(
@@ -3012,7 +3037,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             ]
         });
 
-        self.encode_transfer_args_permissions(location, args,  &mut stmts, label.clone(), false)?;
+        self.encode_transfer_args_permissions(location, args,  &mut stmts, &label, false)?;
         // Store a label for permissions got back from the call
         debug!(
             "Pure function call location {:?} has label {}",
@@ -3073,7 +3098,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             )?;
             stmts.extend(call_stmts);
 
-            self.encode_transfer_args_permissions(location, args,  &mut stmts, label, false)?;
+            self.encode_transfer_args_permissions(location, args,  &mut stmts, &label, false)?;
 
             Ok(stmts)
         } else {
@@ -3612,7 +3637,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         )?;
         stmts.extend(call_stmts);
 
-        self.encode_transfer_args_permissions(location, args,  &mut stmts, label, false)?;
+        self.encode_transfer_args_permissions(location, args,  &mut stmts, &label, false)?;
         Ok(stmts)
     }
 
@@ -3688,7 +3713,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
         args: &[mir::Operand<'tcx>],
         stmts: &mut Vec<vir::Stmt>,
-        label: String,
+        label: &str,
         is_in_package_stmt: bool,
     ) -> SpannedEncodingResult<()> {
         let span = self.mir_encoder.get_span_of_location(location);
@@ -3710,7 +3735,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     let ref_place = place.clone().field(ref_field);
                     stmts.extend(self.encode_transfer_permissions(
                         ref_place.clone(),
-                        ref_place.clone().old(&label),
+                        ref_place.clone().old(label),
                         location,
                         is_in_package_stmt,
                     ));
@@ -6154,19 +6179,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let (vir_assign_kind, array_encode_kind) = match mir_borrow_kind {
             mir::BorrowKind::Shared =>
                 (vir::AssignKind::SharedBorrow(loan.index().into()), ArrayAccessKind::Shared),
-            mir::BorrowKind::Unique => {
-                return Err(EncodingError::unsupported(
-                    "unsuported creation of unique borrows (implicitly created in closure bindings)"
-                )).with_span(span);
-            }
-            mir::BorrowKind::Shallow => {
-                return Err(EncodingError::unsupported(
-                    "unsupported creation of shallow borrows (implicitly created when lowering matches)"
-                )).with_span(span);
-            }
             mir::BorrowKind::Mut { .. } =>
                 (vir::AssignKind::MutableBorrow(loan.index().into()),
                  ArrayAccessKind::Mutable(Some(loan.index().into()), location)),
+            _ => return Err(Self::unsupported_borrow_kind(mir_borrow_kind).with_span(span)),
         };
         let (encoded_value, mut stmts, _, _) = self.encode_place(place, array_encode_kind, location)?;
         // Initialize ref_var.ref_field
@@ -6788,13 +6804,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
-    fn get_label_after_location(&mut self, location: mir::Location) -> &str {
-        debug_assert!(
-            self.label_after_location.contains_key(&location),
-            "Location {:?} has not yet been encoded",
-            location
-        );
-        &self.label_after_location[&location]
+    fn get_label_after_location(&mut self, location: mir::Location) -> SpannedEncodingResult<Option<&String>> {
+        let opt_label = self.label_after_location.get(&location);
+        if opt_label.is_none() {
+            if config::allow_unreachable_unsupported_code() {
+                // The encoding of unsupported code does not generate the expected labels
+                debug!("Location {:?} has not yet been encoded", location);
+            } else {
+                // When no unsupported statements are allowed, a missing label is a bug.
+                return Err(SpannedEncodingError::internal(
+                    format!("Location {:?} has not yet been encoded", location),
+                    self.mir_encoder.get_span_of_location(location),
+                ));
+            }
+        }
+        Ok(opt_label)
     }
 
     fn get_loop_span(&self, loop_head: mir::BasicBlock) -> Span {

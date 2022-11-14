@@ -649,13 +649,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_target: vir_crate::high::Expression,
         source: &mir::Rvalue<'tcx>,
     ) -> SpannedEncodingResult<()> {
+        let span = self.encoder.get_mir_location_span(self.mir, location);
         match source {
             mir::Rvalue::Use(operand) => {
                 self.encode_assign_operand(block_builder, location, encoded_target, operand)?;
             }
             mir::Rvalue::Repeat(operand, count) => {
                 let encoded_operand = self.encode_statement_operand(location, operand)?;
-                let encoded_count = self.encoder.compute_array_len(*count);
+                let encoded_count = self.encoder.compute_array_len(*count).with_span(span)?;
                 let encoded_rvalue = vir_high::Rvalue::repeat(encoded_operand, encoded_count);
                 let assign_statement = vir_high::Statement::assign(
                     encoded_target,
@@ -1214,7 +1215,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 place,
                 target,
                 unwind,
-            } => self.encode_terminator_drop(block_builder, span, *place, *target, unwind)?,
+            } => {
+                self.encode_terminator_drop(block_builder, location, span, *place, *target, unwind)?
+            }
             TerminatorKind::Call {
                 func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 args,
@@ -1368,12 +1371,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_terminator_drop(
         &mut self,
         block_builder: &mut BasicBlockBuilder,
+        location: mir::Location,
         span: Span,
         place: mir::Place<'tcx>,
         target: mir::BasicBlock,
         unwind: &Option<mir::BasicBlock>,
     ) -> SpannedEncodingResult<SuccessorBuilder> {
         let target_block_label = self.encode_basic_block_label(target);
+        let target_block_label = self.encode_lft_for_block_with_edge(
+            target,
+            target_block_label,
+            location,
+            block_builder,
+        )?;
 
         if config::check_no_drops() {
             let statement = self.encoder.set_statement_error_ctxt(
@@ -1401,6 +1411,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         block_builder.add_statement(statement);
         if let Some(unwind_block) = unwind {
             let encoded_unwind_block_label = self.encode_basic_block_label(*unwind_block);
+            let encoded_unwind_block_label = self.encode_lft_for_block_with_edge(
+                *unwind_block,
+                encoded_unwind_block_label,
+                location,
+                block_builder,
+            )?;
             Ok(SuccessorBuilder::jump(vir_high::Successor::NonDetChoice(
                 target_block_label,
                 encoded_unwind_block_label,

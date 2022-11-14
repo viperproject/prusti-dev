@@ -47,7 +47,7 @@ fn main() {
     // let out_dir = std::env::var("OUT_DIR").unwrap();
     // println!("cargo:warning=out_dir: {}", out_dir);
 
-    let mut cmd = Command::new(&cargo_prusti);
+    let mut cmd = Command::new(cargo_prusti);
     cmd.current_dir(&prusti_contracts);
     if !cfg!(debug_assertions) {
         cmd.arg("--release");

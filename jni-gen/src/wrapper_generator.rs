@@ -109,7 +109,7 @@ impl WrapperGenerator {
                 .write(true)
                 .create(true)
                 .truncate(true)
-                .open(&mod_path)?;
+                .open(mod_path)?;
             mod_file.write_all(mod_code.as_bytes())?;
         }
 
