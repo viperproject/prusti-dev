@@ -55,8 +55,7 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
                     .unwrap();
                 number.into()
             }
-            ty::TyKind::FnDef(def_id, _) => {
-                self.encode_spec_funcs(*def_id)?;
+            ty::TyKind::FnDef(..) => {
                 let ty = self.encode_type_high(mir_type)?;
                 vir_high::Expression::constant_no_pos(
                     vir_high::expression::ConstantValue::FnPtr,
