@@ -330,7 +330,8 @@ impl<'tcx> EnvQuery<'tcx> {
         }
 
         let param_env = self.tcx.param_env(caller_def_id.into_param());
-        super::traits::resolve_instance(self.tcx, param_env.and((called_def_id, call_substs)))
+        self.tcx
+            .resolve_instance(param_env.and((called_def_id, call_substs)))
             .map(|opt_instance| {
                 opt_instance
                     .map(|instance| (instance.def_id(), instance.substs))
