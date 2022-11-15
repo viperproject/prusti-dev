@@ -64,6 +64,7 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
         false,
         None,
         false,
+        false,
     );
     let handler = prusti_rustc_interface::errors::Handler::with_emitter(true, None, emitter);
 

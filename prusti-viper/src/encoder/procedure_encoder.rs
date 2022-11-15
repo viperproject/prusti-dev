@@ -1455,7 +1455,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     }
                 }
             }
-            ref x => unimplemented!("{:?}", x),
+            ref x => return Err(SpannedEncodingError::unsupported(
+                format!("unsupported statement kind: {:?}", x),
+                span,
+            )),
         };
         stmts.extend(encoding_stmts);
         Ok(self.set_stmts_default_pos(stmts, stmt.source_info.span))

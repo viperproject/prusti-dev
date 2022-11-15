@@ -23,7 +23,7 @@ fn main() {
         .and_then(|output| String::from_utf8(output.stdout).ok())
     {
         if let Ok(timestamp) = commit_timestamp.trim().parse() {
-            let commit_naive_datetime = NaiveDateTime::from_timestamp(timestamp, 0);
+            let commit_naive_datetime = NaiveDateTime::from_timestamp_opt(timestamp, 0).unwrap();
             let commit_time = DateTime::<Utc>::from_utc(commit_naive_datetime, Utc);
             println!(
                 "cargo:rustc-env=COMMIT_TIME={}",
