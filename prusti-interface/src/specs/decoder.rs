@@ -28,9 +28,10 @@ impl<'a, 'tcx> DefSpecsDecoder<'a, 'tcx> {
     fn def_path_hash_to_def_id(&self, hash: DefPathHash) -> DefId {
         // Sanity check
         let cstore = std::panic::AssertUnwindSafe(self.tcx.cstore_untracked());
-        if let Err(_) =
-            std::panic::catch_unwind(|| cstore.stable_crate_id_to_crate_num(hash.stable_crate_id()))
-        {
+        let result = std::panic::catch_unwind(|| {
+            cstore.stable_crate_id_to_crate_num(hash.stable_crate_id())
+        });
+        if result.is_err() {
             panic!("A compiled dependency is out of sync. Try deleting the target folder, or that of `prusti-contracts`.")
         }
         // Get `DefId`
