@@ -1,0 +1,49 @@
+error: [Prusti: verification error] postcondition might not hold.
+  --> $DIR/enums-2.rs:11:11
+   |
+11 | #[ensures(result)]
+   |           ^^^^^^
+   |
+note: the error originates here
+  --> $DIR/enums-2.rs:12:1
+   |
+12 | / fn test1(x: Choose) -> bool {
+13 | |     match x {
+14 | |         Choose::One => true,
+15 | |         Choose::Two(x) => x < -3 || x > -3,
+16 | |         Choose::Three(b) => true,
+17 | |     }
+18 | | }
+   | |_^
+note: counterexample for "x"
+        initial value: Choose::Two(
+            ?,
+        )
+        final value:   Choose::Two(
+            ?,
+        )
+  --> $DIR/enums-2.rs:12:10
+   |
+12 | fn test1(x: Choose) -> bool {
+   |          ^
+note: counterexample for "x"
+        final value:   -3
+  --> $DIR/enums-2.rs:15:21
+   |
+15 |         Choose::Two(x) => x < -3 || x > -3,
+   |                     ^
+note: counterexample for "b"
+        final value:   false
+  --> $DIR/enums-2.rs:16:23
+   |
+16 |         Choose::Three(b) => true,
+   |                       ^
+note: counterexample for result
+        final value:   false
+  --> $DIR/enums-2.rs:12:24
+   |
+12 | fn test1(x: Choose) -> bool {
+   |                        ^^^^
+
+error: aborting due to previous error
+

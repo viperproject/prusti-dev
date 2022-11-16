@@ -1,0 +1,69 @@
+// compile-flags: -Pprint_desugared_specs=true -Pprint_typeckd_specs=true -Phide_uuids=true -Poptimizations=none
+// normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
+// normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
+// normalize-stdout-test: "/[[a-z0-9]{4}/]::" -> "[$(CRATE_ID)]::"
+// normalize-stdout-test: "#/[prusti::specs_version = /x22.+/x22/]" -> "#[prusti::specs_version = $(SPECS_VERSION)]"
+
+
+
+
+
+
+
+// test that we get correct span information
+
+
+
+
+#![feature(type_ascription)]
+#![feature(stmt_expr_attributes)]
+#![feature(register_tool)]
+#![register_tool(prusti)]
+#[prelude_import]
+use std::prelude::rust_2018::*;
+#[macro_use]
+extern crate std;
+use prusti_contracts::*;
+#[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
+#[prusti::spec_only]
+#[prusti::spec_id = "$(NUM_UUID)"]
+fn prusti_post_item_max_$(NUM_UUID)(a: i32, b: i32,
+    result: i32) -> bool {
+    !!((result == a || result == b): bool)
+}
+#[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
+#[prusti::spec_only]
+#[prusti::spec_id = "$(NUM_UUID)"]
+fn prusti_post_item_max_$(NUM_UUID)(a: i32, b: i32,
+    result: i32) -> bool {
+    !!((result >= a && result >= b): bool)
+}
+#[prusti::post_spec_id_ref = "$(NUM_UUID)"]
+#[prusti::post_spec_id_ref = "$(NUM_UUID)"]
+#[prusti::specs_version = $(SPECS_VERSION)]
+fn max(a: i32, b: i32) -> i32 { if a > b { a } else { b } }
+fn test_max1() {
+    let a = 5;
+    let b = 6;
+    let z = max(a, b);
+    if !(z == 6) { ::core::panicking::panic("assertion failed: z == 6") };
+}
+fn test_max2() {
+    let a = 5;
+    let b = 6;
+    let z = max(a, b);
+    if !(z == 5) { ::core::panicking::panic("assertion failed: z == 5") };
+}
+#[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
+#[prusti::spec_only]
+#[prusti::spec_id = "$(NUM_UUID)"]
+fn prusti_post_item_test_max3_$(NUM_UUID)(result: i32)
+    -> bool {
+    !!((true && ((!(true) || (result == 3))) && (true || false)): bool)
+}
+#[prusti::post_spec_id_ref = "$(NUM_UUID)"]
+#[prusti::specs_version = $(SPECS_VERSION)]
+fn test_max3() -> i32 { let a = 4; let b = 3; max(a, b) }
+fn main() {}
+ProcedureSpecification { source: DefId(0:11 ~ calls[$(CRATE_ID)]::test_max3), kind: Inherent(Impure), pres: Empty, posts: Inherent([DefId(0:10 ~ calls[$(CRATE_ID)]::prusti_post_item_test_max3_$(NUM_UUID))]), pledges: Empty, trusted: Inherent(false), terminates: Inherent(None) }
+ProcedureSpecification { source: DefId(0:9 ~ calls[$(CRATE_ID)]::max), kind: Inherent(Impure), pres: Empty, posts: Inherent([DefId(0:7 ~ calls[$(CRATE_ID)]::prusti_post_item_max_$(NUM_UUID)), DefId(0:8 ~ calls[$(CRATE_ID)]::prusti_post_item_max_$(NUM_UUID))]), pledges: Empty, trusted: Inherent(false), terminates: Inherent(None) }

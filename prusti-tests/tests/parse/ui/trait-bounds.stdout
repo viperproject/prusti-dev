@@ -1,0 +1,49 @@
+// compile-flags: -Pprint_desugared_specs=true -Pprint_typeckd_specs=true -Phide_uuids=true -Pno_verify=true
+// normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
+// normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
+// normalize-stdout-test: "/[[a-z0-9]{4}/]::" -> "[$(CRATE_ID)]::"
+// normalize-stdout-test: "#/[prusti::specs_version = /x22.+/x22/]" -> "#[prusti::specs_version = $(SPECS_VERSION)]"
+
+
+
+
+
+#![feature(type_ascription)]
+#![feature(stmt_expr_attributes)]
+#![feature(register_tool)]
+#![register_tool(prusti)]
+#[prelude_import]
+use std::prelude::rust_2018::*;
+#[macro_use]
+extern crate std;
+use prusti_contracts::*;
+struct Foo<'a, T: PartialEq, const L : usize>(&'a [T; L]);
+impl<'a, T: PartialEq, const L : usize> Foo<'a, T, L> {
+    pub fn bar(self) -> &'a [T; L] { self.0 }
+}
+#[prusti::specs_version = $(SPECS_VERSION)]
+#[allow(non_camel_case_types)]
+struct PrustiStructFoo_$(NUM_UUID)<'a, T: PartialEq,
+    const L :
+    usize>(&'a ::core::marker::PhantomData<()>,
+    ::core::marker::PhantomData<T>);
+impl<'a, T: PartialEq, const L : usize>
+    PrustiStructFoo_$(NUM_UUID)<'a, T, L> {
+    #[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
+    #[prusti::spec_only]
+    #[prusti::spec_id = "$(NUM_UUID)"]
+    fn prusti_post_item_bar_$(NUM_UUID)(_self:
+            Foo<'a, T, L>, result: &'a [T; L]) -> bool {
+        !!((result == _self.0): bool)
+    }
+    #[prusti::extern_spec = "inherent_impl"]
+    #[allow(unused, dead_code)]
+    #[prusti::trusted]
+    #[prusti::pure]
+    #[prusti::post_spec_id_ref = "$(NUM_UUID)"]
+    fn bar(_self: Foo<'a, T, L>) -> &'a [T; L] {
+        <Foo<'a, T, L>>::bar::<>(_self)
+    }
+}
+fn main() {}
+ProcedureSpecification { source: DefId(0:31 ~ trait_bounds[$(CRATE_ID)]::{impl#1}::bar), kind: Inherent(Pure), pres: Empty, posts: Inherent([DefId(0:29 ~ trait_bounds[$(CRATE_ID)]::{impl#1}::prusti_post_item_bar_$(NUM_UUID))]), pledges: Empty, trusted: Inherent(true), terminates: Inherent(None) }

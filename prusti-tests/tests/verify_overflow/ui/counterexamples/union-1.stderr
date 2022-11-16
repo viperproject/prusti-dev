@@ -1,0 +1,70 @@
+error: [Prusti: verification error] postcondition might not hold.
+  --> $DIR/union-1.rs:10:11
+   |
+10 | #[ensures(false)]
+   |           ^^^^^
+   |
+note: the error originates here
+  --> $DIR/union-1.rs:11:1
+   |
+11 | / fn test1() {
+12 | |     let a = MyUnion { f1: 1 };
+13 | |     let _x = unsafe { a.f1 };
+14 | | }
+   | |_^
+note: counterexample for "a"
+       value:   MyUnion {
+            f1: 1,
+        }
+  --> $DIR/union-1.rs:12:13
+   |
+12 |     let a = MyUnion { f1: 1 };
+   |             ^^^^^^^^^^^^^^^^^
+note: counterexample for "_x"
+       value:   1
+  --> $DIR/union-1.rs:13:23
+   |
+13 |     let _x = unsafe { a.f1 };
+   |                       ^^^^
+note: counterexample for "result"
+       value:   ()
+  --> $DIR/union-1.rs:11:12
+   |
+11 |   fn test1() {
+   |  ____________^
+12 | |     let a = MyUnion { f1: 1 };
+13 | |     let _x = unsafe { a.f1 };
+14 | | }
+   | |_^
+
+error: [Prusti: verification error] the asserted expression might not hold
+  --> $DIR/union-1.rs:21:5
+   |
+21 |     assert!(unsafe { a.f1 == 3});
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: the failing assertion is here
+  --> $DIR/union-1.rs:21:5
+   |
+21 |     assert!(unsafe { a.f1 == 3});
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: counterexample for "a"
+       value:   MyUnion {
+            f1: 1,
+        }
+  --> $DIR/union-1.rs:17:17
+   |
+17 |     let mut a = MyUnion { f1: 1 };
+   |                 ^^^^^^^^^^^^^^^^^
+note: counterexample for "a"
+       value:   MyUnion {
+            f1: 2,
+        }
+  --> $DIR/union-1.rs:19:5
+   |
+19 |     a.f1 = 2;
+   |     ^^^^^^^^
+   = note: this error originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: aborting due to 2 previous errors
+

@@ -1,0 +1,80 @@
+error: [Prusti: verification error] postcondition might not hold.
+  --> $DIR/ref.rs:6:11
+   |
+6  | #[ensures(result != 0)]
+   |           ^^^^^^^^^^^
+   |
+note: the error originates here
+  --> $DIR/ref.rs:7:1
+   |
+7  | / fn test1(x: &mut i32) -> i32 {
+8  | |     let mut y = *x;
+9  | |     y = y * 3 - 12;
+10 | |     *x = y;
+11 | |     y
+12 | | }
+   | |_^
+note: counterexample for "x"
+        initial value: ref(4)
+        final value:   ref(0)
+  --> $DIR/ref.rs:7:10
+   |
+7  | fn test1(x: &mut i32) -> i32 {
+   |          ^
+note: counterexample for "y"
+        final value:   0
+  --> $DIR/ref.rs:8:9
+   |
+8  |     let mut y = *x;
+   |         ^^^^^
+note: counterexample for result
+        final value:   0
+  --> $DIR/ref.rs:7:26
+   |
+7  | fn test1(x: &mut i32) -> i32 {
+   |                          ^^^
+
+error: [Prusti: verification error] postcondition might not hold.
+  --> $DIR/ref.rs:15:11
+   |
+15 | #[ensures(result != 14)]
+   |           ^^^^^^^^^^^^
+   |
+note: the error originates here
+  --> $DIR/ref.rs:16:1
+   |
+16 | / fn test2(x: &i32) -> i32 {
+17 | |     let y = *x + 1;
+18 | |     match y {
+19 | |         x => x * 2
+20 | |     }
+21 | | }
+   | |_^
+note: counterexample for "x"
+        initial value: ref(6)
+        final value:   ref(6)
+  --> $DIR/ref.rs:16:10
+   |
+16 | fn test2(x: &i32) -> i32 {
+   |          ^
+note: counterexample for "y"
+        final value:   7
+  --> $DIR/ref.rs:17:9
+   |
+17 |     let y = *x + 1;
+   |         ^
+note: counterexample for "x"
+        final value:   7
+  --> $DIR/ref.rs:19:9
+   |
+19 |         x => x * 2
+   |         ^
+note: counterexample for result
+        final value:   14
+  --> $DIR/ref.rs:16:22
+   |
+16 | fn test2(x: &i32) -> i32 {
+   |                      ^^^
+
+error: aborting due to 2 previous errors
+

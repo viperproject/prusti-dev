@@ -1,0 +1,80 @@
+error: [Prusti: verification error] postcondition might not hold.
+  --> $DIR/enums-2.rs:22:28
+   |
+22 | fn test1(x: SomeStruct) -> bool {
+   |                            ^^^^
+   |
+note: the error originates here
+  --> $DIR/enums-2.rs:22:1
+   |
+22 | / fn test1(x: SomeStruct) -> bool {
+23 | |     match x.a {
+24 | |         SomeEnum::One => match x.b {
+25 | |             SomeEnum::Two => false,
+...  |
+29 | |     }
+30 | | }
+   | |_^
+note: counterexample for "x"
+       value:   SomeStruct {
+            a: SomeEnum::One,
+            b: SomeEnum::Two,
+        }
+  --> $DIR/enums-2.rs:22:10
+   |
+22 | fn test1(x: SomeStruct) -> bool {
+   |          ^
+note: counterexample for "result"
+       value:   false
+  --> $DIR/enums-2.rs:25:30
+   |
+25 |             SomeEnum::Two => false,
+   |                              ^^^^^
+
+error: [Prusti: verification error] postcondition might not hold.
+  --> $DIR/enums-2.rs:45:27
+   |
+45 | fn test3(x: OtherEnum) -> bool {
+   |                           ^^^^
+   |
+note: the error originates here
+  --> $DIR/enums-2.rs:45:1
+   |
+45 | / fn test3(x: OtherEnum) -> bool {
+46 | |     match x {
+47 | |         OtherEnum::One(y) => true,
+48 | |         OtherEnum::Two(a, b) => match a {
+...  |
+56 | |     }
+57 | | }
+   | |_^
+note: counterexample for "x"
+       value:   OtherEnum::Two(
+            SomeEnum::One,
+            SomeEnum::Two,
+        )
+  --> $DIR/enums-2.rs:45:10
+   |
+45 | fn test3(x: OtherEnum) -> bool {
+   |          ^
+note: counterexample for "a"
+       value:   SomeEnum::One
+  --> $DIR/enums-2.rs:48:24
+   |
+48 |         OtherEnum::Two(a, b) => match a {
+   |                        ^
+note: counterexample for "b"
+       value:   SomeEnum::Two
+  --> $DIR/enums-2.rs:48:27
+   |
+48 |         OtherEnum::Two(a, b) => match a {
+   |                           ^
+note: counterexample for "result"
+       value:   false
+  --> $DIR/enums-2.rs:50:34
+   |
+50 |                 SomeEnum::Two => false,
+   |                                  ^^^^^
+
+error: aborting due to 2 previous errors
+

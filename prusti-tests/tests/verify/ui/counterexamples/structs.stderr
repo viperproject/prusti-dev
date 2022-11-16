@@ -1,0 +1,112 @@
+error: [Prusti: verification error] postcondition might not hold.
+  --> $DIR/structs.rs:13:11
+   |
+13 | #[ensures(old(y.balance) > result.1.balance)]
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: the error originates here
+  --> $DIR/structs.rs:14:1
+   |
+14 | / fn test1(
+15 | |     mut x: Account,
+16 | |     mut y: Account,
+17 | |     amount: i32,
+...  |
+24 | |     (x, y)
+25 | | }
+   | |_^
+note: counterexample for "x"
+        initial value: Account {
+            balance: 5,
+        }
+        final value:   Account {
+            balance: 2,
+        }
+  --> $DIR/structs.rs:15:5
+   |
+15 |     mut x: Account,
+   |     ^^^^^
+note: counterexample for "y"
+        initial value: Account {
+            balance: ?,
+        }
+        final value:   Account {
+            balance: 4,
+        }
+  --> $DIR/structs.rs:16:5
+   |
+16 |     mut y: Account,
+   |     ^^^^^
+note: counterexample for "amount"
+        initial value: ?
+        final value:   3
+  --> $DIR/structs.rs:17:5
+   |
+17 |     amount: i32,
+   |     ^^^^^^
+note: counterexample for "temp"
+        final value:   1
+  --> $DIR/structs.rs:20:13
+   |
+20 |         let temp = y.balance;
+   |             ^^^^
+note: counterexample for result
+        final value:   (
+            Account {
+                balance: 2,
+            },
+            Account {
+                balance: 4,
+            },
+        )
+  --> $DIR/structs.rs:18:6
+   |
+18 | ) -> (Account, Account) {
+   |      ^^^^^^^^^^^^^^^^^^
+
+error: [Prusti: verification error] the asserted expression might not hold
+  --> $DIR/structs.rs:35:5
+   |
+35 |     assert!(x.value == x.other_value || x.valid);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: counterexample for "x"
+        initial value: A {
+            value: 1,
+            other_value: ?,
+            valid: ?,
+        }
+        final value:   A {
+            value: 1,
+            other_value: 2,
+            valid: false,
+        }
+  --> $DIR/structs.rs:34:10
+   |
+34 | fn test2(x: A) {
+   |          ^
+   = note: this error originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: [Prusti: verification error] the asserted expression might not hold
+  --> $DIR/structs.rs:45:9
+   |
+45 |         assert!(x.x == x.y)
+   |         ^^^^^^^^^^^^^^^^^^^
+   |
+note: counterexample for "x"
+        initial value: B {
+            x: 5,
+            y: ?,
+        }
+        final value:   B {
+            x: 5,
+            y: 10,
+        }
+  --> $DIR/structs.rs:43:10
+   |
+43 | fn test3(x: B) {
+   |          ^
+   = note: this error originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: aborting due to 3 previous errors
+

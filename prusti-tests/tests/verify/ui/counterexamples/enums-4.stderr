@@ -1,0 +1,124 @@
+error: [Prusti: verification error] postcondition might not hold.
+  --> $DIR/enums-4.rs:21:11
+   |
+21 | #[ensures(result)]
+   |           ^^^^^^
+   |
+note: the error originates here
+  --> $DIR/enums-4.rs:22:1
+   |
+22 | / fn test1(x: SomeStruct) -> bool {
+23 | |     match x.a {
+24 | |         SomeEnum::One => match x.b {
+25 | |             SomeEnum::Two => false,
+...  |
+29 | |     }
+30 | | }
+   | |_^
+note: counterexample for "x"
+        initial value: SomeStruct {
+            a: SomeEnum::?,
+            b: SomeEnum::?,
+        }
+        final value:   SomeStruct {
+            a: SomeEnum::One,
+            b: SomeEnum::Two,
+        }
+  --> $DIR/enums-4.rs:22:10
+   |
+22 | fn test1(x: SomeStruct) -> bool {
+   |          ^
+note: counterexample for result
+        final value:   false
+  --> $DIR/enums-4.rs:22:28
+   |
+22 | fn test1(x: SomeStruct) -> bool {
+   |                            ^^^^
+
+error: [Prusti: verification error] postcondition might not hold.
+  --> $DIR/enums-4.rs:32:11
+   |
+32 | #[ensures(result)]
+   |           ^^^^^^
+   |
+note: the error originates here
+  --> $DIR/enums-4.rs:33:1
+   |
+33 | / fn test2(x: &SomeEnum) -> bool {
+34 | |     match *x {
+35 | |         SomeEnum::One => false,
+36 | |         _ => true,
+37 | |     }
+38 | | }
+   | |_^
+note: counterexample for "x"
+        initial value: ref(SomeEnum::One)
+        final value:   ref(SomeEnum::One)
+  --> $DIR/enums-4.rs:33:10
+   |
+33 | fn test2(x: &SomeEnum) -> bool {
+   |          ^
+note: counterexample for result
+        final value:   false
+  --> $DIR/enums-4.rs:33:27
+   |
+33 | fn test2(x: &SomeEnum) -> bool {
+   |                           ^^^^
+
+error: [Prusti: verification error] postcondition might not hold.
+  --> $DIR/enums-4.rs:40:11
+   |
+40 | #[ensures(result)]
+   |           ^^^^^^
+   |
+note: the error originates here
+  --> $DIR/enums-4.rs:41:1
+   |
+41 | / fn test3(x: OtherEnum) -> bool {
+42 | |     match x {
+43 | |         OtherEnum::One(y) => true,
+44 | |         OtherEnum::Two(a, b) => match a {
+...  |
+52 | |     }
+53 | | }
+   | |_^
+note: counterexample for "x"
+        initial value: OtherEnum::Two(
+            ?,
+            ?,
+        )
+        final value:   OtherEnum::Two(
+            SomeEnum::?,
+            SomeEnum::?,
+        )
+  --> $DIR/enums-4.rs:41:10
+   |
+41 | fn test3(x: OtherEnum) -> bool {
+   |          ^
+note: counterexample for "y"
+        final value:   SomeEnum::?
+  --> $DIR/enums-4.rs:43:24
+   |
+43 |         OtherEnum::One(y) => true,
+   |                        ^
+note: counterexample for "a"
+        final value:   SomeEnum::One
+  --> $DIR/enums-4.rs:44:24
+   |
+44 |         OtherEnum::Two(a, b) => match a {
+   |                        ^
+note: counterexample for "b"
+        final value:   SomeEnum::Two
+  --> $DIR/enums-4.rs:44:27
+   |
+44 |         OtherEnum::Two(a, b) => match a {
+   |                           ^
+note: counterexample for result
+        final value:   false
+  --> $DIR/enums-4.rs:41:27
+   |
+41 | fn test3(x: OtherEnum) -> bool {
+   |                           ^^^^
+
+error: aborting due to 3 previous errors
+
