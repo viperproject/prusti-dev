@@ -32,7 +32,7 @@ impl<'a, 'tcx> DefSpecsDecoder<'a, 'tcx> {
             cstore.stable_crate_id_to_crate_num(hash.stable_crate_id())
         });
         if result.is_err() {
-            panic!("A compiled dependency is out of sync. Try deleting the target folder, or that of `prusti-contracts`.")
+            panic!("A compiled dependency is out of sync. Try deleting the target folder (`cargo clean`).")
         }
         // Get `DefId`
         self.tcx.def_path_hash_to_def_id(hash, &mut || {
