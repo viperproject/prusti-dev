@@ -12,11 +12,7 @@ use crate::{
 };
 use jni::{InitArgsBuilder, JNIVersion, JavaVM};
 use log::debug;
-use std::{
-    fs::create_dir_all,
-    io::prelude::*,
-    path::Path,
-};
+use std::{fs::create_dir_all, io::prelude::*, path::Path};
 
 #[derive(Default)]
 pub struct WrapperGenerator {
