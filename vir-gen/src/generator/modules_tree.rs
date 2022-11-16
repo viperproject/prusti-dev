@@ -91,16 +91,38 @@ impl ModulesTree {
             file_path = dir_path.join("mod.rs");
             curr_path = dir_path.to_owned();
         };
+
+        // Prepare folders
         std::fs::create_dir_all(&curr_path).unwrap_or_else(|err| {
             panic!("Failed to crate folder '{}': {}", dir_path.display(), err)
         });
-        let mut file = std::fs::File::create(&file_path).unwrap_or_else(|err| {
-            panic!("Failed to create file '{}': {}", file_path.display(), err)
+
+        // Write the module file, using a NamedTempFile to make sure that the write is atomic.
+        let mut file = tempfile::NamedTempFile::new_in(dir_path).unwrap_or_else(|err| {
+            panic!(
+                "Failed to create a temporary file for '{}': {}",
+                file_path.display(),
+                err
+            )
         });
         let gen_code = self.tokens.to_string();
         file.write_all(gen_code.as_bytes()).unwrap_or_else(|err| {
-            panic!("Failed to write to file '{}': {}", file_path.display(), err)
+            panic!(
+                "Failed to write to temporary file '{}' for '{}': {}",
+                file.path().display(),
+                file_path.display(),
+                err
+            )
         });
+        file.into_temp_path()
+            .persist(&file_path)
+            .unwrap_or_else(|err| {
+                panic!(
+                    "Failed to persist the temporary file to '{}': {}",
+                    file_path.display(),
+                    err
+                )
+            });
 
         // Write submodules
         for (submodule_name, submodule) in &self.submodules {

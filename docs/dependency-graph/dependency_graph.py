@@ -1,13 +1,15 @@
+#!/usr/bin/env python3
 import os
 import re
 import itertools
 from pathlib import Path
 from graphviz import Digraph
 
-BASE_DIR_NAME = "prusti-dev"
-
 cwd = Path(os.getcwd()).parts
-BASE_PATH = os.path.join(*cwd[:cwd.index(BASE_DIR_NAME) + 1])
+BASE_PATH = cwd
+while not os.path.isfile(os.path.join(*BASE_PATH, "Cargo.toml")):
+    BASE_PATH = BASE_PATH[:-1]
+BASE_PATH = os.path.join(*BASE_PATH)
 
 # search for registered Cargo.toml and packages in the project
 workspaces = [
