@@ -134,7 +134,8 @@ pub fn vis_scc_trace<'facts, 'mir, 'tcx: 'mir>(
 ) -> WriterResult {
     // collect information
     let name = "CFG";
-    let dag_trace = ctx.compute_dag_trace();
+    // TODO: PUT THIS BACK IN
+    // let dag_trace = ctx.compute_dag_trace();
     let happy_cfg = ctx.compute_happy_cfg();
 
     // nodes
@@ -142,8 +143,7 @@ pub fn vis_scc_trace<'facts, 'mir, 'tcx: 'mir>(
     writeln!(writer, "digraph {name} {{")?;
     writeln!(writer, "rankdir=TB")?;
 
-    // Make these guys invisible
-    // Make these vertically aligned
+    // todo: Make these vertically aligned (so the layout isn't borked for larger graphs)
     for bb in happy_cfg.blocks().iter() {
         let block_title = bb_title(&bb);
         let block_cfg = ctx.bb_cfg(bb);
@@ -196,24 +196,26 @@ pub fn vis_scc_trace<'facts, 'mir, 'tcx: 'mir>(
             //     )))
             // );
 
-            // if let Some((scc_nodes, scc_edges)) = scc {
-            //     for node in scc_nodes.iter() {
-            //         let scc_label = scc_node_label(node);
-            //         let scc_title = escape_graphviz(format!("{:#?}", node));
-            //         writeln!(
-            //             writer,
-            //             "{cluster_title}_scc_{scc_label}[fillcolor=lightgrey, label=\"{scc_title}\"]"
-            //         )?;
-            //     }
-            //     for (e0, e1, _) in scc_edges.iter() {
-            //         writeln!(
-            //             writer,
-            //             "{cluster_title}_scc_{} -> {cluster_title}_scc_{}",
-            //             scc_node_label(e0),
-            //             scc_node_label(e1),
-            //         )?;
-            //     }
-            // }
+            if let Some(scc_v) = scc {
+                let scc_nodes = scc_v.0.nodes;
+                let scc_edges = scc_v.0.edges;
+                for node in scc_nodes.iter() {
+                    let scc_label = scc_node_label(node);
+                    let scc_title = escape_graphviz(format!("{:#?}", node));
+                    writeln!(
+                        writer,
+                        "{cluster_title}_scc_{scc_label}[fillcolor=lightgrey, label=\"{scc_title}\"]"
+                    )?;
+                }
+                for (e0, e1, _) in scc_edges.iter() {
+                    writeln!(
+                        writer,
+                        "{cluster_title}_scc_{} -> {cluster_title}_scc_{}",
+                        scc_node_label(e0),
+                        scc_node_label(e1),
+                    )?;
+                }
+            }
             writeln!(writer, "}}")?;
         }
 
@@ -227,7 +229,6 @@ pub fn vis_scc_trace<'facts, 'mir, 'tcx: 'mir>(
             } else {
                 1.0
             };
-            let edge_annotation = "test";
             writeln!(writer, "location_{p0_title} -> location_{p1_title} [weight={edge_weight}, label=\"{label}\"]")?;
         }
 
@@ -1042,7 +1043,7 @@ fn rename_for_labelling(s: String) -> String {
         .replace(">", "_")
 }
 
-fn scc_node_label(l: &BTreeSet<Loan>) -> String {
+fn scc_node_label(l: &Vec<Loan>) -> String {
     escape_graphviz(remove_whitespace(
         format!("{:#?}", l)
             .trim()
