@@ -66,3 +66,11 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./output
           keep_files: true
+
+      - name: Squash deploy commits of GitHub pages
+        run: |
+          git remote update
+          git checkout origin/gh-pages
+          git reset origin/gh-pages-base
+          git commit -am "deploy: ${GITHUB_SHA}"
+          git push --set-upstream origin gh-pages
