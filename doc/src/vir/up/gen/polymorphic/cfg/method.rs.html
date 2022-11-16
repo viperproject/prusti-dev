@@ -403,9 +403,6 @@
 <span id="403">403</span>
 <span id="404">404</span>
 <span id="405">405</span>
-<span id="406">406</span>
-<span id="407">407</span>
-<span id="408">408</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{
     <a href="../../../../common/identifier.rs.html#1">common::identifier::WithIdentifier</a>,
     polymorphic::{<a href="../mod.rs.html#5">ast</a>::<span class="kw-2">*</span>, <a href="../gather_labels.rs.html#2">gather_labels::gather_labels</a>},
@@ -420,13 +417,12 @@
     <span class="attribute">#[serde(skip)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) uuid: <a href="../../../../../../uuid/struct.Uuid.html">Uuid</a>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) method_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) formal_arg_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) formal_returns: Vec&lt;<a href="../ast/common.rs.html#616">LocalVar</a>&gt;,
     <span class="kw">pub </span>local_vars: Vec&lt;<a href="../ast/common.rs.html#616">LocalVar</a>&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) labels: FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
     <span class="attribute">#[serde(skip)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) reserved_labels: FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
-    <span class="kw">pub </span>basic_blocks: Vec&lt;<a href="#29">CfgBlock</a>&gt;,
+    <span class="kw">pub </span>basic_blocks: Vec&lt;<a href="#28">CfgBlock</a>&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) basic_blocks_labels: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
     <span class="attribute">#[serde(skip)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) fresh_var_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>,
@@ -436,14 +432,14 @@
 <span class="attribute">#[derive(Debug, Clone, serde :: Serialize, serde :: Deserialize, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>CfgBlock {
     <span class="kw">pub </span>stmts: Vec&lt;<a href="../ast/stmt.rs.html#10">Stmt</a>&gt;,
-    <span class="kw">pub </span>successor: <a href="#34">Successor</a>,
+    <span class="kw">pub </span>successor: <a href="#33">Successor</a>,
 }
 <span class="attribute">#[derive(Debug, Clone, Eq, PartialEq, serde :: Serialize, serde :: Deserialize)]
 </span><span class="kw">pub enum </span>Successor {
     Undefined,
     Return,
-    Goto(<a href="#41">CfgBlockIndex</a>),
-    GotoSwitch(Vec&lt;(<a href="../ast/expr.rs.html#13">Expr</a>, <a href="#41">CfgBlockIndex</a>)&gt;, <a href="#41">CfgBlockIndex</a>),
+    Goto(<a href="#40">CfgBlockIndex</a>),
+    GotoSwitch(Vec&lt;(<a href="../ast/expr.rs.html#13">Expr</a>, <a href="#40">CfgBlockIndex</a>)&gt;, <a href="#40">CfgBlockIndex</a>),
 }
 <span class="attribute">#[derive(PartialEq, Eq, Clone, Copy, Hash, serde :: Serialize, serde :: Deserialize)]
 </span><span class="kw">pub struct </span>CfgBlockIndex {
@@ -451,92 +447,90 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) method_uuid: <a href="../../../../../../uuid/struct.Uuid.html">Uuid</a>,
     <span class="kw">pub </span>block_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#41">CfgBlockIndex</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for </span><a href="#40">CfgBlockIndex</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><a href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">fmt::Formatter</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#47">f</a>, <span class="string">&quot;cfg:{}&quot;</span>, <span class="self">self</span>.block_index)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#46">f</a>, <span class="string">&quot;cfg:{}&quot;</span>, <span class="self">self</span>.block_index)
     }
 }
-<span class="kw">impl </span><a href="#34">Successor</a> {
+<span class="kw">impl </span><a href="#33">Successor</a> {
     <span class="kw">pub fn </span>is_return(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>, Successor::Return)
     }
-    <span class="kw">pub fn </span>get_following(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="#41">CfgBlockIndex</a>&gt; {
-        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self"><a href="#55">self</a> </span>{
-            <a href="#35">Successor::Undefined</a> | <a href="#36">Successor::Return</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-            <a href="#37">Successor::Goto</a>(target) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">*</span>target],
-            <a href="#38">Successor::GotoSwitch</a>(guarded_targets, default_target) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>res: Vec&lt;<a href="#41">CfgBlockIndex</a>&gt; = <a href="#59">guarded_targets</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|g| <a href="#60">g</a>.<span class="number">1</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-                <a href="#60">res</a>.push(<span class="kw-2">*</span><a href="#59">default_target</a>);
-                <a href="#60">res</a>
+    <span class="kw">pub fn </span>get_following(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="#40">CfgBlockIndex</a>&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self"><a href="#54">self</a> </span>{
+            <a href="#34">Successor::Undefined</a> | <a href="#35">Successor::Return</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+            <a href="#36">Successor::Goto</a>(target) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="kw-2">*</span>target],
+            <a href="#37">Successor::GotoSwitch</a>(guarded_targets, default_target) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>res: Vec&lt;<a href="#40">CfgBlockIndex</a>&gt; = <a href="#58">guarded_targets</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|g| <a href="#59">g</a>.<span class="number">1</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                <a href="#59">res</a>.push(<span class="kw-2">*</span><a href="#58">default_target</a>);
+                <a href="#59">res</a>
             }
         }
     }
     <span class="attribute">#[must_use]
-    </span><span class="kw">pub fn </span>replace_target(<span class="self">self</span>, src: <a href="#41">CfgBlockIndex</a>, dst: <a href="#41">CfgBlockIndex</a>) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>replace_target(<span class="self">self</span>, src: <a href="#40">CfgBlockIndex</a>, dst: <a href="#40">CfgBlockIndex</a>) -&gt; <span class="self">Self </span>{
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
             src.method_uuid, dst.method_uuid,
             <span class="string">&quot;The provided src CfgBlockIndex is not compatible with the dst CfgBlockIndex&quot;
         </span>);
-        <span class="kw">match </span><span class="self"><a href="#67">self</a> </span>{
-            <a href="#37">Successor::Goto</a>(target) =&gt; <a href="#37">Successor::Goto</a>(<span class="kw">if </span>target == src { <a href="#67">dst</a> } <span class="kw">else </span>{ <a href="#73">target</a> }),
-            <a href="#38">Successor::GotoSwitch</a>(guarded_targets, default_target) =&gt; <a href="#38">Successor::GotoSwitch</a>(
-                <a href="#74">guarded_targets</a>
+        <span class="kw">match </span><span class="self"><a href="#66">self</a> </span>{
+            <a href="#36">Successor::Goto</a>(target) =&gt; <a href="#36">Successor::Goto</a>(<span class="kw">if </span>target == src { <a href="#66">dst</a> } <span class="kw">else </span>{ <a href="#72">target</a> }),
+            <a href="#37">Successor::GotoSwitch</a>(guarded_targets, default_target) =&gt; <a href="#37">Successor::GotoSwitch</a>(
+                <a href="#73">guarded_targets</a>
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| (<a href="#77">x</a>.<span class="number">0</span>, <span class="kw">if </span>x.<span class="number">1 </span>== src { <a href="#67">dst</a> } <span class="kw">else </span>{ <a href="#77">x</a>.<span class="number">1 </span>}))
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| (<a href="#76">x</a>.<span class="number">0</span>, <span class="kw">if </span>x.<span class="number">1 </span>== src { <a href="#66">dst</a> } <span class="kw">else </span>{ <a href="#76">x</a>.<span class="number">1 </span>}))
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
                 <span class="kw">if </span>default_target == src {
-                    <a href="#67">dst</a>
+                    <a href="#66">dst</a>
                 } <span class="kw">else </span>{
-                    <a href="#74">default_target</a>
+                    <a href="#73">default_target</a>
                 },
             ),
-            x =&gt; <a href="#85">x</a>,
+            x =&gt; <a href="#84">x</a>,
         }
     }
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>replace_uuid(<span class="self">self</span>, new_uuid: <a href="../../../../../../uuid/struct.Uuid.html">Uuid</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#88">self</a> </span>{
-            <a href="#37">Successor::Goto</a>(target) =&gt; <a href="#37">Successor::Goto</a>(<a href="#90">target</a>.<a href="#103">set_uuid</a>(<a href="#88">new_uuid</a>)),
-            <a href="#38">Successor::GotoSwitch</a>(guarded_targets, default_target) =&gt; <a href="#38">Successor::GotoSwitch</a>(
-                <a href="#91">guarded_targets</a>
+        <span class="kw">match </span><span class="self"><a href="#87">self</a> </span>{
+            <a href="#36">Successor::Goto</a>(target) =&gt; <a href="#36">Successor::Goto</a>(<a href="#89">target</a>.<a href="#102">set_uuid</a>(<a href="#87">new_uuid</a>)),
+            <a href="#37">Successor::GotoSwitch</a>(guarded_targets, default_target) =&gt; <a href="#37">Successor::GotoSwitch</a>(
+                <a href="#90">guarded_targets</a>
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| (<a href="#94">x</a>.<span class="number">0</span>, <a href="#94">x</a>.<span class="number">1</span>.<a href="#103">set_uuid</a>(<a href="#88">new_uuid</a>)))
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| (<a href="#93">x</a>.<span class="number">0</span>, <a href="#93">x</a>.<span class="number">1</span>.<a href="#102">set_uuid</a>(<a href="#87">new_uuid</a>)))
                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-                <a href="#91">default_target</a>.<a href="#103">set_uuid</a>(<a href="#88">new_uuid</a>),
+                <a href="#90">default_target</a>.<a href="#102">set_uuid</a>(<a href="#87">new_uuid</a>),
             ),
-            x =&gt; <a href="#98">x</a>,
+            x =&gt; <a href="#97">x</a>,
         }
     }
 }
-<span class="kw">impl </span><a href="#41">CfgBlockIndex</a> {
+<span class="kw">impl </span><a href="#40">CfgBlockIndex</a> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set_uuid(<span class="self">self</span>, method_uuid: <a href="../../../../../../uuid/struct.Uuid.html">Uuid</a>) -&gt; <span class="self">Self </span>{
-        <a href="#41">CfgBlockIndex</a> {
-            <a href="#103">method_uuid</a>,
-            ..<span class="self"><a href="#103">self</a>
+        <a href="#40">CfgBlockIndex</a> {
+            <a href="#102">method_uuid</a>,
+            ..<span class="self"><a href="#102">self</a>
         </span>}
     }
-    <span class="kw">pub fn </span>weak_eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#41">CfgBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#109">self</a>.block_index == <a href="#109">other</a>.block_index
+    <span class="kw">pub fn </span>weak_eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><a href="#40">CfgBlockIndex</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="#108">self</a>.block_index == <a href="#108">other</a>.block_index
     }
     <span class="kw">pub fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#112">self</a>.block_index
+        <a class="self" href="#111">self</a>.block_index
     }
 }
 <span class="kw">impl </span><a href="#11">CfgMethod</a> {
     <span class="kw">pub fn </span>new(
         method_name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-        formal_arg_count: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         formal_returns: Vec&lt;<a href="../ast/common.rs.html#616">LocalVar</a>&gt;,
         local_vars: Vec&lt;<a href="../ast/common.rs.html#616">LocalVar</a>&gt;,
         reserved_labels: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
     ) -&gt; <span class="self">Self </span>{
         <a href="#11">CfgMethod</a> {
             uuid: Uuid::new_v4(),
-            <a href="#118">method_name</a>,
-            <a href="#119">formal_arg_count</a>,
-            <a href="#120">formal_returns</a>,
-            <a href="#121">local_vars</a>,
+            <a href="#117">method_name</a>,
+            <a href="#118">formal_returns</a>,
+            <a href="#119">local_vars</a>,
             labels: FxHashSet::default(),
-            reserved_labels: FxHashSet::from_iter(<a href="#122">reserved_labels</a>),
+            reserved_labels: FxHashSet::from_iter(<a href="#120">reserved_labels</a>),
             basic_blocks: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             basic_blocks_labels: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             fresh_var_index: <span class="number">0</span>,
@@ -544,80 +538,80 @@
         }
     }
     <span class="kw">pub fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="#138">self</a>.method_name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="#135">self</a>.method_name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
     <span class="kw">pub fn </span>labels(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#141">self</a>.labels
+        <span class="kw-2">&amp;</span><a class="self" href="#138">self</a>.labels
     }
     <span class="kw">pub fn </span>basic_blocks_labels(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#144">self</a>.basic_blocks_labels
+        <span class="kw-2">&amp;</span><a class="self" href="#141">self</a>.basic_blocks_labels
     }
     <span class="kw">pub fn </span>get_formal_returns(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Vec&lt;<a href="../ast/common.rs.html#616">LocalVar</a>&gt; {
-        <span class="kw-2">&amp;</span><a class="self" href="#147">self</a>.formal_returns
+        <span class="kw-2">&amp;</span><a class="self" href="#144">self</a>.formal_returns
     }
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>block_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#41">CfgBlockIndex</a> {
-        <a href="#41">CfgBlockIndex</a> {
-            method_uuid: <a class="self" href="#150">self</a>.uuid,
-            block_index: <a href="#150">index</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>block_index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a href="#40">CfgBlockIndex</a> {
+        <a href="#40">CfgBlockIndex</a> {
+            method_uuid: <a class="self" href="#147">self</a>.uuid,
+            block_index: <a href="#147">index</a>,
         }
     }
     <span class="kw">fn </span>is_fresh_local_name(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#156">self</a>.formal_returns.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|x| <a href="#157">x</a>.name != <a href="#156">name</a>)
-            &amp;&amp; <a class="self" href="#156">self</a>.local_vars.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|x| <a href="#158">x</a>.name != <a href="#156">name</a>)
-            &amp;&amp; !<a class="self" href="#156">self</a>.labels.contains(<a href="#156">name</a>)
-            &amp;&amp; <a class="self" href="#156">self</a>.basic_blocks_labels.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|x| <a href="#160">x</a> != <a href="#156">name</a>)
+        <a class="self" href="#153">self</a>.formal_returns.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|x| <a href="#154">x</a>.name != <a href="#153">name</a>)
+            &amp;&amp; <a class="self" href="#153">self</a>.local_vars.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|x| <a href="#155">x</a>.name != <a href="#153">name</a>)
+            &amp;&amp; !<a class="self" href="#153">self</a>.labels.contains(<a href="#153">name</a>)
+            &amp;&amp; <a class="self" href="#153">self</a>.basic_blocks_labels.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|x| <a href="#157">x</a> != <a href="#153">name</a>)
     }
     <span class="kw">fn </span>generate_fresh_local_var_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>candidate_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;__t{}&quot;</span>, <span class="self">self</span>.fresh_var_index);
-        <a class="self" href="#162">self</a>.fresh_var_index += <span class="number">1</span>;
+        <a class="self" href="#159">self</a>.fresh_var_index += <span class="number">1</span>;
         <span class="kw">while </span>!<span class="self">self</span>.is_fresh_local_name(<span class="kw-2">&amp;</span>candidate_name)
             || <span class="self">self</span>.reserved_labels.contains(<span class="kw-2">&amp;</span>candidate_name)
         {
             candidate_name = <span class="macro">format!</span>(<span class="string">&quot;__t{}&quot;</span>, <span class="self">self</span>.fresh_var_index);
             <span class="self">self</span>.fresh_var_index += <span class="number">1</span>;
         }
-        <a href="#163">candidate_name</a>
+        <a href="#160">candidate_name</a>
     }
     <span class="kw">pub fn </span>get_fresh_label_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>candidate_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;l{}&quot;</span>, <span class="self">self</span>.fresh_label_index);
-        <a class="self" href="#173">self</a>.fresh_label_index += <span class="number">1</span>;
+        <a class="self" href="#170">self</a>.fresh_label_index += <span class="number">1</span>;
         <span class="kw">while </span>!<span class="self">self</span>.is_fresh_local_name(<span class="kw-2">&amp;</span>candidate_name)
             || <span class="self">self</span>.reserved_labels.contains(<span class="kw-2">&amp;</span>candidate_name)
         {
             candidate_name = <span class="macro">format!</span>(<span class="string">&quot;l{}&quot;</span>, <span class="self">self</span>.fresh_label_index);
             <span class="self">self</span>.fresh_label_index += <span class="number">1</span>;
         }
-        <a href="#174">candidate_name</a>
+        <a href="#171">candidate_name</a>
     }
     <span class="attribute">#[doc = <span class="string">&quot; Returns all formal arguments, formal returns, and local variables&quot;</span>]
     </span><span class="kw">pub fn </span>get_all_vars(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="../ast/common.rs.html#616">LocalVar</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>vars: Vec&lt;<a href="../ast/common.rs.html#616">LocalVar</a>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-        <a href="#186">vars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#185">self</a>.formal_returns.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a href="#186">vars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#185">self</a>.local_vars.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a href="#186">vars</a>
+        <a href="#183">vars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#182">self</a>.formal_returns.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a href="#183">vars</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#182">self</a>.local_vars.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a href="#183">vars</a>
     }
     <span class="attribute">#[doc = <span class="string">&quot; Returns all labels&quot;</span>]
     </span><span class="kw">pub fn </span>get_all_labels(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>labels: Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-        <a href="#193">labels</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#192">self</a>.labels.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
-        <a href="#193">labels</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#192">self</a>.basic_blocks_labels.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
-        <a href="#193">labels</a>
+        <a href="#190">labels</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#189">self</a>.labels.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
+        <a href="#190">labels</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#189">self</a>.basic_blocks_labels.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
+        <a href="#190">labels</a>
     }
     <span class="kw">pub fn </span>add_fresh_local_var(<span class="kw-2">&amp;mut </span><span class="self">self</span>, typ: <a href="../ast/common.rs.html#174">Type</a>) -&gt; <a href="../ast/common.rs.html#616">LocalVar</a> {
-        <span class="kw">let </span>name = <a class="self" href="#198">self</a>.<a href="#162">generate_fresh_local_var_name</a>();
-        <span class="kw">let </span>local_var = LocalVar::new(<a href="#199">name</a>, <a href="#198">typ</a>);
-        <a class="self" href="#198">self</a>.local_vars.push(<a href="#200">local_var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a href="#200">local_var</a>
+        <span class="kw">let </span>name = <a class="self" href="#195">self</a>.<a href="#159">generate_fresh_local_var_name</a>();
+        <span class="kw">let </span>local_var = LocalVar::new(<a href="#196">name</a>, <a href="#195">typ</a>);
+        <a class="self" href="#195">self</a>.local_vars.push(<a href="#197">local_var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a href="#197">local_var</a>
     }
     <span class="kw">pub fn </span>add_local_var(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, typ: <a href="../ast/common.rs.html#174">Type</a>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.is_fresh_local_name(name));
-        <a class="self" href="#204">self</a>.local_vars.push(LocalVar::new(<a href="#204">name</a>, <a href="#204">typ</a>));
+        <a class="self" href="#201">self</a>.local_vars.push(LocalVar::new(<a href="#201">name</a>, <a href="#201">typ</a>));
     }
     <span class="kw">pub fn </span>add_formal_return(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, typ: <a href="../ast/common.rs.html#174">Type</a>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.is_fresh_local_name(name));
-        <a class="self" href="#208">self</a>.formal_returns.push(LocalVar::new(<a href="#208">name</a>, <a href="#208">typ</a>));
+        <a class="self" href="#205">self</a>.formal_returns.push(LocalVar::new(<a href="#205">name</a>, <a href="#205">typ</a>));
     }
-    <span class="kw">pub fn </span>add_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="#41">CfgBlockIndex</a>, stmt: <a href="../ast/stmt.rs.html#10">Stmt</a>) {
+    <span class="kw">pub fn </span>add_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="#40">CfgBlockIndex</a>, stmt: <a href="../ast/stmt.rs.html#10">Stmt</a>) {
         <span class="kw">for </span>label_name <span class="kw">in </span>gather_labels(<span class="kw-2">&amp;</span>stmt) {
             <span class="macro">assert!</span>(
                 <span class="self">self</span>.is_fresh_local_name(<span class="kw-2">&amp;</span>label_name),
@@ -626,14 +620,14 @@
             );
             <span class="self">self</span>.labels.insert(label_name);
         }
-        <a class="self" href="#212">self</a>.basic_blocks[<a href="#212">index</a>.block_index].stmts.push(<a href="#212">stmt</a>);
+        <a class="self" href="#209">self</a>.basic_blocks[<a href="#209">index</a>.block_index].stmts.push(<a href="#209">stmt</a>);
     }
-    <span class="kw">pub fn </span>add_stmts(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="#41">CfgBlockIndex</a>, stmts: Vec&lt;<a href="../ast/stmt.rs.html#10">Stmt</a>&gt;) {
+    <span class="kw">pub fn </span>add_stmts(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="#40">CfgBlockIndex</a>, stmts: Vec&lt;<a href="../ast/stmt.rs.html#10">Stmt</a>&gt;) {
         <span class="kw">for </span>stmt <span class="kw">in </span>stmts {
             <span class="self">self</span>.add_stmt(index, stmt);
         }
     }
-    <span class="kw">pub fn </span>add_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, stmts: Vec&lt;<a href="../ast/stmt.rs.html#10">Stmt</a>&gt;) -&gt; <a href="#41">CfgBlockIndex</a> {
+    <span class="kw">pub fn </span>add_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, stmts: Vec&lt;<a href="../ast/stmt.rs.html#10">Stmt</a>&gt;) -&gt; <a href="#40">CfgBlockIndex</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(label.chars().take(<span class="number">1</span>).all(|c| c.is_alphabetic() || c == <span class="string">&#39;_&#39;</span>));
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(label
             .chars()
@@ -645,40 +639,40 @@
             label
         );
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(label != RETURN_LABEL);
-        <span class="kw">let </span>index = <a class="self" href="#228">self</a>.basic_blocks.len();
-        <a class="self" href="#228">self</a>.basic_blocks_labels.push(<a href="#228">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-        <a class="self" href="#228">self</a>.basic_blocks.push(<a href="#29">CfgBlock</a> {
-            <a href="#228">stmts</a>,
-            successor: <a href="#35">Successor::Undefined</a>,
+        <span class="kw">let </span>index = <a class="self" href="#225">self</a>.basic_blocks.len();
+        <a class="self" href="#225">self</a>.basic_blocks_labels.push(<a href="#225">label</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a class="self" href="#225">self</a>.basic_blocks.push(<a href="#28">CfgBlock</a> {
+            <a href="#225">stmts</a>,
+            successor: <a href="#34">Successor::Undefined</a>,
         });
-        <a class="self" href="#228">self</a>.<a href="#150">block_index</a>(<a href="#240">index</a>)
+        <a class="self" href="#225">self</a>.<a href="#147">block_index</a>(<a href="#237">index</a>)
     }
     <span class="attribute">#[allow(dead_code)]
-    </span><span class="kw">pub fn </span>get_successor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="#41">CfgBlockIndex</a>) -&gt; <span class="kw-2">&amp;</span><a href="#34">Successor</a> {
+    </span><span class="kw">pub fn </span>get_successor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="#40">CfgBlockIndex</a>) -&gt; <span class="kw-2">&amp;</span><a href="#33">Successor</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
             <span class="self">self</span>.uuid, index.method_uuid,
             <span class="string">&quot;The provided CfgBlockIndex doesn&#39;t belong to this CfgMethod&quot;
         </span>);
-        <span class="kw-2">&amp;</span><a class="self" href="#249">self</a>.basic_blocks[<a href="#249">index</a>.block_index].successor
+        <span class="kw-2">&amp;</span><a class="self" href="#246">self</a>.basic_blocks[<a href="#246">index</a>.block_index].successor
     }
     <span class="attribute">#[allow(dead_code)]
-    </span><span class="kw">pub fn </span>set_successor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="#41">CfgBlockIndex</a>, successor: <a href="#34">Successor</a>) {
+    </span><span class="kw">pub fn </span>set_successor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <a href="#40">CfgBlockIndex</a>, successor: <a href="#33">Successor</a>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
             <span class="self">self</span>.uuid, index.method_uuid,
             <span class="string">&quot;The provided CfgBlockIndex doesn&#39;t belong to this CfgMethod&quot;
         </span>);
-        <a class="self" href="#257">self</a>.basic_blocks[<a href="#257">index</a>.block_index].successor = <a href="#257">successor</a>;
+        <a class="self" href="#254">self</a>.basic_blocks[<a href="#254">index</a>.block_index].successor = <a href="#254">successor</a>;
     }
-    <span class="kw">pub fn </span>get_preceding(<span class="kw-2">&amp;</span><span class="self">self</span>, target_index: <a href="#41">CfgBlockIndex</a>) -&gt; Vec&lt;<a href="#41">CfgBlockIndex</a>&gt; {
+    <span class="kw">pub fn </span>get_preceding(<span class="kw-2">&amp;</span><span class="self">self</span>, target_index: <a href="#40">CfgBlockIndex</a>) -&gt; Vec&lt;<a href="#40">CfgBlockIndex</a>&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
             <span class="self">self</span>.uuid, target_index.method_uuid,
             <span class="string">&quot;The provided CfgBlockIndex doesn&#39;t belong to this CfgMethod&quot;
         </span>);
-        <a class="self" href="#264">self</a>.basic_blocks
+        <a class="self" href="#261">self</a>.basic_blocks
             .iter()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|x| <a href="#272">x</a>.<span class="number">1</span>.successor.<a href="#55">get_following</a>().contains(<span class="kw-2">&amp;</span><a href="#264">target_index</a>))
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a class="self" href="#264">self</a>.<a href="#150">block_index</a>(<a href="#273">x</a>.<span class="number">0</span>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|x| <a href="#269">x</a>.<span class="number">1</span>.successor.<a href="#54">get_following</a>().contains(<span class="kw-2">&amp;</span><a href="#261">target_index</a>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a class="self" href="#261">self</a>.<a href="#147">block_index</a>(<a href="#270">x</a>.<span class="number">0</span>))
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
     <span class="attribute">#[allow(dead_code)]
@@ -690,17 +684,17 @@
                 entry.push(index);
             }
         }
-        <a href="#278">result</a>
+        <a href="#275">result</a>
     }
     <span class="attribute">#[allow(dead_code)]
-    </span><span class="kw">pub fn </span>get_indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="#41">CfgBlockIndex</a>&gt; {
-        (<span class="number">0</span>..<a class="self" href="#288">self</a>.basic_blocks.len())
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|i| <a class="self" href="#288">self</a>.<a href="#150">block_index</a>(<a href="#290">i</a>))
+    </span><span class="kw">pub fn </span>get_indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="#40">CfgBlockIndex</a>&gt; {
+        (<span class="number">0</span>..<a class="self" href="#285">self</a>.basic_blocks.len())
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|i| <a class="self" href="#285">self</a>.<a href="#147">block_index</a>(<a href="#287">i</a>))
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
     <span class="attribute">#[allow(dead_code)]
-    </span><span class="kw">pub fn </span>get_block_label(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="#41">CfgBlockIndex</a>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#294">self</a>.basic_blocks_labels[<a href="#294">index</a>.block_index]
+    </span><span class="kw">pub fn </span>get_block_label(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <a href="#40">CfgBlockIndex</a>) -&gt; <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="#291">self</a>.basic_blocks_labels[<a href="#291">index</a>.block_index]
     }
     <span class="kw">pub fn </span>has_loops(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let </span><span class="kw-2">mut </span>in_degree = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; <span class="self">self</span>.basic_blocks.len()];
@@ -726,51 +720,51 @@
             visited_count += <span class="number">1</span>;
         }
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(visited_count &lt;= <span class="self">self</span>.basic_blocks.len());
-        <a href="#310">visited_count</a> != <a class="self" href="#297">self</a>.basic_blocks.len()
+        <a href="#307">visited_count</a> != <a class="self" href="#294">self</a>.basic_blocks.len()
     }
-    <span class="kw">pub fn </span>get_topological_sort(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="#41">CfgBlockIndex</a>&gt; {
+    <span class="kw">pub fn </span>get_topological_sort(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="#40">CfgBlockIndex</a>&gt; {
         <span class="kw">if </span><span class="self">self</span>.basic_blocks.is_empty() {
             Vec::new()
         } <span class="kw">else </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>visited: Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="bool-val">false</span>; <span class="self">self</span>.basic_blocks.len()];
-            <span class="kw">let </span><span class="kw-2">mut </span>topo_sorted: Vec&lt;<a href="#41">CfgBlockIndex</a>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
-            <a href="#327">visited</a>[<span class="number">0</span>] = <span class="bool-val">true</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>topo_sorted: Vec&lt;<a href="#40">CfgBlockIndex</a>&gt; = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+            <a href="#324">visited</a>[<span class="number">0</span>] = <span class="bool-val">true</span>;
             <span class="kw">for </span>index <span class="kw">in </span><span class="number">1</span>..<span class="self">self</span>.basic_blocks.len() {
                 <span class="kw">if </span>!visited[index] {
                     <span class="self">self</span>.topological_sort_impl(<span class="kw-2">&amp;mut </span>visited, <span class="kw-2">&amp;mut </span>topo_sorted, index);
                 }
             }
             <span class="kw">let </span><span class="kw-2">mut </span>final_blocks = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="self">self</span>.block_index(<span class="number">0</span>)];
-            <a href="#335">final_blocks</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#328">topo_sorted</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>());
-            <a href="#335">final_blocks</a>
+            <a href="#332">final_blocks</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#325">topo_sorted</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rev</a>());
+            <a href="#332">final_blocks</a>
         }
     }
     <span class="kw">fn </span>topological_sort_impl(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         visited: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
-        topo_sorted: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="#41">CfgBlockIndex</a>&gt;,
+        topo_sorted: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="#40">CfgBlockIndex</a>&gt;,
         curr_index: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!visited[curr_index]);
-        <a href="#342">visited</a>[<a href="#344">curr_index</a>] = <span class="bool-val">true</span>;
-        <span class="kw">let </span>curr_block = <span class="kw-2">&amp;</span><a class="self" href="#341">self</a>.basic_blocks[<a href="#344">curr_index</a>];
-        <span class="kw">let </span>following = <a href="#348">curr_block</a>.successor.<a href="#55">get_following</a>();
+        <a href="#339">visited</a>[<a href="#341">curr_index</a>] = <span class="bool-val">true</span>;
+        <span class="kw">let </span>curr_block = <span class="kw-2">&amp;</span><a class="self" href="#338">self</a>.basic_blocks[<a href="#341">curr_index</a>];
+        <span class="kw">let </span>following = <a href="#345">curr_block</a>.successor.<a href="#54">get_following</a>();
         <span class="kw">for </span>block_index <span class="kw">in </span>following {
             <span class="kw">let </span>index = block_index.block_index;
             <span class="kw">if </span>!visited[index] {
                 <span class="self">self</span>.topological_sort_impl(visited, topo_sorted, index);
             }
         }
-        <a href="#343">topo_sorted</a>.push(<a class="self" href="#341">self</a>.<a href="#150">block_index</a>(<a href="#344">curr_index</a>))
+        <a href="#340">topo_sorted</a>.push(<a class="self" href="#338">self</a>.<a href="#147">block_index</a>(<a href="#341">curr_index</a>))
     }
     <span class="attribute">#[doc = <span class="string">&quot; Find some path from the `start_block` to the `end_block`.&quot;</span>]
     #[doc = <span class="string">&quot;&quot;</span>]
     #[doc = <span class="string">&quot; The returned path includes both `start_block` and `end_block`.&quot;</span>]
     </span><span class="kw">pub fn </span>find_path(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        start_block: <a href="#41">CfgBlockIndex</a>,
-        end_block: <a href="#41">CfgBlockIndex</a>,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="#41">CfgBlockIndex</a>&gt;&gt; {
+        start_block: <a href="#40">CfgBlockIndex</a>,
+        end_block: <a href="#40">CfgBlockIndex</a>,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;<a href="#40">CfgBlockIndex</a>&gt;&gt; {
         <a class="macro" href="../../../../../../log/macro.trace.html">trace!</a>(
             <span class="string">&quot;[enter] find_path start={:?} end={:?}&quot;</span>,
             start_block,
@@ -782,8 +776,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>visited = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="bool-val">false</span>; <span class="self">self</span>.basic_blocks.len()];
         <span class="kw">let </span><span class="kw-2">mut </span>came_from = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="prelude-val">None</span>; <span class="self">self</span>.basic_blocks.len()];
         <span class="kw">let </span><span class="kw-2">mut </span>to_visit = VecDeque::new();
-        <a href="#376">to_visit</a>.push_back(<a href="#363">start_block</a>);
-        <a href="#374">visited</a>[<a href="#363">start_block</a>.block_index] = <span class="bool-val">true</span>;
+        <a href="#373">to_visit</a>.push_back(<a href="#360">start_block</a>);
+        <a href="#371">visited</a>[<a href="#360">start_block</a>.block_index] = <span class="bool-val">true</span>;
         <span class="kw">while </span>!to_visit.is_empty() {
             <span class="kw">let </span>curr_block_index = to_visit.pop_front().unwrap();
             <span class="macro">trace!</span>(<span class="string">&quot;curr_block_index={:?}&quot;</span>, curr_block_index);
@@ -811,7 +805,7 @@
 }
 <span class="kw">impl </span><a href="../../../../common/identifier.rs.html#1">WithIdentifier</a> <span class="kw">for </span><a href="#11">CfgMethod</a> {
     <span class="kw">fn </span>get_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="#405">self</a>.method_name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="#402">self</a>.method_name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 }
 </code></pre></div>

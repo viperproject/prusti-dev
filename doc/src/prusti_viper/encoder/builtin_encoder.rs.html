@@ -317,6 +317,8 @@
 <span id="317">317</span>
 <span id="318">318</span>
 <span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -416,45 +418,47 @@
             name: <a class="self" href="#84">self</a>.<a href="#72">encode_builtin_method_name</a>(<a href="#84">method</a>),
             formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             formal_returns: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local!</span>{ ret: {return_type} }],
+            pres: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+            posts: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         }
     }
 
     <span class="kw">pub fn </span>encode_builtin_function_def(<span class="kw-2">&amp;</span><span class="self">self</span>, function: <a href="#28">BuiltinFunctionKind</a>) -&gt; <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-        <span class="kw">let </span>(fn_name, type_arguments) = <a class="self" href="#103">self</a>.encoder.<a href="high/builtin_functions/interface.rs.html#170-173">encode_builtin_function_name_with_type_args</a>(<span class="kw-2">&amp;</span><a href="#103">function</a>);
-        <span class="kw">match </span><a href="#103">function</a> {
+        <span class="kw">let </span>(fn_name, type_arguments) = <a class="self" href="#105">self</a>.encoder.<a href="high/builtin_functions/interface.rs.html#170-173">encode_builtin_function_name_with_type_args</a>(<span class="kw-2">&amp;</span><a href="#105">function</a>);
+        <span class="kw">match </span><a href="#105">function</a> {
             <a href="#30">BuiltinFunctionKind::Unreachable</a>(typ) =&gt; <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                name: <a href="#104">fn_name</a>,
-                <a href="#104">type_arguments</a>,
+                name: <a href="#106">fn_name</a>,
+                <a href="#106">type_arguments</a>,
                 formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-                return_type: <a href="#106">typ</a>,
+                return_type: <a href="#108">typ</a>,
                 <span class="comment">// Precondition is false, because we want to be sure that this function is never used
                 </span>pres: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="bool-val">false</span>.into()],
                 posts: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
                 body: <span class="prelude-val">None</span>,
             },
             <a href="#32">BuiltinFunctionKind::Undefined</a>(typ) =&gt; <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                name: <a href="#104">fn_name</a>,
-                <a href="#104">type_arguments</a>,
+                name: <a href="#106">fn_name</a>,
+                <a href="#106">type_arguments</a>,
                 formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-                return_type: <a href="#116">typ</a>,
+                return_type: <a href="#118">typ</a>,
                 pres: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
                 posts: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
                 body: <span class="prelude-val">None</span>,
             },
             <a href="#34">BuiltinFunctionKind::ArrayLookupPure</a> { array_pred_type, array_len, return_ty, .. } =&gt; {
-                <span class="kw">let </span>self_var = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#125">array_pred_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <span class="kw">let </span>self_var = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#127">array_pred_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                 <span class="kw">let </span>idx_var = <a class="macro" href="../../../prusti_common/macro.vir_local.html">vir_local!</a>{ idx: Int };
 
                 <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                    name: <a href="#104">fn_name</a>,
-                    <a href="#104">type_arguments</a>,
+                    name: <a href="#106">fn_name</a>,
+                    <a href="#106">type_arguments</a>,
                     formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                         <span class="comment">// self,
                         </span>self_var.clone(),
                         <span class="comment">// idx,
                         </span>idx_var.clone(),
                     ],
-                    return_type: <a href="#125">return_ty</a>,
+                    return_type: <a href="#127">return_ty</a>,
                     pres: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                         <span class="comment">// acc(self, read$())
                         </span>vir::Expr::predicate_access_predicate(
@@ -471,15 +475,15 @@
                 }
             },
             <a href="#41">BuiltinFunctionKind::SliceLookupPure</a> { slice_pred_type, elem_pred_type, return_ty} =&gt; {
-                <span class="kw">let </span>(slice_len, slice_len_type_arguments) = <a class="self" href="#103">self</a>.encoder.<a href="high/builtin_functions/interface.rs.html#170-173">encode_builtin_function_name_with_type_args</a>(
-                    <span class="kw-2">&amp;</span><a href="#47">BuiltinFunctionKind::SliceLen</a> { slice_pred_type: <a href="#154">slice_pred_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#154">elem_pred_type</a> }
+                <span class="kw">let </span>(slice_len, slice_len_type_arguments) = <a class="self" href="#105">self</a>.encoder.<a href="high/builtin_functions/interface.rs.html#170-173">encode_builtin_function_name_with_type_args</a>(
+                    <span class="kw-2">&amp;</span><a href="#47">BuiltinFunctionKind::SliceLen</a> { slice_pred_type: <a href="#156">slice_pred_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#156">elem_pred_type</a> }
                 );
-                <span class="kw">let </span>self_var = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#154">slice_pred_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <span class="kw">let </span>self_var = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#156">slice_pred_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                 <span class="kw">let </span>idx_var = <a class="macro" href="../../../prusti_common/macro.vir_local.html">vir_local!</a>{ idx: Int };
 
                 <span class="kw">let </span>slice_len_call = vir::Expr::func_app(
-                    <a href="#155">slice_len</a>,
-                    <a href="#155">slice_len_type_arguments</a>,
+                    <a href="#157">slice_len</a>,
+                    <a href="#157">slice_len_type_arguments</a>,
                     <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                         vir::Expr::local(self_var.clone()),
                     ],
@@ -491,13 +495,13 @@
                 );
 
                 <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                    name: <a href="#104">fn_name</a>,
-                    <a href="#104">type_arguments</a>,
+                    name: <a href="#106">fn_name</a>,
+                    <a href="#106">type_arguments</a>,
                     formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                         self_var.clone(),
                         idx_var.clone(),
                     ],
-                    return_type: <a href="#154">return_ty</a>,
+                    return_type: <a href="#156">return_ty</a>,
                     pres: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                         <span class="comment">// acc(self, read$())
                         </span>vir::Expr::predicate_access_predicate(
@@ -514,11 +518,11 @@
                 }
             },
             <a href="#47">BuiltinFunctionKind::SliceLen</a> { slice_pred_type, .. } =&gt; {
-                <span class="kw">let </span>self_var = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#197">slice_pred_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <span class="kw">let </span>self_var = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#199">slice_pred_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
                 <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                    name: <a href="#104">fn_name</a>,
-                    <a href="#104">type_arguments</a>,
+                    name: <a href="#106">fn_name</a>,
+                    <a href="#106">type_arguments</a>,
                     formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                         self_var.clone(),
                     ],
@@ -544,9 +548,9 @@
     <span class="comment">// This code is currently dead, but we should start using it soon.
     </span><span class="attribute">#[allow(dead_code)]
     </span><span class="kw">pub fn </span>encode_builtin_domain(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: <a href="#56">BuiltinDomainKind</a>) -&gt; <a href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
-        <span class="kw">match </span><a href="#227">kind</a> {
-            <a href="#57">BuiltinDomainKind::Nat</a> =&gt; <a class="self" href="#227">self</a>.<a href="#234">encode_nat_builtin_domain</a>(),
-            <a href="#58">BuiltinDomainKind::Primitive</a> =&gt; <a class="self" href="#227">self</a>.<a href="#256">encode_primitive_builtin_domain</a>(),
+        <span class="kw">match </span><a href="#229">kind</a> {
+            <a href="#57">BuiltinDomainKind::Nat</a> =&gt; <a class="self" href="#229">self</a>.<a href="#236">encode_nat_builtin_domain</a>(),
+            <a href="#58">BuiltinDomainKind::Primitive</a> =&gt; <a class="self" href="#229">self</a>.<a href="#258">encode_primitive_builtin_domain</a>(),
         }
     }
 
@@ -557,16 +561,16 @@
             name: <span class="string">&quot;zero&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
             type_arguments: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-            return_type: vir::Type::domain(<a href="#235">nat_domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()),
+            return_type: vir::Type::domain(<a href="#237">nat_domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()),
             unique: <span class="bool-val">false</span>,
-            domain_name: <a href="#235">nat_domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
+            domain_name: <a href="#237">nat_domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
         };
 
         <span class="kw">let </span>functions = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[zero]; <span class="comment">// , snapshot::get_succ_func()];
 
         </span><a href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
-            name: <a href="#235">nat_domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
-            <a href="#246">functions</a>,
+            name: <a href="#237">nat_domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
+            <a href="#248">functions</a>,
             axioms: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             type_vars: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         }
@@ -629,9 +633,9 @@
         }
 
         <a href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
-            name: <a href="#258">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
-            <a href="#260">functions</a>,
-            <a href="#261">axioms</a>,
+            name: <a href="#260">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
+            <a href="#262">functions</a>,
+            <a href="#263">axioms</a>,
             type_vars: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         }
     }

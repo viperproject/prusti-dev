@@ -448,7 +448,7 @@
     objects::{<a href="../../../jni/wrapper/objects/jobject/struct.JObject.html">JObject</a>, <a href="../../../jni/wrapper/objects/jvalue/enum.JValue.html">JValue</a>},
     <a href="../../../jni/wrapper/jnienv/struct.JNIEnv.html">JNIEnv</a>,
 };
-<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">std::collections::BTreeMap</a>;
 
 <span class="kw">pub fn </span>generate_method(
     env: <span class="kw-2">&amp;</span><a href="../../../jni/wrapper/jnienv/struct.JNIEnv.html">JNIEnv</a>,
@@ -464,7 +464,7 @@
         </span>.l()<span class="question-mark">?</span>;
     <span class="kw">let </span>num_methods = env.get_array_length(<span class="kw-2">*</span>methods)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span><span class="kw-2">mut </span>indexed_methods = HashMap::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>indexed_methods = BTreeMap::new();
 
     <span class="kw">for </span>method_index <span class="kw">in </span><span class="number">0</span>..num_methods {
         <span class="kw">let </span>method = env.get_object_array_element(<span class="kw-2">*</span>methods, method_index)<span class="question-mark">?</span>;
@@ -492,7 +492,7 @@
 
         <span class="kw">match </span>indexed_methods.remove(<span class="kw-2">&amp;</span>method_name) {
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>signature_map = HashMap::new();
+                <span class="kw">let </span><span class="kw-2">mut </span>signature_map = BTreeMap::new();
                 signature_map.insert(method_signature, method);
                 indexed_methods.insert(method_name, signature_map);
             }
@@ -504,7 +504,7 @@
     }
 
     <span class="kw">let </span>matching_methods = <span class="kw">match </span><a href="#28">indexed_methods</a>.get_mut(<a href="#17">method_name</a>) {
-        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../errors.rs.html#11-57">ErrorKind::NoMethod</a>(<a href="#16">class</a>.<a href="../class_name.rs.html#50">full_name</a>(), <a href="#17">method_name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../errors.rs.html#11-58">ErrorKind::NoMethod</a>(<a href="#16">class</a>.<a href="../class_name.rs.html#50">full_name</a>(), <a href="#17">method_name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
         <span class="prelude-val">Some</span>(mm) =&gt; <a href="#69">mm</a>,
     };
 
@@ -514,19 +514,19 @@
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
             }
             <span class="kw">if </span>matching_methods.len() &gt; <span class="number">1 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../errors.rs.html#11-57">ErrorKind::AmbiguousMethod</a>(
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../errors.rs.html#11-58">ErrorKind::AmbiguousMethod</a>(
                     <a href="#16">class</a>.<a href="../class_name.rs.html#50">full_name</a>(),
                     <a href="#17">method_name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
                     <a href="#67">matching_methods</a>.keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|k| <a href="#81">k</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
                 )
                 .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
             }
-            <a href="#67">matching_methods</a>.drain().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<span class="number">1</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap()
+            <a href="#67">matching_methods</a>.pop_first().unwrap()
         }
         <span class="prelude-val">Some</span>(sign) =&gt; <span class="kw">match </span><a href="#67">matching_methods</a>.get(<span class="kw-2">&amp;</span><a href="#87">sign</a>) {
             <span class="prelude-val">Some</span>(constr) =&gt; (<a href="#87">sign</a>, <span class="kw-2">*</span><a href="#88">constr</a>),
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../errors.rs.html#11-57">ErrorKind::NoMatchingMethod</a>(
+                <span class="kw">return </span><span class="prelude-val">Err</span>(<a href="../errors.rs.html#11-58">ErrorKind::NoMatchingMethod</a>(
                     <a href="#16">class</a>.<a href="../class_name.rs.html#50">full_name</a>(),
                     <a href="#17">method_name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
                     <a href="#87">sign</a>,

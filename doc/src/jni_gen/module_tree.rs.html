@@ -161,18 +161,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">std::collections::HashMap</a>;
+</span><span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">std::collections::BTreeMap</a>;
 
 <span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub enum </span>ModuleTree {
-    Node(HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="#10">ModuleTree</a>&gt;),
+    Node(BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a href="#10">ModuleTree</a>&gt;),
     Leaf,
 }
 
 <span class="attribute">#[allow(clippy::derivable_impls)]
 </span><span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for </span><a href="#10">ModuleTree</a> {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <a href="#11">ModuleTree::Node</a>(HashMap::new())
+        <a href="#11">ModuleTree::Node</a>(BTreeMap::new())
     }
 }
 
@@ -186,7 +186,7 @@
         <span class="kw">match </span><a href="#28">curr_name</a> {
             <span class="prelude-val">Some</span>(name) =&gt; <span class="kw">match </span><span class="self"><a href="#23">self</a> </span>{
                 <a href="#12">ModuleTree::Leaf</a> =&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>modules = HashMap::new();
+                    <span class="kw">let </span><span class="kw-2">mut </span>modules = BTreeMap::new();
                     <a href="#32">modules</a>.insert(<a href="#30">name</a>, <a href="#12">ModuleTree::Leaf</a>.<a href="#23-25">insert</a>(<a href="#27">path_iter</a>));
                     <a href="#11">ModuleTree::Node</a>(<a href="#32">modules</a>)
                 }
@@ -242,19 +242,19 @@
 
     <span class="kw">pub fn </span>visit&lt;F, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;R&gt;
     <span class="kw">where
-        </span>F: Fn(HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;R&gt;&gt;) -&gt; R,
+        </span>F: Fn(BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;R&gt;&gt;) -&gt; R,
     {
         <a class="self" href="#86">self</a>.<a href="#93-95">_visit</a>(<span class="kw-2">&amp;</span><a href="#86">f</a>)
     }
 
     <span class="kw">fn </span>_visit&lt;F, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;</span>F) -&gt; <span class="prelude-ty">Option</span>&lt;R&gt;
     <span class="kw">where
-        </span>F: Fn(HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;R&gt;&gt;) -&gt; R,
+        </span>F: Fn(BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;R&gt;&gt;) -&gt; R,
     {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self"><a href="#93">self</a> </span>{
             <a href="#12">ModuleTree::Leaf</a> =&gt; <span class="prelude-val">None</span>,
             <a href="#11">ModuleTree::Node</a>(<span class="kw-2">ref </span>modules) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>computed: HashMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;R&gt;&gt; = HashMap::new();
+                <span class="kw">let </span><span class="kw-2">mut </span>computed: BTreeMap&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="prelude-ty">Option</span>&lt;R&gt;&gt; = BTreeMap::new();
                 <span class="kw">for </span>(name, sub_modules) <span class="kw">in </span>modules.iter() {
                     computed.insert(name.clone(), sub_modules._visit(f));
                 }

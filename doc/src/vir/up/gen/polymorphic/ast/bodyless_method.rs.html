@@ -34,6 +34,15 @@
 <span id="34">34</span>
 <span id="35">35</span>
 <span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../../../../common/identifier.rs.html#1">common::identifier::WithIdentifier</a>, <a href="../mod.rs.html#5">polymorphic::ast</a>::<span class="kw-2">*</span>};
 <span class="kw">use </span><a href="../../../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
@@ -42,10 +51,12 @@
     <span class="kw">pub </span>name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     <span class="kw">pub </span>formal_args: Vec&lt;<a href="common.rs.html#616">LocalVar</a>&gt;,
     <span class="kw">pub </span>formal_returns: Vec&lt;<a href="common.rs.html#616">LocalVar</a>&gt;,
+    <span class="kw">pub </span>pres: Vec&lt;<a href="expr.rs.html#13">Expr</a>&gt;,
+    <span class="kw">pub </span>posts: Vec&lt;<a href="expr.rs.html#13">Expr</a>&gt;,
 }
 <span class="kw">impl </span><a href="../../../../common/identifier.rs.html#1">WithIdentifier</a> <span class="kw">for </span><a href="#5">BodylessMethod</a> {
     <span class="kw">fn </span>get_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="#11">self</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="#13">self</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 }
 <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for </span><a href="#5">BodylessMethod</a> {
@@ -67,7 +78,14 @@
             <span class="macro">write!</span>(f, <span class="string">&quot;{:?}&quot;</span>, arg)<span class="question-mark">?</span>;
             first = <span class="bool-val">false
         </span>}
-        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#16">f</a>, <span class="string">&quot;);&quot;</span>)
+        <span class="macro">write!</span>(f, <span class="string">&quot;)&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">for </span>pre <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.pres {
+            <span class="macro">write!</span>(f, <span class="string">&quot;\n    requires {}&quot;</span>, pre)<span class="question-mark">?</span>;
+        }
+        <span class="kw">for </span>post <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.posts {
+            <span class="macro">write!</span>(f, <span class="string">&quot;\n    ensures {}&quot;</span>, post)<span class="question-mark">?</span>;
+        }
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#18">f</a>, <span class="string">&quot;;&quot;</span>)
     }
 }
 </code></pre></div>

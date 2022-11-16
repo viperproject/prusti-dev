@@ -108,6 +108,28 @@
 <span id="108">108</span>
 <span id="109">109</span>
 <span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
 </pre><pre class="rust"><code><span class="comment">// © 2022, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -201,16 +223,38 @@
             <a href="#81">file_path</a> = <a href="#78">dir_path</a>.join(<span class="string">&quot;mod.rs&quot;</span>);
             <a href="#80">curr_path</a> = <a href="#78">dir_path</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>();
         };
-        std::fs::create_dir_all(<span class="kw-2">&amp;</span><a href="#80">curr_path</a>).unwrap_or_else(|err| {
+
+        <span class="comment">// Prepare folders
+        </span>std::fs::create_dir_all(<span class="kw-2">&amp;</span><a href="#80">curr_path</a>).unwrap_or_else(|err| {
             <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Failed to crate folder &#39;{}&#39;: {}&quot;</span>, dir_path.display(), err)
         });
-        <span class="kw">let </span><span class="kw-2">mut </span>file = std::fs::File::create(<span class="kw-2">&amp;</span><a href="#81">file_path</a>).unwrap_or_else(|err| {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Failed to create file &#39;{}&#39;: {}&quot;</span>, file_path.display(), err)
+
+        <span class="comment">// Write the module file, using a NamedTempFile to make sure that the write is atomic.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>file = tempfile::NamedTempFile::new_in(<a href="#78">dir_path</a>).unwrap_or_else(|err| {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
+                <span class="string">&quot;Failed to create a temporary file for &#39;{}&#39;: {}&quot;</span>,
+                file_path.display(),
+                err
+            )
         });
         <span class="kw">let </span>gen_code = <a class="self" href="#78">self</a>.tokens.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <a href="#97">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<a href="#100">gen_code</a>.as_bytes()).unwrap_or_else(|err| {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Failed to write to file &#39;{}&#39;: {}&quot;</span>, file_path.display(), err)
+        <a href="#101">file</a>.<a href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">write_all</a>(<a href="#108">gen_code</a>.as_bytes()).unwrap_or_else(|err| {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
+                <span class="string">&quot;Failed to write to temporary file &#39;{}&#39; for &#39;{}&#39;: {}&quot;</span>,
+                file.path().display(),
+                file_path.display(),
+                err
+            )
         });
+        <a href="#101">file</a>.into_temp_path()
+            .persist(<span class="kw-2">&amp;</span><a href="#81">file_path</a>)
+            .unwrap_or_else(|err| {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
+                    <span class="string">&quot;Failed to persist the temporary file to &#39;{}&#39;: {}&quot;</span>,
+                    file_path.display(),
+                    err
+                )
+            });
 
         <span class="comment">// Write submodules
         </span><span class="kw">for </span>(submodule_name, submodule) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.submodules {

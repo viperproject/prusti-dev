@@ -106,16 +106,6 @@
 <span id="106">106</span>
 <span id="107">107</span>
 <span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -124,17 +114,13 @@
 
 </span><span class="kw">use crate</span>::{
     <a href="lib.rs.html#7">class_name</a>::<span class="kw-2">*</span>,
-    <a href="errors.rs.html#11-57">errors::Result</a> <span class="kw">as </span>LocalResult,
+    <a href="errors.rs.html#11-58">errors::Result</a> <span class="kw">as </span>LocalResult,
     generators::{<a href="generators/class.rs.html#16">class::ClassGenerator</a>, <a href="generators/mod.rs.html#10">module</a>::<span class="kw-2">*</span>},
     <a href="lib.rs.html#14">wrapper_spec</a>::<span class="kw-2">*</span>,
 };
 <span class="kw">use </span>jni::{<a href="../../jni/wrapper/java_vm/init_args/struct.InitArgsBuilder.html">InitArgsBuilder</a>, <a href="../../jni/wrapper/version/enum.JNIVersion.html">JNIVersion</a>, <a href="../../jni/wrapper/java_vm/vm/struct.JavaVM.html">JavaVM</a>};
 <span class="kw">use </span><a href="../../log/macro.debug.html">log::debug</a>;
-<span class="kw">use </span>std::{
-    fs::{<a href="https://doc.rust-lang.org/nightly/std/fs/fn.create_dir_all.html">create_dir_all</a>, <a href="https://doc.rust-lang.org/nightly/std/fs/struct.OpenOptions.html">OpenOptions</a>},
-    <a href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">io::prelude</a>::<span class="kw-2">*</span>,
-    <a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">path::Path</a>,
-};
+<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/fs/fn.create_dir_all.html">fs::create_dir_all</a>, <a href="https://doc.rust-lang.org/nightly/std/io/prelude/index.html">io::prelude</a>::<span class="kw-2">*</span>, <a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">path::Path</a>};
 
 <span class="attribute">#[derive(Default)]
 </span><span class="kw">pub struct </span>WrapperGenerator {
@@ -142,29 +128,29 @@
     classes: Vec&lt;<a href="wrapper_spec.rs.html#10">ClassWrapperSpec</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="#22">WrapperGenerator</a> {
+<span class="kw">impl </span><a href="#18">WrapperGenerator</a> {
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>()
     }
 
     <span class="kw">pub fn </span>use_jar(<span class="kw-2">&amp;mut </span><span class="self">self</span>, jar_path: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#32">self</a>.jars.push(<a href="#32">jar_path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-        <span class="self"><a href="#32">self</a>
+        <a class="self" href="#28">self</a>.jars.push(<a href="#28">jar_path</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="self"><a href="#28">self</a>
     </span>}
 
     <span class="kw">pub fn </span>use_jars(<span class="kw-2">&amp;mut </span><span class="self">self</span>, jar_paths: <span class="kw-2">&amp;mut </span>Vec&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#37">self</a>.jars.append(<a href="#37">jar_paths</a>);
-        <span class="self"><a href="#37">self</a>
+        <a class="self" href="#33">self</a>.jars.append(<a href="#33">jar_paths</a>);
+        <span class="self"><a href="#33">self</a>
     </span>}
 
     <span class="kw">pub fn </span>wrap(<span class="kw-2">&amp;mut </span><span class="self">self</span>, class: <a href="wrapper_spec.rs.html#10">ClassWrapperSpec</a>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#42">self</a>.classes.push(<a href="#42">class</a>);
-        <span class="self"><a href="#42">self</a>
+        <a class="self" href="#38">self</a>.classes.push(<a href="#38">class</a>);
+        <span class="self"><a href="#38">self</a>
     </span>}
 
     <span class="kw">pub fn </span>wrap_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>, classes: Vec&lt;<a href="wrapper_spec.rs.html#10">ClassWrapperSpec</a>&gt;) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
-        <a class="self" href="#47">self</a>.classes.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#47">classes</a>);
-        <span class="self"><a href="#47">self</a>
+        <a class="self" href="#43">self</a>.classes.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#43">classes</a>);
+        <span class="self"><a href="#43">self</a>
     </span>}
 
     <span class="kw">pub fn </span>generate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out_dir: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; LocalResult&lt;()&gt; {
@@ -206,29 +192,23 @@
             <span class="kw">if let </span><span class="prelude-val">Some</span>(parent_path) = class_path.parent() {
                 create_dir_all(parent_path)<span class="question-mark">?</span>;
             }
-            <span class="kw">let </span><span class="kw-2">mut </span>class_file = OpenOptions::new()
-                .read(<span class="bool-val">true</span>)
-                .write(<span class="bool-val">true</span>)
-                .create(<span class="bool-val">true</span>)
-                .truncate(<span class="bool-val">true</span>)
-                .open(<span class="kw-2">&amp;</span>class_path)<span class="question-mark">?</span>;
+            <span class="comment">// Here we use `NamedTempFile` and `TempPath::persist` to make the write atomic.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>class_file = tempfile::NamedTempFile::new_in(out_dir)<span class="question-mark">?</span>;
             <span class="kw">let </span>class_generator =
                 ClassGenerator::new(<span class="kw-2">&amp;</span>env, class_name.to_owned(), class.get_items().to_vec());
             <span class="kw">let </span>class_code = class_generator.generate()<span class="question-mark">?</span>;
             class_file.write_all(class_code.as_bytes())<span class="question-mark">?</span>;
+            class_file.into_temp_path().persist(<span class="kw-2">&amp;</span>class_path)<span class="question-mark">?</span>;
         }
 
         {
-            <span class="kw">let </span>class_names: Vec&lt;<span class="kw-2">&amp;</span><a href="class_name.rs.html#8">ClassName</a>&gt; = <a class="self" href="#52">self</a>.classes.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a href="#104">x</a>.<a href="wrapper_spec.rs.html#23">get_name</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-            <span class="kw">let </span>mod_code = <a href="generators/module.rs.html#10">generate_module</a>(<a href="#104">class_names</a>);
-            <span class="kw">let </span>mod_path = <a href="#52">out_dir</a>.join(<span class="string">&quot;mod.rs&quot;</span>);
-            <span class="kw">let </span><span class="kw-2">mut </span>mod_file = OpenOptions::new()
-                .read(<span class="bool-val">true</span>)
-                .write(<span class="bool-val">true</span>)
-                .create(<span class="bool-val">true</span>)
-                .truncate(<span class="bool-val">true</span>)
-                .open(mod_path)<span class="question-mark">?</span>;
+            <span class="kw">let </span>class_names: Vec&lt;<span class="kw-2">&amp;</span><a href="class_name.rs.html#8">ClassName</a>&gt; = <a class="self" href="#48">self</a>.classes.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a href="#97">x</a>.<a href="wrapper_spec.rs.html#23">get_name</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            <span class="kw">let </span>mod_code = <a href="generators/module.rs.html#10">generate_module</a>(<a href="#97">class_names</a>);
+            <span class="kw">let </span>mod_path = <a href="#48">out_dir</a>.join(<span class="string">&quot;mod.rs&quot;</span>);
+            <span class="comment">// Here we use `NamedTempFile` and `TempPath::persist` to make the write atomic.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>mod_file = tempfile::NamedTempFile::new_in(out_dir)<span class="question-mark">?</span>;
             mod_file.write_all(mod_code.as_bytes())<span class="question-mark">?</span>;
+            mod_file.into_temp_path().persist(mod_path)<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
