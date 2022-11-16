@@ -98,7 +98,7 @@ impl ModulesTree {
         });
 
         // Write the module file, using a NamedTempFile to make sure that the write is atomic.
-        let mut file = tempfile::NamedTempFile::new().unwrap_or_else(|err| {
+        let mut file = tempfile::NamedTempFile::new_in(dir_path).unwrap_or_else(|err| {
             panic!(
                 "Failed to create a temporary file for '{}': {}",
                 file_path.display(),
