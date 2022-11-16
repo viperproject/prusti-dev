@@ -100,7 +100,7 @@ impl WrapperGenerator {
             // Here we use `NamedTempFile` and `TempPath::persist` to make the write atomic.
             let mut mod_file = tempfile::NamedTempFile::new()?;
             mod_file.write_all(mod_code.as_bytes())?;
-            mod_file.into_temp_path().persist(&mod_path)?;
+            mod_file.into_temp_path().persist(mod_path)?;
         }
 
         Ok(())
