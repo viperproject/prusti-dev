@@ -6,24 +6,19 @@ fn main() {
 
     // Rerun if any of the `prusti-contracts` crates change
     let prusti_contracts = ["..", "prusti-contracts"].iter().collect::<PathBuf>();
-    let files = std::fs::read_dir(&prusti_contracts).unwrap();
-    for file in files {
-        let file = file.unwrap();
-        let filename = file.file_name();
-        let filename = filename.to_string_lossy();
-        if filename != "target" {
-            println!("cargo:rerun-if-changed={}", file.path().to_string_lossy());
-        }
-    }
+    println!(
+        "cargo:rerun-if-changed={}",
+        prusti_contracts.to_string_lossy()
+    );
 
-    let target = prusti_contracts.join("target").join("verify");
-    force_reexport_specs(target.as_path());
+    let target: PathBuf = ["..", "target"].iter().collect();
+    force_reexport_specs(target.join("verify").as_path());
 
     // Copy just-built binaries to `target/dir` dir
-    let dir = if cfg!(debug_assertions) {
-        "debug"
+    let bin_dir = if cfg!(debug_assertions) {
+        target.join("debug")
     } else {
-        "release"
+        target.join("release")
     };
     for (krate, file) in [
         ("PRUSTI_LAUNCH", "cargo-prusti"),
@@ -31,16 +26,14 @@ fn main() {
         ("PRUSTI", "prusti-driver"),
     ] {
         let file_from = std::env::var(format!("CARGO_BIN_FILE_{krate}_{file}")).unwrap();
-        let file_to = format!("{file}{}", if cfg!(windows) { ".exe" } else { "" });
-        let file_to = ["..", "target", dir, &file_to].iter().collect::<PathBuf>();
+        let file_to = &format!("{file}{}", if cfg!(windows) { ".exe" } else { "" });
+        let file_to = bin_dir.join(file_to);
         std::fs::copy(file_from, file_to).unwrap();
     }
 
     // Run `cargo-prusti`
     let cargo_prusti = format!("cargo-prusti{}", if cfg!(windows) { ".exe" } else { "" });
-    let cargo_prusti = ["..", "target", dir, &cargo_prusti]
-        .iter()
-        .collect::<PathBuf>();
+    let cargo_prusti = bin_dir.join(cargo_prusti);
 
     // In theory we should build to here (i.e. set `CARGO_TARGET_DIR` to this),
     // but this is hard to find for linking. So instead build to the `prusti-contracts` dir.
@@ -48,6 +41,7 @@ fn main() {
     // println!("cargo:warning=out_dir: {}", out_dir);
 
     let mut cmd = Command::new(cargo_prusti);
+    cmd.env("CARGO_TARGET_DIR", target.as_os_str());
     cmd.current_dir(&prusti_contracts);
     if !cfg!(debug_assertions) {
         cmd.arg("--release");
