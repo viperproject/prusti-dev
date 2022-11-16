@@ -85,7 +85,7 @@ impl WrapperGenerator {
                 create_dir_all(parent_path)?;
             }
             // Here we use `NamedTempFile` and `TempPath::persist` to make the write atomic.
-            let mut class_file = tempfile::NamedTempFile::new()?;
+            let mut class_file = tempfile::NamedTempFile::new_in(out_dir)?;
             let class_generator =
                 ClassGenerator::new(&env, class_name.to_owned(), class.get_items().to_vec());
             let class_code = class_generator.generate()?;
@@ -98,7 +98,7 @@ impl WrapperGenerator {
             let mod_code = generate_module(class_names);
             let mod_path = out_dir.join("mod.rs");
             // Here we use `NamedTempFile` and `TempPath::persist` to make the write atomic.
-            let mut mod_file = tempfile::NamedTempFile::new()?;
+            let mut mod_file = tempfile::NamedTempFile::new_in(out_dir)?;
             mod_file.write_all(mod_code.as_bytes())?;
             mod_file.into_temp_path().persist(mod_path)?;
         }
