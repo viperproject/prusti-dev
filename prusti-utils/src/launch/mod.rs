@@ -46,7 +46,6 @@ pub fn get_prusti_contracts_dir(exe_dir: &Path) -> Option<PathBuf> {
             .unwrap()
             .parent()
             .unwrap()
-            .join("prusti-contracts")
             .join("target")
             .join("verify")
             .join(target_dir),
