@@ -126,6 +126,14 @@
 <span id="126">126</span>
 <span id="127">127</span>
 <span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
 </pre><pre class="rust"><code><span class="kw">use </span>prusti_rustc_interface::{
     hir::def_id::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.CrateNum.html">CrateNum</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefIndex.html">DefIndex</a>, DefPathHash},
     middle::{
@@ -153,9 +161,17 @@
         }
     }
 
-    <span class="comment">// From rustc
-    </span><span class="kw">fn </span>def_path_hash_to_def_id(<span class="kw-2">&amp;</span><span class="self">self</span>, hash: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefPathHash.html">DefPathHash</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a> {
-        <a class="self" href="#29">self</a>.tcx.def_path_hash_to_def_id(<a href="#29">hash</a>, <span class="kw-2">&amp;mut </span>|| {
+    <span class="kw">fn </span>def_path_hash_to_def_id(<span class="kw-2">&amp;</span><span class="self">self</span>, hash: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefPathHash.html">DefPathHash</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a> {
+        <span class="comment">// Sanity check
+        </span><span class="kw">let </span>cstore = std::panic::AssertUnwindSafe(<a class="self" href="#28">self</a>.tcx.cstore_untracked());
+        <span class="kw">let </span>result = std::panic::catch_unwind(|| {
+            <a href="#30">cstore</a>.stable_crate_id_to_crate_num(<a href="#28">hash</a>.stable_crate_id())
+        });
+        <span class="kw">if </span>result.is_err() {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;A compiled dependency is out of sync. Try deleting the target folder (`cargo clean`).&quot;</span>)
+        }
+        <span class="comment">// Get `DefId`
+        </span><a class="self" href="#28">self</a>.tcx.def_path_hash_to_def_id(<a href="#28">hash</a>, <span class="kw-2">&amp;mut </span>|| {
             <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;DefPathHash not found in the local crate&quot;</span>)
         })
     }
@@ -176,33 +192,33 @@
 // sessions, to map the old `DefId` to the new one.
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; Decodable&lt;DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a> {
     <span class="kw">fn </span>decode(d: <span class="kw-2">&amp;mut </span>DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>def_path_hash = DefPathHash::decode(<a href="#50">d</a>);
-        <a href="#50">d</a>.<a href="#29">def_path_hash_to_def_id</a>(<a href="#51">def_path_hash</a>)
+        <span class="kw">let </span>def_path_hash = DefPathHash::decode(<a href="#58">d</a>);
+        <a href="#58">d</a>.<a href="#28">def_path_hash_to_def_id</a>(<a href="#59">def_path_hash</a>)
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; Decodable&lt;DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.CrateNum.html">CrateNum</a> {
     <span class="kw">fn </span>decode(d: <span class="kw-2">&amp;mut </span>DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.CrateNum.html">CrateNum</a> {
-        <span class="kw">let </span>stable_id = StableCrateId::decode(<a href="#57">d</a>);
-        <a href="#57">d</a>.tcx.stable_crate_id_to_crate_num(<a href="#58">stable_id</a>)
+        <span class="kw">let </span>stable_id = StableCrateId::decode(<a href="#65">d</a>);
+        <a href="#65">d</a>.tcx.stable_crate_id_to_crate_num(<a href="#66">stable_id</a>)
     }
 }
 
 <span class="comment">// See https://doc.rust-lang.org/nightly/nightly-rustc/rustc_metadata/rmeta/decoder/struct.DecodeContext.html
 </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt; Decodable&lt;DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;&gt; <span class="kw">for </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a> {
     <span class="kw">fn </span>decode(s: <span class="kw-2">&amp;mut </span>DefSpecsDecoder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a> {
-        <span class="kw">let </span>sm = <a href="#65">s</a>.tcx.sess.source_map();
+        <span class="kw">let </span>sm = <a href="#73">s</a>.tcx.sess.source_map();
         <span class="kw">let </span>pos = [(); <span class="number">2</span>].map(|<span class="kw">_</span>| {
-            <span class="kw">let </span>ssfi = StableSourceFileId::decode(<a href="#65">s</a>);
-            <span class="kw">let </span>rel_bp = BytePos::decode(<a href="#65">s</a>);
-            <a href="#66">sm</a>.source_file_by_stable_id(<a href="#68">ssfi</a>)
+            <span class="kw">let </span>ssfi = StableSourceFileId::decode(<a href="#73">s</a>);
+            <span class="kw">let </span>rel_bp = BytePos::decode(<a href="#73">s</a>);
+            <a href="#74">sm</a>.source_file_by_stable_id(<a href="#76">ssfi</a>)
                 <span class="comment">// See comment in &#39;encoder.rs&#39;
-                </span>.map(|sf| <a href="#72">sf</a>.start_pos + <a href="#69">rel_bp</a>)
+                </span>.map(|sf| <a href="#80">sf</a>.start_pos + <a href="#77">rel_bp</a>)
                 <span class="comment">// This should hopefully never fail,
                 // so maybe could be an `unwrap` instead?
                 </span>.unwrap_or(BytePos(<span class="number">0</span>))
         });
-        Span::new(<a href="#67">pos</a>[<span class="number">0</span>], <a href="#67">pos</a>[<span class="number">1</span>], SyntaxContext::root(), <span class="prelude-val">None</span>)
+        Span::new(<a href="#75">pos</a>[<span class="number">0</span>], <a href="#75">pos</a>[<span class="number">1</span>], SyntaxContext::root(), <span class="prelude-val">None</span>)
     }
 }
 
@@ -213,41 +229,41 @@
     <span class="kw">const </span>CLEAR_CROSS_CRATE: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> = <span class="bool-val">true</span>;
 
     <span class="kw">fn </span>interner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::I {
-        <a class="self" href="#87">self</a>.tcx
+        <a class="self" href="#95">self</a>.tcx
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>peek_byte(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="#92">self</a>.opaque.data[<a class="self" href="#92">self</a>.opaque.position()]
+        <a class="self" href="#100">self</a>.opaque.data[<a class="self" href="#100">self</a>.opaque.position()]
     }
 
     <span class="attribute">#[inline]
     </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="#97">self</a>.opaque.position()
+        <a class="self" href="#105">self</a>.opaque.position()
     }
 
     <span class="kw">fn </span>cached_ty_for_shorthand&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, shorthand: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, or_insert_with: F) -&gt; Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>ty) = <a class="self" href="#101">self</a>.ty_rcache.get(<span class="kw-2">&amp;</span><a href="#101">shorthand</a>) {
-            <span class="kw">return </span><a href="#105">ty</a>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>ty) = <a class="self" href="#109">self</a>.ty_rcache.get(<span class="kw-2">&amp;</span><a href="#109">shorthand</a>) {
+            <span class="kw">return </span><a href="#113">ty</a>;
         }
 
-        <span class="kw">let </span>ty = <a href="#101">or_insert_with</a>(<a class="self" href="#101">self</a>);
-        <a class="self" href="#101">self</a>.ty_rcache.insert(<a href="#101">shorthand</a>, <a href="#109">ty</a>);
-        <a href="#109">ty</a>
+        <span class="kw">let </span>ty = <a href="#109">or_insert_with</a>(<a class="self" href="#109">self</a>);
+        <a class="self" href="#109">self</a>.ty_rcache.insert(<a href="#109">shorthand</a>, <a href="#117">ty</a>);
+        <a href="#117">ty</a>
     }
 
     <span class="kw">fn </span>with_position&lt;F, R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pos: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, f: F) -&gt; R
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; R,
     {
-        <span class="kw">let </span>new_opaque = opaque::MemDecoder::new(<a class="self" href="#114">self</a>.opaque.data, <a href="#114">pos</a>);
-        <span class="kw">let </span>old_opaque = std::mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="#114">self</a>.opaque, <a href="#118">new_opaque</a>);
-        <span class="kw">let </span>r = <a href="#114">f</a>(<a class="self" href="#114">self</a>);
-        <a class="self" href="#114">self</a>.opaque = <a href="#119">old_opaque</a>;
-        <a href="#120">r</a>
+        <span class="kw">let </span>new_opaque = opaque::MemDecoder::new(<a class="self" href="#122">self</a>.opaque.data, <a href="#122">pos</a>);
+        <span class="kw">let </span>old_opaque = std::mem::replace(<span class="kw-2">&amp;mut </span><a class="self" href="#122">self</a>.opaque, <a href="#126">new_opaque</a>);
+        <span class="kw">let </span>r = <a href="#122">f</a>(<a class="self" href="#122">self</a>);
+        <a class="self" href="#122">self</a>.opaque = <a href="#127">old_opaque</a>;
+        <a href="#128">r</a>
     }
 
     <span class="kw">fn </span>decode_alloc_id(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/interpret/struct.AllocId.html">rustc_middle::mir::interpret::AllocId</a> {
