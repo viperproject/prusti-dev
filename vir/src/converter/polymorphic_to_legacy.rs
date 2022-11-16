@@ -18,6 +18,16 @@ impl From<polymorphic::BodylessMethod> for legacy::BodylessMethod {
                 .into_iter()
                 .map(|formal_return| formal_return.into())
                 .collect(),
+            pres: bodyless_method
+                .pres
+                .into_iter()
+                .map(|formal_return| formal_return.into())
+                .collect(),
+            posts: bodyless_method
+                .posts
+                .into_iter()
+                .map(|formal_return| formal_return.into())
+                .collect(),
         }
     }
 }
@@ -680,7 +690,6 @@ impl From<polymorphic::CfgMethod> for legacy::CfgMethod {
     fn from(cfg_method: polymorphic::CfgMethod) -> legacy::CfgMethod {
         legacy::CfgMethod {
             method_name: cfg_method.method_name,
-            formal_arg_count: cfg_method.formal_arg_count,
             formal_returns: cfg_method
                 .formal_returns
                 .into_iter()

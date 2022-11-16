@@ -6,7 +6,7 @@
 
 use crate::{class_name::*, errors::*, utils::*};
 use jni::{objects::JValue, JNIEnv};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub fn generate_constructor(
     env: &JNIEnv,
@@ -26,7 +26,7 @@ pub fn generate_constructor(
         .l()?;
     let num_constructors = env.get_array_length(*constructors)?;
 
-    let mut indexed_constructors = HashMap::new();
+    let mut indexed_constructors = BTreeMap::new();
 
     for constructor_index in 0..num_constructors {
         let constructor = env.get_object_array_element(*constructors, constructor_index)?;
@@ -59,7 +59,7 @@ pub fn generate_constructor(
                 )
                 .into());
             }
-            indexed_constructors.drain().take(1).next().unwrap()
+            indexed_constructors.pop_first().unwrap()
         }
         Some(sign) => match indexed_constructors.get(&sign) {
             Some(constr) => (sign, *constr),

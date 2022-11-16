@@ -9,7 +9,7 @@ use jni::{
     objects::{JObject, JValue},
     JNIEnv,
 };
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub fn generate_method(
     env: &JNIEnv,
@@ -25,7 +25,7 @@ pub fn generate_method(
         .l()?;
     let num_methods = env.get_array_length(*methods)?;
 
-    let mut indexed_methods = HashMap::new();
+    let mut indexed_methods = BTreeMap::new();
 
     for method_index in 0..num_methods {
         let method = env.get_object_array_element(*methods, method_index)?;
@@ -53,7 +53,7 @@ pub fn generate_method(
 
         match indexed_methods.remove(&method_name) {
             None => {
-                let mut signature_map = HashMap::new();
+                let mut signature_map = BTreeMap::new();
                 signature_map.insert(method_signature, method);
                 indexed_methods.insert(method_name, signature_map);
             }
@@ -82,7 +82,7 @@ pub fn generate_method(
                 )
                 .into());
             }
-            matching_methods.drain().take(1).next().unwrap()
+            matching_methods.pop_first().unwrap()
         }
         Some(sign) => match matching_methods.get(&sign) {
             Some(constr) => (sign, *constr),
