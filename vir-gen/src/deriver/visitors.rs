@@ -7,7 +7,7 @@ use crate::{
     helpers::{append_ident, method_name_from_camel, prefixed_method_name_from_camel, unbox_type},
 };
 use proc_macro2::Span;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use syn::parse_quote;
 
 pub(super) fn derive(
@@ -29,13 +29,11 @@ pub(super) fn derive(
 
         for mut deriver in derivers {
             deriver.create_walk_method(&enum_ident, None);
-            if deriver.kind.is_folder() {
-                deriver.create_enum_boxed_walk_method(&enum_ident);
-            }
             deriver.create_default_enum_function(&variants)?;
 
-            let mut all_walked_types = HashSet::new();
-            let mut all_created_methods = HashSet::new();
+            let mut all_walked_types = BTreeSet::new();
+            let mut all_created_methods = BTreeSet::new();
+            let mut unboxed_args = BTreeSet::new();
             all_created_methods.insert(enum_ident.clone());
 
             for variant in &variants {
@@ -46,7 +44,11 @@ pub(super) fn derive(
                     } else {
                         deriver.create_walk_method(ty, None);
                     }
-                    let walked_types = deriver.create_default_struct_function(items, variant)?;
+                    let walked_types = deriver.create_default_struct_function(
+                        &mut unboxed_args,
+                        items,
+                        variant,
+                    )?;
                     all_walked_types.extend(walked_types);
                 } else {
                     deriver.create_argless_walk_method(&variant.ident);
@@ -54,6 +56,11 @@ pub(super) fn derive(
             }
             for ty in all_walked_types.difference(&all_created_methods) {
                 deriver.create_empty_walk_method(ty);
+            }
+            if deriver.kind.is_folder() {
+                for ty in unboxed_args {
+                    deriver.create_enum_boxed_walk_method(&ty);
+                }
             }
 
             module_items.push(deriver.generate_trait());
@@ -347,6 +354,7 @@ impl Deriver {
     }
     fn create_default_struct_function(
         &mut self,
+        unboxed_args: &mut BTreeSet<syn::Ident>,
         items: &[syn::Item],
         variant: &syn::Variant,
     ) -> Result<Vec<syn::Ident>, syn::Error> {
@@ -368,7 +376,8 @@ impl Deriver {
 
             let statement = if let Some(inner_type) = get_vec_type_arg(&parameter_type) {
                 let element = syn::Ident::new("element", Span::call_site());
-                let method_call = self.create_method_call(&element, inner_type, false);
+                let method_call =
+                    self.create_method_call(&element, inner_type, false, unboxed_args);
                 walked_types.push(inner_type.clone());
                 if self.kind.is_folder() {
                     parse_quote! {
@@ -389,7 +398,8 @@ impl Deriver {
                 }
             } else if let Some(inner_type) = get_option_box_type_arg(&parameter_type) {
                 let element = syn::Ident::new("element", Span::call_site());
-                let method_call = self.create_method_call(&element, inner_type, false);
+                let method_call =
+                    self.create_method_call(&element, inner_type, false, unboxed_args);
                 walked_types.push(inner_type.clone());
                 if self.kind.is_folder() {
                     parse_quote! {
@@ -409,7 +419,8 @@ impl Deriver {
                 }
             } else if let Some(inner_type) = get_option_vec_type_arg(&parameter_type) {
                 let element = syn::Ident::new("element", Span::call_site());
-                let method_call = self.create_method_call(&element, inner_type, false);
+                let method_call =
+                    self.create_method_call(&element, inner_type, false, unboxed_args);
                 walked_types.push(inner_type.clone());
                 if self.kind.is_folder() {
                     parse_quote! {
@@ -434,7 +445,8 @@ impl Deriver {
                 }
             } else if let Some(inner_type) = get_option_type_arg(&parameter_type) {
                 let element = syn::Ident::new("element", Span::call_site());
-                let method_call = self.create_method_call(&element, inner_type, false);
+                let method_call =
+                    self.create_method_call(&element, inner_type, false, unboxed_args);
                 walked_types.push(inner_type.clone());
                 if self.kind.is_folder() {
                     parse_quote! {
@@ -458,6 +470,7 @@ impl Deriver {
                     name,
                     inner_type,
                     field.ty != parameter_type && self.kind.is_folder(),
+                    unboxed_args,
                 );
                 if self.kind.is_folder() {
                     parse_quote! {
@@ -527,9 +540,11 @@ impl Deriver {
         element: &syn::Ident,
         ty: &syn::Ident,
         unbox_arg: bool,
+        unboxed_args: &mut BTreeSet<syn::Ident>,
     ) -> syn::Expr {
         let method_name = self.create_method_name(ty);
         let method_name = if unbox_arg {
+            unboxed_args.insert(ty.clone());
             append_ident(&method_name, "_boxed")
         } else {
             method_name

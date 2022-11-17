@@ -15,7 +15,7 @@ use crate::{
 };
 use prusti_rustc_interface::{
     borrowck::BodyWithBorrowckFacts,
-    data_structures::{stable_map::FxHashMap, stable_set::FxHashSet},
+    data_structures::fx::{FxHashMap, FxHashSet},
     middle::{mir, ty::TyCtxt},
     span::def_id::DefId,
 };
@@ -58,7 +58,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
         let empty_locals_set: FxHashSet<mir::Local> = FxHashSet::default();
         let mut analysis_state = PointwiseState::default(body);
 
-        for (block, block_data) in body.basic_blocks().iter_enumerated() {
+        for (block, block_data) in body.basic_blocks.iter_enumerated() {
             // Initialize the state before each statement
             for statement_index in 0..=block_data.statements.len() {
                 let location = mir::Location {

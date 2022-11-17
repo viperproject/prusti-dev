@@ -33,7 +33,7 @@ pub struct MirPatch<'tcx> {
 impl<'tcx> MirPatch<'tcx> {
     pub fn new(body: &Body<'tcx>) -> Self {
         let mut result = MirPatch {
-            patch_map: IndexVec::from_elem(None, body.basic_blocks()),
+            patch_map: IndexVec::from_elem(None, &body.basic_blocks),
             new_blocks: vec![],
             new_statements: vec![],
             new_locals: vec![],
@@ -48,7 +48,7 @@ impl<'tcx> MirPatch<'tcx> {
 
         let mut resume_block = None;
         let mut resume_stmt_block = None;
-        for (bb, block) in body.basic_blocks().iter_enumerated() {
+        for (bb, block) in body.basic_blocks.iter_enumerated() {
             if let TerminatorKind::Resume = block.terminator().kind {
                 if !block.statements.is_empty() {
                     assert!(resume_stmt_block.is_none());
@@ -90,7 +90,7 @@ impl<'tcx> MirPatch<'tcx> {
     }
 
     pub fn terminator_loc(&self, body: &Body<'tcx>, bb: BasicBlock) -> Location {
-        let offset = match bb.index().checked_sub(body.basic_blocks().len()) {
+        let offset = match bb.index().checked_sub(body.basic_blocks.len()) {
             Some(index) => self.new_blocks[index].statements.len(),
             None => body[bb].statements.len(),
         };
@@ -104,14 +104,14 @@ impl<'tcx> MirPatch<'tcx> {
         let index = self.next_local;
         self.next_local += 1;
         self.new_locals.push(LocalDecl::new(ty, span));
-        Local::new(index as usize)
+        Local::new(index)
     }
 
     pub fn new_internal(&mut self, ty: Ty<'tcx>, span: Span) -> Local {
         let index = self.next_local;
         self.next_local += 1;
         self.new_locals.push(LocalDecl::new(ty, span).internal());
-        Local::new(index as usize)
+        Local::new(index)
     }
 
     pub fn new_block(&mut self, data: BasicBlockData<'tcx>) -> BasicBlock {
@@ -147,7 +147,7 @@ impl<'tcx> MirPatch<'tcx> {
         debug!(
             "MirPatch: {} new blocks, starting from index {}",
             self.new_blocks.len(),
-            body.basic_blocks().len()
+            body.basic_blocks.len()
         );
         body.basic_blocks_mut().extend(self.new_blocks);
         body.local_decls.extend(self.new_locals);
@@ -193,7 +193,7 @@ impl<'tcx> MirPatch<'tcx> {
     }
 
     pub fn source_info_for_location(&self, body: &Body<'tcx>, loc: Location) -> SourceInfo {
-        let data = match loc.block.index().checked_sub(body.basic_blocks().len()) {
+        let data = match loc.block.index().checked_sub(body.basic_blocks.len()) {
             Some(new) => &self.new_blocks[new],
             None => &body[loc.block],
         };

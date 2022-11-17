@@ -3,8 +3,6 @@
 #![no_main]
 
 extern crate libc;
-extern crate prusti_contracts;
-
 use prusti_contracts::*;
 
 #[requires(true)]

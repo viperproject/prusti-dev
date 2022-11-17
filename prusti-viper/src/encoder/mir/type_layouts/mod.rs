@@ -2,4 +2,4 @@
 
 mod interface;
 
-pub(crate) use self::interface::{MirTypeLayoutsEncoderInterface, MirTypeLayoutsEncoderState};
+pub(crate) use self::interface::MirTypeLayoutsEncoderInterface;

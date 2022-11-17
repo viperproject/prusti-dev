@@ -1,3 +1,4 @@
+pub(crate) use super::expression::Expression;
 use crate::common::display;
 
 #[derive_helpers]
@@ -169,6 +170,12 @@ pub struct Union {
     pub lifetimes: Vec<LifetimeConst>,
 }
 
+/// A marker type for const generics.
+#[display(fmt = "{}", "display::option!(value, \"{}\", \"none\")")]
+pub struct ConstGenericArgument {
+    pub value: Option<Box<Expression>>,
+}
+
 #[display(
     fmt = "Array({}, {})<{}>",
     length,
@@ -176,7 +183,7 @@ pub struct Union {
     "display::cjoin(lifetimes)"
 )]
 pub struct Array {
-    pub length: u64,
+    pub length: ConstGenericArgument,
     pub element_type: Box<Type>,
     pub lifetimes: Vec<LifetimeConst>,
 }

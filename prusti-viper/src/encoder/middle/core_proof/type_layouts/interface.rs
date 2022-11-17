@@ -6,7 +6,10 @@ use crate::encoder::{
         snapshots::{IntoBuiltinMethodSnapshot, IntoProcedureSnapshot, IntoSnapshot},
     },
 };
-use vir_crate::{high as vir_high, low as vir_low, middle as vir_mid};
+use vir_crate::{
+    low as vir_low,
+    middle::{self as vir_mid, operations::const_generics::WithConstArguments},
+};
 
 pub(in super::super) trait TypeLayoutsInterface {
     fn size_type_mid(&mut self) -> SpannedEncodingResult<vir_mid::Type>;
@@ -15,7 +18,12 @@ pub(in super::super) trait TypeLayoutsInterface {
         &mut self,
         value: impl Into<vir_mid::expression::ConstantValue>,
     ) -> SpannedEncodingResult<vir_low::Expression>;
-    fn encode_type_size_expression(
+    fn encode_type_size_expression2(
+        &mut self,
+        ty: &vir_mid::Type,
+        generics: &impl WithConstArguments,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn encode_type_padding_size_expression(
         &mut self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<vir_low::Expression>;
@@ -35,28 +43,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypeLayoutsInterface for Lowerer<'p, 'v, 'tcx> {
         vir_mid::Expression::constant_no_pos(value.into(), self.size_type_mid()?)
             .to_procedure_snapshot(self)
     }
-    fn encode_type_size_expression(
+    fn encode_type_size_expression2(
+        &mut self,
+        ty: &vir_mid::Type,
+        generics: &impl WithConstArguments,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let size_type = self.size_type_mid()?;
+        let size = vir_mid::Expression::builtin_func_app_no_pos(
+            vir_mid::BuiltinFunc::Size,
+            vec![ty.clone()],
+            generics.get_const_arguments(),
+            size_type,
+        );
+        size.to_builtin_method_snapshot(self)
+    }
+    fn encode_type_padding_size_expression(
         &mut self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        let size = match ty {
-            vir_mid::Type::Array(array) => {
-                // FIXME: Figure out how to avoid these magic variable names.
-                // They are defined in extract_non_type_parameters_from_type.
-                let array_length = vir_high::VariableDecl::new(
-                    "array_length",
-                    vir_high::Type::Int(vir_high::ty::Int::Usize),
-                );
-                let mir_type = self.encoder.decode_type_mid(&array.element_type)?;
-                self.encoder
-                    .encode_type_size_expression_mid(array_length.into(), mir_type)?
-            }
-            _ => {
-                let mir_type = self.encoder.decode_type_mid(ty)?;
-                self.encoder
-                    .encode_type_size_expression_mid(1usize.into(), mir_type)?
-            }
-        };
+        let mir_type = self.encoder.decode_type_mid(ty)?;
+        let size = self
+            .encoder
+            .encode_type_padding_size_expression_mid(mir_type)?;
         size.to_builtin_method_snapshot(self)
     }
 }

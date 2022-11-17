@@ -2,7 +2,6 @@
 // Even though there is a TestStruct::max method, the extern spec is invalid because it is defined
 // for Max::max
 
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 pub trait Max {

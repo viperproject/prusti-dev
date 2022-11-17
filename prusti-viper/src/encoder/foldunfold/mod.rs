@@ -442,7 +442,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> vir::CfgReplacer<PathCtxt<'p>, ActionVec> for FoldUnf
         _final_pctxt: &[Option<PathCtxt>],
     ) {
         if self.dump_debug_info {
-            let source_path = self.encoder.env().source_path();
+            let source_path = self.encoder.env().name.source_path();
             let source_filename = source_path.file_name().unwrap().to_str().unwrap();
             let method_name = new_cfg.name();
             report::log::report_with_writer(

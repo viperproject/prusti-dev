@@ -10,7 +10,7 @@ use crate::{
 };
 use log::info;
 use prusti_rustc_interface::{
-    data_structures::{fx::FxHashSet, stable_map::FxHashMap},
+    data_structures::fx::{FxHashMap, FxHashSet},
     middle::{mir, ty, ty::TyCtxt},
     span::source_map::SourceMap,
     target::abi::VariantIdx,
@@ -87,7 +87,7 @@ impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, DefinitelyAccessibleState<'tcx
             .map(|line_index| source_file.get_line(line_index).unwrap().to_string())
             .collect();
         let mut first_location_on_line: FxHashMap<usize, mir::Location> = FxHashMap::default();
-        for (block, block_data) in self.mir.basic_blocks().iter_enumerated() {
+        for (block, block_data) in self.mir.basic_blocks.iter_enumerated() {
             for statement_index in 0..=block_data.statements.len() {
                 let location = mir::Location {
                     block,
@@ -227,6 +227,7 @@ fn pretty_print_place<'tcx>(
             }
             mir::ProjectionElem::Index(..)
             | mir::ProjectionElem::ConstantIndex { .. }
+            | mir::ProjectionElem::OpaqueCast(..)
             | mir::ProjectionElem::Subslice { .. } => {
                 // It's not possible to move-out or borrow an individual element.
                 unreachable!()

@@ -55,7 +55,7 @@ fn run_on_files<F: FnMut(&Path)>(dir: &Path, run: &mut F) {
 }
 
 #[test]
-fn test_prusti_rustc_caching() {
+fn test_prusti_rustc_caching_hash() {
     let prusti_rustc = find_executable_path("prusti-rustc");
 
     let mut hashes: HashMap<String, u64> = HashMap::new();
@@ -77,7 +77,7 @@ fn test_prusti_rustc_caching() {
             .skip_while(|line| !line.starts_with("Received verification request for: "));
         while let Some(l1) = hash_lines.next() {
             let mut full_name = l1.strip_prefix("Received verification request for: ").unwrap().to_string();
-            full_name.push_str(".vpr");
+            full_name.push_str("-Both.vpr");
             full_name = prusti_common::report::log::to_legal_file_name_of_max_length(full_name, 120);
             let mut name = full_name.split(".rs_");
             let _filename = name.next().unwrap();
@@ -104,4 +104,36 @@ fn test_prusti_rustc_caching() {
     };
     run_on_files(&PathBuf::from("tests/hash/"), &mut run);
     std::fs::remove_dir_all("log").unwrap();
+}
+
+#[test]
+fn test_prusti_rustc_caching_error() {
+    let prusti_rustc = find_executable_path("prusti-rustc");
+    let cache_file = PathBuf::from("tests/error/cache.bin");
+
+    let mut run = |program: &Path| {
+        println!("Running {:?} on {:?}...", prusti_rustc, program);
+        let out = Command::new(&prusti_rustc)
+            .arg("--edition=2018")
+            .arg("--crate-type=lib")
+            .arg(program)
+            .env("RUST_BACKTRACE", "1")
+            .env("PRUSTI_CACHE_PATH", &cache_file.to_string_lossy().to_string())
+            .output()
+            .expect("failed to execute prusti-rustc");
+        assert!(!out.status.success());
+        let stderr = String::from_utf8(out.stderr).unwrap();
+        assert!(
+            stderr.contains("error: [Prusti: verification error] the asserted expression might not hold
+ --> tests/error/test_file.rs:3:13
+  |
+3 | fn main() { assert!(false) }
+  |             ^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)"),
+            "\n------------------\nunexpected stderr:\n------------------\n{}\n------------------", stderr
+        );
+    };
+    run_on_files(&PathBuf::from("tests/error/"), &mut run);
+    std::fs::remove_file(&cache_file).unwrap();
 }

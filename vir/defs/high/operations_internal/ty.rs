@@ -7,6 +7,7 @@ use super::super::ast::{
     type_decl::DiscriminantValue,
 };
 use rustc_hash::FxHashMap;
+use std::collections::BTreeMap;
 
 impl Type {
     /// Return a type that represents a variant of the given enum.
@@ -95,6 +96,83 @@ impl Type {
         }
         DefaultLifetimeEraser {}.fold_type(self.clone())
     }
+    #[must_use]
+    pub fn replace_lifetimes(
+        self,
+        lifetime_replacement_map: &BTreeMap<LifetimeConst, LifetimeConst>,
+    ) -> Self {
+        struct Replacer<'a> {
+            lifetime_replacement_map: &'a BTreeMap<LifetimeConst, LifetimeConst>,
+        }
+        impl<'a> TypeFolder for Replacer<'a> {
+            fn fold_lifetime_const(&mut self, lifetime: LifetimeConst) -> LifetimeConst {
+                self.lifetime_replacement_map
+                    .get(&lifetime)
+                    .unwrap_or_else(|| panic!("Not found lifetime: {}", lifetime))
+                    .clone()
+            }
+        }
+        Replacer {
+            lifetime_replacement_map,
+        }
+        .fold_type(self)
+    }
+    #[must_use]
+    pub fn replace_lifetime(
+        self,
+        old_lifetime: &LifetimeConst,
+        new_lifetime: &LifetimeConst,
+    ) -> Self {
+        struct Replacer<'a> {
+            old_lifetime: &'a LifetimeConst,
+            new_lifetime: &'a LifetimeConst,
+        }
+        impl<'a> TypeFolder for Replacer<'a> {
+            fn fold_lifetime_const(&mut self, lifetime: LifetimeConst) -> LifetimeConst {
+                if &lifetime == self.old_lifetime {
+                    self.new_lifetime.clone()
+                } else {
+                    lifetime
+                }
+            }
+        }
+        Replacer {
+            old_lifetime,
+            new_lifetime,
+        }
+        .fold_type(self)
+    }
+    #[must_use]
+    pub fn erase_const_generics(self) -> Self {
+        struct Eraser {}
+        impl TypeFolder for Eraser {
+            fn fold_const_generic_argument(
+                &mut self,
+                mut argument: ConstGenericArgument,
+            ) -> ConstGenericArgument {
+                argument.value = None;
+                argument
+            }
+        }
+        Eraser {}.fold_type(self)
+    }
+    #[must_use]
+    pub fn replace_const_arguments_with(self, const_arguments: Vec<Expression>) -> Self {
+        struct Replacer {
+            const_arguments: Vec<Expression>,
+        }
+        impl TypeFolder for Replacer {
+            fn fold_const_generic_argument(
+                &mut self,
+                mut argument: ConstGenericArgument,
+            ) -> ConstGenericArgument {
+                argument.value = Some(Box::new(self.const_arguments.pop().unwrap()));
+                argument
+            }
+        }
+        let mut replacer = Replacer { const_arguments };
+        replacer.fold_type(self)
+    }
     pub fn contains_type_variables(&self) -> bool {
         match self {
             Self::Sequence(Sequence { element_type, .. })
@@ -176,7 +254,7 @@ impl super::super::ast::type_decl::Union {
 impl LifetimeConst {
     pub fn erased() -> Self {
         LifetimeConst {
-            name: String::from("pure_erased"),
+            name: String::from("lft_erased"),
         }
     }
 }

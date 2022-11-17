@@ -47,7 +47,7 @@ impl<'mir, 'tcx: 'mir> FramingAnalysis<'mir, 'tcx> {
         let mut analysis_state = PointwiseState::default(body);
 
         // Set state_after_block
-        for (block, block_data) in body.basic_blocks().iter_enumerated() {
+        for (block, block_data) in body.basic_blocks.iter_enumerated() {
             // Initialize the state before each statement and terminator
             for statement_index in 0..=block_data.statements.len() {
                 let location = mir::Location {

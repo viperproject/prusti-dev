@@ -1,9 +1,10 @@
 use super::permission::PermissionKind;
 use vir_crate::{
-    high as vir_high,
     middle::{self as vir_mid, BlockMarkerCondition},
+    typed as vir_typed,
 };
 
+#[derive(Debug)]
 pub(in super::super) enum Action {
     Unfold(FoldingActionState),
     Fold(FoldingActionState),
@@ -13,27 +14,51 @@ pub(in super::super) enum Action {
     Unreachable(UnreachableState),
 }
 
+impl std::fmt::Display for Action {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Action::Unfold(FoldingActionState { kind, place, .. }) => {
+                write!(f, "Unfold({kind:?}, {place})")
+            }
+            Action::Fold(FoldingActionState { kind, place, .. }) => {
+                write!(f, "Fold({kind:?}, {place})")
+            }
+            Action::OwnedIntoMemoryBlock(ConversionState { place, .. }) => {
+                write!(f, "OwnedIntoMemoryBlock({place})")
+            }
+            Action::RestoreMutBorrowed(RestorationState { place, .. }) => {
+                write!(f, "RestoreMutBorrowed({place})")
+            }
+            Action::Unreachable(_) => write!(f, "Unreachable"),
+        }
+    }
+}
+
+#[derive(Debug)]
 pub(in super::super) struct FoldingActionState {
     pub(in super::super) kind: PermissionKind,
-    pub(in super::super) place: vir_high::Expression,
+    pub(in super::super) place: vir_typed::Expression,
     pub(in super::super) condition: Option<vir_mid::BlockMarkerCondition>,
     /// If un/folding an enum, which of its variants.
-    pub(in super::super) enum_variant: Option<vir_high::ty::VariantIndex>,
+    pub(in super::super) enum_variant: Option<vir_typed::ty::VariantIndex>,
 }
 
+#[derive(Debug)]
 pub(in super::super) struct ConversionState {
-    pub(in super::super) place: vir_high::Expression,
+    pub(in super::super) place: vir_typed::Expression,
     pub(in super::super) condition: Option<vir_mid::BlockMarkerCondition>,
 }
 
+#[derive(Debug)]
 pub(in super::super) struct RestorationState {
-    pub(in super::super) lifetime: vir_high::ty::LifetimeConst,
-    pub(in super::super) place: vir_high::Expression,
+    pub(in super::super) lifetime: vir_typed::ty::LifetimeConst,
+    pub(in super::super) place: vir_typed::Expression,
     pub(in super::super) condition: Option<vir_mid::BlockMarkerCondition>,
 }
 
+#[derive(Debug)]
 pub(in super::super) struct UnreachableState {
-    pub(in super::super) position: vir_high::Position,
+    pub(in super::super) position: vir_typed::Position,
     pub(in super::super) condition: Option<vir_mid::BlockMarkerCondition>,
 }
 
@@ -65,8 +90,8 @@ impl Action {
 
     pub(in super::super) fn unfold(
         kind: PermissionKind,
-        place: vir_high::Expression,
-        enum_variant: Option<vir_high::ty::VariantIndex>,
+        place: vir_typed::Expression,
+        enum_variant: Option<vir_typed::ty::VariantIndex>,
     ) -> Self {
         Self::Unfold(FoldingActionState {
             kind,
@@ -78,8 +103,8 @@ impl Action {
 
     pub(in super::super) fn fold(
         kind: PermissionKind,
-        place: vir_high::Expression,
-        enum_variant: Option<vir_high::ty::VariantIndex>,
+        place: vir_typed::Expression,
+        enum_variant: Option<vir_typed::ty::VariantIndex>,
     ) -> Self {
         Self::Fold(FoldingActionState {
             kind,
@@ -89,7 +114,7 @@ impl Action {
         })
     }
 
-    pub(in super::super) fn owned_into_memory_block(place: vir_high::Expression) -> Self {
+    pub(in super::super) fn owned_into_memory_block(place: vir_typed::Expression) -> Self {
         Self::OwnedIntoMemoryBlock(ConversionState {
             place,
             condition: None,
@@ -97,8 +122,8 @@ impl Action {
     }
 
     pub(in super::super) fn restore_mut_borrowed(
-        lifetime: vir_high::ty::LifetimeConst,
-        place: vir_high::Expression,
+        lifetime: vir_typed::ty::LifetimeConst,
+        place: vir_typed::Expression,
     ) -> Self {
         Self::RestoreMutBorrowed(RestorationState {
             lifetime,
@@ -107,7 +132,7 @@ impl Action {
         })
     }
 
-    pub(in super::super) fn unreachable(position: vir_high::Position) -> Self {
+    pub(in super::super) fn unreachable(position: vir_typed::Position) -> Self {
         Self::Unreachable(UnreachableState {
             position,
             condition: None,

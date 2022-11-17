@@ -3,8 +3,15 @@ use crate::{
     low::ast::{expression::Expression, statement::Statement, variable::VariableDecl},
 };
 
+pub enum MethodKind {
+    LowMemoryOperation,
+    MirOperation,
+    Havoc,
+}
+
 #[display(
-    fmt = "method {} ({})\n  returns ({})\n{}{}{}",
+    fmt = "method<{}> {} ({})\n  returns ({})\n{}{}{}",
+    kind,
     name,
     "display::cjoin(parameters)",
     "display::cjoin(targets)",
@@ -16,6 +23,7 @@ use crate::{
 /// variable. Its body can have at most one basic block.
 pub struct MethodDecl {
     pub name: String,
+    pub kind: MethodKind,
     pub parameters: Vec<VariableDecl>,
     pub targets: Vec<VariableDecl>,
     pub pres: Vec<Expression>,

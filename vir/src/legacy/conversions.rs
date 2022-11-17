@@ -62,7 +62,7 @@ impl From<isize> for Expr {
 
 impl From<i8> for Const {
     fn from(val: i8) -> Self {
-        Const::Int(val as i64)
+        Const::Int(val.into())
     }
 }
 
@@ -74,7 +74,7 @@ impl From<i8> for Expr {
 
 impl From<i16> for Const {
     fn from(val: i16) -> Self {
-        Const::Int(val as i64)
+        Const::Int(val.into())
     }
 }
 
@@ -86,7 +86,7 @@ impl From<i16> for Expr {
 
 impl From<i32> for Const {
     fn from(val: i32) -> Self {
-        Const::Int(val as i64)
+        Const::Int(val.into())
     }
 }
 
@@ -98,7 +98,7 @@ impl From<i32> for Expr {
 
 impl From<i64> for Const {
     fn from(val: i64) -> Self {
-        Const::Int(val as i64)
+        Const::Int(val)
     }
 }
 
@@ -122,7 +122,7 @@ impl From<i128> for Expr {
 
 impl From<u8> for Const {
     fn from(val: u8) -> Self {
-        Const::Int(val as i64)
+        Const::Int(val.into())
     }
 }
 
@@ -134,7 +134,7 @@ impl From<u8> for Expr {
 
 impl From<u16> for Const {
     fn from(val: u16) -> Self {
-        Const::Int(val as i64)
+        Const::Int(val.into())
     }
 }
 
@@ -146,7 +146,7 @@ impl From<u16> for Expr {
 
 impl From<u32> for Const {
     fn from(val: u32) -> Self {
-        Const::Int(val as i64)
+        Const::Int(val.into())
     }
 }
 

@@ -5,7 +5,6 @@
 [Rust closures](https://doc.rust-lang.org/book/ch13-01-closures.html) can be given a specification using the `closure!(...)` syntax:
 
 ```rust
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 fn main() {

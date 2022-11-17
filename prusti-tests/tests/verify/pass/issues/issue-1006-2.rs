@@ -1,3 +1,5 @@
+// ignore-test re-enable with snapshot equality (merge #980)
+
 use std::marker::PhantomData;
 
 use prusti_contracts::*;
@@ -26,22 +28,16 @@ impl<T: Copy + PartialEq> PartialEq for GhostBox<T> {
 impl<T: Copy + PartialEq + Eq> Eq for GhostBox<T> {}
 
 /// Implement `Deref` for easy access to the inner contents.
+#[refine_trait_spec]
 impl<T: Copy> core::ops::Deref for GhostBox<T> {
     type Target = T;
 
+    #[pure]
+    #[trusted]
+    #[ensures(*result === GhostBox::get(*self))]
     fn deref(&self) -> &Self::Target {
         unreachable!()
     }
-}
-
-// Snapshot equality would be enough to dereference the [GhostBox],
-// the `PartialEq + Eq` trait bounds are not really needed here.
-#[extern_spec]
-impl<T: Copy + PartialEq + Eq> core::ops::Deref for GhostBox<T> {
-    #[pure]
-    #[trusted]
-    #[ensures(*result == GhostBox::get(*self))]
-    fn deref(&self) -> &Self::Target;
 }
 
 impl<T: Copy> GhostBox<T> {

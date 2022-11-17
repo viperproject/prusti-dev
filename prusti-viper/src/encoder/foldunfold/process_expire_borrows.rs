@@ -395,7 +395,7 @@ fn dump_borrows_cfg(
     surrounding_block_index: vir::CfgBlockIndex,
     curr_block_index: usize,
 ) {
-    let source_path = encoder.env().source_path();
+    let source_path = encoder.env().name.source_path();
     let source_filename = source_path.file_name().unwrap().to_str().unwrap();
     report::log::report_with_writer(
         "graphviz_reborrowing_dag_during_foldunfold",
