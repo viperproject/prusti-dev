@@ -17,7 +17,7 @@ use prusti_rustc_interface::{
         mir,
         ty::{
             self,
-            subst::{Subst, SubstsRef},
+            subst::{SubstsRef},
             TyCtxt,
         },
     },
@@ -43,6 +43,9 @@ mod loops_utils;
 pub mod mir_analyses;
 pub mod mir_storage;
 pub mod mir_utils;
+pub mod mir_body;
+pub mod mir_sets;
+pub mod mir_dump;
 mod name;
 pub mod polonius_info;
 mod procedure;
@@ -67,7 +70,6 @@ use self::{
 };
 use crate::data::ProcedureDefId;
 pub use crate::environment::polonius_info::graphviz;
-use rustc_middle::ty::SubstsRef;
 
 /// Facade to the Rust compiler.
 pub struct Environment<'tcx> {

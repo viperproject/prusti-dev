@@ -10,7 +10,7 @@ use crate::{
 use analysis::mir_utils::expand_struct_place;
 use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
-    data_structures::{stable_map::FxHashMap, stable_set::FxHashSet},
+    data_structures::fx::{FxHashMap, FxHashSet},
     errors::MultiSpan,
     middle::{
         mir::{Body, Local, Mutability, Place},
