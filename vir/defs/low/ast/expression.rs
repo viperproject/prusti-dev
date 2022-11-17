@@ -24,10 +24,6 @@ pub enum Expression {
     PermBinaryOp(PermBinaryOp),
     /// Container operation on a Viper container (e.g. Seq index).
     ContainerOp(ContainerOp),
-    /// Map operations
-    MapOp(MapOp),
-    /// Viper sequence constructor.
-    Seq(Seq),
     Conditional(Conditional),
     Quantifier(Quantifier),
     LetExpr(LetExpr),
@@ -163,41 +159,46 @@ pub struct PermBinaryOp {
     pub position: Position,
 }
 
-#[display(fmt = "({} {} {})", left, op_kind, right)]
+#[display(
+    fmt = "Container{}[{}]({})",
+    kind,
+    container_type,
+    "display::cjoin(operands)"
+)]
 pub struct ContainerOp {
-    pub op_kind: ContainerOpKind,
-    pub left: Box<Expression>,
-    pub right: Box<Expression>,
-    pub position: Position,
-}
-
-pub enum ContainerOpKind {
-    SeqIndex,
-    SeqConcat,
-    SeqLen,
-}
-
-#[display(fmt = "Map{}({})", kind, "display::cjoin(operands)")]
-pub struct MapOp {
-    pub map_ty: Type,
-    pub kind: MapOpKind,
+    pub kind: ContainerOpKind,
+    pub container_type: Type,
     pub operands: Vec<Expression>,
     pub position: Position,
 }
 
-pub enum MapOpKind {
-    Empty,
-    Update,
-    Contains,
-    Lookup,
-    Len,
-}
-
-#[display(fmt = "Seq({})", "display::cjoin(elements)")]
-pub struct Seq {
-    pub ty: Type,
-    pub elements: Vec<Expression>,
-    pub position: Position,
+pub enum ContainerOpKind {
+    SeqEmpty,
+    SeqConstructor,
+    SeqIndex,
+    SeqConcat,
+    SeqLen,
+    MapEmpty,
+    MapUpdate,
+    MapContains,
+    MapLookup,
+    MapLen,
+    SetEmpty,
+    SetConstructor,
+    SetUnion,
+    SetIntersection,
+    SetSubset,
+    SetMinus,
+    SetContains,
+    SetCardinality,
+    MultiSetEmpty,
+    MultiSetConstructor,
+    MultiSetUnion,
+    MultiSetIntersection,
+    MultiSetSubset,
+    MultiSetMinus,
+    MultiSetContains,
+    MultiSetCardinality,
 }
 
 #[display(fmt = "({} ? {} : {})", guard, then_expr, else_expr)]

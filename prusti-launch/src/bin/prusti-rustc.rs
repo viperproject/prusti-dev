@@ -6,7 +6,7 @@
 
 #[cfg(target_family = "unix")]
 use nix::unistd::{setpgid, Pid};
-use prusti_launch::{add_to_loader_path, get_current_executable_dir, sigint_handler};
+use prusti_utils::launch;
 use std::{
     env,
     io::Write,
@@ -21,54 +21,88 @@ fn main() {
 }
 
 fn process(mut args: Vec<String>) -> Result<(), i32> {
-    let current_executable_dir = get_current_executable_dir();
+    let prusti_home = launch::get_current_executable_dir();
 
-    let mut prusti_driver_path = current_executable_dir.join("prusti-driver");
+    let mut prusti_driver_path = prusti_home.join("prusti-driver");
     if cfg!(windows) {
         prusti_driver_path.set_extension("exe");
     }
 
     let java_home = match env::var("JAVA_HOME") {
         Ok(java_home) => PathBuf::from(java_home),
-        Err(_) => prusti_launch::find_java_home()
+        Err(_) => launch::find_java_home()
             .expect("Failed to find Java home directory. Try setting JAVA_HOME"),
     };
 
-    let libjvm_path = prusti_launch::find_libjvm(&java_home)
-        .expect("Failed to find JVM library. Check JAVA_HOME");
+    let libjvm_path =
+        launch::find_libjvm(&java_home).expect("Failed to find JVM library. Check JAVA_HOME");
 
-    let prusti_sysroot = prusti_launch::prusti_sysroot().expect("Failed to find Rust's sysroot");
+    let prusti_sysroot = launch::prusti_sysroot().expect("Failed to find Rust's sysroot");
 
     let compiler_bin = prusti_sysroot.join("bin");
     let compiler_lib = prusti_sysroot.join("lib");
 
-    let prusti_home = prusti_driver_path
-        .parent()
-        .expect("Failed to find Prusti's home");
-
     let mut cmd = Command::new(&prusti_driver_path);
 
-    add_to_loader_path(vec![compiler_lib, compiler_bin, libjvm_path], &mut cmd);
+    launch::add_to_loader_path(vec![compiler_lib, compiler_bin, libjvm_path], &mut cmd);
 
-    prusti_launch::set_environment_settings(&mut cmd, &current_executable_dir, &java_home);
+    launch::set_environment_settings(&mut cmd, &prusti_home, &java_home);
 
     // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
     // We're invoking the compiler programmatically, so we ignore this
-    if !args.is_empty() && Path::new(&args[0]).file_stem() == Some("rustc".as_ref()) {
-        args.remove(0);
+    let rustc_pos = args
+        .iter()
+        .position(|arg| Path::new(arg).file_stem() == Some("rustc".as_ref()));
+    let cargo_invoked = rustc_pos.is_some();
+    if let Some(rustc_pos) = rustc_pos {
+        args.drain(0..=rustc_pos);
     }
 
-    // filter out the `prusti-contracts` dependency (if present), because we will
-    // replace it below with a version that is distributed with Prusti.
-    if let Some(remove_index) =
-        args.windows(2)
-            .flat_map(<&[_; 2]>::try_from)
-            .position(|[extern_flag, dependency]| {
-                extern_flag == "--extern" && dependency.starts_with("prusti_contracts=")
-            })
-    {
-        args.remove(remove_index);
-        args.remove(remove_index);
+    // No need to check if we happen to be running on e.g. the `prusti-contracts` crate since this
+    // should always be with `cargo` anyway (i.e. cargo_invoked == true)
+    if !cargo_invoked {
+        // Need to give references to standard prusti libraries
+        let target_dir = launch::get_prusti_contracts_dir(&prusti_home).unwrap_or_else(|| {
+            panic!(
+                "Failed to find the path of the Prusti contracts from prusti home '{}'",
+                prusti_home.display()
+            )
+        });
+        if target_dir.to_str().is_none() {
+            panic!(
+                "Path to '{}' is not a valid utf-8 string!",
+                target_dir.to_string_lossy()
+            );
+        }
+
+        // This is where the files we'll link against live
+        args.push("-L".into());
+        args.push(format!(
+            "dependency={}",
+            target_dir.join("deps").to_str().unwrap()
+        ));
+
+        for prusti_lib in launch::PRUSTI_LIBS.map(|c| c.replace('-', "_")) {
+            if let Some(illegal_arg) = args
+                .windows(2)
+                .find(|p| p[0] == "--extern" && p[1].starts_with(&format!("{prusti_lib}=")))
+            {
+                panic!(
+                    "Running `prusti-rustc` with the flag '{} {}' is not supported! \
+                    The crate `{prusti_lib}` is an internal Prusti crate and will be linked automatically. \
+                    If you encounter this error running with `cargo(-prusti)` please file a bug report.",
+                    illegal_arg[0],
+                    illegal_arg[1],
+                );
+            }
+            // These are the libraries that files compiled with prusti-rustc get
+            args.push("--extern".into());
+            let lib_file = format!("lib{prusti_lib}.rlib");
+            args.push(format!(
+                "{prusti_lib}={}",
+                target_dir.join(lib_file).to_str().unwrap()
+            ));
+        }
     }
     cmd.args(&args);
 
@@ -83,35 +117,6 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         );
     };
 
-    // only do the following if we're not compiling the `prusti-contracts` dependency:
-    if !args
-        .windows(2)
-        .any(|p| p == ["--crate-name", "prusti_contracts"])
-    {
-        cmd.arg("-L");
-        cmd.arg(format!(
-            "dependency={}",
-            prusti_home
-                .join("deps")
-                .as_os_str()
-                .to_str()
-                .expect("the Prusti HOME path contains invalid UTF-8")
-        ));
-
-        cmd.arg("--extern");
-        let prusti_contracts_path = prusti_home.join("libprusti_contracts.rlib");
-        cmd.arg(format!(
-            "prusti_contracts={}",
-            prusti_contracts_path
-                .as_os_str()
-                .to_str()
-                .expect("the Prusti contracts path contains invalid UTF-8")
-        ));
-
-        // Set the `prusti` compilation flag, used to enable `prusti_contract`'s macros.
-        cmd.arg("--cfg=feature=\"prusti\"");
-    }
-
     // cmd.arg("-Zreport-delayed-bugs");
     // cmd.arg("-Ztreat-err-as-bug=1");
 
@@ -119,7 +124,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     #[cfg(target_family = "unix")]
     let _ = setpgid(Pid::this(), Pid::this());
     // Register the SIGINT handler; CTRL_C_EVENT or CTRL_BREAK_EVENT on Windows
-    ctrlc::set_handler(sigint_handler).expect("Error setting Ctrl-C handler");
+    ctrlc::set_handler(launch::sigint_handler).expect("Error setting Ctrl-C handler");
 
     if let Ok(path) = env::var("PRUSTI_RUSTC_LOG_ARGS") {
         let mut file = std::fs::File::create(path).unwrap();

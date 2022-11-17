@@ -14,6 +14,6 @@ pub mod method;
 pub mod procedure;
 
 pub use self::{
-    method::MethodDecl,
+    method::{MethodDecl, MethodKind},
     procedure::{BasicBlock, Label, ProcedureDecl, Successor},
 };

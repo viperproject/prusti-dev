@@ -48,7 +48,7 @@ impl<'v, 'tcx: 'v> MirGenericsEncoderInterface<'tcx> for super::super::super::En
         def_id: DefId,
         substs: SubstsRef<'tcx>,
     ) -> EncodingResult<Vec<vir_high::ty::Type>> {
-        assert_eq!(substs.len(), self.env().identity_substs(def_id).len());
+        assert_eq!(substs.len(), self.env().query.identity_substs(def_id).len());
         Ok(substs
             .iter()
             // TODO(tymap): ignoring const params and lifetimes for now

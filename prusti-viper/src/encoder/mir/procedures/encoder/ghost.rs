@@ -22,7 +22,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Check that ghost blocks don't transfer control flow outside
         for &bb in ghost_blocks {
-            let data = &self.mir.basic_blocks()[bb];
+            let data = &self.mir.basic_blocks[bb];
             if let mir::TerminatorKind::Return = data.terminator().kind {
                 unreachable!("Control Flow reached outside the ghost block.\nThis should be prevented by the `ghost!` macro.");
             }
@@ -79,14 +79,14 @@ impl<'a, 'p, 'v, 'tcx> GhostChecker<'a, 'p, 'v, 'tcx> {
 }
 
 impl<'a, 'p, 'v, 'tcx> Visitor<'tcx> for GhostChecker<'a, 'p, 'v, 'tcx> {
-    fn visit_local(&mut self, local: &mir::Local, context: PlaceContext, location: mir::Location) {
-        let is_ghost = self.is_ghost_place(location) || self.is_ghost_local(local);
+    fn visit_local(&mut self, local: mir::Local, context: PlaceContext, location: mir::Location) {
+        let is_ghost = self.is_ghost_place(location) || self.is_ghost_local(&local);
         if !is_ghost && context.is_use() {
-            self.normal_vars.insert(*local);
+            self.normal_vars.insert(local);
         }
-        if is_ghost && context.is_mutating_use() && self.normal_vars.contains(local) {
+        if is_ghost && context.is_mutating_use() && self.normal_vars.contains(&local) {
             let stmt =
-                &self.p.mir.basic_blocks()[location.block].statements[location.statement_index];
+                &self.p.mir.basic_blocks[location.block].statements[location.statement_index];
             let span = stmt.source_info.span;
             log::debug!("violating statement: {:?}", stmt);
             self.violations.push(SpannedEncodingError::incorrect(

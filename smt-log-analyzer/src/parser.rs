@@ -206,7 +206,7 @@ impl<'a> Parser<'a> {
     pub(crate) fn parse_name(&mut self) -> Result<&str, Error> {
         self.skip_whitespace();
         fn is_valid_name(c: char) -> bool {
-            c.is_alphanumeric() || "$.<>=!%@-[]_".contains(c)
+            c.is_alphanumeric() || "$.<>=!%@-[]_#".contains(c)
         }
         Ok(self.consume_while_predicate(is_valid_name))
     }
@@ -234,10 +234,15 @@ impl<'a> Parser<'a> {
 
     pub(crate) fn parse_number(&mut self) -> Result<u32, Error> {
         self.skip_whitespace();
-        let number = self
-            .consume_while_predicate(|c| c.is_ascii_hexdigit())
-            .parse()
-            .unwrap();
-        Ok(number)
+        let s = self.consume_while_predicate(|c| c.is_ascii_hexdigit());
+        match s.parse() {
+            Ok(number) => Ok(number),
+            Err(error) => {
+                eprintln!("error: {}", error);
+                eprintln!("string: {}", s);
+                eprintln!("line: {}", self.line);
+                panic!();
+            }
+        }
     }
 }

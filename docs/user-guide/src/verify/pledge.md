@@ -5,7 +5,6 @@ Pledges are a construct that can be used to specify the behaviour of functions t
 As a full example, a wrapper around Rust `Vec<i32>` could be implemented as follows:
 
 ```rust
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 pub struct VecWrapperI32 {

@@ -5,7 +5,6 @@
 The contract for a closure or function pointer variable can be given using the specification entailment syntax:
 
 ```rust
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[requires(

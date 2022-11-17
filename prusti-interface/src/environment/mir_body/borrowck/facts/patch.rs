@@ -19,6 +19,7 @@ use rustc_hash::FxHashMap;
 ///     }
 /// }
 /// ```
+#[allow(clippy::needless_collect)] // False positive.
 pub fn apply_patch_to_borrowck<'tcx>(
     borrowck_input_facts: &mut AllInputFacts,
     location_table: &mut LocationTable,
@@ -35,13 +36,13 @@ pub fn apply_patch_to_borrowck<'tcx>(
     }
 
     let mut block_sizes: FxHashMap<_, _> = old_body
-        .basic_blocks()
+        .basic_blocks
         .iter_enumerated()
         .map(|(bb, data)| (bb, data.statements.len()))
         .collect();
 
     // Create cfg_edge facts for the new basic blocks.
-    let bb_base = old_body.basic_blocks().len();
+    let bb_base = old_body.basic_blocks.len();
     for (offset, block) in patch.new_blocks.iter().enumerate() {
         // +1 is for terminator.
         let mut statement_indices = 0usize..block.statements.len() + 1;
@@ -74,7 +75,7 @@ pub fn apply_patch_to_borrowck<'tcx>(
     }
 
     // Patch cfg_edge facts for the inserted statements.
-    let predecessors = patched_body.predecessors();
+    let predecessors = patched_body.basic_blocks.predecessors();
     let mut new_statements: Vec<_> = patch
         .new_statements
         .iter()
@@ -103,6 +104,21 @@ pub fn apply_patch_to_borrowck<'tcx>(
             lt_patcher.start_point(loc.block.index(), loc.statement_index + 1);
         if loc.statement_index == 0 {
             predecessors_to_patch.push((loc, old_statement_start_point, statement_start_point));
+            if loc.block == mir::START_BLOCK {
+                assert_eq!(old_statement_start_point.index(), 0);
+                let old_subset_base: Vec<_> = borrowck_input_facts
+                    .subset_base
+                    .iter()
+                    .filter(|(_, _, point)| point == &old_statement_start_point)
+                    .cloned()
+                    .collect();
+                borrowck_input_facts.subset_base.extend(
+                    old_subset_base
+                        .into_iter()
+                        .map(|(subset, base, _)| (subset, base, statement_start_point)),
+                );
+                borrowck_input_facts.subset_base.sort();
+            }
         } else {
             // Insert the statement and patch the links with the previous and following statements.
             let previous_statement_mid_point =
@@ -179,9 +195,9 @@ pub fn apply_patch_to_borrowck<'tcx>(
 
     // Patch cfg_edge facts to account for removed basic blocks.
     let reachable = mir::traversal::reachable_as_bitset(patched_body);
-    if patched_body.basic_blocks().len() > reachable.count() {
+    if patched_body.basic_blocks.len() > reachable.count() {
         // Delete cfg_edges of removed blocks.
-        for (src, block) in patched_body.basic_blocks().iter_enumerated() {
+        for (src, block) in patched_body.basic_blocks.iter_enumerated() {
             if !reachable.contains(src) {
                 for statement_index in 0..block.statements.len() + 1 {
                     assert!(cfg_edges
@@ -217,7 +233,7 @@ pub fn apply_patch_to_borrowck<'tcx>(
             }
         }
         // Remap cfg_edges of moved blocks.
-        for (src, block) in patched_body.basic_blocks().iter_enumerated() {
+        for (src, block) in patched_body.basic_blocks.iter_enumerated() {
             let mut target_points = Vec::new();
             for target in block.terminator().successors() {
                 target_points.push(lt_patcher.start_point(target.index(), 0));

@@ -1,3 +1,4 @@
+pub mod const_generics;
 pub mod constants;
 pub mod expression;
 pub mod function;
@@ -14,3 +15,4 @@ pub mod statement;
 pub mod successor;
 pub mod ty;
 pub mod type_decl;
+pub mod variable;

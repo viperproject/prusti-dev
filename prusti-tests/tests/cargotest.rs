@@ -137,24 +137,17 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
                 project_path.display()
             )
         });
-    let prusti_contract_deps = [
-        "prusti-utils",
-        "prusti-specs",
-        "prusti-contracts",
-        "prusti-contracts-impl",
-        "prusti-contracts-internal",
-    ];
-    for crate_name in &prusti_contract_deps {
-        project_builder = project_builder.symlink_dir(
-            prusti_dev_path.join(crate_name).as_path(),
-            Path::new(crate_name),
-        );
-    }
+    project_builder = project_builder.symlink_dir(
+        prusti_dev_path.join("prusti-contracts").as_path(),
+        Path::new("prusti-contracts"),
+    );
 
     // Fetch dependencies using the same target folder of cargo-prusti
     let project = project_builder.build();
     project
         .process("cargo")
+        .arg("--config")
+        .arg("net.retry=5")
         .arg("build")
         .env("CARGO_TARGET_DIR", "target/verify")
         .run();
@@ -183,14 +176,32 @@ fn test_symlinks() {
     assert!(symlink_supported());
 }
 
+// TODO: automatically create a test for each folder in `test/cargo_verify`.
+// Each of the following functions, listed in alphabetic order, test a crate in `cargo_verify/`.
+
 #[cargo_test]
 fn test_failing_crate() {
     test_local_project("failing_crate");
 }
 
 #[cargo_test]
+fn test_failing_stable_toolchain() {
+    test_local_project("failing_stable_toolchain");
+}
+
+#[cargo_test]
+fn test_library_contracts_test() {
+    test_local_project("library_contracts_test");
+}
+
+#[cargo_test]
 fn test_no_deps() {
     test_local_project("no_deps");
+}
+
+#[cargo_test]
+fn test_overflow_checks() {
+    test_local_project("overflow_checks");
 }
 
 #[cargo_test]
@@ -222,9 +233,8 @@ fn test_no_std() {
     test_local_project("test_no_std");
 }
 
+#[ignore] // Currently broken
 #[cargo_test]
-fn test_overflow_checks() {
-    test_local_project("overflow_checks");
+fn test_veribetrfs() {
+    test_local_project("veribetrfs");
 }
-
-// TODO: automatically create a test for each folder in `test/cargo_verify`.

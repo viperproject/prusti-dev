@@ -8,7 +8,7 @@ use crate::encoder::{
         type_layouts::TypeLayoutsInterface,
     },
 };
-use prusti_rustc_interface::data_structures::stable_set::FxHashSet;
+use prusti_rustc_interface::data_structures::fx::FxHashSet;
 use vir_crate::{
     common::{expression::QuantifierHelpers, identifier::WithIdentifier},
     low::{self as vir_low, macros::var_decls},
@@ -18,7 +18,7 @@ use vir_crate::{
 #[derive(Default)]
 pub(in super::super) struct PlacesState {
     /// For which types array index axioms were generated.
-    array_index_axioms: FxHashSet<vir_mid::Type>,
+    array_index_axioms: FxHashSet<String>,
 }
 
 pub(in super::super) trait PlacesInterface {
@@ -110,8 +110,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
         self.encode_index_access_function_app("Place", base_place, base_type, index, position)
     }
     fn encode_place_array_index_axioms(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
-        if !self.places_state.array_index_axioms.contains(ty) {
-            self.places_state.array_index_axioms.insert(ty.clone());
+        let identifier = ty.get_identifier();
+        if !self.places_state.array_index_axioms.contains(&identifier) {
+            self.places_state.array_index_axioms.insert(identifier);
             let position = vir_low::Position::default();
             use vir_low::macros::*;
             let place_type = self.place_type()?;

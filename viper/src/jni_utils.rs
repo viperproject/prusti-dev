@@ -147,6 +147,12 @@ impl<'a> JniUtils<'a> {
         self.seq_to_vec(seq)
     }
 
+    pub fn vec_to_vec(&self, list: JObject<'a>) -> Vec<JObject<'a>> {
+        let vec_wrapper = scala::collection::immutable::Vector::with(self.env);
+        let seq = self.unwrap_result(vec_wrapper.call_toSeq(list));
+        self.seq_to_vec(seq)
+    }
+
     /// Converts a Scala Map (using strings! JObjects are not hashable) to a Rust HashMap
     pub fn stringmap_to_hashmap(&self, map: JObject<'a>) -> HashMap<String, JObject<'a>> {
         let iter_wrapper = scala::collection::Iterable::with(self.env);
@@ -187,11 +193,12 @@ impl<'a> JniUtils<'a> {
     /// Returns a new Java array of objects, initialised with null values
     pub fn new_object_array(&self, length: jsize) -> JObject {
         let object_class = self.unwrap_result(self.env.find_class("java/lang/Object"));
-        JObject::from(self.unwrap_result(self.env.new_object_array(
+        let object_array = self.unwrap_result(self.env.new_object_array(
             length,
             object_class,
             JObject::null(),
-        )))
+        ));
+        unsafe { JObject::from_raw(object_array) }
     }
 
     /// Converts a Scala Seq to a Java Array

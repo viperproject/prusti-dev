@@ -99,7 +99,7 @@ impl<'mir, 'tcx: 'mir> MaybeBorrowedAnalysis<'mir, 'tcx> {
         }
 
         // Set state_after_block
-        for (block, block_data) in body.basic_blocks().iter_enumerated() {
+        for (block, block_data) in body.basic_blocks.iter_enumerated() {
             for successor in block_data.terminator().successors() {
                 let state = analysis_state
                     .lookup_before(mir::Location {

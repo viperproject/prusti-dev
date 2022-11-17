@@ -3,11 +3,33 @@ name: Build GitHub pages
 on:
   workflow_dispatch:
   push:
-    branches: 'master'
+    branches: [master, staging, trying]
+    paths: 'docs/**'
+  pull_request:
+    branches: [master]
     paths: 'docs/**'
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Check for broken links
+        uses: lycheeverse/lychee-action@v1.5.1
+        with:
+          args: --verbose --no-progress './**/*.md'
+          fail: true
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      # - name: Spellcheck
+      #  uses: rojopolis/spellcheck-github-actions@0.27.0
+
   deploy:
+    # Only deploy on push to master
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

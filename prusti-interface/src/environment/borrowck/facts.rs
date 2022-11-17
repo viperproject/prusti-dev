@@ -7,7 +7,7 @@
 use prusti_rustc_interface::{
     borrowck::consumers::{LocationTable, RichLocation, RustcFacts},
     middle::mir,
-    polonius_engine::{Algorithm, FactTypes, Output},
+    polonius_engine::FactTypes,
 };
 use std::{cell::RefCell, rc::Rc};
 

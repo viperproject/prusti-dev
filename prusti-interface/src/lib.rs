@@ -8,11 +8,15 @@
 
 #![deny(unused_must_use)]
 #![deny(unsafe_op_in_unsafe_fn)]
-
 #![feature(rustc_private)]
 #![feature(box_syntax)]
 #![feature(box_patterns)]
 #![feature(control_flow_enum)]
+#![feature(min_specialization)]
+
+extern crate rustc_middle;
+extern crate rustc_serialize;
+extern crate rustc_type_ir;
 
 pub mod data;
 pub mod environment;

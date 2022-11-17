@@ -1,5 +1,3 @@
-extern crate prusti_contracts;
-
 pub struct S1 {}
 
 pub fn test1() -> S1 {

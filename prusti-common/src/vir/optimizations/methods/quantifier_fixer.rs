@@ -13,8 +13,8 @@ use std::{collections::HashMap, mem};
 ///
 /// 1.  Replace all `old(...)` inside `forall ..` with `let tmp == (old(..)) in forall ..`.
 /// 2.  Pull out all `unfolding ... in` that are inside `forall` to outside of `forall`.
-/// 3.  Replace all arithmetic expressions inside `forall` that do not depend on bound variables
-///     with `let tmp == (...) in forall ..`.
+/// 3.  Replace all arithmetic and conditional expressions inside `forall` that
+///     do not depend on bound variables with `let tmp == (...) in forall ..`.
 ///
 /// Note: this seems to be required to workaround some Silicon incompleteness.
 pub fn fix_quantifiers(cfg: vir::CfgMethod) -> vir::CfgMethod {
@@ -191,6 +191,46 @@ impl<'a> vir::ExprFolder for Replacer<'a> {
             original_expr
         }
     }
+
+    fn fold_cond(
+        &mut self,
+        vir::Cond {
+            guard,
+            then_expr,
+            else_expr,
+            position,
+        }: vir::Cond,
+    ) -> vir::Expr {
+        let contains_bounded = self
+            .bound_vars
+            .iter()
+            .any(|v| guard.find(v) || then_expr.find(v) || else_expr.find(v));
+        if contains_bounded {
+            // Do not extract conditional branches into let-vars: it's possible that
+            // the "then" branch is well-defined only when `guard` is true, or
+            // vice-versa (i.e the "else" branch is only defined when `guard` is
+            // false). For example, the expression:
+            //     `x >= 0 ? sqrt(x) + 1 : 1`
+            // is well-defined, but
+            //     `let (t == sqrt(x) + 1) in x >= 0 ? t :1`
+            // is not. (assuming sqrt(x) is defined only for x >= 0)
+            vir::Expr::Cond(vir::Cond {
+                guard: self.fold_boxed(guard),
+                then_expr,
+                else_expr,
+                position,
+            })
+        } else {
+            let original_expr = vir::Expr::Cond(vir::Cond {
+                guard,
+                then_expr,
+                else_expr,
+                position,
+            });
+            self.replace_expr(original_expr, position)
+        }
+    }
+
     fn fold_bin_op(
         &mut self,
         vir::BinOp {

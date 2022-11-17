@@ -62,7 +62,7 @@ pub fn to_graphviz<'tcx>(
 }
 
 fn visit_body(graph: &mut Graph, mir: &mir::Body<'_>, lifetimes: &Lifetimes) {
-    for bb in mir.basic_blocks().indices() {
+    for bb in mir.basic_blocks.indices() {
         visit_basic_block(graph, mir, bb, lifetimes);
     }
 }
