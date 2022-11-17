@@ -193,7 +193,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 .iter()
                 .filter(|(b, _)| {
                     !done_blocks.contains(b)
-                        && self.mir.predecessors()[*b]
+                        && self.mir.basic_blocks.predecessors()[*b]
                             .iter()
                             .all(|bp| done_blocks.contains(bp))
                 })
@@ -218,7 +218,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 // }
 
                 // Not going to emit any annotations for now. just hack it.
-                match self.mir.predecessors()[*next_bb].iter().collect::<Vec<_>>()[..] {
+                match self.mir.basic_blocks.predecessors()[*next_bb].iter().collect::<Vec<_>>()[..] {
                     [] => {
                         println!("\t[INIT BLOCK]");
                         println!("~~~~~~~");

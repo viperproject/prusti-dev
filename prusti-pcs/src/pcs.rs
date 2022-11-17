@@ -60,8 +60,8 @@ use std::{
 /// Computes the PCS and prints it to the console
 /// Currently the entry point for the compiler
 pub fn dump_pcs<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> EncodingResult<()> {
-    for proc_id in env.get_annotated_procedures().iter() {
-        println!("id: {:#?}", env.get_unique_item_name(*proc_id));
+    for proc_id in env.get_annotated_procedures_and_types().0.iter() {
+        println!("id: {:#?}", env.name.get_unique_item_name(*proc_id));
         let current_procedure: Procedure<'tcx> = env.get_procedure(*proc_id);
         let mir: &Body<'tcx> = current_procedure.get_mir();
         let micro_mir: MicroMirEncoder<'_, 'tcx> = MicroMirEncoder::expand_syntax(mir, env.tcx())?;
@@ -87,7 +87,7 @@ pub fn dump_pcs<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> EncodingResul
 }
 
 pub fn vis_pcs_facts<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> EncodingResult<()> {
-    for proc_id in env.get_annotated_procedures().iter() {
+    for proc_id in env.get_annotated_procedures_and_types().0.iter() {
         let local_def_id = proc_id.expect_local();
         let def_path = env.tcx().hir().def_path(local_def_id);
         // This panics all the time and is never called by anything else. Fixable?
@@ -98,7 +98,7 @@ pub fn vis_pcs_facts<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> Encoding
 
         // There's probably a better way to do this, but local_mir_borrowck_facts
         // doesn't actually populate the output facts.
-        let mut polonius_facts = env.local_mir_borrowck_facts(local_def_id);
+        let mut polonius_facts = env.body.local_mir_borrowck_facts(local_def_id);
         let borrowck_in_facts = polonius_facts.input_facts.take().unwrap();
         let borrowck_out_facts = Output::compute(&borrowck_in_facts, Algorithm::Naive, true);
         let location_table = polonius_facts.location_table.take().unwrap();
@@ -111,7 +111,7 @@ pub fn vis_pcs_facts<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> Encoding
 
         log::report_with_writer(
             "scc_trace",
-            format!("{}.graph.dot", env.get_unique_item_name(*proc_id)),
+            format!("{}.graph.dot", env.name.get_unique_item_name(*proc_id)),
             |writer| vis_scc_trace(bctx, writer).unwrap(),
         );
     }
