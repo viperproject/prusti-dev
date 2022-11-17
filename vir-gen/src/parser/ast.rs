@@ -17,11 +17,9 @@ mod kw {
 
 impl Parse for Declarations {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let components_ident: syn::Ident = input.parse()?;
         let components = parse_quote! {
-            mod #components_ident;
+            mod components;
         };
-        input.parse::<Token![=>]>()?;
         let mut irs = Vec::new();
         while !input.is_empty() {
             irs.push(input.parse()?);

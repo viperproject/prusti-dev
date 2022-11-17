@@ -4,18 +4,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 #[derive(Debug)]
 pub enum ModuleTree {
-    Node(HashMap<String, ModuleTree>),
+    Node(BTreeMap<String, ModuleTree>),
     Leaf,
 }
 
 #[allow(clippy::derivable_impls)]
 impl Default for ModuleTree {
     fn default() -> Self {
-        ModuleTree::Node(HashMap::new())
+        ModuleTree::Node(BTreeMap::new())
     }
 }
 
@@ -29,7 +29,7 @@ impl ModuleTree {
         match curr_name {
             Some(name) => match self {
                 ModuleTree::Leaf => {
-                    let mut modules = HashMap::new();
+                    let mut modules = BTreeMap::new();
                     modules.insert(name, ModuleTree::Leaf.insert(path_iter));
                     ModuleTree::Node(modules)
                 }
@@ -85,19 +85,19 @@ impl ModuleTree {
 
     pub fn visit<F, R>(&self, f: F) -> Option<R>
     where
-        F: Fn(HashMap<String, Option<R>>) -> R,
+        F: Fn(BTreeMap<String, Option<R>>) -> R,
     {
         self._visit(&f)
     }
 
     fn _visit<F, R>(&self, f: &F) -> Option<R>
     where
-        F: Fn(HashMap<String, Option<R>>) -> R,
+        F: Fn(BTreeMap<String, Option<R>>) -> R,
     {
         match *self {
             ModuleTree::Leaf => None,
             ModuleTree::Node(ref modules) => {
-                let mut computed: HashMap<String, Option<R>> = HashMap::new();
+                let mut computed: BTreeMap<String, Option<R>> = BTreeMap::new();
                 for (name, sub_modules) in modules.iter() {
                     computed.insert(name.clone(), sub_modules._visit(f));
                 }

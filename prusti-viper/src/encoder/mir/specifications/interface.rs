@@ -7,11 +7,7 @@ use prusti_interface::{
     },
     utils::has_spec_only_attr,
 };
-use prusti_rustc_interface::{
-    hir::def_id::{DefId, LocalDefId},
-    middle::ty::subst::SubstsRef,
-    span::Span,
-};
+use prusti_rustc_interface::{hir::def_id::DefId, middle::ty::subst::SubstsRef, span::Span};
 use std::{cell::RefCell, hash::Hash};
 
 pub(crate) struct SpecificationsState<'tcx> {
@@ -85,7 +81,9 @@ pub(crate) trait SpecificationsInterface<'tcx> {
 
     fn is_trusted(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
 
-    fn get_predicate_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Option<LocalDefId>;
+    fn get_predicate_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Option<DefId>;
+
+    fn terminates(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool;
 
     /// Get the loop invariant attached to a function with a
     /// `prusti::loop_body_invariant_spec` attribute.
@@ -137,7 +135,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             ProcedureSpecificationKind::Pure | ProcedureSpecificationKind::Predicate(_)
         );
 
-        let func_name = self.env().get_unique_item_name(def_id);
+        let func_name = self.env().name.get_unique_item_name(def_id);
         if func_name.starts_with("prusti_contracts::prusti_contracts::Map")
             || func_name.starts_with("prusti_contracts::prusti_contracts::Seq")
             || func_name.starts_with("prusti_contracts::prusti_contracts::Ghost")
@@ -155,7 +153,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
         def_id: DefId,
         substs: Option<SubstsRef<'tcx>>,
     ) -> ProcedureSpecificationKind {
-        let substs = substs.unwrap_or_else(|| self.env().identity_substs(def_id));
+        let substs = substs.unwrap_or_else(|| self.env().query.identity_substs(def_id));
         let query = SpecQuery::GetProcKind(def_id, substs);
         self.specifications_state
             .specs
@@ -167,7 +165,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
     }
 
     fn is_trusted(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
-        let substs = substs.unwrap_or_else(|| self.env().identity_substs(def_id));
+        let substs = substs.unwrap_or_else(|| self.env().query.identity_substs(def_id));
         let query = SpecQuery::GetProcKind(def_id, substs);
         let result = self
             .specifications_state
@@ -180,7 +178,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
         result
     }
 
-    fn get_predicate_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Option<LocalDefId> {
+    fn get_predicate_body(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Option<DefId> {
         let query = SpecQuery::FunctionDefEncoding(def_id, substs);
         let mut specs = self.specifications_state.specs.borrow_mut();
         let result = specs
@@ -190,6 +188,25 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .unwrap_or(None);
         trace!("get_predicate_body {:?} = {:?}", query, result);
         result.cloned()
+    }
+
+    fn terminates(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
+        let substs = substs.unwrap_or_else(|| self.env().query.identity_substs(def_id));
+        let query = SpecQuery::GetProcKind(def_id, substs);
+        let result = self
+            .specifications_state
+            .specs
+            .borrow_mut()
+            .get_and_refine_proc_spec(self.env(), query)
+            .and_then(|spec| {
+                spec.terminates
+                    .extract_with_selective_replacement()
+                    .copied()
+            })
+            .unwrap_or(None)
+            .is_some();
+        trace!("terminates {:?} = {}", query, result);
+        result
     }
 
     fn get_loop_specs(&self, def_id: DefId) -> Option<typed::LoopSpecification> {
@@ -268,7 +285,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
     }
 
     fn is_spec_closure(&self, def_id: DefId) -> bool {
-        has_spec_only_attr(self.env().get_attributes(def_id))
+        has_spec_only_attr(self.env().query.get_attributes(def_id))
     }
 
     fn get_spec_span(&self, def_id: DefId) -> Span {
@@ -277,7 +294,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .specs
             .borrow_mut()
             .get_and_refine_proc_spec(self.env(), query)
-            .and_then(|spec| spec.span)
-            .unwrap_or_else(|| self.env().get_def_span(def_id))
+            .map(|spec| self.env().query.get_def_span(spec.source))
+            .unwrap_or_else(|| self.env().query.get_def_span(def_id))
     }
 }

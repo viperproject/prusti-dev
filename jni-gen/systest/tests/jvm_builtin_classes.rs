@@ -32,11 +32,12 @@ fn test_jvm_builtin_classes() {
             env.with_local_frame(16, || {
                 let integer_value = java::lang::Integer::with(&env).new(int_value)?;
 
-                let int_array = JObject::from(env.new_object_array(
+                let int_array = env.new_object_array(
                     array_length,
                     "java/lang/Integer",
                     integer_value,
-                )?);
+                )?;
+                let int_array = unsafe { JObject::from_raw(int_array) };
 
                 let result =
                     java::util::Arrays::with(&env).call_binarySearch(int_array, integer_value)?;

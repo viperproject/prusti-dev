@@ -8,7 +8,6 @@ use prusti_common::{config, vir::program::Program};
 use std::{
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
-    str::FromStr,
 };
 use viper::{self, VerificationBackend};
 
@@ -35,9 +34,8 @@ pub struct ViperBackendConfig {
     pub verifier_args: Vec<String>,
 }
 
-impl Default for ViperBackendConfig {
-    fn default() -> Self {
-        let backend = VerificationBackend::from_str(&config::viper_backend()).unwrap();
+impl ViperBackendConfig {
+    pub fn new(backend: VerificationBackend) -> Self {
         let mut verifier_args = config::extra_verifier_args();
         match backend {
             VerificationBackend::Silicon => {
@@ -56,10 +54,13 @@ impl Default for ViperBackendConfig {
                 verifier_args.extend(vec![
                     "--assertTimeout".to_string(),
                     config::assert_timeout().to_string(),
-                    "--z3ConfigArgs".to_string(),
+                    "--proverConfigArgs".to_string(),
+                    // model.partial changes the default case of functions in counterexamples
+                    // to #unspecified
                     format!(
-                        "smt.qi.eager_threshold={}",
-                        config::smt_qi_eager_threshold()
+                        "smt.qi.eager_threshold={} model.partial={}",
+                        config::smt_qi_eager_threshold(),
+                        config::counterexample()
                     ),
                     "--logLevel".to_string(),
                     "ERROR".to_string(),

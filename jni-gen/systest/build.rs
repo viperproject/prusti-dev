@@ -1,13 +1,13 @@
 use error_chain::ChainedError;
 use jni_gen::*;
 use std::{env, fs::File, io::copy, path::Path};
-use tempdir::TempDir;
+use tempfile::Builder;
 
 fn main() {
     env_logger::init();
     let generated_dir = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join("gen");
 
-    let deps_dir = TempDir::new("deps").unwrap_or_else(|e| {
+    let deps_dir = Builder::new().prefix("deps").tempdir().unwrap_or_else(|e| {
         panic!("{}", e);
     });
 

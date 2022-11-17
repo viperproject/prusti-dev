@@ -29,7 +29,11 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
         target: &Option<mir::BasicBlock>,
         cleanup: &Option<mir::BasicBlock>,
     ) -> SpannedEncodingResult<bool> {
-        let full_called_function_name = self.encoder.env().tcx().def_path_str(called_def_id);
+        let full_called_function_name = self
+            .encoder
+            .env()
+            .name
+            .get_absolute_item_name(called_def_id);
 
         let make_manual_assign =
             |encoder: &mut Self,
@@ -172,7 +176,7 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
         }
 
         match full_called_function_name.as_str() {
-            "core::panicking::panic" => {
+            "std::rt::begin_panic" | "core::panicking::panic" | "core::panicking::panic_fmt" => {
                 let panic_message = format!("{:?}", args[0]);
                 let panic_cause = self.encoder.encode_panic_cause(span)?;
                 if self.check_panics {
@@ -233,6 +237,9 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
             }
             "prusti_contracts::Ghost::<T>::new" => {
                 make_manual_assign(self, block_builder, &mut |_, args, _| args[0].clone())?
+            }
+            "prusti_contracts::snapshot_equality" => {
+                unreachable!();
             }
             "std::ops::Index::index" | "core::ops::Index::index" => {
                 let lhs = self

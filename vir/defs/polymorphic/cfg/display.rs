@@ -9,11 +9,7 @@ use std::fmt;
 
 impl fmt::Display for CfgMethod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(
-            f,
-            "method {}({} args)",
-            self.method_name, self.formal_arg_count
-        )?;
+        writeln!(f, "method {}(...)", self.method_name,)?;
         writeln!(
             f,
             "    returns ({})",

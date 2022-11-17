@@ -16,6 +16,7 @@ trait TraitWithAssocType {
     type Input;
     type Output;
 
+    #[requires(false)]
     fn do_bar(&self, x: Self::Input) -> Self::Output;
 }
 

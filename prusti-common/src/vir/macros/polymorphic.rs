@@ -1,6 +1,7 @@
 #[macro_export]
 macro_rules! vir_type {
     (Int) => {$crate::vir::polymorphic_vir::Type::Int};
+    (Ref) => {$crate::vir::polymorphic_vir::Type::Ref};
     (Bool) => {$crate::vir::polymorphic_vir::Type::Bool};
     ({$ty:expr}) => { $ty }
 }

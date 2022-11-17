@@ -176,8 +176,8 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         (encoded_projection, field_ty, None)
                     }
 
-                    ty::TyKind::Generator(_, _, _) => {
-                        return Err(EncodingError::unsupported("generator fields are not supported yet"));
+                    ty::TyKind::Generator(..) => {
+                        return Err(EncodingError::unsupported("generator fields are not supported"));
                     }
 
                     x => {
@@ -195,7 +195,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         (PlaceEncoding::Expr(e), ty, v)
                     }
                     Err(_) => return Err(EncodingError::unsupported(
-                        "mixed dereferencing and array indexing projections are not supported yet"
+                        "mixed dereferencing and array indexing projections are not supported"
                     )),
                 }
             }
@@ -203,6 +203,11 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
             mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
                 debug!("Downcast projection {:?}, {:?}", adt_def, variant_index);
                 (encoded_base, base_ty, Some((*variant_index).into()))
+            }
+
+            mir::ProjectionElem::OpaqueCast(cast_ty) => {
+                debug!("Opaque cast projection {:?}", cast_ty);
+                (encoded_base, *cast_ty, None)
             }
 
             mir::ProjectionElem::Index(_)
@@ -425,7 +430,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     encoded_place
                         .try_into_expr()
                         .map_err(|_| EncodingError::unsupported(
-                            "array indexing is not supported in arbitrary operand positions yet. Try refactoring your code to have only an array access on the right-hand side of assignments using temporary variables".to_string(),
+                            "array indexing is not supported in arbitrary operand positions. Try refactoring your code to have only an array access on the right-hand side of assignments using temporary variables".to_string(),
                         ))?,
                     place_ty,
                 )?
@@ -597,7 +602,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     ),
                     ty::TyKind::Int(ty::IntTy::I16) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i16::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::i16::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::i16::MAX.into()),
                     ),
                     ty::TyKind::Int(ty::IntTy::I32) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i32::MIN.into()),
@@ -812,7 +817,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn get_span_of_basic_block(&self, bbi: mir::BasicBlock) -> Span {
-        let bb_data = &self.mir.basic_blocks()[bbi];
+        let bb_data = &self.mir.basic_blocks[bbi];
         bb_data.terminator().source_info.span
     }
 
@@ -831,10 +836,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
 
         // To classify the cause of the panic it's enough to look at the top 3 macro calls
         let lookup_size = 3;
-        let tcx = self.encoder.env().tcx();
+        let env_name = self.encoder.env().name;
         let macro_names: Vec<String> = macro_backtrace.iter()
             .take(lookup_size)
-            .filter_map(|x| x.macro_def_id.map(|y| tcx.def_path_str(y)))
+            .filter_map(|x| x.macro_def_id.map(|y| env_name.get_absolute_item_name(y)))
             .collect();
         debug!("macro_names: {:?}", macro_names);
 

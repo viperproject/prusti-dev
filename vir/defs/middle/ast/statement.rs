@@ -18,6 +18,7 @@ pub enum Statement {
     Exhale(Exhale),
     Consume(Consume),
     Havoc(Havoc),
+    GhostHavoc(GhostHavoc),
     Assume(Assume),
     Assert(Assert),
     FoldOwned(FoldOwned),
@@ -33,6 +34,8 @@ pub enum Statement {
     WritePlace(WritePlace),
     WriteAddress(WriteAddress),
     Assign(Assign),
+    GhostAssign(GhostAssign),
+    SetUnionVariant(SetUnionVariant),
     NewLft(NewLft),
     EndLft(EndLft),
     DeadReference(DeadReference),
@@ -40,7 +43,6 @@ pub enum Statement {
     DeadInclusion(DeadInclusion),
     LifetimeTake(LifetimeTake),
     LifetimeReturn(LifetimeReturn),
-    ObtainMutRef(ObtainMutRef),
     OpenMutRef(OpenMutRef),
     OpenFracRef(OpenFracRef),
     CloseMutRef(CloseMutRef),
@@ -85,6 +87,12 @@ pub struct Consume {
 /// Havoc the permission denoted by the place.
 pub struct Havoc {
     pub predicate: Predicate,
+    pub position: Position,
+}
+
+#[display(fmt = "ghost-havoc {}", variable)]
+pub struct GhostHavoc {
+    pub variable: VariableDecl,
     pub position: Position,
 }
 
@@ -283,6 +291,19 @@ pub struct Assign {
     pub position: Position,
 }
 
+#[display(fmt = "ghost-assign {} := {}", target, value)]
+pub struct GhostAssign {
+    pub target: Expression,
+    pub value: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "set-union-variant {}", variant_place)]
+pub struct SetUnionVariant {
+    pub variant_place: Expression,
+    pub position: Position,
+}
+
 #[display(fmt = "{} = newlft()", target)]
 pub struct NewLft {
     pub target: VariableDecl,
@@ -302,16 +323,10 @@ pub struct DeadReference {
     pub position: Position,
 }
 
-#[display(
-    fmt = "dead-lifetime({}, before={}, after={})",
-    target,
-    "display::cjoin(dead_lifetimes_before)",
-    "display::cjoin(dead_lifetimes_after)"
-)]
+#[display(fmt = "dead-lifetime({}, {})", target, lifetime)]
 pub struct DeadLifetime {
     pub target: Expression,
-    pub dead_lifetimes_before: Vec<bool>,
-    pub dead_lifetimes_after: Vec<bool>,
+    pub lifetime: LifetimeConst,
     pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
@@ -346,13 +361,6 @@ pub struct LifetimeReturn {
     pub target: VariableDecl,
     pub value: Vec<VariableDecl>,
     pub lifetime_token_permission: Expression,
-    pub position: Position,
-}
-
-#[display(fmt = "obtain_mut_ref({}, {})", place, lifetime)]
-pub struct ObtainMutRef {
-    pub place: Expression,
-    pub lifetime: LifetimeConst,
     pub position: Position,
 }
 

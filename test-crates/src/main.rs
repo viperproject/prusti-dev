@@ -12,7 +12,7 @@ use std::{
     process::Command,
 };
 use log::{error, info, warn, LevelFilter};
-use rustwide::{cmd, logging, logging::LogStorage, Crate, Toolchain, WorkspaceBuilder};
+use rustwide::{cmd, logging, logging::LogStorage, Crate, Toolchain, Workspace, WorkspaceBuilder};
 use serde::Deserialize;
 use clap::Parser;
 
@@ -20,6 +20,9 @@ use clap::Parser;
 /// `skip_unsupported_features=true`.
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
 enum TestKind {
+    /// Test that Prusti does not crash nor generate "internal/invalid" when the
+    /// `allow_unreachable_unsupported_code` flag is set.
+    NoErrorsWithUnreachableUnsupportedCode,
     /// Test that Prusti does not crash nor generate "internal/invalid" errors.
     NoErrors,
     /// Test that Prusti does not crash nor generate "invalid" errors.
@@ -65,7 +68,7 @@ impl cmd::Runnable for CargoPrusti {
         cmd.env("VIPER_HOME", self.viper_home.to_str().unwrap())
             .env("Z3_EXE", self.z3_exe.join("z3").to_str().unwrap())
             .env("JAVA_HOME", java_home)
-            .env("CARGO_PATH", "/opt/rustwide/cargo-home/bin/cargo")
+            .env("PRUSTI_CARGO_PATH", "/opt/rustwide/cargo-home/bin/cargo")
     }
 }
 
@@ -120,13 +123,43 @@ pub fn collect_java_policies() -> Vec<PathBuf> {
 #[derive(Parser, Debug)]
 #[clap(version, about, long_about = None)]
 struct Args {
-    /// Do not check that the crates compile successfully without Prusti
-    #[clap(short, long)]
+    /// Do not check whether the crates compile successfully without Prusti.
+    #[clap(long)]
     skip_build_check: bool,
 
-    /// If specified, only test crates containing this string in their names
+    /// If specified, only test crates containing this string in their names.
     #[clap(value_name = "CRATENAME", default_value_t = String::from(""))]
     filter_crate_name: String,
+
+    /// If true, the process will terminate at the first failing crate instead of waiting until all
+    /// crates are tested.
+    #[clap(long)]
+    fail_fast: bool,
+
+    /// Number of shards into which to split the list of crates. Only one of them will be tested.
+    #[clap(long, value_parser, default_value_t = 1)]
+    num_shards: usize,
+
+    /// The index of the shard of crates that should be tested, in the range [0, num_shards).
+    #[clap(long, value_parser, default_value_t = 0)]
+    shard_index: usize,
+}
+
+fn attempt_fetch(krate: &Crate, workspace: &Workspace, num_retries: u8) -> Result<(), failure::Error> {
+    let mut i = 0;
+    while i < num_retries + 1 {
+        if let Err(err) = krate.fetch(workspace) {
+            warn!("Error fetching crate {}: {}", krate, err);
+            if i == num_retries {
+                // Last attempt failed, return the error
+                return Err(err)
+            }
+        } else {
+            return Ok(())
+        }
+        i += 1;
+    }
+    unreachable!()
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -134,6 +167,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     setup_logs();
 
     let args = Args::parse();
+
+    // Check consistency of the arguments
+    assert!(
+        args.shard_index < args.num_shards,
+        "The shard index ({}) must be less than the number of shards ({})",
+        args.shard_index,
+        args.num_shards,
+    );
 
     let workspace_path = Path::new("../workspaces/test-crates-builder");
     let host_prusti_home = if cfg!(debug_assertions) {
@@ -189,6 +230,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .filter(|record| record.name.contains(&args.filter_crate_name))
             .map(|record| (Crate::crates_io(&record.name, &record.version), record.test_kind))
             .collect();
+    info!("There are {} crates in total.", crates_list.len());
 
     // List of crates that don't compile with the standard compiler.
     let mut skipped_crates = vec![];
@@ -197,9 +239,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     // List of crates on which Prusti succeed.
     let mut successful_crates = vec![];
 
-    info!("Iterate over all {} crates...", crates_list.len());
-    for (index, (krate, test_kind)) in crates_list.iter().enumerate() {
-        info!("Crate {}/{}: {}, test kind: {:?}", index, crates_list.len(), krate, test_kind);
+    let shard_crates_list: Vec<&(Crate, TestKind)> = crates_list.iter().skip(args.shard_index)
+        .step_by(args.num_shards).collect();
+    info!(
+        "Iterate over the {} crates of the shard {}/{}...",
+        shard_crates_list.len(),
+        args.shard_index,
+        args.num_shards,
+    );
+    for (index, (krate, test_kind)) in shard_crates_list.iter().enumerate() {
+        info!("Crate {}/{}: {}, test kind: {:?}", index, shard_crates_list.len(), krate, test_kind);
 
         if let TestKind::Skip = test_kind {
             info!("Skip crate");
@@ -209,7 +258,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
 
         info!("Fetch crate...");
-        krate.fetch(&workspace)?;
+        attempt_fetch(krate, &workspace, 2)?;
 
         if !args.skip_build_check {
             info!("Build crate...");
@@ -277,6 +326,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                         // Do not report errors for unsupported language features
                         .env("PRUSTI_SKIP_UNSUPPORTED_FEATURES", "true");
                     match test_kind {
+                        TestKind::NoErrorsWithUnreachableUnsupportedCode => {
+                            command = command.env("PRUSTI_ALLOW_UNREACHABLE_UNSUPPORTED_CODE", "true");
+                        }
                         TestKind::NoErrors => {},
                         TestKind::NoCrash => {
                             // Report internal errors as warnings
@@ -294,10 +346,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             if let Err(err) = verification_status {
                 error!("Error: {:?}", err);
                 error!("Output:\n{}", storage);
+
                 // Report the failure
                 failed_crates.push((krate, test_kind));
             } else {
                 successful_crates.push((krate, test_kind));
+            }
+        }
+
+        if args.fail_fast {
+            if let Some((krate, test_kind)) = failed_crates.first() {
+                panic!("Failed to verify the crate {} ({:?})", krate, test_kind);
             }
         }
     }

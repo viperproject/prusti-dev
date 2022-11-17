@@ -168,7 +168,7 @@ fn test_prusti_rustc_with_server() {
 
     // Preserve SYSTEMROOT on Windows.
     // See: https://travis-ci.community/t/socket-the-requested-service-provider-could-not-be-loaded-or-initialized/1127
-    let mut server_child = Command::new(&prusti_server)
+    let mut server_child = Command::new(prusti_server)
         .env("PRUSTI_LOG", "warn")
         .env("RUST_BACKTRACE", "1")
         .stdout(Stdio::piped())

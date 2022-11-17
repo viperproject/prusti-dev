@@ -3,7 +3,6 @@
 Sometimes specifications express a fact which is true about a function, but the verifier cannot prove it automatically, or it uses features not yet supported by Prusti. In such cases, it is possible to mark a function as `#[trusted]`:
 
 ```rust
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[trusted]
@@ -26,7 +25,6 @@ As the example below demonstrates, a single wrong, yet trusted, specification ma
 Hence, some care is needed to ensure that the specifications of trusted functions are indeed correct.
 
 ```rust
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[trusted]

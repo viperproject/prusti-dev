@@ -1,3 +1,15 @@
+//! A module that defines axioms for a specific type.
+//!
+//! ## Simplification and evaluation axioms
+//!
+//! ``simplification_axiom`` and ``eval_axiom`` should always terminate because:
+//!
+//! 1. They triggers require a term that contains the alternaive constructor.
+//! 2. The term used in the trigger is equated to a strictly simpler term.
+//! 3. The terms that are produced by applying the quantifier are only
+//!    constructors of constants, which can trigger only validity and
+//!    injectivity axioms.
+
 use crate::encoder::{
     errors::SpannedEncodingResult,
     high::types::HighTypeEncoderInterface,
@@ -10,6 +22,7 @@ use crate::encoder::{
         },
     },
 };
+use prusti_common::config;
 use rustc_hash::FxHashSet;
 use std::collections::BTreeSet;
 use vir_crate::{
@@ -24,7 +37,7 @@ use vir_crate::{
 #[derive(Default)]
 pub(in super::super) struct TypesState {
     /// The types for which the definitions were ensured.
-    ensured_definitions: BTreeSet<vir_mid::Type>,
+    ensured_definitions: BTreeSet<String>,
     encoded_binary_operations: FxHashSet<String>,
     encoded_unary_operations: FxHashSet<String>,
 }
@@ -103,25 +116,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 let element_domain_name = &self.encode_snapshot_domain_name(element_type)?;
                 let element_type_snapshot = element_type.to_snapshot(self)?;
                 self.encode_validity_axioms_sequence(
+                    ty,
                     &domain_name,
                     element_domain_name,
                     element_type_snapshot,
                 )?;
             }
-            vir_mid::TypeDecl::Tuple(decl) => {
-                let mut parameters = Vec::new();
-                for field in decl.iter_fields() {
-                    parameters.push(vir_low::VariableDecl::new(
-                        field.name.clone(),
-                        field.ty.to_snapshot(self)?,
-                    ));
-                }
-                self.register_struct_constructor(&domain_name, parameters.clone())?;
-                self.encode_validity_axioms_struct(&domain_name, parameters, true.into())?;
-            }
             vir_mid::TypeDecl::Struct(decl) => {
                 let mut parameters = Vec::new();
-                for field in decl.iter_fields() {
+                for field in decl.fields.iter() {
                     parameters.push(vir_low::VariableDecl::new(
                         field.name.clone(),
                         field.ty.to_snapshot(self)?,
@@ -132,32 +135,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             }
             vir_mid::TypeDecl::Enum(decl) => {
                 let mut variants = Vec::new();
-                for (variant, &discriminant) in decl.variants.iter().zip(&decl.discriminant_values)
-                {
-                    let variant_type = ty.clone().variant(variant.name.clone().into());
-                    let variant_domain = self.encode_snapshot_domain_name(&variant_type)?;
-                    let discriminant: vir_low::Expression = discriminant.into();
-                    self.register_enum_variant_constructor(
-                        &domain_name,
-                        &variant.name,
-                        &variant_domain,
-                        discriminant.clone(),
-                    )?;
-                    self.ensure_type_definition(&variant_type)?;
-                    variants.push((variant.name.clone(), variant_domain, discriminant));
-                }
-                self.encode_validity_axioms_enum(
-                    ty,
-                    &domain_name,
-                    variants.clone(),
-                    true.into(),
-                    &decl.discriminant_bounds,
-                )?;
-            }
-            vir_mid::TypeDecl::Union(decl) => {
-                let mut variants = Vec::new();
-                for (variant, &discriminant) in decl.variants.iter().zip(&decl.discriminant_values)
-                {
+                for (discriminant, variant) in decl.iter_discriminant_variants() {
                     let variant_type = ty.clone().variant(variant.name.clone().into());
                     let variant_domain = self.encode_snapshot_domain_name(&variant_type)?;
                     let discriminant: vir_low::Expression = discriminant.into();
@@ -217,6 +195,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     )?;
                 }
             }
+            vir_mid::TypeDecl::Never => {
+                self.register_struct_constructor(&domain_name, Vec::new())?;
+                self.encode_validity_axioms_struct(&domain_name, Vec::new(), false.into())?;
+            }
             _ => unimplemented!("type: {:?}", type_decl),
         };
         Ok(())
@@ -253,11 +235,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             constructor_calls,
             snapshot_type,
         );
-        let validity_op_constructor_call =
-            self.encode_snapshot_valid_call_for_type(op_constructor_call.clone(), ty)?;
         let body = vir_low::Expression::forall(
             parameters,
-            vec![vir_low::Trigger::new(vec![validity_op_constructor_call])],
+            vec![vir_low::Trigger::new(vec![op_constructor_call.clone()])],
             expr! { [parameters_validity.into_iter().conjoin()] ==> ([op_constructor_call] == [constructor_call_op]) },
         );
         let axiom = vir_low::DomainAxiomDecl {
@@ -296,7 +276,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             name: format!("{}$eval_axiom", variant),
             body,
         };
-        self.declare_axiom(&domain_name, axiom)?;
+        if config::use_eval_axioms() {
+            self.declare_axiom(&domain_name, axiom)?;
+        }
         Ok(())
     }
 }
@@ -331,17 +313,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
             return Ok(());
         }
         // FIXME: We should avoid these copies in some smarter way.
-        let ty_without_lifetime = ty.clone().erase_lifetimes();
+        let ty_identifier = ty.get_identifier();
         if !self
             .types_state
             .ensured_definitions
-            .contains(&ty_without_lifetime)
+            .contains(&ty_identifier)
         {
             // We insert before doing the actual work to break infinite
             // recursion.
-            self.types_state
-                .ensured_definitions
-                .insert(ty_without_lifetime);
+            self.types_state.ensured_definitions.insert(ty_identifier);
 
             let type_decl = self.encoder.get_type_decl_mid(ty)?;
             self.ensure_type_definition_for_decl(ty, &type_decl)?;

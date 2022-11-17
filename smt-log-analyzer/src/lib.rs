@@ -139,7 +139,7 @@ pub fn analyze(
 ) -> Result<(), std::io::Error> {
     // TODO: Collect the quantifier definitions from the smt file.
 
-    let file = File::open(&z3_trace_path)?;
+    let file = File::open(z3_trace_path)?;
     let mut reader = BufReader::new(file);
 
     let mut state = State::default();

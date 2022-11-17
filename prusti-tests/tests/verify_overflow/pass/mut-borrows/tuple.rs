@@ -1,5 +1,3 @@
-extern crate prusti_contracts;
-
 struct T(u32);
 
 fn random() -> bool { true }
