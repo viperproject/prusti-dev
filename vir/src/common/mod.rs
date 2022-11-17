@@ -1,4 +1,6 @@
+pub mod ast;
 pub mod cfg;
+pub mod check_mode;
 pub mod constants;
 pub mod display;
 pub mod expression;

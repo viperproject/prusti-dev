@@ -1,5 +1,5 @@
 pub mod ast;
-copy_module!(crate::high::cfg);
+copy_module!(crate::typed::cfg);
 pub(crate) mod derived_operations;
 pub(crate) mod operations_internal;
 
@@ -15,7 +15,7 @@ pub use self::{
         function::FunctionDecl,
         position::Position,
         predicate::Predicate,
-        rvalue::{Operand, OperandKind, Rvalue},
+        rvalue::{self, Operand, OperandKind, Rvalue},
         statement::{self, BlockMarkerCondition, BlockMarkerConditionElement, Statement},
         ty::{self, Type},
         type_decl::{self, DiscriminantRange, DiscriminantValue, TypeDecl},

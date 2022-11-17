@@ -83,6 +83,7 @@ pub(in super::super::super) trait SnapshotValidityInterface {
     ) -> SpannedEncodingResult<()>;
     fn encode_validity_axioms_sequence(
         &mut self,
+        ty: &vir_mid::Type,
         domain_name: &str,
         element_domain_name: &str,
         parameter_type: vir_low::Type,
@@ -145,7 +146,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         let mut valid_parameters = Vec::new();
         for parameter in &parameters {
             if let Some(domain_name) = self.get_non_primitive_domain(&parameter.ty) {
-                valid_parameters.push(valid_call(domain_name, parameter)?);
+                let domain_name = domain_name.to_string();
+                valid_parameters
+                    .push(self.encode_snapshot_valid_call(&domain_name, parameter.clone().into())?);
             }
         }
         let constructor_call = self.adt_constructor_variant_call(
@@ -370,13 +373,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
     }
     fn encode_validity_axioms_sequence(
         &mut self,
+        ty: &vir_mid::Type,
         domain_name: &str,
         element_domain_name: &str,
         parameter_type: vir_low::Type,
     ) -> SpannedEncodingResult<()> {
         use vir_low::macros::*;
 
-        let snapshot = vir_low::VariableDecl::new("value", vir_low::Type::seq(parameter_type));
+        let snapshot =
+            vir_low::VariableDecl::new("value", vir_low::Type::seq(parameter_type.clone()));
         let valid_sequence =
             self.encode_snapshot_valid_call(domain_name, snapshot.clone().into())?;
 
@@ -389,21 +394,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
             self.encode_snapshot_valid_call_for_type(index.clone().into(), &size_type_mid)?;
         let element = vir_low::Expression::container_op_no_pos(
             vir_low::expression::ContainerOpKind::SeqIndex,
-            snapshot.clone().into(),
-            index_int.clone(),
+            vir_low::Type::seq(parameter_type.clone()),
+            vec![snapshot.clone().into(), index_int.clone()],
         );
         let len = vir_low::Expression::container_op_no_pos(
             vir_low::expression::ContainerOpKind::SeqLen,
-            snapshot.clone().into(),
-            true.into(),
+            vir_low::Type::seq(parameter_type),
+            vec![snapshot.clone().into()],
         );
         let valid_element = self.encode_snapshot_valid_call(element_domain_name, element)?;
         let valid_elements = vir_low::Expression::forall(
             vec![index],
-            vec![vir_low::Trigger::new(vec![
-                valid_sequence.clone(),
-                valid_element.clone(),
-            ])],
+            vec![vir_low::Trigger::new(vec![valid_element.clone()])],
             expr! { ([index_validity] && ([index_int] < [len])) ==> [valid_element]},
         );
         let axiom_top_down_body = vir_low::Expression::forall(
@@ -414,7 +416,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
             },
         );
         let axiom_top_down = vir_low::DomainAxiomDecl {
-            name: format!("{}$validity_axiom_top_down_sequence", domain_name),
+            // We use ty identifier to distinguish sequences from arrays.
+            name: format!(
+                "{}${}$validity_axiom_top_down_sequence",
+                domain_name,
+                vir_crate::common::identifier::WithIdentifier::get_identifier(ty)
+            ),
             body: axiom_top_down_body,
         };
         self.declare_axiom(domain_name, axiom_top_down)?;

@@ -3,25 +3,60 @@
 use super::encoder::{FunctionCallInfo, FunctionCallInfoHigh, PureFunctionEncoder};
 use crate::encoder::{
     errors::{SpannedEncodingResult, WithSpan},
-    mir::{generics::MirGenericsEncoderInterface, specifications::SpecificationsInterface},
+    mir::specifications::SpecificationsInterface,
     snapshot::interface::SnapshotEncoderInterface,
     stub_function_encoder::StubFunctionEncoder,
 };
 use log::{debug, trace};
 use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
-use prusti_rustc_interface::middle::ty::subst::SubstsRef;
+use prusti_rustc_interface::middle::{ty, ty::subst::SubstsRef};
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use prusti_interface::specs::typed::ProcedureSpecificationKind;
 use std::cell::RefCell;
 use vir_crate::{common::identifier::WithIdentifier, high as vir_high, polymorphic as vir_poly};
 
-/// Key of stored call infos, consisting of the DefId of the called function
-/// and (the VIR encoding of) the type substitutions applied to it. This means
-/// that each generic variant of a pure function will be encoded as a separate
-/// pure function in Viper.
-type Key = (ProcedureDefId, Vec<vir_high::Type>);
+/// Key of stored call infos, consisting of the `DefId` of the called function,
+/// the normalised type substitutions, and the function signature after type
+/// substitution and normalisation. The second and third components are stored
+/// to account for different monomorphisations resulting from the function
+/// being called from callers (with different parameter environments). Each
+/// variant of a pure function will be encoded as a separate Viper function.
+type Key<'tcx> = (ProcedureDefId, SubstsRef<'tcx>, ty::PolyFnSig<'tcx>);
+
+/// Compute the key for the given call.
+fn compute_key<'v, 'tcx: 'v>(
+    encoder: &crate::encoder::encoder::Encoder<'v, 'tcx>,
+    proc_def_id: ProcedureDefId,
+    caller_def_id: ProcedureDefId,
+    substs: SubstsRef<'tcx>,
+) -> SpannedEncodingResult<Key<'tcx>> {
+    Ok((
+        proc_def_id,
+        substs,
+        encoder
+            .env()
+            .query
+            .get_fn_sig_resolved(proc_def_id, substs, caller_def_id),
+    ))
+    /*
+    let tcx = encoder.env().tcx();
+    let sig = if tcx.is_closure(proc_def_id) {
+        substs.as_closure().sig()
+    } else {
+        tcx.fn_sig(proc_def_id)
+    };
+    let param_env = tcx.param_env(caller_def_id);
+    let sig = tcx.subst_and_normalize_erasing_regions(substs, param_env, sig);
+    let substs = tcx.subst_and_normalize_erasing_regions(
+        substs,
+        param_env,
+        encoder.env().identity_substs(proc_def_id),
+    );
+    Ok((proc_def_id, substs, sig.inputs_and_output().skip_binder()))
+    */
+}
 
 type FunctionConstructor<'v, 'tcx> = Box<
     dyn FnOnce(
@@ -52,33 +87,36 @@ pub(crate) enum PureEncodingContext {
 
 #[derive(Default)]
 pub(crate) struct PureFunctionEncoderState<'v, 'tcx: 'v> {
-    bodies_high: RefCell<FxHashMap<Key, vir_high::Expression>>,
-    bodies_poly: RefCell<FxHashMap<Key, vir_poly::Expr>>,
+    bodies_high: RefCell<FxHashMap<Key<'tcx>, vir_high::Expression>>,
+    bodies_poly: RefCell<FxHashMap<Key<'tcx>, vir_poly::Expr>>,
     /// Information necessary to encode a function call. FIXME: Remove this one
     /// and have only call_infos_high.
-    call_infos_poly: RefCell<FxHashMap<Key, FunctionCallInfo>>,
+    call_infos_poly: RefCell<FxHashMap<Key<'tcx>, FunctionCallInfo>>,
     /// Information necessary to encode a function call.
-    call_infos_high: RefCell<FxHashMap<Key, FunctionCallInfoHigh>>,
+    call_infos_high: RefCell<FxHashMap<Key<'tcx>, FunctionCallInfoHigh>>,
     /// Pure functions whose encoding started (and potentially already
     /// finished). This is used to break recursion.
-    pure_functions_encoding_started: RefCell<FxHashSet<Key>>,
+    pure_functions_encoding_started: RefCell<FxHashSet<Key<'tcx>>>,
     // A mapping from the function identifier to an information needed to encode
     // that function.
     function_descriptions:
         RefCell<FxHashMap<vir_poly::FunctionIdentifier, FunctionDescription<'tcx>>>,
     /// Mapping from keys on MIR level to function identifiers on VIR level.
-    function_identifiers: RefCell<FxHashMap<Key, vir_poly::FunctionIdentifier>>,
+    function_identifiers: RefCell<FxHashMap<Key<'tcx>, vir_poly::FunctionIdentifier>>,
     /// Encoded functions. The encoding of these functions was triggered by the
     /// definition collector requesting their definition.
     functions: RefCell<FxHashMap<String, std::rc::Rc<vir_high::FunctionDecl>>>,
     /// Callbacks that know how to lazily construct the specified function.
     function_constructors: RefCell<FxHashMap<String, FunctionConstructor<'v, 'tcx>>>,
+    /// Stores the procedure id such that it can be used to create a counterexample
+    function_proc_ids: RefCell<FxHashMap<String, ProcedureDefId>>,
 }
 
 /// The information necessary to encode a function definition.
 #[derive(Clone, Debug)]
 pub(crate) struct FunctionDescription<'tcx> {
     proc_def_id: ProcedureDefId,
+    parent_def_id: ProcedureDefId,
     substs: SubstsRef<'tcx>,
 }
 
@@ -102,6 +140,7 @@ pub(crate) trait PureFunctionEncoderInterface<'v, 'tcx> {
     fn encode_pure_function_def(
         &self,
         proc_def_id: ProcedureDefId,
+        parent_def_id: ProcedureDefId,
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<()>;
 
@@ -148,22 +187,28 @@ pub(crate) trait PureFunctionEncoderInterface<'v, 'tcx> {
         function_identifier: String,
         constructor: FunctionConstructor<'v, 'tcx>,
     ) -> SpannedEncodingResult<()>;
+
+    fn get_proc_def_id(&self, identifier: String) -> Option<ProcedureDefId>;
 }
 
 impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
     for crate::encoder::encoder::Encoder<'v, 'tcx>
 {
+    fn get_proc_def_id(&self, identifier: String) -> Option<ProcedureDefId> {
+        self.pure_function_encoder_state
+            .function_proc_ids
+            .borrow()
+            .get(&identifier)
+            .cloned()
+    }
+
     fn encode_pure_expression_high(
         &self,
         proc_def_id: ProcedureDefId,
         parent_def_id: ProcedureDefId,
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression> {
-        let mir_span = self.env().tcx().def_span(proc_def_id);
-        let substs_key = self
-            .encode_generic_arguments_high(proc_def_id, substs)
-            .with_span(mir_span)?;
-        let key = (proc_def_id, substs_key);
+        let key = compute_key(self, proc_def_id, parent_def_id, substs)?;
         if !self
             .pure_function_encoder_state
             .bodies_high
@@ -186,7 +231,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 .pure_function_encoder_state
                 .bodies_high
                 .borrow_mut()
-                .insert(key.clone(), body)
+                .insert(key, body)
                 .is_none());
         }
         Ok(self.pure_function_encoder_state.bodies_high.borrow()[&key].clone())
@@ -200,12 +245,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         parent_def_id: ProcedureDefId,
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr> {
-        let mir_span = self.env().tcx().def_span(proc_def_id);
-        let substs_key = self
-            .encode_generic_arguments_high(proc_def_id, substs)
-            .with_span(mir_span)?;
-        let key = (proc_def_id, substs_key);
-
+        let key = compute_key(self, proc_def_id, parent_def_id, substs)?;
         if !self
             .pure_function_encoder_state
             .bodies_poly
@@ -227,7 +267,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             self.pure_function_encoder_state
                 .bodies_poly
                 .borrow_mut()
-                .insert(key.clone(), body);
+                .insert(key, body);
         }
         Ok(self.pure_function_encoder_state.bodies_poly.borrow()[&key].clone())
     }
@@ -235,6 +275,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
     fn encode_pure_function_def(
         &self,
         proc_def_id: ProcedureDefId,
+        parent_def_id: ProcedureDefId,
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<()> {
         trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
@@ -244,12 +285,8 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             proc_def_id
         );
 
-        let mir_span = self.env().tcx().def_span(proc_def_id);
-        let substs_key = self
-            .encode_generic_arguments_high(proc_def_id, substs)
-            .with_span(mir_span)?;
-        let key = (proc_def_id, substs_key);
-
+        let mir_span = self.env().query.get_def_span(proc_def_id);
+        let key = compute_key(self, proc_def_id, parent_def_id, substs)?;
         if !self
             .pure_function_encoder_state
             .function_identifiers
@@ -266,21 +303,20 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             self.pure_function_encoder_state
                 .pure_functions_encoding_started
                 .borrow_mut()
-                .insert(key.clone());
+                .insert(key);
 
             let mut pure_function_encoder = PureFunctionEncoder::new(
                 self,
                 proc_def_id,
                 PureEncodingContext::Code,
-                proc_def_id,
+                parent_def_id,
                 substs,
             );
 
             let maybe_identifier: SpannedEncodingResult<vir_poly::FunctionIdentifier> = (|| {
                 let proc_kind = self.get_proc_kind(proc_def_id, Some(substs));
                 let is_bodyless = self.is_trusted(proc_def_id, Some(substs))
-                    || !self.env().tcx().is_mir_available(proc_def_id)
-                    || self.env().tcx().is_constructor(proc_def_id);
+                    || !self.env().query.has_body(proc_def_id);
                 let mut function = if is_bodyless {
                     pure_function_encoder.encode_bodyless_function()?
                 } else {
@@ -339,7 +375,10 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 Err(error) => {
                     self.register_encoding_error(error);
                     debug!("Error encoding pure function: {:?}", proc_def_id);
-                    let body = self.env().external_mir(proc_def_id, substs);
+                    let body = self
+                        .env()
+                        .body
+                        .get_pure_fn_body(proc_def_id, substs, parent_def_id);
                     // TODO(tymap): does stub encoder need substs?
                     let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, &body, substs);
                     let function = stub_encoder.encode_function()?;
@@ -372,6 +411,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             drop(function_descriptions);
             self.encode_pure_function_def(
                 function_description.proc_def_id,
+                function_description.parent_def_id,
                 function_description.substs,
             )?;
         } else {
@@ -392,17 +432,13 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             proc_def_id
         );
 
-        let mir_span = self.env().tcx().def_span(proc_def_id);
-        let substs_key = self
-            .encode_generic_arguments_high(proc_def_id, substs)
-            .with_span(mir_span)?;
-        let key = (proc_def_id, substs_key);
+        let key = compute_key(self, proc_def_id, parent_def_id, substs)?;
 
         let mut call_infos = self
             .pure_function_encoder_state
             .call_infos_poly
             .borrow_mut();
-        if !call_infos.contains_key(&key) {
+        if let std::collections::hash_map::Entry::Vacant(e) = call_infos.entry(key) {
             // Compute information necessary to encode the function call and
             // memoize it.
             let pure_function_encoder = PureFunctionEncoder::new(
@@ -430,10 +466,11 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 .entry(function_identifier)
                 .or_insert(FunctionDescription {
                     proc_def_id,
+                    parent_def_id,
                     substs,
                 });
 
-            call_infos.insert(key.clone(), function_call_info);
+            e.insert(function_call_info);
         }
         let function_call_info = &call_infos[&key];
 
@@ -455,17 +492,13 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             proc_def_id
         );
 
-        let mir_span = self.env().tcx().def_span(proc_def_id);
-        let substs_key = self
-            .encode_generic_arguments_high(proc_def_id, substs)
-            .with_span(mir_span)?;
-        let key = (proc_def_id, substs_key);
+        let key = compute_key(self, proc_def_id, parent_def_id, substs)?;
 
         let mut call_infos = self
             .pure_function_encoder_state
             .call_infos_high
             .borrow_mut();
-        if !call_infos.contains_key(&key) {
+        if let std::collections::hash_map::Entry::Vacant(e) = call_infos.entry(key) {
             // Compute information necessary to encode the function call and
             // memoize it.
             let function_call_info = super::new_encoder::encode_function_call_info(
@@ -476,6 +509,14 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             )?;
 
             let identifier = function_call_info.get_identifier();
+
+            if prusti_common::config::counterexample() {
+                self.pure_function_encoder_state
+                    .function_proc_ids
+                    .borrow_mut()
+                    .insert(identifier.clone(), proc_def_id);
+            }
+
             self.register_function_constructor_mir(
                 identifier,
                 Box::new(move |encoder| {
@@ -493,7 +534,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 let _ = self.encode_pure_function_use(proc_def_id, parent_def_id, substs)?;
             }
 
-            call_infos.insert(key.clone(), function_call_info);
+            e.insert(function_call_info);
         }
         let function_call_info = &call_infos[&key];
 

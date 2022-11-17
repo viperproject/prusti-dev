@@ -64,10 +64,10 @@ pub trait FixpointEngine<'mir, 'tcx: 'mir> {
         let mut p_state = PointwiseState::new(mir);
         // use https://crates.io/crates/linked_hash_set for set preserving insertion order?
         let mut work_set: BTreeSet<mir::BasicBlock> =
-            BTreeSet::from_iter(mir.basic_blocks().indices());
+            BTreeSet::from_iter(mir.basic_blocks.indices());
 
         let mut counters: FxHashMap<mir::BasicBlock, u32> =
-            FxHashMap::with_capacity_and_hasher(mir.basic_blocks().len(), Default::default());
+            FxHashMap::with_capacity_and_hasher(mir.basic_blocks.len(), Default::default());
 
         //'block_loop:
         // extract the bb with the minimal index -> hopefully better performance
@@ -82,7 +82,7 @@ pub trait FixpointEngine<'mir, 'tcx: 'mir> {
                 self.new_bottom()
             };
 
-            for &pred_bb in &mir.predecessors()[bb] {
+            for &pred_bb in &mir.basic_blocks.predecessors()[bb] {
                 if let Some(map) = p_state.lookup_after_block(pred_bb) {
                     // map should contain bb, because we ensure that we have a state for every
                     // successor

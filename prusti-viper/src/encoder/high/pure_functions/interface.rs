@@ -1,11 +1,11 @@
 use crate::encoder::{
     errors::{EncodingError, EncodingResult, SpannedEncodingResult},
+    high::to_middle::HighToMiddle,
     mir::pure::PureFunctionEncoderInterface,
 };
-
 use vir_crate::{
     high::{self as vir_high, operations::ty::Typed},
-    middle::{self as vir_mid, operations::ToMiddleExpression},
+    middle::{self as vir_mid},
 };
 
 pub(crate) trait HighPureFunctionEncoderInterface<'tcx> {
@@ -43,12 +43,12 @@ pub(crate) trait HighPureFunctionEncoderInterface<'tcx> {
         function_identifier: &str,
     ) -> SpannedEncodingResult<(Vec<vir_high::Expression>, Vec<vir_high::Expression>)>;
     fn get_pure_function_decl_mid(
-        &self,
+        &mut self,
         function_identifier: &str,
     ) -> SpannedEncodingResult<vir_mid::FunctionDecl>;
     /// Returns preconditions and postconditions of the specified pure function.
     fn get_pure_function_specs_mid(
-        &self,
+        &mut self,
         function_identifier: &str,
     ) -> SpannedEncodingResult<(Vec<vir_mid::Expression>, Vec<vir_mid::Expression>)>;
 }
@@ -163,43 +163,31 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
     }
 
     fn get_pure_function_decl_mid(
-        &self,
+        &mut self,
         function_identifier: &str,
     ) -> SpannedEncodingResult<vir_mid::FunctionDecl> {
         let function_decl = self.get_pure_function_decl_high(function_identifier)?;
         Ok(vir_mid::FunctionDecl {
             name: function_decl.name.clone(),
-            type_arguments: function_decl
-                .type_arguments
-                .clone()
-                .to_middle_expression(self)?,
-            parameters: function_decl
-                .parameters
-                .clone()
-                .to_middle_expression(self)?,
-            return_type: function_decl
-                .return_type
-                .clone()
-                .to_middle_expression(self)?,
-            pres: function_decl.pres.clone().to_middle_expression(self)?,
-            posts: function_decl.posts.clone().to_middle_expression(self)?,
+            type_arguments: function_decl.type_arguments.clone().high_to_middle(self)?,
+            parameters: function_decl.parameters.clone().high_to_middle(self)?,
+            return_type: function_decl.return_type.clone().high_to_middle(self)?,
+            pres: function_decl.pres.clone().high_to_middle(self)?,
+            posts: function_decl.posts.clone().high_to_middle(self)?,
             body: function_decl
                 .body
                 .clone()
-                .map(|body| body.to_middle_expression(self))
+                .map(|body| body.high_to_middle(self))
                 .transpose()?,
         })
     }
 
     fn get_pure_function_specs_mid(
-        &self,
+        &mut self,
         function_identifier: &str,
     ) -> SpannedEncodingResult<(Vec<vir_mid::Expression>, Vec<vir_mid::Expression>)> {
         let (pres, posts) = self.get_pure_function_specs_high(function_identifier)?;
-        Ok((
-            pres.to_middle_expression(self)?,
-            posts.to_middle_expression(self)?,
-        ))
+        Ok((pres.high_to_middle(self)?, posts.high_to_middle(self)?))
     }
 }
 

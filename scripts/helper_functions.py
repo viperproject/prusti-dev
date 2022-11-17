@@ -176,7 +176,7 @@ def run_command(args, env=None, cwd=None, on_exit=None, report_time=False):
     if env is None:
         env = get_env()
     start_time = datetime.datetime.now()
-    completed = subprocess.run(args, env=env, cwd=cwd)
+    completed = subprocess.run(args, env=env, cwd=cwd, shell=(os.name == 'nt'))
     if report_time:
         print(datetime.datetime.now() - start_time)
     if on_exit is not None:

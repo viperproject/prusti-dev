@@ -1,36 +1,69 @@
+#!/usr/bin/env python3
 import os
+import re
+import itertools
 from pathlib import Path
 from graphviz import Digraph
 
-BASE_DIR_NAME = "prusti-dev"
-
 cwd = Path(os.getcwd()).parts
-BASE_PATH = os.path.join(*cwd[:cwd.index(BASE_DIR_NAME)+1])
+BASE_PATH = cwd
+while not os.path.isfile(os.path.join(*BASE_PATH, "Cargo.toml")):
+    BASE_PATH = BASE_PATH[:-1]
+BASE_PATH = os.path.join(*BASE_PATH)
 
 # search for registered Cargo.toml and packages in the project
-cargo_tomls = []
-packages = []
+workspaces = [
+    BASE_PATH,
+    os.path.join(BASE_PATH, "prusti-contracts"),
+]
+members = {}
 
-with open(os.path.join(BASE_PATH, "Cargo.toml")) as f:
-    while True:
-        line = f.readline()
-        if not line:
-            break
-        line = line.strip()
+for workspace in workspaces:
+    with open(os.path.join(workspace, "Cargo.toml")) as f:
+        while True:
+            line = f.readline()
+            if not line:
+                break
+            line = line.strip()
 
-        if line.endswith(","):
-            line = line[:-1]
+            if line.endswith(","):
+                line = line[:-1]
 
-        if line.startswith("\"") and line.endswith("\""):
-            possible_cargo_toml = os.path.join(BASE_PATH, line[1:-1], "Cargo.toml")
-            if os.path.isfile(possible_cargo_toml):
-                cargo_tomls.append(possible_cargo_toml)
-                packages.append(line[1:-1])
+            if line.startswith("\"") and line.endswith("\""):
+                name = line[1:-1]
+                cargo_toml_path = os.path.join(workspace, name, "Cargo.toml")
+                readme_path = os.path.join(workspace, name, "README.md")
+                if not os.path.isfile(cargo_toml_path):
+                    print(f"Path '{cargo_toml_path}' doesn't exist")
+                    cargo_toml_path = None
+                if not os.path.isfile(readme_path):
+                    print(f"Path '{readme_path}' doesn't exist")
+                    readme_path = None
+                members[name] = {
+                    "cargo_toml": cargo_toml_path,
+                    "readme": readme_path,
+                }
 
 
-def parse_dependencies(cargo_toml):
+def parse_description(readme_path):
+    if readme_path is None:
+        return ""
+    with open(readme_path) as f:
+        lines = f.readlines()
+        # remove title
+        lines = itertools.dropwhile(lambda l: l.strip(), lines)
+        # remove empty lines after the title
+        lines = itertools.dropwhile(lambda l: not l.strip(), lines)
+        # take the first paragraph
+        lines = itertools.takewhile(lambda l: l.strip(), lines)
+        return "".join(lines)
+
+
+def parse_workspace_dependencies(cargo_toml_path):
     dependencies = set()
-    with open(cargo_toml) as f:
+    if cargo_toml_path is None:
+        return dependencies
+    with open(cargo_toml_path) as f:
         while True:
             line = f.readline()
             if not line:
@@ -38,37 +71,44 @@ def parse_dependencies(cargo_toml):
             line = line.strip()
 
             # a [dependencies] section start
-            if line.startswith("[") and line.endswith("]") and "dependencies" in line:
+            if line in ("[dependencies]", "[dev-dependencies]", "[build-dependencies]"):
                 while True:
                     line = f.readline()
                     if not line or "=" not in line:
                         break
                     line = line.strip()
                     dep = line.split("=")[0].strip()
-                    if dep in packages:
+                    if dep in members:
                         dependencies.add(dep)
 
     return dependencies
 
 
 # parse dependencies of Cargo.toml
-nodes = []
-for i in range(len(cargo_tomls)):
-    nodes.append([packages[i], parse_dependencies(cargo_tomls[i])])
+for name in list(members.keys()):
+    member = members[name]
+    member["description"] = parse_description(member["readme"])
+    member["dependencies"] = parse_workspace_dependencies(member["cargo_toml"])
 
 # generate graph
-created_nodes = set()
-graph = Digraph()
-graph.graph_attr["rankdir"] = "BT"
+graph = Digraph(graph_attr={"rankdir": "BT", "nodesep":"0.5", "ranksep":"1"})
 
-for node in nodes:
-    if node[0] not in created_nodes:
-        graph.node(node[0], node[0])
-        created_nodes.add(node[0])
-    for dep in node[1]:
-        if dep not in created_nodes:
-            graph.node(dep, dep)
-            created_nodes.add(dep)
-        graph.edge(node[0], dep)
+for name, member in members.items():
+    # word wrap description
+    description = member["description"].replace("\n", " ")
+    description = "<BR/>".join(
+        line.strip()
+        for line in re.findall(r".{1,60}(?:\s+|$)", description)
+    )
+    graph.node(name,
+        f'<<FONT FACE="sans-serif bold" POINT-SIZE="16">{name}</FONT><BR/>{description}>',
+        shape="box",
+        style="filled",
+        fillcolor="lightblue2",
+    )
+
+for name in members.keys():
+    for dependency_name in members[name]["dependencies"]:
+        graph.edge(name, dependency_name)
 
 graph.render("prusti_dependencies.gv", view=True)

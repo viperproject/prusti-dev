@@ -1,21 +1,23 @@
-use super::encoder::PredicateEncoder;
+use super::{
+    encoder::PredicateEncoder, FracRefUseBuilder, OwnedNonAliasedUseBuilder, UniqueRefUseBuilder,
+};
 use crate::encoder::{
     errors::SpannedEncodingResult,
-    middle::core_proof::{
-        lifetimes::LifetimesInterface, lowerer::Lowerer, snapshots::SnapshotValidityInterface,
-        type_layouts::TypeLayoutsInterface, types::TypesInterface,
-    },
+    middle::core_proof::{builtin_methods::CallContext, lowerer::Lowerer, types::TypesInterface},
 };
 use rustc_hash::FxHashSet;
 use vir_crate::{
     low::{self as vir_low},
-    middle as vir_mid,
-    middle::operations::lifetimes::WithLifetimes,
+    middle::{
+        self as vir_mid,
+        operations::{const_generics::WithConstArguments, lifetimes::WithLifetimes},
+    },
 };
 
 #[derive(Default)]
 pub(in super::super) struct PredicatesOwnedState {
     unfolded_owned_non_aliased_predicates: FxHashSet<vir_mid::Type>,
+    used_unique_ref_predicates: FxHashSet<vir_mid::Type>,
 }
 
 pub(in super::super::super) trait PredicatesOwnedInterface {
@@ -25,47 +27,90 @@ pub(in super::super::super) trait PredicatesOwnedInterface {
         &mut self,
         ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<()>;
+    /// Marks that `UniqueRef<ty>` was used in the program.
+    fn mark_unique_ref_as_used(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
     fn collect_owned_predicate_decls(
         &mut self,
     ) -> SpannedEncodingResult<Vec<vir_low::PredicateDecl>>;
-    fn acc_owned_non_aliased(
+    /// A version of `owned_non_aliased` for the most common case.
+    fn owned_non_aliased_full_vars<G>(
         &mut self,
+        context: CallContext,
         ty: &vir_mid::Type,
-        place: impl Into<vir_low::Expression>,
-        root_address: impl Into<vir_low::Expression>,
-        snapshot: impl Into<vir_low::Expression>,
-        lifetimes: Vec<impl Into<vir_low::Expression>>,
-    ) -> SpannedEncodingResult<vir_low::Expression>;
-    fn extract_lifetime_arguments_from_rvalue(
+        generics: &G,
+        place: &vir_low::VariableDecl,
+        root_address: &vir_low::VariableDecl,
+        snapshot: &vir_low::VariableDecl,
+    ) -> SpannedEncodingResult<vir_low::Expression>
+    where
+        G: WithLifetimes + WithConstArguments;
+    #[allow(clippy::too_many_arguments)]
+    fn owned_non_aliased<G>(
         &mut self,
-        value: &vir_mid::Rvalue,
-    ) -> SpannedEncodingResult<Vec<vir_low::VariableDecl>>;
-    fn extract_lifetime_arguments_from_rvalue_as_expr(
-        &mut self,
-        value: &vir_mid::Rvalue,
-    ) -> SpannedEncodingResult<Vec<vir_low::Expression>>;
-    fn extract_non_type_arguments_from_type(
-        &mut self,
+        context: CallContext,
         ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<Vec<vir_low::Expression>>;
-    fn extract_non_type_arguments_from_type_excluding_lifetimes(
+        generics: &G,
+        place: vir_low::Expression,
+        root_address: vir_low::Expression,
+        snapshot: vir_low::Expression,
+        permission_amount: Option<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression>
+    where
+        G: WithLifetimes + WithConstArguments;
+    #[allow(clippy::too_many_arguments)]
+    fn unique_ref_full_vars<G>(
         &mut self,
+        context: CallContext,
         ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<Vec<vir_low::Expression>>;
-    fn extract_non_type_parameters_from_type(
+        generics: &G,
+        place: &vir_low::VariableDecl,
+        root_address: &vir_low::VariableDecl,
+        current_snapshot: &vir_low::VariableDecl,
+        final_snapshot: &vir_low::VariableDecl,
+        lifetime: &vir_low::VariableDecl,
+    ) -> SpannedEncodingResult<vir_low::Expression>
+    where
+        G: WithLifetimes + WithConstArguments;
+    #[allow(clippy::too_many_arguments)]
+    fn unique_ref<G>(
         &mut self,
+        context: CallContext,
         ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<Vec<vir_low::VariableDecl>>;
-    fn extract_non_type_parameters_from_type_as_exprs(
+        generics: &G,
+        place: vir_low::Expression,
+        root_address: vir_low::Expression,
+        current_snapshot: vir_low::Expression,
+        final_snapshot: vir_low::Expression,
+        lifetime: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression>
+    where
+        G: WithLifetimes + WithConstArguments;
+    #[allow(clippy::too_many_arguments)]
+    fn frac_ref_full_vars<G>(
         &mut self,
+        context: CallContext,
         ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<Vec<vir_low::Expression>>;
-    fn extract_non_type_parameters_from_type_validity(
+        generics: &G,
+        place: &vir_low::VariableDecl,
+        root_address: &vir_low::VariableDecl,
+        current_snapshot: &vir_low::VariableDecl,
+        lifetime: &vir_low::VariableDecl,
+    ) -> SpannedEncodingResult<vir_low::Expression>
+    where
+        G: WithLifetimes + WithConstArguments;
+    #[allow(clippy::too_many_arguments)]
+    fn frac_ref<G>(
         &mut self,
+        context: CallContext,
         ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<Vec<vir_low::Expression>>;
-    /// FIXME: Array length should be per operand/target, and not just a global value.
-    fn array_length_variable(&mut self) -> SpannedEncodingResult<vir_low::VariableDecl>;
+        generics: &G,
+        place: vir_low::Expression,
+        root_address: vir_low::Expression,
+        current_snapshot: vir_low::Expression,
+        lifetime: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression>
+    where
+        G: WithLifetimes + WithConstArguments;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PredicatesOwnedInterface for Lowerer<'p, 'v, 'tcx> {
@@ -88,6 +133,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesOwnedInterface for Lowerer<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    fn mark_unique_ref_as_used(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
+        if !self
+            .predicates_encoding_state
+            .owned
+            .used_unique_ref_predicates
+            .contains(ty)
+        {
+            self.predicates_encoding_state
+                .owned
+                .used_unique_ref_predicates
+                .insert(ty.clone());
+        }
+        Ok(())
+    }
+
     fn collect_owned_predicate_decls(
         &mut self,
     ) -> SpannedEncodingResult<Vec<vir_low::PredicateDecl>> {
@@ -97,121 +157,178 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesOwnedInterface for Lowerer<'p, 'v, 'tcx> {
                 .owned
                 .unfolded_owned_non_aliased_predicates,
         );
+        let used_unique_ref_predicates = std::mem::take(
+            &mut self
+                .predicates_encoding_state
+                .owned
+                .used_unique_ref_predicates,
+        );
         let mut predicate_encoder = PredicateEncoder::new(self, &unfolded_predicates);
         for ty in &unfolded_predicates {
             predicate_encoder.encode_owned_non_aliased(ty)?;
         }
+        for ty in &used_unique_ref_predicates {
+            predicate_encoder.encode_unique_ref(ty)?;
+        }
         Ok(predicate_encoder.into_predicates())
     }
 
-    fn acc_owned_non_aliased(
+    fn owned_non_aliased_full_vars<G>(
         &mut self,
+        context: CallContext,
         ty: &vir_mid::Type,
-        place: impl Into<vir_low::Expression>,
-        root_address: impl Into<vir_low::Expression>,
-        snapshot: impl Into<vir_low::Expression>,
-        lifetimes: Vec<impl Into<vir_low::Expression>>,
-    ) -> SpannedEncodingResult<vir_low::Expression> {
-        use vir_low::macros::*;
-        let mut arguments = vec![place.into(), root_address.into(), snapshot.into()];
-        arguments.extend(lifetimes.into_iter().map(|lifetime| lifetime.into()));
-        Ok(vir_low::Expression::predicate_access_predicate_no_pos(
-            predicate_name! { OwnedNonAliased<ty> },
-            arguments,
-            vir_low::Expression::full_permission(),
-        ))
+        generics: &G,
+        place: &vir_low::VariableDecl,
+        root_address: &vir_low::VariableDecl,
+        snapshot: &vir_low::VariableDecl,
+    ) -> SpannedEncodingResult<vir_low::Expression>
+    where
+        G: WithLifetimes + WithConstArguments,
+    {
+        self.owned_non_aliased(
+            context,
+            ty,
+            generics,
+            place.clone().into(),
+            root_address.clone().into(),
+            snapshot.clone().into(),
+            None,
+        )
     }
 
-    fn extract_lifetime_arguments_from_rvalue(
+    fn owned_non_aliased<G>(
         &mut self,
-        value: &vir_mid::Rvalue,
-    ) -> SpannedEncodingResult<Vec<vir_low::VariableDecl>> {
-        let mut lifetimes = Vec::new();
-        for lifetime in value.get_lifetimes() {
-            lifetimes.push(self.encode_lifetime_const_into_variable(lifetime)?);
-        }
-        Ok(lifetimes)
-    }
-
-    fn extract_lifetime_arguments_from_rvalue_as_expr(
-        &mut self,
-        value: &vir_mid::Rvalue,
-    ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
-        let lifetimes = self
-            .extract_lifetime_arguments_from_rvalue(value)?
-            .iter()
-            .cloned()
-            .map(|x| x.into())
-            .collect();
-        Ok(lifetimes)
-    }
-
-    fn extract_non_type_arguments_from_type(
-        &mut self,
+        context: CallContext,
         ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
-        let mut arguments = self.extract_lifetime_variables_as_expr(ty)?;
-        if let vir_mid::Type::Array(ty) = ty {
-            arguments.push(self.size_constant(ty.length)?);
-        }
-        Ok(arguments)
+        generics: &G,
+        place: vir_low::Expression,
+        root_address: vir_low::Expression,
+        snapshot: vir_low::Expression,
+        permission_amount: Option<vir_low::Expression>,
+    ) -> SpannedEncodingResult<vir_low::Expression>
+    where
+        G: WithLifetimes + WithConstArguments,
+    {
+        let mut builder = OwnedNonAliasedUseBuilder::new(
+            self,
+            context,
+            ty,
+            generics,
+            place,
+            root_address,
+            snapshot,
+        )?;
+        builder.add_lifetime_arguments()?;
+        builder.add_const_arguments()?;
+        builder.set_maybe_permission_amount(permission_amount)?;
+        Ok(builder.build())
     }
 
-    fn extract_non_type_arguments_from_type_excluding_lifetimes(
+    fn unique_ref_full_vars<G>(
         &mut self,
+        context: CallContext,
         ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
-        if let vir_mid::Type::Array(ty) = ty {
-            Ok(vec![self.size_constant(ty.length)?])
-        } else {
-            Ok(Vec::new())
-        }
+        generics: &G,
+        place: &vir_low::VariableDecl,
+        root_address: &vir_low::VariableDecl,
+        current_snapshot: &vir_low::VariableDecl,
+        final_snapshot: &vir_low::VariableDecl,
+        lifetime: &vir_low::VariableDecl,
+    ) -> SpannedEncodingResult<vir_low::Expression>
+    where
+        G: WithLifetimes + WithConstArguments,
+    {
+        self.unique_ref(
+            context,
+            ty,
+            generics,
+            place.clone().into(),
+            root_address.clone().into(),
+            current_snapshot.clone().into(),
+            final_snapshot.clone().into(),
+            lifetime.clone().into(),
+        )
     }
 
-    fn extract_non_type_parameters_from_type(
+    fn unique_ref<G>(
         &mut self,
+        context: CallContext,
         ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<Vec<vir_low::VariableDecl>> {
-        // FIXME: Figure out how to avoid these magic variable names.
-        let parameters = match ty {
-            vir_mid::Type::Array(_) => {
-                vec![self.array_length_variable()?]
-            }
-            _ => Vec::new(),
-        };
-        Ok(parameters)
+        generics: &G,
+        place: vir_low::Expression,
+        root_address: vir_low::Expression,
+        current_snapshot: vir_low::Expression,
+        final_snapshot: vir_low::Expression,
+        lifetime: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression>
+    where
+        G: WithLifetimes + WithConstArguments,
+    {
+        let mut builder = UniqueRefUseBuilder::new(
+            self,
+            context,
+            ty,
+            generics,
+            place,
+            root_address,
+            current_snapshot,
+            final_snapshot,
+            lifetime,
+        )?;
+        builder.add_lifetime_arguments()?;
+        builder.add_const_arguments()?;
+        Ok(builder.build())
     }
 
-    fn extract_non_type_parameters_from_type_as_exprs(
+    fn frac_ref_full_vars<G>(
         &mut self,
+        context: CallContext,
         ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
-        let parameters = self.extract_non_type_parameters_from_type(ty)?;
-        Ok(parameters
-            .into_iter()
-            .map(|parameter| parameter.into())
-            .collect())
+        generics: &G,
+        place: &vir_low::VariableDecl,
+        root_address: &vir_low::VariableDecl,
+        current_snapshot: &vir_low::VariableDecl,
+        lifetime: &vir_low::VariableDecl,
+    ) -> SpannedEncodingResult<vir_low::Expression>
+    where
+        G: WithLifetimes + WithConstArguments,
+    {
+        self.frac_ref(
+            context,
+            ty,
+            generics,
+            place.clone().into(),
+            root_address.clone().into(),
+            current_snapshot.clone().into(),
+            lifetime.clone().into(),
+        )
     }
 
-    fn extract_non_type_parameters_from_type_validity(
+    fn frac_ref<G>(
         &mut self,
+        context: CallContext,
         ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
-        let validity_calls = match ty {
-            vir_mid::Type::Array(_) => {
-                let variable = self.array_length_variable()?;
-                let size_type = &self.size_type_mid()?;
-                vec![self.encode_snapshot_valid_call_for_type(variable.into(), size_type)?]
-            }
-            _ => Vec::new(),
-        };
-        Ok(validity_calls)
-    }
-
-    fn array_length_variable(&mut self) -> SpannedEncodingResult<vir_low::VariableDecl> {
-        Ok(vir_low::VariableDecl::new(
-            "array_length",
-            self.size_type()?,
-        ))
+        generics: &G,
+        place: vir_low::Expression,
+        root_address: vir_low::Expression,
+        current_snapshot: vir_low::Expression,
+        lifetime: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression>
+    where
+        G: WithLifetimes + WithConstArguments,
+    {
+        let mut builder = FracRefUseBuilder::new(
+            self,
+            context,
+            ty,
+            generics,
+            place,
+            root_address,
+            current_snapshot,
+            lifetime,
+        )?;
+        builder.add_lifetime_arguments()?;
+        builder.add_const_arguments()?;
+        Ok(builder.build())
     }
 }

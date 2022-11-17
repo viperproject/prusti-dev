@@ -8,8 +8,8 @@ use crate::encoder::{
     },
 };
 use vir_crate::{
-    common::{expression::UnaryOperationHelpers, identifier::WithIdentifier},
-    low::{self as vir_low},
+    common::expression::UnaryOperationHelpers,
+    low::{self as vir_low, operations::ty::Typed},
     middle::{self as vir_mid},
 };
 
@@ -151,12 +151,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
             .set_default_position(position))
     }
     fn encode_discriminant_name(&mut self, domain_name: &str) -> SpannedEncodingResult<String> {
-        let ty = if let Some(decoded_type) = self.try_decoding_snapshot_type(domain_name)? {
-            decoded_type
-        } else {
-            unreachable!("Failed to decode the snapshot: {}", domain_name);
-        };
-        Ok(format!("discriminant${}", ty.get_identifier()))
+        Ok(format!("discriminant${}", domain_name))
     }
     fn obtain_enum_discriminant(
         &mut self,
@@ -181,8 +176,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         Ok(vir_low::Expression::container_op(
             vir_low::expression::ContainerOpKind::SeqLen,
-            base_snapshot,
-            true.into(),
+            base_snapshot.get_type().clone(),
+            vec![base_snapshot],
             position,
         ))
     }
@@ -194,8 +189,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         Ok(vir_low::Expression::container_op(
             vir_low::expression::ContainerOpKind::SeqIndex,
-            base_snapshot,
-            index,
+            base_snapshot.get_type().clone(),
+            vec![base_snapshot, index],
             position,
         ))
     }
@@ -297,7 +292,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let variant_name = match ty {
             vir_mid::Type::Enum(ty) => ty.variant.as_ref().unwrap().as_ref(),
-            vir_mid::Type::Union(ty) => ty.variant.as_ref().unwrap().as_ref(),
             _ => unreachable!("expected enum or union, got: {}", ty),
         };
         let enum_ty = ty.forget_variant().unwrap();

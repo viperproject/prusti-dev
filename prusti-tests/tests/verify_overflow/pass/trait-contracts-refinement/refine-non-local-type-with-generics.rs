@@ -14,6 +14,7 @@ impl<T: PartialEq> std::option::Option<T> {
 
 trait OptionPeeker<T> {
     #[pure]
+    #[requires(false)]
     fn peek(&self) -> T;
 }
 

@@ -14,6 +14,11 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v2
 
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "shared"
+
       - name: Install cargo-outdated
         run: cargo install --locked cargo-outdated
 
@@ -29,11 +34,13 @@ jobs:
           )"
           echo "The latest usable version of rustc is $NIGHTLY_VERSION"
           sed -i 's/^channel\s*=.*$/channel = "'"$NIGHTLY_VERSION"'"/' rust-toolchain
-          declare -a DEVELOPERS=(Aurel300 JonasAlaif vakaras) # fpoli
+          declare -a DEVELOPERS=(Aurel300 fpoli JonasAlaif vakaras)
           UPDATE_NUMBER=$(( 10#$(date +%m) * 2 + (10#$(date +%d) / 15) - 0 ))
           DEVELOPER="${DEVELOPERS[ $UPDATE_NUMBER % ${#DEVELOPERS[@]} ]}"
           echo "The assigned developer is $DEVELOPER"
+          mv prusti-contracts/Cargo.toml prusti-contracts/Cargo_disabled.toml
           OUTDATED_DEPENDENCIES="$(cargo outdated --root-deps-only --workspace 2>&1 || echo "cargo outdated failed to execute")"
+          mv prusti-contracts/Cargo_disabled.toml prusti-contracts/Cargo.toml
           echo "VIPER_VERSION=$VIPER_VERSION" >> $GITHUB_ENV
           echo "NIGHTLY_VERSION=$NIGHTLY_VERSION" >> $GITHUB_ENV
           echo "DEVELOPER=$DEVELOPER" >> $GITHUB_ENV
@@ -58,13 +65,16 @@ jobs:
             * [ ] Run `cargo audit` and fix the issues.
             * [ ] Manualy update outdated dependencies (see the list below).
             * [ ] Manualy run `cargo update`.
-            
+
             <details><summary>List of direct outdated dependencies:</summary>
 
             ```
+            $ mv prusti-contracts/Cargo.toml prusti-contracts/Cargo_disabled.toml
             $ cargo outdated --root-deps-only --workspace
-            
+
             ${{ env.OUTDATED_DEPENDENCIES }}
+
+            $ mv prusti-contracts/Cargo_disabled.toml prusti-contracts/Cargo.toml
             ```
             </details>
 

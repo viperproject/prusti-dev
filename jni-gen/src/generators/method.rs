@@ -9,7 +9,7 @@ use jni::{
     objects::{JObject, JValue},
     JNIEnv,
 };
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub fn generate_method(
     env: &JNIEnv,
@@ -23,12 +23,12 @@ pub fn generate_method(
     let methods = env
         .call_method(clazz, "getMethods", "()[Ljava/lang/reflect/Method;", &[])?
         .l()?;
-    let num_methods = env.get_array_length(methods.into_inner())?;
+    let num_methods = env.get_array_length(*methods)?;
 
-    let mut indexed_methods = HashMap::new();
+    let mut indexed_methods = BTreeMap::new();
 
     for method_index in 0..num_methods {
-        let method = env.get_object_array_element(methods.into_inner(), method_index)?;
+        let method = env.get_object_array_element(*methods, method_index)?;
 
         let method_name = java_str_to_string(
             &env.get_string(
@@ -53,7 +53,7 @@ pub fn generate_method(
 
         match indexed_methods.remove(&method_name) {
             None => {
-                let mut signature_map = HashMap::new();
+                let mut signature_map = BTreeMap::new();
                 signature_map.insert(method_signature, method);
                 indexed_methods.insert(method_name, signature_map);
             }
@@ -82,7 +82,7 @@ pub fn generate_method(
                 )
                 .into());
             }
-            matching_methods.drain().take(1).next().unwrap()
+            matching_methods.pop_first().unwrap()
         }
         Some(sign) => match matching_methods.get(&sign) {
             Some(constr) => (sign, *constr),
@@ -119,10 +119,10 @@ pub fn generate_method(
             &[],
         )?
         .l()?;
-    let num_parameters = env.get_array_length(parameters.into_inner())?;
+    let num_parameters = env.get_array_length(*parameters)?;
 
     for parameter_index in 0..num_parameters {
-        let parameter = env.get_object_array_element(parameters.into_inner(), parameter_index)?;
+        let parameter = env.get_object_array_element(*parameters, parameter_index)?;
         let parameter_name = env.get_string(
             env.call_method(parameter, "getName", "()Ljava/lang/String;", &[])?
                 .l()?
@@ -268,7 +268,7 @@ fn generate(
     code.push("        method_signature".to_string());
     code.push("    )?;".to_string());
 
-    code.push("    let return_type = JavaType::from_str(return_signature)?;".to_string());
+    code.push("    let return_type = ReturnType::from_str(return_signature)?;".to_string());
     code.push("    let result = self.env.call_method_unchecked(".to_string());
     code.push("        receiver,".to_string());
     code.push("        method_id,".to_string());
@@ -279,7 +279,7 @@ fn generate(
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_jvalue = generate_jvalue_wrapper(par_name, par_sign);
-        code.push(format!("            {},", par_jvalue));
+        code.push(format!("            {}.into(),", par_jvalue));
     }
 
     code.push("        ]".to_string());
@@ -395,7 +395,7 @@ fn generate_static(
     code.push("        method_signature".to_string());
     code.push("    )?;".to_string());
 
-    code.push("    let return_type = JavaType::from_str(return_signature)?;".to_string());
+    code.push("    let return_type = ReturnType::from_str(return_signature)?;".to_string());
     code.push("    let result = self.env.call_static_method_unchecked(".to_string());
     code.push("        class,".to_string());
     code.push("        method_id,".to_string());
@@ -406,7 +406,7 @@ fn generate_static(
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_jvalue = generate_jvalue_wrapper(par_name, par_sign);
-        code.push(format!("            {},", par_jvalue));
+        code.push(format!("            {}.into(),", par_jvalue));
     }
 
     code.push("        ]".to_string());

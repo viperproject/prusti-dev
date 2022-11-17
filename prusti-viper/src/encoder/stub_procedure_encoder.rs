@@ -48,8 +48,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
         let mut cfg_method = vir::CfgMethod::new(
             // method name
             self.encoder.encode_item_name(self.def_id),
-            // formal args
-            self.mir.arg_count,
             // formal returns
             vec![],
             // local vars
@@ -82,7 +80,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
         // Dump method
         if config::dump_debug_info() {
             let method_name = cfg_method.name();
-            let source_path = self.encoder.env().source_path();
+            let source_path = self.encoder.env().name.source_path();
             let source_filename = source_path.file_name().unwrap().to_str().unwrap();
 
             self.encoder
