@@ -17,7 +17,7 @@ use crate::{
 };
 use prusti_interface::{environment::polonius_info::PoloniusInfo, PrustiError};
 use prusti_rustc_interface::{
-    data_structures::stable_map::FxHashMap,
+    data_structures::fx::FxHashMap,
     errors::MultiSpan,
     middle::{
         mir::{
@@ -87,7 +87,7 @@ pub struct MicroMirEncoder<'mir, 'tcx: 'mir> {
 impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
     pub fn expand_syntax(mir: &'mir Body<'tcx>, tcx: TyCtxt<'tcx>) -> EncodingResult<Self> {
         let mut encoding: FxHashMap<BasicBlock, MicroMirData<'tcx>> = FxHashMap::default();
-        for (bb, bbdata) in mir.basic_blocks().iter_enumerated() {
+        for (bb, bbdata) in mir.basic_blocks.iter_enumerated() {
             let mut ctx: BBCtx<'mir, 'tcx> = BBCtx::new(bb, &mir, tcx);
             // let mut statements: Vec<MicroMirStatement<'tcx>> = vec![];
             for (stmt_idx, statement) in bbdata.statements.iter().enumerate() {

@@ -16,7 +16,7 @@ use crate::{
 };
 use prusti_interface::{environment::Environment, utils::is_prefix, PrustiError};
 use prusti_rustc_interface::{
-    data_structures::stable_set::FxHashSet, errors::MultiSpan, middle::mir::Body,
+    data_structures::fx::FxHashSet, errors::MultiSpan, middle::mir::Body,
 };
 use std::iter::zip;
 
