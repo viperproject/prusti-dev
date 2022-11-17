@@ -6,26 +6,9 @@
 
 use super::Environment;
 
-
-
-
-
-
 use crate::data::ProcedureDefId;
 
-
-
-
-
-
-
-
-
-
-
-use log::{trace};
-
-
+use log::trace;
 
 pub fn dump_borrowck_info(env: &Environment<'_>, procedures: &[ProcedureDefId]) {
     trace!("[dump_borrowck_info] enter");

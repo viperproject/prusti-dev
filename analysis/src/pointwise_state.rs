@@ -35,9 +35,9 @@ impl<'mir, 'tcx: 'mir, S: Serialize> Serialize for PointwiseState<'mir, 'tcx, S>
     /// Serialize PointwiseState by translating it to a combination of vectors, tuples and maps,
     /// such that serde can automatically translate it.
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
-        let mut map = serializer.serialize_map(Some(self.mir.basic_blocks().len()))?;
+        let mut map = serializer.serialize_map(Some(self.mir.basic_blocks.len()))?;
 
-        for bb in self.mir.basic_blocks().indices() {
+        for bb in self.mir.basic_blocks.indices() {
             let mir::BasicBlockData { ref statements, .. } = self.mir[bb];
             let mut stmt_vec: Vec<_> = Vec::new();
             for (statement_index, stmt) in statements.iter().enumerate() {
@@ -138,7 +138,7 @@ impl<'mir, 'tcx: 'mir, S: Serialize> PointwiseState<'mir, 'tcx, S> {
 impl<'mir, 'tcx: 'mir, S: Serialize + Default> PointwiseState<'mir, 'tcx, S> {
     pub fn default(mir: &'mir mir::Body<'tcx>) -> Self {
         let state_before: FxHashMap<_, _> = mir
-            .basic_blocks()
+            .basic_blocks
             .iter_enumerated()
             .flat_map(|(block, bb_data)| {
                 (0..=bb_data.statements.len()).map(move |statement_index| {
@@ -153,7 +153,7 @@ impl<'mir, 'tcx: 'mir, S: Serialize + Default> PointwiseState<'mir, 'tcx, S> {
             })
             .collect();
         let state_after_block: FxHashMap<_, _> = mir
-            .basic_blocks()
+            .basic_blocks
             .iter_enumerated()
             .map(|(block, bb_data)| {
                 let successors: FxHashMap<_, _> = bb_data

@@ -195,47 +195,35 @@ pub fn expand_struct_place<'tcx, P: PlaceImpl<'tcx> + std::marker::Copy>(
 /// Expand `current_place` one level down by following the `guide_place`.
 /// Returns the new `current_place` and a vector containing other places that
 /// could have resulted from the expansion.
-pub(crate) fn expand_one_level<'tcx>(
+pub fn expand_one_level<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
     current_place: Place<'tcx>,
     guide_place: Place<'tcx>,
 ) -> (Place<'tcx>, Vec<Place<'tcx>>) {
     let index = current_place.projection.len();
-    match guide_place.projection[index] {
-        mir::ProjectionElem::Field(projected_field, field_ty) => {
-            let places =
-                expand_struct_place(current_place, mir, tcx, Some(projected_field.index()));
-            let new_current_place = tcx
-                .mk_place_field(*current_place, projected_field, field_ty)
-                .into();
-            debug_assert!(
-                !places.contains(&new_current_place),
-                "{:?} unexpectedly contains {:?}",
-                places,
-                new_current_place
-            );
-            (new_current_place, places)
+    let new_projection = tcx.mk_place_elems(
+        current_place
+            .projection
+            .iter()
+            .chain([guide_place.projection[index]]),
+    );
+    let new_current_place = Place(mir::Place {
+        local: current_place.local,
+        projection: new_projection,
+    });
+    let other_places = match guide_place.projection[index] {
+        mir::ProjectionElem::Field(projected_field, _field_ty) => {
+            expand_struct_place(current_place, mir, tcx, Some(projected_field.index()))
         }
-        mir::ProjectionElem::Downcast(_symbol, variant) => {
-            let kind = &current_place.ty(mir, tcx).ty.kind();
-            if let ty::TyKind::Adt(adt, _) = kind {
-                (
-                    tcx.mk_place_downcast(*current_place, *adt, variant).into(),
-                    Vec::new(),
-                )
-            } else {
-                unreachable!();
-            }
-        }
-        mir::ProjectionElem::Deref => (tcx.mk_place_deref(*current_place).into(), Vec::new()),
-        mir::ProjectionElem::Index(idx) => {
-            (tcx.mk_place_index(*current_place, idx).into(), Vec::new())
-        }
-        elem => {
-            unimplemented!("elem = {:?}", elem);
-        }
-    }
+        mir::ProjectionElem::Deref
+        | mir::ProjectionElem::Index(..)
+        | mir::ProjectionElem::ConstantIndex { .. }
+        | mir::ProjectionElem::Subslice { .. }
+        | mir::ProjectionElem::Downcast(..)
+        | mir::ProjectionElem::OpaqueCast(..) => vec![],
+    };
+    (new_current_place, other_places)
 }
 
 /// Subtract the `subtrahend` place from the `minuend` place. The
@@ -339,21 +327,23 @@ pub fn is_copy<'tcx>(
         // `type_implements_trait` doesn't consider that.
         matches!(mutability, mir::Mutability::Not)
     } else if let Some(copy_trait) = tcx.lang_items().copy_trait() {
-        tcx.infer_ctxt().enter(|infcx| {
-            // If `ty` has any inference variables (e.g. a region variable), then using it with
-            // the freshly-created `InferCtxt` (i.e. `tcx.infer_ctxt().enter(..)`) will cause
-            // a panic, since those inference variables don't exist in the new `InferCtxt`.
-            // See: https://rust-lang.zulipchat.com/#narrow/stream/182449-t-compiler.2Fhelp/topic/.E2.9C.94.20Panic.20in.20is_copy_modulo_regions
-            let fresh_ty = infcx.freshen(ty);
-            infcx
-                .type_implements_trait(copy_trait, fresh_ty, ty::List::empty(), param_env)
-                .must_apply_considering_regions()
-        })
+        let infcx = tcx.infer_ctxt().build();
+        // If `ty` has any inference variables (e.g. a region variable), then using it with
+        // the freshly-created `InferCtxt` (i.e. `tcx.infer_ctxt().enter(..)`) will cause
+        // a panic, since those inference variables don't exist in the new `InferCtxt`.
+        // See: https://rust-lang.zulipchat.com/#narrow/stream/182449-t-compiler.2Fhelp/topic/.E2.9C.94.20Panic.20in.20is_copy_modulo_regions
+        let fresh_ty = infcx.freshen(ty);
+        infcx
+            .type_implements_trait(copy_trait, fresh_ty, ty::List::empty(), param_env)
+            .must_apply_considering_regions()
     } else {
         false
     }
 }
 
+/// Given an assignment `let _ = & <borrowed_place>`, this function returns the place that is
+/// blocked by the loan.
+/// For example, `let _ = &x.f.g` blocks just `x.f.g`, but `let _ = &x.f[0].g` blocks `x.f`.
 pub fn get_blocked_place<'tcx>(tcx: TyCtxt<'tcx>, borrowed: Place<'tcx>) -> Place<'tcx> {
     for (place_ref, place_elem) in borrowed.iter_projections() {
         match place_elem {
@@ -367,7 +357,9 @@ pub fn get_blocked_place<'tcx>(tcx: TyCtxt<'tcx>, borrowed: Place<'tcx>) -> Plac
                 })
                 .into();
             }
-            mir::ProjectionElem::Field(..) | mir::ProjectionElem::Downcast(..) => {
+            mir::ProjectionElem::Field(..)
+            | mir::ProjectionElem::Downcast(..)
+            | mir::ProjectionElem::OpaqueCast(..) => {
                 // Continue
             }
         }

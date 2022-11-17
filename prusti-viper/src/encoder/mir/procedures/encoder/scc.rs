@@ -20,7 +20,7 @@ impl Graph {
         }
     }
 
-    pub fn edges<'a>(&'a self, vertex: usize) -> impl Iterator<Item = usize> + '_ {
+    pub fn edges(&self, vertex: usize) -> impl Iterator<Item = usize> + '_ {
         self.neighbors[&vertex].iter().cloned()
     }
 

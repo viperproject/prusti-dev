@@ -7,15 +7,12 @@
 //! Various helper functions for working with `mir::Place`.
 
 use log::trace;
-use prusti_rustc_interface::ast::ast;
-use prusti_rustc_interface::data_structures::fx::FxHashSet;
-use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
-use prusti_rustc_interface::middle::{
-    mir,
-    ty::{self, TyCtxt},
+use prusti_rustc_interface::{
+    ast::ast,
+    data_structures::fx::FxHashSet,
+    middle::{mir, ty::TyCtxt},
 };
-use analysis::mir_utils::expand_struct_place;
-use prusti_utils::force_matches;
+use std::borrow::Borrow;
 
 /// Check if the place `potential_prefix` is a prefix of `place`. For example:
 ///
@@ -45,26 +42,12 @@ pub fn expand_one_level<'tcx>(
     current_place: mir::Place<'tcx>,
     guide_place: mir::Place<'tcx>,
 ) -> (mir::Place<'tcx>, Vec<mir::Place<'tcx>>) {
-    let index = current_place.projection.len();
-    match guide_place.projection[index] {
-        mir::ProjectionElem::Field(projected_field, field_ty) => {
-            let places =
-                expand_struct_place(current_place, mir, tcx, Some(projected_field.index()));
-            let new_current_place = tcx.mk_place_field(current_place, projected_field, field_ty);
-            (new_current_place, places)
-        }
-        mir::ProjectionElem::Downcast(_symbol, variant) => {
-            let kind = &current_place.ty(mir, tcx).ty.kind();
-            force_matches!(kind, ty::TyKind::Adt(adt, _) =>
-                (tcx.mk_place_downcast(current_place, *adt, variant), Vec::new())
-            )
-        }
-        mir::ProjectionElem::Deref => (tcx.mk_place_deref(current_place), Vec::new()),
-        mir::ProjectionElem::Index(idx) => (tcx.mk_place_index(current_place, idx), Vec::new()),
-        elem => {
-            unimplemented!("elem = {:?}", elem);
-        }
-    }
+    use analysis::mir_utils::{expand_one_level, PlaceImpl};
+    let res = expand_one_level(mir, tcx, current_place.into(), guide_place.into());
+    (
+        res.0.to_mir_place(),
+        res.1.into_iter().map(PlaceImpl::to_mir_place).collect(),
+    )
 }
 
 /// Pop the last projection from the place and return the new place with the popped element.
@@ -213,24 +196,12 @@ impl<'tcx> VecPlace<'tcx> {
     }
 }
 
-pub fn get_local_attributes(tcx: ty::TyCtxt<'_>, def_id: LocalDefId) -> &[prusti_rustc_interface::ast::ast::Attribute] {
-    tcx.hir().attrs(tcx.hir().local_def_id_to_hir_id(def_id))
-}
-
-pub fn get_attributes(tcx: ty::TyCtxt<'_>, def_id: DefId) -> &[prusti_rustc_interface::ast::ast::Attribute] {
-    if let Some(local_def_id) = def_id.as_local() {
-        get_local_attributes(tcx, local_def_id)
-    } else {
-        tcx.item_attrs(def_id)
-    }
-}
-
 /// Check if `prusti::<name>` is among the attributes.
 /// Any arguments of the attribute are ignored.
 pub fn has_prusti_attr(attrs: &[ast::Attribute], name: &str) -> bool {
     attrs.iter().any(|attr| match &attr.kind {
-        ast::AttrKind::Normal(
-            ast::AttrItem {
+        ast::AttrKind::Normal(normal_attr) => {
+            let ast::AttrItem {
                 path:
                     ast::Path {
                         span: _,
@@ -239,9 +210,7 @@ pub fn has_prusti_attr(attrs: &[ast::Attribute], name: &str) -> bool {
                     },
                 args: _,
                 tokens: _,
-            },
-            _,
-        ) => {
+            } = &normal_attr.item;
             segments.len() == 2
                 && segments[0].ident.as_str() == "prusti"
                 && segments[1].ident.as_str() == name
@@ -264,6 +233,10 @@ pub fn read_extern_spec_attr(attrs: &[ast::Attribute]) -> Option<String> {
     read_prusti_attr("extern_spec", attrs)
 }
 
+pub fn read_specs_version_attr(attr: &ast::Attribute) -> Option<String> {
+    read_prusti_attr("specs_version", &[attr])
+}
+
 pub fn has_to_model_fn_attr(attrs: &[ast::Attribute]) -> bool {
     has_prusti_attr(attrs, "type_models_to_model_fn")
 }
@@ -281,40 +254,39 @@ pub fn has_abstract_predicate_attr(attrs: &[ast::Attribute]) -> bool {
 }
 
 /// Read the value stored in a Prusti attribute (e.g. `prusti::<attr_name>="...")`.
-pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<String> {
+pub fn read_prusti_attrs<T: Borrow<ast::Attribute>>(attr_name: &str, attrs: &[T]) -> Vec<String> {
     let mut strings = vec![];
     for attr in attrs {
-        if let ast::AttrKind::Normal(
-            ast::AttrItem {
+        if let ast::AttrKind::Normal(normal_attr) = &attr.borrow().kind {
+            if let ast::AttrItem {
                 path:
                     ast::Path {
                         span: _,
                         segments,
                         tokens: _,
                     },
-                args: ast::MacArgs::Eq(_, ast::MacArgsEq::Hir(ast::Lit {token, ..})),
+                args: ast::MacArgs::Eq(_, ast::MacArgsEq::Hir(ast::Lit { token_lit, .. })),
                 tokens: _,
-            },
-            _,
-        ) = &attr.kind
-        {
-            // Skip attributes whose path don't match with "prusti::<attr_name>"
-            if !(segments.len() == 2
-                && segments[0].ident.as_str() == "prusti"
-                && segments[1].ident.as_str() == attr_name)
+            } = &normal_attr.item
             {
-                continue;
+                // Skip attributes whose path don't match with "prusti::<attr_name>"
+                if !(segments.len() == 2
+                    && segments[0].ident.as_str() == "prusti"
+                    && segments[1].ident.as_str() == attr_name)
+                {
+                    continue;
+                }
+                fn extract_string(token: &prusti_rustc_interface::ast::token::Lit) -> String {
+                    token.symbol.as_str().replace("\\\"", "\"")
+                }
+                strings.push(extract_string(token_lit));
             }
-            fn extract_string(token: &prusti_rustc_interface::ast::token::Lit) -> String {
-                token.symbol.as_str().replace("\\\"", "\"")
-            }
-            strings.push(extract_string(token));
         };
     }
     strings
 }
 
 /// Read the value stored in a single Prusti attribute (e.g. `prusti::<attr_name>="...")`.
-pub fn read_prusti_attr(attr_name: &str, attrs: &[ast::Attribute]) -> Option<String> {
+pub fn read_prusti_attr<T: Borrow<ast::Attribute>>(attr_name: &str, attrs: &[T]) -> Option<String> {
     read_prusti_attrs(attr_name, attrs).pop()
 }

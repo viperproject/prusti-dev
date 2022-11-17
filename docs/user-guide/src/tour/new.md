@@ -198,7 +198,6 @@ appear in Prusti specifications:
 
 ```rust,noplaypen
 #//uncomment: #![feature(box_patterns)]
-#extern crate prusti_contracts;
 #use prusti_contracts::*; 
 #
 #pub struct List {
@@ -257,7 +256,6 @@ To fix this issue, it suffices to mark `Link::len()` as pure as well.
 
 ```rust,noplaypen
 #//uncomment: #![feature(box_patterns)]
-#extern crate prusti_contracts;
 #use prusti_contracts::*; 
 #
 #pub struct List {

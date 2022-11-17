@@ -2,7 +2,6 @@
 // In main, when calling the max function, Max::max is executed
 // The external spec is defined on TestStruct::max, verification fails
 
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 pub trait Max {

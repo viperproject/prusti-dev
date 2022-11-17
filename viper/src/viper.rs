@@ -35,7 +35,7 @@ impl Viper {
             viper_home
         );
 
-        let jar_paths: Vec<String> = fs::read_dir(&viper_home)
+        let jar_paths: Vec<String> = fs::read_dir(viper_home)
             .unwrap_or_else(|_| panic!("failed to open {:?}", viper_home))
             .map(|x| x.unwrap().path().to_str().unwrap().to_string())
             .collect();

@@ -10,6 +10,8 @@ pub enum Type {
     Float(Float),
     BitVector(BitVector),
     Seq(Seq),
+    Set(Set),
+    MultiSet(MultiSet),
     Map(Map),
     Ref,
     Domain(Domain),
@@ -34,6 +36,14 @@ pub enum BitVectorSize {
 }
 
 pub struct Seq {
+    pub element_type: Box<Type>,
+}
+
+pub struct Set {
+    pub element_type: Box<Type>,
+}
+
+pub struct MultiSet {
     pub element_type: Box<Type>,
 }
 

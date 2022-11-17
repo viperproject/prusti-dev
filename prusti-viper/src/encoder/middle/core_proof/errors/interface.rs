@@ -1,7 +1,6 @@
 use crate::encoder::{
     errors::{ErrorCtxt, MultiSpan},
     middle::core_proof::lowerer::Lowerer,
-    mir::procedures::MirProcedureEncoderInterface,
 };
 use vir_crate::low as vir_low;
 
@@ -19,14 +18,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> ErrorsInterface for Lowerer<'p, 'v, 'tcx> {
         span: T,
         error_ctxt: ErrorCtxt,
     ) -> vir_low::Position {
-        self.encoder
-            .error_manager()
-            .register_error(
-                span,
-                error_ctxt,
-                self.encoder
-                    .decode_procedure_def_id(self.procedure_name.as_ref().unwrap()),
-            )
-            .into()
+        if let Some(def_id) = self.def_id {
+            self.encoder
+                .error_manager()
+                .register_error(span, error_ctxt, def_id)
+                .into()
+        } else {
+            Default::default()
+        }
     }
 }

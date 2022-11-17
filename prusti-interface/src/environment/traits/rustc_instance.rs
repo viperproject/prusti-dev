@@ -1,29 +1,38 @@
 // This file was taken from the compiler:
-// https://raw.githubusercontent.com/rust-lang/rust/949b98cab8a186b98bf87e64374b8d0848c55271/compiler/rustc_ty_utils/src/instance.rs
+// https://raw.githubusercontent.com/rust-lang/rust/03d488b48af9f66b91e9400387f781b82411fa82/compiler/rustc_ty_utils/src/instance.rs
 // This file is licensed under Apache 2.0
-// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-APACHE)
+// (https://github.com/rust-lang/rust/blob/03d488b48af9f66b91e9400387f781b82411fa82/LICENSE-APACHE)
 // and MIT
-// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-MIT).
+// (https://github.com/rust-lang/rust/blob/03d488b48af9f66b91e9400387f781b82411fa82/LICENSE-MIT).
 //
 // Changes:
 // + Fix compilation errors.
 // + Use our copy of `codegen_fulfill_obligation` that does not record delayed
 //   span bugs, which is the main motivation for duplication.
-// + `ErrorGuaranteed` changed to `()` (private constructor).
+// + `ErrorGuaranteed` and `CodegenObligationError` changed to `()`.
+// + Replace `crate::*` imports with `prusti_rustc_interface::*` imports.
+// + Remove unused `resolve_instance_of_const_arg`.
 
-use prusti_rustc_interface::hir::def_id::DefId;
-use prusti_rustc_interface::infer::infer::TyCtxtInferExt;
-use prusti_rustc_interface::middle::ty::subst::SubstsRef;
-use prusti_rustc_interface::middle::ty::{self, Binder, Instance, Ty, TyCtxt, TypeFoldable, TypeVisitor, TypeSuperFoldable};
-use prusti_rustc_interface::span::{sym, DUMMY_SP};
-use prusti_rustc_interface::target::spec::abi::Abi;
-use prusti_rustc_interface::trait_selection::traits;
-use traits::{translate_substs, Reveal};
-use prusti_rustc_interface::data_structures::sso::SsoHashSet;
-use std::collections::btree_map::Entry;
-use std::collections::BTreeMap;
-use std::ops::ControlFlow;
 use log::debug;
+use prusti_rustc_interface::{
+    data_structures::sso::SsoHashSet,
+    hir::def_id::DefId,
+    infer::infer::TyCtxtInferExt,
+    middle::{
+        traits::CodegenObligationError,
+        ty::{
+            self, subst::SubstsRef, Binder, Instance, Ty, TyCtxt, TypeSuperVisitable,
+            TypeVisitable, TypeVisitor,
+        },
+    },
+    span::{sym, DUMMY_SP},
+    trait_selection::traits,
+};
+use std::{
+    collections::{btree_map::Entry, BTreeMap},
+    ops::ControlFlow,
+};
+use traits::{translate_substs, Reveal};
 
 // FIXME(#86795): `BoundVarsCollector` here should **NOT** be used
 // outside of `resolve_associated_item`. It's just to address #64494,
@@ -50,21 +59,21 @@ impl<'tcx> BoundVarsCollector<'tcx> {
     }
 
     fn into_vars(self, tcx: TyCtxt<'tcx>) -> &'tcx ty::List<ty::BoundVariableKind> {
-        let max = self.vars.iter().map(|(k, _)| *k).max().unwrap_or(0);
+        let max = self.vars.keys().copied().max().unwrap_or(0);
         for i in 0..max {
             if self.vars.get(&i).is_none() {
                 panic!("Unknown variable: {:?}", i);
             }
         }
 
-        tcx.mk_bound_variable_kinds(self.vars.into_iter().map(|(_, v)| v))
+        tcx.mk_bound_variable_kinds(self.vars.into_values())
     }
 }
 
 impl<'tcx> TypeVisitor<'tcx> for BoundVarsCollector<'tcx> {
     type BreakTy = ();
 
-    fn visit_binder<T: TypeFoldable<'tcx>>(
+    fn visit_binder<T: TypeVisitable<'tcx>>(
         &mut self,
         t: &Binder<'tcx, T>,
     ) -> ControlFlow<Self::BreakTy> {
@@ -127,12 +136,16 @@ pub fn resolve_instance<'tcx>(
     let (param_env, (did, substs)) = key.into_parts();
     if let Some(did) = did.as_local() {
         if let Some(param_did) = tcx.opt_const_param_of(did) {
-            return tcx.resolve_instance_of_const_arg(param_env.and((did, param_did, substs)))
+            return tcx
+                .resolve_instance_of_const_arg(param_env.and((did, param_did, substs)))
                 .map_err(|_| ());
         }
     }
 
-    inner_resolve_instance(tcx, param_env.and((ty::WithOptConstParam::unknown(did), substs)))
+    inner_resolve_instance(
+        tcx,
+        param_env.and((ty::WithOptConstParam::unknown(did), substs)),
+    )
 }
 
 fn inner_resolve_instance<'tcx>(
@@ -142,22 +155,20 @@ fn inner_resolve_instance<'tcx>(
     let (param_env, (def, substs)) = key.into_parts();
 
     let result = if let Some(trait_def_id) = tcx.trait_of_item(def.did) {
-        debug!(" => associated item, attempting to find impl in param_env {:#?}", param_env);
+        debug!(
+            " => associated item, attempting to find impl in param_env {:#?}",
+            param_env
+        );
         resolve_associated_item(tcx, def.did, param_env, trait_def_id, substs)
     } else {
         let ty = tcx.type_of(def.def_id_for_type_of());
         let item_type = tcx.subst_and_normalize_erasing_regions(substs, param_env, ty);
 
         let def = match *item_type.kind() {
-            ty::FnDef(..)
-            if {
-                let f = item_type.fn_sig(tcx);
-                f.abi() == Abi::RustIntrinsic || f.abi() == Abi::PlatformIntrinsic
-            } =>
-                {
-                    debug!(" => intrinsic");
-                    ty::InstanceDef::Intrinsic(def.did)
-                }
+            ty::FnDef(def_id, ..) if tcx.is_intrinsic(def_id) => {
+                debug!(" => intrinsic");
+                ty::InstanceDef::Intrinsic(def.did)
+            }
             ty::FnDef(def_id, substs) if Some(def_id) == tcx.lang_items().drop_in_place_fn() => {
                 let ty = substs.type_at(0);
 
@@ -205,7 +216,23 @@ fn resolve_associated_item<'tcx>(
     let mut bound_vars_collector = BoundVarsCollector::new();
     trait_ref.visit_with(&mut bound_vars_collector);
     let trait_binder = ty::Binder::bind_with_vars(trait_ref, bound_vars_collector.into_vars(tcx));
-    let vtbl = super::rustc_codegen::codegen_fulfill_obligation(tcx, (param_env, trait_binder))?;
+    let vtbl =
+        match super::rustc_codegen::codegen_fulfill_obligation(tcx, (param_env, trait_binder)) {
+            Ok(vtbl) => vtbl,
+            Err(CodegenObligationError::Ambiguity) => {
+                tcx.sess.delay_span_bug(
+                    tcx.def_span(trait_item_id),
+                    format!(
+                        "encountered ambiguity selecting `{:?}` during codegen, presuming due to \
+                     overflow or prior type error",
+                        trait_binder
+                    ),
+                );
+                return Err(());
+            }
+            Err(CodegenObligationError::Unimplemented) => return Ok(None),
+            Err(CodegenObligationError::FulfillmentError) => return Ok(None),
+        };
 
     // Now that we know which impl is being used, we can dispatch to
     // the actual function:
@@ -221,24 +248,27 @@ fn resolve_associated_item<'tcx>(
             let trait_def_id = tcx.trait_id_of_impl(impl_data.impl_def_id).unwrap();
             let trait_def = tcx.trait_def(trait_def_id);
             let leaf_def = trait_def
-                .ancestors(tcx, impl_data.impl_def_id).map_err(|_| ())?
+                .ancestors(tcx, impl_data.impl_def_id)
+                .map_err(|_| ())?
                 .leaf_def(tcx, trait_item_id)
                 .unwrap_or_else(|| {
-                    panic!("{:?} not found in {:?}", trait_item_id, impl_data.impl_def_id);
+                    panic!(
+                        "{:?} not found in {:?}",
+                        trait_item_id, impl_data.impl_def_id
+                    );
                 });
 
-            let substs = tcx.infer_ctxt().enter(|infcx| {
-                let param_env = param_env.with_reveal_all_normalized(tcx);
-                let substs = rcvr_substs.rebase_onto(tcx, trait_def_id, impl_data.substs);
-                let substs = translate_substs(
-                    &infcx,
-                    param_env,
-                    impl_data.impl_def_id,
-                    substs,
-                    leaf_def.defining_node,
-                );
-                infcx.tcx.erase_regions(substs)
-            });
+            let infcx = tcx.infer_ctxt().build();
+            let param_env = param_env.with_reveal_all_normalized(tcx);
+            let substs = rcvr_substs.rebase_onto(tcx, trait_def_id, impl_data.substs);
+            let substs = translate_substs(
+                &infcx,
+                param_env,
+                impl_data.impl_def_id,
+                substs,
+                leaf_def.defining_node,
+            );
+            let substs = infcx.tcx.erase_regions(substs);
 
             // Since this is a trait item, we need to see if the item is either a trait default item
             // or a specialization because we can't resolve those unless we can `Reveal::All`.
@@ -299,7 +329,7 @@ fn resolve_associated_item<'tcx>(
                         resolved_ty,
                     );
                     let span = tcx.def_span(leaf_def.item.def_id);
-                    tcx.sess.delay_span_bug(span, &msg);
+                    tcx.sess.delay_span_bug(span, msg);
 
                     return Err(());
                 }
@@ -315,12 +345,12 @@ fn resolve_associated_item<'tcx>(
         }),
         traits::ImplSource::Closure(closure_data) => {
             let trait_closure_kind = tcx.fn_trait_kind_from_lang_item(trait_id).unwrap();
-            Some(Instance::resolve_closure(
+            Instance::resolve_closure(
                 tcx,
                 closure_data.closure_def_id,
                 closure_data.substs,
                 trait_closure_kind,
-            ))
+            )
         }
         traits::ImplSource::FnPointer(ref data) => match data.fn_ty.kind() {
             ty::FnDef(..) | ty::FnPtr(..) => Some(Instance {
@@ -330,10 +360,11 @@ fn resolve_associated_item<'tcx>(
             _ => None,
         },
         traits::ImplSource::Object(ref data) => {
-            let index = traits::get_vtable_index_of_object_method(tcx, data, trait_item_id);
-            Some(Instance {
-                def: ty::InstanceDef::Virtual(trait_item_id, index.unwrap()),
-                substs: rcvr_substs,
+            traits::get_vtable_index_of_object_method(tcx, data, trait_item_id).map(|index| {
+                Instance {
+                    def: ty::InstanceDef::Virtual(trait_item_id, index),
+                    substs: rcvr_substs,
+                }
             })
         }
         traits::ImplSource::Builtin(..) => {
@@ -343,7 +374,7 @@ fn resolve_associated_item<'tcx>(
                 if name == sym::clone {
                     let self_ty = trait_ref.self_ty();
 
-                    let is_copy = self_ty.is_copy_modulo_regions(tcx.at(DUMMY_SP), param_env);
+                    let is_copy = self_ty.is_copy_modulo_regions(*tcx.at(DUMMY_SP), param_env);
                     match self_ty.kind() {
                         _ if is_copy => (),
                         ty::Closure(..) | ty::Tuple(..) => {}
@@ -374,3 +405,8 @@ fn resolve_associated_item<'tcx>(
         | traits::ImplSource::ConstDestruct(_) => None,
     })
 }
+
+// pub fn provide(providers: &mut ty::query::Providers) {
+//     *providers =
+//         ty::query::Providers { resolve_instance, resolve_instance_of_const_arg, ..*providers };
+// }

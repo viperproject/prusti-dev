@@ -48,7 +48,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
         &'a self,
         env: &'a Environment<'tcx>,
         substs: SubstsRef<'tcx>,
-    ) -> Vec<(LocalDefId, SubstsRef<'tcx>)> {
+    ) -> Vec<(DefId, SubstsRef<'tcx>)> {
         match &self.specification.pres {
             typed::SpecificationItem::Empty => vec![],
             typed::SpecificationItem::Inherent(pres)
@@ -67,7 +67,10 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
                         // This works because the generics of the specification
                         // items are the same as the generics of the method on
                         // which they are declared.
-                        env.find_trait_method_substs(self.def_id, substs).unwrap().1,
+                        env.query
+                            .find_trait_method_substs(self.def_id, substs)
+                            .unwrap()
+                            .1,
                     )
                 })
                 .collect(),
@@ -78,7 +81,7 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
         &'a self,
         env: &'a Environment<'tcx>,
         substs: SubstsRef<'tcx>,
-    ) -> Vec<(LocalDefId, SubstsRef<'tcx>)> {
+    ) -> Vec<(DefId, SubstsRef<'tcx>)> {
         match &self.specification.posts {
             typed::SpecificationItem::Empty => vec![],
             typed::SpecificationItem::Inherent(posts)
@@ -92,10 +95,36 @@ impl<L: fmt::Debug, P: fmt::Debug> ProcedureContractGeneric<L, P> {
                     (
                         *inherited_def_id,
                         // Same comment as `functional_precondition` applies.
-                        env.find_trait_method_substs(self.def_id, substs).unwrap().1,
+                        env.query
+                            .find_trait_method_substs(self.def_id, substs)
+                            .unwrap()
+                            .1,
                     )
                 })
                 .collect(),
+        }
+    }
+
+    pub fn functional_termination_measure<'a, 'tcx>(
+        &'a self,
+        env: &'a Environment<'tcx>,
+        substs: SubstsRef<'tcx>,
+    ) -> Option<(LocalDefId, SubstsRef<'tcx>)> {
+        match self.specification.terminates {
+            typed::SpecificationItem::Empty => None,
+            typed::SpecificationItem::Inherent(t) | typed::SpecificationItem::Refined(_, t) => {
+                t.map(|inherent_def_id| (inherent_def_id, substs))
+            }
+            typed::SpecificationItem::Inherited(t) => t.map(|inherited_def_id| {
+                (
+                    inherited_def_id,
+                    // Same comment as `functional_precondition` applies.
+                    env.query
+                        .find_trait_method_substs(self.def_id, substs)
+                        .unwrap()
+                        .1,
+                )
+            }),
         }
     }
 

@@ -1,0 +1,106 @@
+error: [Prusti: verification error] postcondition might not hold.
+  --> $DIR/struct-2.rs:14:11
+   |
+14 | #[ensures(!result)]
+   |           ^^^^^^^
+   |
+note: the error originates here
+  --> $DIR/struct-2.rs:15:1
+   |
+15 | / fn test_pure(x: X) -> bool{
+16 | |     x.a == x.b
+17 | | }
+   | |_^
+note: counterexample for "x"
+       value:   X {
+            a: 5,
+            b: 5,
+        }
+  --> $DIR/struct-2.rs:15:14
+   |
+15 | fn test_pure(x: X) -> bool{
+   |              ^
+note: counterexample for "result"
+       value:   true
+  --> $DIR/struct-2.rs:16:5
+   |
+16 |     x.a == x.b
+   |     ^^^^^^^^^^
+
+error: [Prusti: verification error] postcondition might not hold.
+  --> $DIR/struct-2.rs:21:35
+   |
+21 | fn test_mut(x: &mut X, a: i32) -> bool{
+   |                                   ^^^^
+   |
+note: the error originates here
+  --> $DIR/struct-2.rs:21:1
+   |
+21 | / fn test_mut(x: &mut X, a: i32) -> bool{
+22 | |     x.a = a;
+23 | |     x.b = 1;
+24 | |     x.a = 2;
+25 | |     x.a = a;
+26 | |     x.a > 0
+27 | | }
+   | |_^
+note: counterexample for "x"
+       value:   ref(X {
+            a: 0,
+            b: 3,
+        })
+  --> $DIR/struct-2.rs:21:13
+   |
+21 | fn test_mut(x: &mut X, a: i32) -> bool{
+   |             ^
+note: counterexample for "x"
+       value:   ref(X {
+            a: -2,
+            b: 3,
+        })
+  --> $DIR/struct-2.rs:22:5
+   |
+22 |     x.a = a;
+   |     ^^^^^^^
+note: counterexample for "x"
+       value:   ref(X {
+            a: -2,
+            b: 1,
+        })
+  --> $DIR/struct-2.rs:23:5
+   |
+23 |     x.b = 1;
+   |     ^^^^^^^
+note: counterexample for "x"
+       value:   ref(X {
+            a: 2,
+            b: 1,
+        })
+  --> $DIR/struct-2.rs:24:5
+   |
+24 |     x.a = 2;
+   |     ^^^^^^^
+note: counterexample for "x"
+       value:   ref(X {
+            a: -2,
+            b: 1,
+        })
+  --> $DIR/struct-2.rs:25:5
+   |
+25 |     x.a = a;
+   |     ^^^^^^^
+note: counterexample for "a"
+       value:   -2
+  --> $DIR/struct-2.rs:21:24
+   |
+21 | fn test_mut(x: &mut X, a: i32) -> bool{
+   |                        ^
+note: counterexample for "result"
+       value:   false
+  --> $DIR/struct-2.rs:26:5
+   |
+26 |     x.a > 0
+   |     ^^^^^^^
+
+error: aborting due to 2 previous errors
+

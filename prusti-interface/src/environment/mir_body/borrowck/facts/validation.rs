@@ -18,7 +18,7 @@ pub fn validate<'tcx>(
 
     let mut seen_points = FxHashSet::default();
 
-    for (block, data) in body.basic_blocks().iter_enumerated() {
+    for (block, data) in body.basic_blocks.iter_enumerated() {
         let mut location = mir::Location {
             block,
             statement_index: 0,
@@ -45,7 +45,7 @@ pub fn validate<'tcx>(
         let mid_point = location_table.location_to_point(RichLocation::Mid(location));
         assert_eq!(cfg_edges[&start_point], [mid_point]);
         let successor_points = &cfg_edges[&mid_point];
-        let successors: Vec<_> = body.successors(block).collect();
+        let successors: Vec<_> = body.basic_blocks.successors(block).collect();
         assert_eq!(
             successors.len(),
             successor_points.len(),

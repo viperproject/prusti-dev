@@ -1,0 +1,43 @@
+error: [Prusti: verification error] postcondition might not hold.
+  --> $DIR/box.rs:5:11
+   |
+5  | #[ensures(!result)]
+   |           ^^^^^^^
+   |
+note: the error originates here
+  --> $DIR/box.rs:6:1
+   |
+6  | / fn box_test(x: i32) -> bool {
+7  | |     let y = Box::new(x);
+8  | |     let z = Box::new(y);
+9  | |     **z == 0
+10 | | }
+   | |_^
+note: counterexample for "x"
+        initial value: 0
+        final value:   0
+  --> $DIR/box.rs:6:13
+   |
+6  | fn box_test(x: i32) -> bool {
+   |             ^
+note: counterexample for "y"
+        final value:   box(0)
+  --> $DIR/box.rs:7:9
+   |
+7  |     let y = Box::new(x);
+   |         ^
+note: counterexample for "z"
+        final value:   box(box(0))
+  --> $DIR/box.rs:8:9
+   |
+8  |     let z = Box::new(y);
+   |         ^
+note: counterexample for result
+        final value:   true
+  --> $DIR/box.rs:6:24
+   |
+6  | fn box_test(x: i32) -> bool {
+   |                        ^^^^
+
+error: aborting due to previous error
+

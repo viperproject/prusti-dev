@@ -7,13 +7,13 @@
 use error_chain::ChainedError;
 use jni_gen::*;
 use std::{env, fs, fs::File, io::copy, path::Path};
-use tempdir::TempDir;
+use tempfile::Builder;
 
 fn main() {
     env_logger::init();
     let generated_dir = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join("gen");
 
-    let deps_dir = TempDir::new("deps").unwrap_or_else(|e| {
+    let deps_dir = Builder::new().prefix("deps").tempdir().unwrap_or_else(|e| {
         panic!("{}", e);
     });
 
@@ -113,6 +113,9 @@ fn main() {
                 method!("toArray"),
             ]),
             java_class!("scala.collection.immutable.List", vec![
+                method!("toSeq"),
+            ]),
+            java_class!("scala.collection.immutable.Vector", vec![
                 method!("toSeq"),
             ]),
             java_class!("scala.collection.Iterable", vec![
@@ -741,6 +744,19 @@ fn main() {
                 method!("extractedHeaps"),
                 method!("extractedModel"),
                 method!("modelAtLabel"),
+                method!("domains"),
+                method!("nonDomainFunctions"),
+                method!("extractVal", "(Lviper/silicon/reporting/VarEntry;)Lviper/silicon/reporting/ExtractedModelEntry;"),
+            ]),
+            java_class!("viper.silicon.reporting.DomainEntry", vec![
+                method!("name"),
+                method!("functions"),
+            ]),
+            java_class!("viper.silicon.reporting.ExtractedFunction", vec![
+                method!("toString"),
+                method!("fname"),
+                method!("options"),
+                method!("default"),
             ]),
             java_class!("viper.silicon.reporting.ExtractedModel", vec![
                 method!("entries"),
@@ -777,6 +793,10 @@ fn main() {
             java_class!("viper.silicon.reporting.SeqEntry", vec![
                 method!("name"),
                 method!("values"),
+            ]),
+            java_class!("viper.silicon.reporting.DomainValueEntry", vec![
+                method!("domain"),
+                method!("id"),
             ]),
             java_class!("viper.silicon.reporting.ExtractedHeap", vec![
                 method!("entries"),

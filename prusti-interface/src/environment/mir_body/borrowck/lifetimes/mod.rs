@@ -4,6 +4,7 @@ use super::facts::{
 use crate::environment::debug_utils::to_text::{opaque_lifetime_string, ToText};
 use prusti_rustc_interface::middle::mir;
 use std::collections::{BTreeMap, BTreeSet};
+use vir::high::ty::LifetimeConst;
 
 mod graphviz;
 
@@ -49,6 +50,13 @@ impl Lifetimes {
 
     pub fn get_loan_live_at_start(&self, location: mir::Location) -> BTreeSet<String> {
         let info = self.get_loan_live_at(RichLocation::Start(location));
+        info.into_iter()
+            .map(|x| opaque_lifetime_string(x.index()))
+            .collect()
+    }
+
+    pub fn get_loan_live_at_mid(&self, location: mir::Location) -> BTreeSet<String> {
+        let info = self.get_loan_live_at(RichLocation::Mid(location));
         info.into_iter()
             .map(|x| opaque_lifetime_string(x.index()))
             .collect()
@@ -202,5 +210,41 @@ impl Lifetimes {
         } else {
             Vec::new()
         }
+    }
+
+    /// When the Rust compiler generates Polonius facts, it creates many
+    /// temporary lifetimes. Sometimes (for example, when encoding the
+    /// constructing assignment of the aggregate with a reference-typed field)
+    /// we need to unify the lifetimes. This method constructs a map from
+    /// lifetimes known to Polonius to `base_lifetimes` indicating with which
+    /// `base_lifetimes` the lifetimes could be replaced.
+    pub fn construct_replacement_map(
+        &self,
+        location: mir::Location,
+        base_lifetimes: Vec<LifetimeConst>,
+    ) -> BTreeMap<LifetimeConst, LifetimeConst> {
+        let mut map = BTreeMap::new();
+        fn to_lifetime(region: Region) -> LifetimeConst {
+            LifetimeConst::new(region.to_text())
+        }
+        let subset_base = self.get_subset_base_at_mid(location);
+        for lifetime in &base_lifetimes {
+            map.insert(lifetime.clone(), lifetime.clone());
+        }
+        let mut changed = true;
+        while changed {
+            changed = false;
+            for (constrained_lifetime, constraining_lifetime) in &subset_base {
+                let constrained_lifetime = to_lifetime(*constrained_lifetime);
+                let constraining_lifetime = to_lifetime(*constraining_lifetime);
+                if !map.contains_key(&constrained_lifetime) {
+                    if let Some(constraining_base_lifetime) = map.get(&constraining_lifetime) {
+                        map.insert(constrained_lifetime, constraining_base_lifetime.clone());
+                        changed = true;
+                    }
+                }
+            }
+        }
+        map
     }
 }

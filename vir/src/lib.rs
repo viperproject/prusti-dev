@@ -1,7 +1,6 @@
 #![feature(box_patterns)]
 #![feature(box_syntax)]
 #![feature(decl_macro)]
-#![feature(generic_associated_types)]
 #![allow(unused_imports)]
 #![deny(unused_must_use)]
 #![deny(unreachable_patterns)]
@@ -10,14 +9,21 @@
 #![deny(unused_doc_comments)]
 
 #[rustfmt::skip]
-#[path = "../gen/vir_gen.rs"]
+#[path = "../gen/mod.rs"]
 mod gen;
 
 pub mod common;
 pub mod converter;
+/// VIR that is as close to MIR as possible.
 pub mod high;
-pub mod legacy;
+/// Effectively Viper.
 pub mod low;
+/// Fold-unfold operations are inferred.
 pub mod middle;
+/// Reduce the number of types. For example, tuples and structs are unified.
+pub mod typed;
+
+/// Monomorphized legacy.
+pub mod legacy;
+/// Polymorphic legacy.
 pub mod polymorphic;
-pub mod snapshot;

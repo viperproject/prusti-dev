@@ -115,14 +115,14 @@ impl ToGraphViz for CfgMethod {
         }
 
         for (index, block) in self.basic_blocks.iter().enumerate() {
-            let block_label = self.index_to_label(index);
+            let block_label = &self.index_to_label(index);
             for target in block.successor.get_following() {
                 let target_label = self.index_to_label(target.index());
                 writeln!(
                     graph,
                     "\"block_{}\" -> \"block_{}\";",
-                    escape_html(&block_label),
-                    escape_html(&target_label),
+                    escape_html(block_label),
+                    escape_html(target_label),
                 )
                 .unwrap();
             }
@@ -148,7 +148,7 @@ impl ToGraphViz for CfgMethod {
         lines.push("<table border=\"0\" cellborder=\"1\" cellspacing=\"0\">".to_string());
 
         lines.push("<tr><td bgcolor=\"gray\" align=\"center\">".to_string());
-        lines.push(format!("{} (cfg:{})", escape_html(&label), index));
+        lines.push(format!("{} (cfg:{})", escape_html(label), index));
         lines.push("</td></tr>".to_string());
 
         for row in header_rows {

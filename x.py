@@ -12,6 +12,8 @@ import platform
 import subprocess
 import glob
 import csv
+import logging
+from pathlib import Path
 import time
 import json
 import signal
@@ -37,16 +39,16 @@ RUSTFMT_CRATES = [
     'jni-gen',
     'prusti',
     #'prusti-common',
-    #'prusti-contracts',
-    'prusti-contracts-impl',
-    'prusti-contracts-internal',
-    'prusti-contracts-test',
-    #'prusti-interface',
+    'prusti-contracts/prusti-contracts',
+    'prusti-contracts/prusti-contracts-proc-macros',
+    #'prusti-contracts/prusti-specs',
+    'prusti-contracts/prusti-std',
+    'prusti-contracts-build',
+    'prusti-interface',
     'prusti-launch',
     'prusti-rustc-interface',
     'prusti-server',
     'prusti-smt-solver',
-    #'prusti-specs',
     'prusti-tests',
     'prusti-utils',
     #'prusti-viper',
@@ -64,32 +66,22 @@ RUSTFMT_PATHS = [
     'prusti-common/src/vir/to_viper.rs',
     'prusti-common/src/vir/low_to_viper/mod.rs',
     'prusti-common/src/vir/optimizations/mod.rs',
-    'prusti-interface/src/environment/mir_dump/mod.rs',
-    'prusti-interface/src/environment/mir_analyses/mod.rs',
-    'prusti-interface/src/environment/mir_sets/mod.rs',
-    'prusti-interface/src/environment/mir_body/mod.rs',
-    'prusti-interface/src/environment/debug_utils/mod.rs',
-    'prusti-interface/src/environment/mir_utils/mod.rs',
-    'prusti-tests/tests/verify_partial/**/*.rs',
     'prusti-viper/src/encoder/foldunfold/mod.rs',
     'prusti-viper/src/encoder/mir/mod.rs',
     'prusti-viper/src/encoder/high/mod.rs',
+    'prusti-viper/src/encoder/typed/mod.rs',
     'prusti-viper/src/encoder/middle/mod.rs',
     'prusti-viper/src/encoder/snapshot/mod.rs',
     'prusti-viper/src/encoder/lifetimes/mod.rs',
     'prusti-viper/src/encoder/definition_collector.rs',
-    'vir/defs/high/mod.rs',
-    'vir/defs/middle/mod.rs',
-    'vir/defs/polymorphic/mod.rs',
-    'vir/defs/components/mod.rs',
-    'vir/defs/snapshot/mod.rs',
-    'vir/defs/low/mod.rs',
+    'prusti-viper/src/encoder/counterexamples/mod.rs',
+    'vir/defs/mod.rs',
 ]
 
 
 def shell(command, term_on_nzec=True):
     """Run a shell command."""
-    print("Running a shell command: ", command)
+    logging.debug(f"Running a shell command: {command}")
     if not dry_run:
         completed = subprocess.run(command.split())
         if completed.returncode != 0 and term_on_nzec:
@@ -169,6 +161,8 @@ def setup_win():
 def setup_rustup():
     # Update rustup
     shell('rustup self update', term_on_nzec=False)
+    # Install toolchain
+    shell('rustup show', term_on_nzec=False)
 
 
 def setup(args):
@@ -183,7 +177,7 @@ def setup(args):
         error("unexpected arguments: {}", args)
     if not rustup_only:
         if sys.platform in ("linux", "linux2"):
-            if 'Ubuntu' in platform.platform():
+            if 'Ubuntu' in platform.version():
                 setup_ubuntu()
             else:
                 setup_linux()
@@ -241,9 +235,9 @@ def fmt_check_all():
             run_command(['rustfmt', '--check', file])
 
 def check_smir():
-    """Check that `extern crate` is used only in `prusti_rustc_interface`."""
+    """Check that `extern crate` is used only in `prusti_rustc_interface` (TODO: `prusti_interface` is also ignored for now)."""
     for folder in os.listdir('.'):
-        if folder == 'prusti-rustc-interface':
+        if folder == 'prusti-rustc-interface' or folder == 'prusti-interface':
             continue
         if os.path.exists(os.path.join(folder, 'Cargo.toml')):
             completed = subprocess.run(
@@ -262,7 +256,107 @@ def check_smir():
                 )
             )
 
+def package(mode: str, package_path: str):
+    """Packages Prusti artifacts in the `package_path` folder.
+
+    Args:
+      mode: Either 'debug' or 'release'.
+      package_path: Where to copy all Prusti files and dependencies.
+    """
+    logging.info(f"Preparing a {mode}-mode Prusti package in '{package_path}'.")
+
+    # Prepare destination folder
+    Path(package_path).mkdir(parents=True, exist_ok=True)
+    if not os.listdir(package_path):
+        logging.warning(f"The destination folder '{package_path}' is not empty.")
+
+    # The glob patterns of the files to copy and their destination folder inside the package.
+    include_paths_and_dst = [
+        # (source pattern, destination)
+        ("rust-toolchain", "."),
+        ("viper_tools", "."),
+        (f"target/{mode}/prusti-driver*", "."),
+        (f"target/{mode}/prusti-server*", "."),
+        (f"target/{mode}/prusti-rustc*", "."),
+        (f"target/{mode}/cargo-prusti*", "."),
+        (f"target/verify/{mode}/libprusti_contracts.*", "."),
+        (f"target/verify/{mode}/deps/libprusti_contracts_proc_macros-*", "deps"),
+        (f"target/verify/{mode}/deps/prusti_contracts_proc_macros-*.dll", "deps"),
+        (f"target/verify/{mode}/libprusti_std.*", "."),
+        (f"target/verify/{mode}/deps/libprusti_contracts-*", "deps"),
+        (f"target/verify/{mode}/deps/prusti_contracts-*.dll", "deps"),
+    ]
+    exclude_paths = [
+        f"target/{mode}/*.d",
+        f"target/verify/{mode}/*.d",
+        f"target/verify/{mode}/deps/*.d",
+    ]
+    actual_exclude_set = set(path for pattern in exclude_paths for path in glob.glob(pattern))
+    logging.debug(f"The number of excluded paths is: {len(actual_exclude_set)}")
+
+    # Copy the paths
+    num_copied_paths = 0
+    for pattern, dst_folder in include_paths_and_dst:
+        matched_paths = set(glob.glob(pattern))
+        if not matched_paths:
+            logging.debug(f"A glob pattern gave no results: {pattern}")
+        filtered_paths = sorted(matched_paths - actual_exclude_set)
+        for src_path in filtered_paths:
+            dst_folder_path = os.path.join(package_path, dst_folder)
+            dst_path = os.path.join(dst_folder_path, os.path.basename(src_path))
+            logging.info(f"Copying '{src_path}' to '{dst_path}'...")
+            num_copied_paths += 1
+            if os.path.isfile(src_path):
+                Path(dst_folder_path).mkdir(parents=True, exist_ok=True)
+                shutil.copy(src_path, dst_path)
+            else:
+                if os.path.exists(dst_path):
+                    shutil.rmtree(dst_path)
+                shutil.copytree(src_path, dst_path)
+
+    logging.info(f"Copied {num_copied_paths} paths to the package folder")
+    if num_copied_paths <= 11:
+        logging.error(f"The number of copied paths is too low.")
+        sys.exit(1)
+
+
+def test_package(package_path: str):
+    """Quickly test that a Prusti release has been packaged correctly.
+
+    Args:
+      package_path: The path of the package.
+    """
+    prusti_rustc_path = os.path.join(package_path, "prusti-rustc")
+    if sys.platform == "win32":
+        prusti_rustc_path += ".exe"
+    os.chmod(prusti_rustc_path, 0o744)
+    test_files = [
+        (True, "prusti-tests/tests/verify_overflow/pass/simple-specs/simple-spec.rs"),
+        (False, "prusti-tests/tests/verify/fail/simple-specs/binary-search.rs"),
+    ]
+    for should_pass, test_path in test_files:
+        logging.info(f"Testing '{prusti_rustc_path}' on '{test_path}'")
+        status = subprocess.run(
+            [prusti_rustc_path, test_path, "--edition=2018"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        exit_code = status.returncode
+        if (exit_code == 0) != should_pass:
+            logging.error(
+                f"The test is marked as {should_pass=}, but the exit code is {exit_code}.\n"
+                "┌─── Begin stdout ───┐\n"
+                f"{status.stdout.decode('utf-8')}\n"
+                "└─── End stdout ─────┘\n"
+                "┌─── Begin stderr ───┐\n"
+                f"{status.stderr.decode('utf-8')}\n"
+                "└─── End stderr ─────┘"
+            )
+            sys.exit(1)
+
+
 def main(argv):
+    logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
     for i, arg in enumerate(argv):
         if arg.startswith('+'):
             if arg == '+v' or arg == '++verbose':
@@ -306,6 +400,12 @@ def main(argv):
             break
         elif arg == 'check-smir':
             check_smir(*argv[i+1:])
+            break
+        elif arg == 'package':
+            package(*argv[i+1:])
+            break
+        elif arg == 'test-package':
+            test_package(*argv[i+1:])
             break
         else:
             cargo(argv[i:])

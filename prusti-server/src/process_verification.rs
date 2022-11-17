@@ -9,7 +9,7 @@ use log::info;
 use prusti_common::{
     config,
     report::log::{report, to_legal_file_name},
-    vir::ToViper,
+    vir::{program_normalization::NormalizationInfo, ToViper},
     Stopwatch,
 };
 use std::{fs::create_dir_all, path::PathBuf};
@@ -19,10 +19,23 @@ use viper::{
 
 pub fn process_verification_request<'v, 't: 'v>(
     verification_context: &'v VerificationContext<'t>,
-    request: VerificationRequest,
+    mut request: VerificationRequest,
     cache: impl Cache,
 ) -> viper::VerificationResult {
     let ast_utils = verification_context.new_ast_utils();
+
+    // Only for testing: Check that the normalization is reversible.
+    if config::print_hash() {
+        debug_assert!({
+            let mut program = request.program.clone();
+            let normalization_info = NormalizationInfo::normalize_program(&mut program);
+            normalization_info.denormalize_program(&mut program);
+            program == request.program
+        });
+    }
+
+    // Normalize the request before reaching the cache.
+    let normalization_info = NormalizationInfo::normalize_program(&mut request.program);
 
     let hash = request.get_hash();
     info!(
@@ -40,13 +53,17 @@ pub fn process_verification_request<'v, 't: 'v>(
 
         if config::dump_viper_program() {
             stopwatch.start_next("dumping viper program");
-            dump_viper_program(&ast_utils, viper_program, request.program.get_name());
+            dump_viper_program(
+                &ast_utils,
+                viper_program,
+                &request.program.get_name_with_check_mode(),
+            );
         }
 
         viper_program
     };
 
-    // Print the hash and skip verification. Used for testing.
+    // Only for testing: Print the hash and skip verification.
     if config::print_hash() {
         println!(
             "Received verification request for: {}",
@@ -64,19 +81,18 @@ pub fn process_verification_request<'v, 't: 'v>(
 
     // Early return in case of cache hit
     if config::enable_cache() {
-        if let Some(result) = cache.get(hash) {
-            if result != VerificationResult::Success {
-                info!(
-                    "cached result {:?} for program {}",
-                    &result,
-                    request.program.get_name()
-                );
-            }
+        if let Some(mut result) = cache.get(hash) {
+            info!(
+                "Using cached result {:?} for program {}",
+                &result,
+                request.program.get_name()
+            );
             if config::dump_viper_program() {
                 ast_utils.with_local_frame(16, || {
                     let _ = build_or_dump_viper_program();
                 });
             }
+            normalization_info.denormalize_result(&mut result);
             return result;
         }
     };
@@ -92,19 +108,19 @@ pub fn process_verification_request<'v, 't: 'v>(
             new_viper_verifier(program_name, verification_context, request.backend_config);
 
         stopwatch.start_next("verification");
-        let result = verifier.verify(viper_program);
+        let mut result = verifier.verify(viper_program);
 
-        if config::enable_cache() {
-            if result != VerificationResult::Success {
-                info!(
-                    "storing new cached result {:?} for program {}",
-                    &result,
-                    request.program.get_name()
-                );
-            }
+        // Don't cache Java exceptions, which might be due to misconfigured paths.
+        if config::enable_cache() && !matches!(result, VerificationResult::JavaException(_)) {
+            info!(
+                "Storing new cached result {:?} for program {}",
+                &result,
+                request.program.get_name()
+            );
             cache.insert(hash, result.clone());
         }
 
+        normalization_info.denormalize_result(&mut result);
         result
     })
 }
@@ -161,10 +177,10 @@ fn new_viper_verifier<'v, 't: 'v>(
             log_path,
             config::preserve_smt_trace_files(),
             config::write_smt_statistics(),
-            config::smt_quantifier_instantiations_ignore_builtin(),
-            config::smt_quantifier_instantiations_bound_global_kind(),
-            config::smt_quantifier_instantiations_bound_trace(),
-            config::smt_quantifier_instantiations_bound_trace_kind(),
+            config::smt_qi_ignore_builtin(),
+            config::smt_qi_bound_global_kind(),
+            config::smt_qi_bound_trace(),
+            config::smt_qi_bound_trace_kind(),
             config::smt_unique_triggers_bound(),
             config::smt_unique_triggers_bound_total(),
         );
@@ -180,12 +196,9 @@ fn new_viper_verifier<'v, 't: 'v>(
         (config::smt_solver_path(), SmtManager::default())
     };
     let boogie_path = config::boogie_path();
-    if let Some(bound) = config::smt_quantifier_instantiations_bound_global() {
+    if let Some(bound) = config::smt_qi_bound_global() {
         // We need to set the environment variable to reach our Z3 wrapper.
-        std::env::set_var(
-            "PRUSTI_SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL",
-            bound.to_string(),
-        );
+        std::env::set_var("PRUSTI_SMT_QI_BOUND_GLOBAL", bound.to_string());
     }
 
     verification_context.new_verifier(

@@ -105,7 +105,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
         let elem = projection.last().unwrap();
         Ok(match elem {
-            mir::ProjectionElem::Field(ref field, _) => {
+            mir::ProjectionElem::Field(ref field, proj_field_ty) => {
                 match base_ty.kind() {
                     ty::TyKind::Tuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
@@ -144,7 +144,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             encoded_base
                         };
                         let field = &variant_def.fields[field.index()];
-                        let field_ty = field.ty(tcx, subst);
+                        let field_ty = *proj_field_ty;
                         if utils::is_reference(field_ty) {
                             return Err(EncodingError::unsupported(
                                 "access to reference-typed fields is not supported",
@@ -160,52 +160,24 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         (encoded_projection, field_ty, None)
                     }
 
-                    ty::TyKind::Closure(def_id, ref closure_subst) => {
+                    ty::TyKind::Closure(def_id, closure_subst) => {
+                        let closure_subst = closure_subst.as_closure();
                         debug!("def_id={:?} closure_subst {:?}", def_id, closure_subst);
 
-                        let closure_subst = closure_subst.as_closure();
-                        debug!("Closure subst: {:?}", closure_subst);
-
-                        // let tcx = self.encoder().env().tcx();
-                        // let node_id = tcx.hir.as_local_node_id(def_id).unwrap();
-                        // let field_ty = closure_subst
-                        //     .upvar_tys(def_id, tcx)
-                        //     .nth(field.index())
-                        //     .unwrap();
-                        let field_ty = closure_subst.upvar_tys().nth(field.index())
-                            .ok_or_else(|| EncodingError::internal(format!(
-                                "failed to obtain the type of the captured path #{} of closure {:?}",
-                                field.index(),
-                                base_ty,
-                            )))?;
-
+                        let field_ty = *proj_field_ty;
                         let field_name = format!("closure_{}", field.index());
                         let encoded_field = self.encoder()
                             .encode_raw_ref_field(field_name, field_ty)?;
                         let encoded_projection = encoded_base.field(encoded_field);
-
-                        // let encoded_projection: vir::Expr = tcx.with_freevars(node_id, |freevars| {
-                        //     let freevar = &freevars[field.index()];
-                        //     let field_name = format!("closure_{}", field.index());
-                        //     let encoded_field = self.encoder()
-                        //          .encode_raw_ref_field(field_name, field_ty)?;
-                        //     let res = encoded_base.field(encoded_field);
-                        //     let var_name = tcx.hir.name(freevar.var_id()).to_string();
-                        //     trace!("Field {:?} of closure corresponds to variable '{}', encoded as {}", field, var_name, res);
-                        //     res
-                        // });
-
-                        let encoded_field_type = self.encoder().encode_type(field_ty)?;
-                        // debug!("Rust closure projection {:?}", place_projection);
                         debug!("encoded_projection: {:?}", encoded_projection);
 
+                        let encoded_field_type = self.encoder().encode_type(field_ty)?;
                         assert_eq!(encoded_projection.get_type(), &encoded_field_type);
-
                         (encoded_projection, field_ty, None)
                     }
 
-                    ty::TyKind::Generator(_, _, _) => {
-                        return Err(EncodingError::unsupported("generator fields are not supported yet"));
+                    ty::TyKind::Generator(..) => {
+                        return Err(EncodingError::unsupported("generator fields are not supported"));
                     }
 
                     x => {
@@ -223,7 +195,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         (PlaceEncoding::Expr(e), ty, v)
                     }
                     Err(_) => return Err(EncodingError::unsupported(
-                        "mixed dereferencing and array indexing projections are not supported yet"
+                        "mixed dereferencing and array indexing projections are not supported"
                     )),
                 }
             }
@@ -231,6 +203,11 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
             mir::ProjectionElem::Downcast(ref adt_def, variant_index) => {
                 debug!("Downcast projection {:?}, {:?}", adt_def, variant_index);
                 (encoded_base, base_ty, Some((*variant_index).into()))
+            }
+
+            mir::ProjectionElem::OpaqueCast(cast_ty) => {
+                debug!("Opaque cast projection {:?}", cast_ty);
+                (encoded_base, *cast_ty, None)
             }
 
             mir::ProjectionElem::Index(_)
@@ -453,7 +430,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     encoded_place
                         .try_into_expr()
                         .map_err(|_| EncodingError::unsupported(
-                            "array indexing is not supported in arbitrary operand positions yet. Try refactoring your code to have only an array access on the right-hand side of assignments using temporary variables".to_string(),
+                            "array indexing is not supported in arbitrary operand positions. Try refactoring your code to have only an array access on the right-hand side of assignments using temporary variables".to_string(),
                         ))?,
                     place_ty,
                 )?
@@ -625,7 +602,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                     ),
                     ty::TyKind::Int(ty::IntTy::I16) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i16::MIN.into()),
-                        vir::Expr::gt_cmp(result, std::i16::MIN.into()),
+                        vir::Expr::gt_cmp(result, std::i16::MAX.into()),
                     ),
                     ty::TyKind::Int(ty::IntTy::I32) => vir::Expr::or(
                         vir::Expr::lt_cmp(result.clone(), std::i32::MIN.into()),
@@ -840,7 +817,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn get_span_of_basic_block(&self, bbi: mir::BasicBlock) -> Span {
-        let bb_data = &self.mir.basic_blocks()[bbi];
+        let bb_data = &self.mir.basic_blocks[bbi];
         bb_data.terminator().source_info.span
     }
 
@@ -859,10 +836,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
 
         // To classify the cause of the panic it's enough to look at the top 3 macro calls
         let lookup_size = 3;
-        let tcx = self.encoder.env().tcx();
+        let env_name = self.encoder.env().name;
         let macro_names: Vec<String> = macro_backtrace.iter()
             .take(lookup_size)
-            .filter_map(|x| x.macro_def_id.map(|y| tcx.def_path_str(y)))
+            .filter_map(|x| x.macro_def_id.map(|y| env_name.get_absolute_item_name(y)))
             .collect();
         debug!("macro_names: {:?}", macro_names);
 

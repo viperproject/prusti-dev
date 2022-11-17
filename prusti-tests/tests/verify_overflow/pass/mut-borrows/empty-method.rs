@@ -1,6 +1,4 @@
 #[feature(nll)]
-extern crate prusti_contracts;
-
 struct G {
     value: u32,
 }
