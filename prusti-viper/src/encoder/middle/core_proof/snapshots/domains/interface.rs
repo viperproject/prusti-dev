@@ -67,10 +67,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotDomainsInterface for Lowerer<'p, 'v, 'tcx> {
             "ty: {}",
             ty
         );
-        let domain_name = if ty == &vir_mid::Type::Lifetime {
-            self.lifetime_domain_name()?
-        } else {
-            format!("Snap${}", ty.get_identifier())
+        let domain_name = match ty {
+            vir_mid::Type::Lifetime => self.lifetime_domain_name()?,
+            vir_mid::Type::Array(vir_mid::ty::Array { element_type, .. })
+            | vir_mid::Type::Slice(vir_mid::ty::Slice { element_type, .. }) => {
+                format!("Snap$array${}", element_type.get_identifier())
+            }
+            _ => format!("Snap${}", ty.get_identifier()),
         };
         if !self.snapshots_state.domain_types.contains_key(&domain_name) {
             self.snapshots_state
@@ -108,6 +111,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotDomainsInterface for Lowerer<'p, 'v, 'tcx> {
             }
             vir_mid::Type::Array(array) => {
                 let enc_elem = self.encode_snapshot_domain_type(&array.element_type)?;
+                let low_ty = vir_low::Type::seq(enc_elem);
+                self.register_type_domain(ty, &low_ty)?;
+                Ok(low_ty)
+            }
+            vir_mid::Type::Slice(slice) => {
+                let enc_elem = self.encode_snapshot_domain_type(&slice.element_type)?;
                 let low_ty = vir_low::Type::seq(enc_elem);
                 self.register_type_domain(ty, &low_ty)?;
                 Ok(low_ty)

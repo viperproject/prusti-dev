@@ -64,6 +64,20 @@ impl ToText
     }
 }
 
+impl ToText for prusti_rustc_interface::middle::ty::BoundRegionKind {
+    fn to_text(&self) -> String {
+        match self {
+            prusti_rustc_interface::middle::ty::BoundRegionKind::BrAnon(id) => {
+                format!("lft_br_anon_{}", id)
+            }
+            prusti_rustc_interface::middle::ty::BoundRegionKind::BrNamed(_, name) => {
+                format!("lft_br_named_{}", name)
+            }
+            prusti_rustc_interface::middle::ty::BoundRegionKind::BrEnv => "lft_br_env".to_string(),
+        }
+    }
+}
+
 impl ToText for BTreeSet<prusti_rustc_interface::middle::ty::RegionVid> {
     fn to_text(&self) -> String {
         let strings: Vec<_> = self.iter().map(|r| r.to_text()).collect();
@@ -174,9 +188,6 @@ impl<'tcx> ToText for prusti_rustc_interface::middle::ty::Region<'tcx> {
             }
             prusti_rustc_interface::middle::ty::RePlaceholder(_) => {
                 unimplemented!("RePlaceholder: {}", format!("{}", self));
-            }
-            prusti_rustc_interface::middle::ty::ReEmpty(_) => {
-                unimplemented!("ReEmpty: {}", format!("{}", self));
             }
             prusti_rustc_interface::middle::ty::ReErased => String::from("lft_erased"),
         }

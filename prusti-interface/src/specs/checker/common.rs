@@ -1,13 +1,11 @@
-use prusti_rustc_interface::hir::{
-    self as hir,
-    intravisit::{self, Visitor},
-};
-use prusti_rustc_interface::middle::{hir::map::Map, ty::TyCtxt};
-use prusti_rustc_interface::span::Span;
-use crate::{
-    environment::Environment,
-    utils::has_spec_only_attr,
-    PrustiError,
+use crate::{environment::Environment, utils::has_spec_only_attr, PrustiError};
+use prusti_rustc_interface::{
+    hir::{
+        self as hir,
+        intravisit::{self, Visitor},
+    },
+    middle::{hir::map::Map, ty::TyCtxt},
+    span::Span,
 };
 
 /// A strategy to check specifications
@@ -27,7 +25,10 @@ pub trait NonSpecExprVisitor<'tcx> {
 
     /// Wraps this delegate into a type which implements `intravisit::Visitor`, calling the
     /// [visit_expr] delegate method.
-    fn wrap_as_visitor(self) -> NonSpecExprVisitorWrapper<'tcx, Self> where Self: Sized {
+    fn wrap_as_visitor(self) -> NonSpecExprVisitorWrapper<'tcx, Self>
+    where
+        Self: Sized,
+    {
         NonSpecExprVisitorWrapper {
             wrapped: self,
             _marker: std::marker::PhantomData,
@@ -38,13 +39,13 @@ pub trait NonSpecExprVisitor<'tcx> {
 /// A newtype wrapper for a [NonSpecExprVisitor] implementing type which implements the `intravisit::Visitor` trait
 pub struct NonSpecExprVisitorWrapper<'tcx, T: NonSpecExprVisitor<'tcx>> {
     pub wrapped: T,
-    _marker: std::marker::PhantomData<&'tcx T>
+    _marker: std::marker::PhantomData<&'tcx T>,
 }
 
 /// An implementation for `intravisit::Visitor` for [NonSpecExprVisitor] implementing types
 impl<'tcx, T: NonSpecExprVisitor<'tcx>> Visitor<'tcx> for NonSpecExprVisitorWrapper<'tcx, T> {
     type Map = Map<'tcx>;
-    type NestedFilter =prusti_rustc_interface::middle::hir::nested_filter::All;
+    type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::All;
 
     fn nested_visit_map(&mut self) -> Self::Map {
         self.wrapped.tcx().hir()
@@ -75,7 +76,7 @@ impl<'tcx, T: NonSpecExprVisitor<'tcx>> Visitor<'tcx> for NonSpecExprVisitorWrap
         fk: intravisit::FnKind<'tcx>,
         fd: &'tcx hir::FnDecl<'tcx>,
         b: hir::BodyId,
-        s: Span,
+        _s: Span,
         id: hir::HirId,
     ) {
         // Stop checking inside `prusti::spec_only` functions
@@ -84,6 +85,6 @@ impl<'tcx, T: NonSpecExprVisitor<'tcx>> Visitor<'tcx> for NonSpecExprVisitorWrap
             return;
         }
 
-        intravisit::walk_fn(self, fk, fd, b, s, id);
+        intravisit::walk_fn(self, fk, fd, b, id);
     }
 }

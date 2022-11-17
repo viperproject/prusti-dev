@@ -4,11 +4,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_rustc_interface::span::Span;
-use prusti_rustc_interface::errors::MultiSpan;
-use crate::environment::Environment;
-use prusti_common::config;
+use crate::environment::EnvDiagnostic;
 use ::log::warn;
+use prusti_common::config;
+use prusti_rustc_interface::{errors::MultiSpan, span::Span};
 
 /// The Prusti message that will be reported to the user.
 ///
@@ -30,21 +29,24 @@ pub struct PrustiError {
     /// field should be removed.
     is_disabled: bool,
     message: String,
-    span: MultiSpan,
+    span: Box<MultiSpan>,
     help: Option<String>,
     notes: Vec<(String, Option<MultiSpan>)>,
 }
 /// Determines how a `PrustiError` is reported.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PrustiErrorKind {
-    Error, Warning,
+    Error,
+    Warning,
     /// A warning which is only shown if at least one error is emitted.
     WarningOnError,
 }
 
 impl PartialOrd for PrustiError {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.span.primary_span().partial_cmp(&other.span.primary_span())
+        self.span
+            .primary_span()
+            .partial_cmp(&other.span.primary_span())
     }
 }
 
@@ -61,7 +63,7 @@ impl PrustiError {
             kind: PrustiErrorKind::Error,
             is_disabled: false,
             message,
-            span,
+            span: Box::new(span),
             help: None,
             notes: vec![],
         }
@@ -72,7 +74,7 @@ impl PrustiError {
         check_message(message.to_string());
         PrustiError::new(
             format!("[Prusti: verification error] {}", message.to_string()),
-            span
+            span,
         )
     }
 
@@ -80,7 +82,7 @@ impl PrustiError {
         check_message(message.to_string());
         let mut error = PrustiError::new(
             format!("[Prusti: verification error] {}", message.to_string()),
-            span
+            span,
         );
         error.is_disabled = true;
         error
@@ -91,7 +93,7 @@ impl PrustiError {
         check_message(message.to_string());
         let mut error = PrustiError::new(
             format!("[Prusti: unsupported feature] {}", message.to_string()),
-            span
+            span,
         );
         if config::skip_unsupported_features() {
             error.set_warning();
@@ -104,17 +106,14 @@ impl PrustiError {
         check_message(message.to_string());
         PrustiError::new(
             format!("[Prusti: invalid specification] {}", message.to_string()),
-            span
+            span,
         )
     }
 
     /// Report a non-fatal issue
     pub fn warning<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
-        let mut err = PrustiError::new(
-            format!("[Prusti: warning] {}", message.to_string()),
-            span
-        );
+        let mut err = PrustiError::new(format!("[Prusti: warning] {}", message.to_string()), span);
         err.kind = PrustiErrorKind::Warning;
         err
     }
@@ -123,10 +122,7 @@ impl PrustiError {
     /// (e.g. cannot automatically include loop guard as an invariant)
     pub fn warning_on_error<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
-        let mut err = PrustiError::new(
-            format!("[Prusti: warning] {}", message.to_string()),
-            span
-        );
+        let mut err = PrustiError::new(format!("[Prusti: warning] {}", message.to_string()), span);
         err.kind = PrustiErrorKind::WarningOnError;
         err
     }
@@ -174,7 +170,8 @@ impl PrustiError {
 
     #[must_use]
     pub fn add_note<S: ToString>(mut self, message: S, opt_span: Option<Span>) -> Self {
-        self.notes.push((message.to_string(), opt_span.map(MultiSpan::from)));
+        self.notes
+            .push((message.to_string(), opt_span.map(MultiSpan::from)));
         self
     }
 
@@ -185,23 +182,23 @@ impl PrustiError {
     /// Report the encoding error using the compiler's interface.
     /// Warnings are not immediately emitted, but buffered and only shown
     /// if an error is emitted (i.e. verification failure)
-    pub fn emit(self, env: &Environment) {
+    pub fn emit(self, env_diagnostic: &EnvDiagnostic) {
         assert!(!self.is_disabled);
         match self.kind {
-            PrustiErrorKind::Error => env.span_err_with_help_and_notes(
-                self.span,
+            PrustiErrorKind::Error => env_diagnostic.span_err_with_help_and_notes(
+                *self.span,
                 &self.message,
                 &self.help,
                 &self.notes,
             ),
-            PrustiErrorKind::Warning => env.span_warn_with_help_and_notes(
-                self.span,
+            PrustiErrorKind::Warning => env_diagnostic.span_warn_with_help_and_notes(
+                *self.span,
                 &self.message,
                 &self.help,
                 &self.notes,
             ),
-            PrustiErrorKind::WarningOnError => env.span_warn_on_err_with_help_and_notes(
-                self.span,
+            PrustiErrorKind::WarningOnError => env_diagnostic.span_warn_on_err_with_help_and_notes(
+                *self.span,
                 &self.message,
                 &self.help,
                 &self.notes,
@@ -232,20 +229,20 @@ impl PrustiError {
     #[must_use]
     pub fn push_primary_span(mut self, opt_span: Option<&MultiSpan>) -> Self {
         if let Some(span) = opt_span {
-            self.notes.push(("the error originates here".to_string(), Some(self.span)));
-            self.span = span.clone();
+            self.notes
+                .push(("the error originates here".to_string(), Some(*self.span)));
+            *self.span = span.clone();
         }
         self
     }
 }
 
 fn check_message(message: String) {
-    debug_assert!(
-        message.len() >= 3,
-        "Message {:?} is too short",
-        message
-    );
+    debug_assert!(message.len() >= 3, "Message {:?} is too short", message);
     if message.get(0..1).unwrap() != message.get(0..1).unwrap().to_lowercase() {
-        warn!("Message {:?} should start with a lowercase character", message);
+        warn!(
+            "Message {:?} should start with a lowercase character",
+            message
+        );
     }
 }

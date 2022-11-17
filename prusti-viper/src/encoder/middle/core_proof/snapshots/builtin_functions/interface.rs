@@ -58,13 +58,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             let valid_sequence = self.encode_snapshot_valid_call(&domain_name, sequence.clone())?;
             let element = vir_low::Expression::container_op_no_pos(
                 vir_low::expression::ContainerOpKind::SeqIndex,
-                sequence.clone(),
-                index.clone().into(),
+                vir_low::Type::seq(element_type.to_snapshot(self)?),
+                vec![sequence.clone(), index.clone().into()],
             );
             let len = vir_low::Expression::container_op_no_pos(
                 vir_low::expression::ContainerOpKind::SeqLen,
-                sequence.clone(),
-                true.into(),
+                vir_low::Type::seq(element_type.to_snapshot(self)?),
+                vec![sequence.clone()],
             );
             let elements = vir_low::Expression::forall(
                 vec![index.clone()],

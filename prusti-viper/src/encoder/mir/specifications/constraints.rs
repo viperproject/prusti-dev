@@ -7,11 +7,8 @@ use prusti_interface::{
 };
 use prusti_rustc_interface::{
     errors::MultiSpan,
-    hir::def_id::{DefId, LocalDefId},
-    middle::{
-        ty,
-        ty::subst::{Subst, SubstsRef},
-    },
+    hir::def_id::DefId,
+    middle::{ty, ty::subst::SubstsRef},
     span::Span,
 };
 
@@ -33,7 +30,7 @@ pub(super) trait ConstraintResolver<'spec, 'env: 'spec, 'tcx: 'env> {
                 Some(resolved_spec)
             }
             Err(e) => {
-                e.emit(env);
+                e.emit(&env.diagnostic);
                 None
             }
         }
@@ -93,10 +90,10 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
 
         if let Some((constraint_kind, spec_with_constraints)) = applicable_specs.next() {
             if applicable_specs.next().is_some() {
-                let span = env.tcx().def_span(context.proc_def_id);
+                let span = env.query.get_def_span(context.proc_def_id);
                 return Err(PrustiError::unsupported("Multiple different applicable specification obligations found, which is currently not supported in Prusti", MultiSpan::from_span(span)).add_note(
                     "This error is triggered because of a call to this function",
-                    context.caller_proc_def_id.map(|caller| env.tcx().def_span(caller)),
+                    context.caller_proc_def_id.map(|caller| env.query.get_def_span(caller)),
                 ));
             }
 
@@ -156,9 +153,9 @@ pub mod trait_bounds {
         // contain a behavioral subtyping check which will be performed on the
         // resolved spec.
         let param_env_lookup = if let Some(caller_def_id) = context.caller_proc_def_id {
-            env.tcx().param_env(caller_def_id)
+            caller_def_id
         } else {
-            env.tcx().param_env(context.proc_def_id)
+            context.proc_def_id
         };
 
         let all_bounds_satisfied = param_env_constraint
@@ -169,9 +166,11 @@ pub mod trait_bounds {
                 // This needs to be done because ghost constraints might contain "deeply nested"
                 // associated types, e.g. `T: A<SomeAssocType = <Self as B>::OtherAssocType`
                 // where `<Self as B>::OtherAssocType` can be normalized to some concrete type.
-                let normalized_predicate = env.resolve_assoc_types(predicate, param_env_lookup);
+                let normalized_predicate =
+                    env.query.resolve_assoc_types(predicate, param_env_lookup);
 
-                env.evaluate_predicate(normalized_predicate, param_env_lookup)
+                env.query
+                    .evaluate_predicate(normalized_predicate, param_env_lookup)
             });
 
         trace!("Constraint fulfilled: {all_bounds_satisfied}");
@@ -186,7 +185,9 @@ pub mod trait_bounds {
     ) -> ty::ParamEnv<'tcx> {
         trace!("Unsubstituted constraints: {:#?}", param_env);
 
-        let maybe_trait_method = env.find_trait_method_substs(context.proc_def_id, context.substs);
+        let maybe_trait_method = env
+            .query
+            .find_trait_method_substs(context.proc_def_id, context.substs);
         let param_env = if let Some((_, trait_substs)) = maybe_trait_method {
             trace!("Applying trait substs {:?}", trait_substs);
             ty::EarlyBinder(param_env).subst(env.tcx(), trait_substs)
@@ -220,25 +221,22 @@ pub mod trait_bounds {
     ) -> ty::ParamEnv<'tcx> {
         let mut param_envs: FxHashMap<ty::ParamEnv<'tcx>, Vec<Span>> = FxHashMap::default();
 
-        let pres: Vec<LocalDefId> = spec
+        let pres: Vec<DefId> = spec
             .pres
             .expect_empty_or_inherent()
             .cloned()
             .unwrap_or_default();
-        let posts: Vec<LocalDefId> = spec
+        let posts: Vec<DefId> = spec
             .posts
             .expect_empty_or_inherent()
             .cloned()
             .unwrap_or_default();
         for spec_id in pres.iter().chain(posts.iter()) {
-            let param_env = env.tcx().param_env(spec_id.to_def_id());
-            let spec_span = env.tcx().def_span(spec_id.to_def_id());
-            let attrs = env.get_local_attributes(*spec_id);
+            let param_env = env.tcx().param_env(spec_id);
+            let spec_span = env.query.get_def_span(spec_id);
+            let attrs = env.query.get_attributes(*spec_id);
             if has_trait_bounds_ghost_constraint(attrs) {
-                param_envs
-                    .entry(param_env)
-                    .or_insert(vec![])
-                    .push(spec_span);
+                param_envs.entry(param_env).or_default().push(spec_span);
             }
         }
 
@@ -254,9 +252,9 @@ pub mod trait_bounds {
                 MultiSpan::from_spans(spans),
             )
             .add_note("This is currently not supported.", None)
-            .emit(env);
+            .emit(&env.diagnostic);
         }
 
-        param_envs.into_iter().map(|(k, _)| k).next().unwrap()
+        param_envs.into_keys().next().unwrap()
     }
 }

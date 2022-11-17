@@ -186,7 +186,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                         .with_span(declaration_span)?;
                     if parent_type.is_union() {
                         // We treat union fields as variants.
-                        let union_decl = self.encode_type_def(&parent_type)?.unwrap_union();
+                        let union_decl = self.encode_type_def_high(&parent_type)?.unwrap_union();
                         let variant = &union_decl.variants[field.index()];
                         let variant_index: vir_high::ty::VariantIndex = variant.name.clone().into();
                         let variant_type = parent_type.variant(variant_index.clone());
@@ -364,7 +364,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                     ),
                     vir_high::Type::Int(vir_high::ty::Int::I16) => vir_high::Expression::or(
                         vir_high::Expression::less_than(result.clone(), std::i16::MIN.into()),
-                        vir_high::Expression::greater_than(result, std::i16::MIN.into()),
+                        vir_high::Expression::greater_than(result, std::i16::MAX.into()),
                     ),
                     vir_high::Type::Int(vir_high::ty::Int::I32) => vir_high::Expression::or(
                         vir_high::Expression::less_than(result.clone(), std::i32::MIN.into()),

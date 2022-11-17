@@ -68,6 +68,14 @@ impl CfgMethod {
         }
     }
 
+    pub fn walk_statements_mut<F: FnMut(&mut Stmt)>(&mut self, mut walker: F) {
+        for block in self.basic_blocks.iter_mut() {
+            for stmt in block.stmts.iter_mut() {
+                walker(stmt);
+            }
+        }
+    }
+
     // TODO: maybe just let basic_blocks be public and modify those directly?
     pub fn patch_statements<E, F: FnMut(Stmt) -> Result<Stmt, E>>(
         mut self,
@@ -89,6 +97,12 @@ impl CfgMethod {
         }
     }
 
+    pub fn walk_successors_mut<F: FnMut(&mut Successor)>(&mut self, mut walker: F) {
+        for block in self.basic_blocks.iter_mut() {
+            walker(&mut block.successor);
+        }
+    }
+
     /// Visit each expression used in a statement or successor.
     /// Note: sub-expressions of expressions will not be visited.
     pub fn walk_expressions<F: FnMut(&Expr)>(&self, mut walker: F) {
@@ -107,6 +121,26 @@ impl CfgMethod {
         self.walk_successors(|succ| {
             if let Successor::GotoSwitch(targets, _) = succ {
                 for (guard, _) in targets {
+                    walker(guard);
+                }
+            }
+        });
+    }
+
+    /// Mutably visit each expression used in a statement or successor.
+    /// Note: sub-expressions of expressions will not be visited.
+    pub fn walk_expressions_mut<F: FnMut(&mut Expr)>(&mut self, mut walker: F) {
+        self.walk_statements_mut(|s| {
+            // Replace *s with a dummy statement
+            let stmt = std::mem::replace(s, Stmt::Inhale(true.into()));
+            *s = stmt.map_expr(|mut e| {
+                walker(&mut e);
+                e
+            });
+        });
+        self.walk_successors_mut(|succ| {
+            if let Successor::GotoSwitch(targets, _) = succ {
+                for (guard, _) in targets.iter_mut() {
                     walker(guard);
                 }
             }

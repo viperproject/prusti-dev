@@ -38,7 +38,7 @@ pub(in super::super) fn run_pass<'tcx>(tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> 
     let def_id = body.source.def_id();
     let param_env = tcx.param_env_reveal_all_normalized(def_id);
     let move_data = match MoveData::gather_moves(body, tcx, param_env) {
-        Ok(move_data) => move_data,
+        Ok((_, move_data)) => move_data,
         Err((move_data, _)) => {
             tcx.sess.delay_span_bug(
                 body.span,
@@ -93,13 +93,13 @@ pub(in super::super) fn find_dead_unwinds<'tcx>(
     debug!("find_dead_unwinds({:?})", body.span);
     // We only need to do this pass once, because unwind edges can only
     // reach cleanup blocks, which can't have unwind edges themselves.
-    let mut dead_unwinds = BitSet::new_empty(body.basic_blocks().len());
+    let mut dead_unwinds = BitSet::new_empty(body.basic_blocks.len());
     let mut flow_inits = MaybeInitializedPlaces::new(tcx, body, env)
         .into_engine(tcx, body)
         .pass_name("find_dead_unwinds")
         .iterate_to_fixpoint()
         .into_results_cursor(body);
-    for (bb, bb_data) in body.basic_blocks().iter_enumerated() {
+    for (bb, bb_data) in body.basic_blocks.iter_enumerated() {
         let place = match bb_data.terminator().kind {
             TerminatorKind::Drop {
                 ref place,
@@ -338,7 +338,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
     }
 
     fn collect_drop_flags(&mut self) {
-        for (bb, data) in self.body.basic_blocks().iter_enumerated() {
+        for (bb, data) in self.body.basic_blocks.iter_enumerated() {
             let terminator = data.terminator();
             let place = match terminator.kind {
                 TerminatorKind::Drop { ref place, .. }
@@ -362,7 +362,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
                     if maybe_dead {
                         self.tcx.sess.delay_span_bug(
                             terminator.source_info.span,
-                            &format!(
+                            format!(
                                 "drop of untracked, uninitialized value {:?}, place {:?} ({:?})",
                                 bb, place, path,
                             ),
@@ -389,7 +389,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
     }
 
     fn elaborate_drops(&mut self) {
-        for (bb, data) in self.body.basic_blocks().iter_enumerated() {
+        for (bb, data) in self.body.basic_blocks.iter_enumerated() {
             let loc = Location {
                 block: bb,
                 statement_index: data.statements.len(),
@@ -421,7 +421,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
                         LookupResult::Parent(..) => {
                             self.tcx.sess.delay_span_bug(
                                 terminator.source_info.span,
-                                &format!("drop of untracked value {:?}", bb),
+                                format!("drop of untracked value {:?}", bb),
                             );
                         }
                     }
@@ -574,7 +574,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
     }
 
     fn drop_flags_for_fn_rets(&mut self) {
-        for (bb, data) in self.body.basic_blocks().iter_enumerated() {
+        for (bb, data) in self.body.basic_blocks.iter_enumerated() {
             if let TerminatorKind::Call {
                 destination,
                 target: Some(tgt),
@@ -615,7 +615,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
         // drop flags by themselves, to avoid the drop flags being
         // clobbered before they are read.
 
-        for (bb, data) in self.body.basic_blocks().iter_enumerated() {
+        for (bb, data) in self.body.basic_blocks.iter_enumerated() {
             debug!("drop_flags_for_locs({:?})", data);
             for i in 0..(data.statements.len() + 1) {
                 debug!("drop_flag_for_locs: stmt {}", i);

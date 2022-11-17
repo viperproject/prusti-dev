@@ -52,7 +52,7 @@ pub(super) fn create_move_data_param_env<'tcx>(
 ) -> MoveDataParamEnv<'tcx> {
     let param_env = tcx.param_env_reveal_all_normalized(def_id);
     let move_data = match MoveData::gather_moves(body, tcx, param_env) {
-        Ok(move_data) => move_data,
+        Ok((_, move_data)) => move_data,
         Err((_, _)) => {
             unreachable!();
         }

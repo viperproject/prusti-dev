@@ -85,6 +85,7 @@ pub(in super::super::super) trait PredicatesMemoryBlockInterface {
         size: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn encode_memory_block_bytes_function_name(&mut self) -> SpannedEncodingResult<String>;
     fn encode_memory_block_bytes_expression(
         &mut self,
         address: vir_low::Expression,
@@ -107,6 +108,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
     ) -> SpannedEncodingResult<vir_low::Expression> {
         self.encode_generic_memory_block_acc("MemoryBlockStackDrop", place, size, position)
     }
+    fn encode_memory_block_bytes_function_name(&mut self) -> SpannedEncodingResult<String> {
+        Ok("MemoryBlock$bytes".to_string())
+    }
     fn encode_memory_block_bytes_expression(
         &mut self,
         address: vir_low::Expression,
@@ -118,7 +122,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
             .is_memory_block_bytes_encoded
         {
             use vir_low::macros::*;
-            let mut function = function! {
+            let mut function = function! { MemoryBlockBytes =>
                 bytes(
                     address: Address,
                     size: {ty! {{ self.size_type()? }}}
@@ -135,7 +139,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
                 .is_memory_block_bytes_encoded = true;
         }
         let expression = vir_low::Expression::function_call(
-            "MemoryBlock$bytes",
+            self.encode_memory_block_bytes_function_name()?,
             vec![address, size],
             self.bytes_type()?,
         );

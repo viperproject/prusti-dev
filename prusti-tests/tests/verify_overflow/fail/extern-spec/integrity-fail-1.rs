@@ -2,7 +2,6 @@
 // but not for Max::max (implemented on TestStruct)
 // We do not consider the extern spec TestStruct::max for calls to Max::max
 
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 pub trait Max {

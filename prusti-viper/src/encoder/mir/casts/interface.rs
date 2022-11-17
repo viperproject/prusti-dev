@@ -63,14 +63,17 @@ impl<'v, 'tcx: 'v> CastsEncoderInterface<'tcx> for super::super::super::Encoder<
                 number.into()
             }
             ty::TyKind::Uint(ty::UintTy::U128) => {
-                let number = value as u128;
+                let number = value;
                 number.into()
             }
             ty::TyKind::Uint(ty::UintTy::Usize) => {
                 let number = value as usize;
                 number.into()
             }
-            ty::TyKind::Char => value.into(),
+            ty::TyKind::Char => {
+                let number = char::from_u32(value.try_into().unwrap()).unwrap();
+                number.into()
+            }
             kind => {
                 return Err(EncodingError::unsupported(format!(
                     "unsupported integer cast: {:?}",

@@ -71,7 +71,12 @@ impl<'v, 'tcx: 'v> ContractsEncoderInterface<'tcx> for super::super::super::Enco
             .encoded_contracts
             .borrow_mut()
             .entry(proc_def_id)
-            .or_insert_with(|| get_procedure_contract(self, proc_def_id, substs))
+            .or_insert_with(|| {
+                let specification = self
+                    .get_procedure_specs(proc_def_id, substs)
+                    .unwrap_or_else(|| typed::ProcedureSpecification::empty(proc_def_id));
+                get_procedure_contract(self, specification, proc_def_id, substs)
+            })
             .clone()
     }
 
@@ -83,10 +88,12 @@ impl<'v, 'tcx: 'v> ContractsEncoderInterface<'tcx> for super::super::super::Enco
     ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
         let (called_def_id, call_substs) =
             self.env()
+                .query
                 .resolve_method_call(caller_def_id, called_def_id, call_substs);
-        // let spec = self.get_procedure_specs(called_def_id, call_substs)
-        //     .unwrap_or_else(typed::ProcedureSpecification::empty);
-        let contract = get_procedure_contract(self, called_def_id, call_substs)?;
+        let specification = self
+            .get_procedure_specs_for_call(called_def_id, caller_def_id, call_substs)
+            .unwrap_or_else(|| typed::ProcedureSpecification::empty(called_def_id));
+        let contract = get_procedure_contract(self, specification, called_def_id, call_substs)?;
         Ok(contract)
     }
 
@@ -111,35 +118,33 @@ impl<'v, 'tcx: 'v> ContractsEncoderInterface<'tcx> for super::super::super::Enco
     ) -> EncodingResult<ProcedureContract<'tcx>> {
         let (called_def_id, call_substs) =
             self.env()
+                .query
                 .resolve_method_call(caller_def_id, called_def_id, call_substs);
-        let contract = get_procedure_contract(self, called_def_id, call_substs)?;
+        let specification = self
+            .get_procedure_specs_for_call(called_def_id, caller_def_id, call_substs)
+            .unwrap_or_else(|| typed::ProcedureSpecification::empty(called_def_id));
+        let contract = get_procedure_contract(self, specification, called_def_id, call_substs)?;
         Ok(contract.to_call_site_contract(args, target))
     }
 }
 
 fn get_procedure_contract<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
+    specification: typed::ProcedureSpecification,
     proc_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
-    use prusti_rustc_interface::middle::ty::subst::Subst;
-
     let env = encoder.env();
-    let tcx = env.tcx();
-    let specification = encoder
-        .get_procedure_specs(proc_def_id, substs)
-        .unwrap_or_else(typed::ProcedureSpecification::empty);
 
     trace!("[get_procedure_contract] enter name={:?}", proc_def_id);
 
     let args_ty: Vec<(mir::Local, ty::Ty<'tcx>)>;
     let return_ty;
 
-    if !tcx.is_closure(proc_def_id) {
+    if !env.query.is_closure(proc_def_id) {
         // FIXME: "skip_binder" is most likely wrong
         // FIXME: Replace with FakeMirEncoder.
-        let fn_sig: FnSig =
-            ty::EarlyBinder(env.tcx().fn_sig(proc_def_id).skip_binder()).subst(env.tcx(), substs);
+        let fn_sig: FnSig = env.query.get_fn_sig(proc_def_id, substs).skip_binder();
         if fn_sig.c_variadic {
             return Err(EncodingError::unsupported(
                 "variadic functions are not supported",
@@ -150,7 +155,9 @@ fn get_procedure_contract<'p, 'v: 'p, 'tcx: 'v>(
             .collect();
         return_ty = fn_sig.output();
     } else {
-        let mir = env.local_mir(proc_def_id.expect_local(), substs);
+        let mir = env
+            .body
+            .get_impure_fn_body(proc_def_id.expect_local(), substs);
         // local_decls:
         // _0    - return, with closure's return type
         // _1    - closure's self
@@ -174,7 +181,7 @@ fn get_procedure_contract<'p, 'v: 'p, 'tcx: 'v>(
         fake_mir_args_ty.push(arg_ty);
     }
 
-    let mut visitor = BorrowInfoCollectingVisitor::new(tcx);
+    let mut visitor = BorrowInfoCollectingVisitor::new(env.tcx());
     for (arg, arg_ty) in fake_mir_args.iter().zip(fake_mir_args_ty) {
         visitor.analyse_arg(*arg, arg_ty)?;
     }

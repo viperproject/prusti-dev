@@ -13,6 +13,8 @@ pub struct BodylessMethod {
     pub name: String,
     pub formal_args: Vec<LocalVar>,
     pub formal_returns: Vec<LocalVar>,
+    pub pres: Vec<Expr>,
+    pub posts: Vec<Expr>,
 }
 
 impl WithIdentifier for BodylessMethod {
@@ -40,6 +42,13 @@ impl fmt::Display for BodylessMethod {
             write!(f, "{:?}", arg)?;
             first = false
         }
-        write!(f, ");")
+        write!(f, ")")?;
+        for pre in &self.pres {
+            write!(f, "\n    requires {}", pre)?;
+        }
+        for post in &self.posts {
+            write!(f, "\n    ensures {}", post)?;
+        }
+        write!(f, ";")
     }
 }

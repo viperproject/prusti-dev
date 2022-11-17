@@ -5,20 +5,20 @@ use crate::encoder::{
         compute_address::ComputeAddressInterface,
         lowerer::Lowerer,
         places::PlacesInterface,
-        predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface},
-        references::ReferencesInterface,
-        snapshots::{
-            IntoSnapshot, SnapshotBytesInterface, SnapshotValidityInterface,
-            SnapshotValuesInterface,
+        predicates::{
+            owned::builders::{
+                FracRefBuilder, OwnedNonAliasedBuilder, PredicateDeclBuilderMethods,
+                UniqueRefBuilder,
+            },
+            PredicatesMemoryBlockInterface,
         },
-        type_layouts::TypeLayoutsInterface,
+        snapshots::SnapshotBytesInterface,
         types::TypesInterface,
     },
 };
 use rustc_hash::FxHashSet;
-use std::borrow::Cow;
 use vir_crate::{
-    common::expression::{ExpressionIterator, QuantifierHelpers},
+    common::identifier::WithIdentifier,
     low::{self as vir_low},
     middle as vir_mid,
 };
@@ -26,9 +26,9 @@ use vir_crate::{
 pub(super) struct PredicateEncoder<'l, 'p, 'v, 'tcx> {
     lowerer: &'l mut Lowerer<'p, 'v, 'tcx>,
     unfolded_owned_non_aliased_predicates: &'l FxHashSet<vir_mid::Type>,
-    encoded_owned_predicates: FxHashSet<vir_mid::Type>,
-    encoded_mut_borrow_predicates: FxHashSet<vir_mid::Type>,
-    encoded_frac_borrow_predicates: FxHashSet<vir_mid::Type>,
+    encoded_owned_predicates: FxHashSet<String>,
+    encoded_mut_borrow_predicates: FxHashSet<String>,
+    encoded_frac_borrow_predicates: FxHashSet<String>,
     predicates: Vec<vir_low::PredicateDecl>,
 }
 
@@ -53,775 +53,345 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
 
     pub(super) fn encode_owned_non_aliased(
         &mut self,
-        ty_with_lifetime: &vir_mid::Type,
+        ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<()> {
-        let ty: &mut vir_mid::Type = &mut ty_with_lifetime.clone();
-        ty.erase_lifetime();
-        if self.encoded_owned_predicates.contains(ty) {
+        let ty_identifier = ty.get_identifier();
+        if self.encoded_owned_predicates.contains(&ty_identifier) {
             return Ok(());
         }
-        self.encoded_owned_predicates.insert(ty.clone());
+
+        self.encoded_owned_predicates.insert(ty_identifier);
         self.lowerer.encode_compute_address(ty)?;
-        use vir_low::macros::*;
-        let position = Default::default();
         let type_decl = self.lowerer.encoder.get_type_decl_mid(ty)?;
-        self.lowerer.encode_snapshot_to_bytes_function(ty)?;
-        let snapshot_type = ty.to_snapshot(self.lowerer)?;
-        var_decls! {
-            place: Place,
-            root_address: Address,
-            snapshot: {snapshot_type.clone()}
+
+        let normalized_type = ty.normalize_type();
+        self.lowerer
+            .encode_snapshot_to_bytes_function(&normalized_type)?;
+        let mut owned_predicates_to_encode = Vec::new();
+        let mut unique_ref_predicates_to_encode = Vec::new();
+        let mut frac_ref_predicates_to_encode = Vec::new();
+        self.lowerer.encode_memory_block_predicate()?;
+        let mut builder = OwnedNonAliasedBuilder::new(self.lowerer, &normalized_type, &type_decl)?;
+        builder.create_parameters()?;
+        if !(type_decl.is_type_var() || type_decl.is_trusted()) {
+            builder.create_body();
+            builder.add_validity()?;
         }
-        let compute_address = ty!(Address);
-        let to_bytes = ty! { Bytes };
-        let validity = self
-            .lowerer
-            .encode_snapshot_valid_call_for_type(snapshot.clone().into(), ty)?;
-        let size_of = self.lowerer.encode_type_size_expression(ty)?;
-        let compute_address = expr! { ComputeAddress::compute_address(place, root_address) };
-        let bytes = self
-            .lowerer
-            .encode_memory_block_bytes_expression(compute_address.clone(), size_of.clone())?;
-        let predicate = match &type_decl {
+        // Build the body.
+        match &type_decl {
             vir_mid::TypeDecl::Bool
             | vir_mid::TypeDecl::Int(_)
             | vir_mid::TypeDecl::Float(_)
             | vir_mid::TypeDecl::Pointer(_)
             | vir_mid::TypeDecl::Sequence(_)
             | vir_mid::TypeDecl::Map(_) => {
-                predicate! {
-                    OwnedNonAliased<ty>(place: Place, root_address: Address, snapshot: {snapshot_type})
-                    {(
-                        ([validity]) &&
-                        (acc(MemoryBlock([compute_address], [size_of]))) &&
-                        (([bytes]) == (Snap<ty>::to_bytes(snapshot)))
-                    )}
+                builder.add_base_memory_block()?;
+                builder.add_bytes_snapshot_equality()?;
+            }
+            vir_mid::TypeDecl::Trusted(_) | vir_mid::TypeDecl::TypeVar(_) => {}
+            vir_mid::TypeDecl::Struct(decl) => {
+                builder.add_padding_memory_block()?;
+                for field in &decl.fields {
+                    builder.add_field_predicate(field)?;
+                    if !self
+                        .unfolded_owned_non_aliased_predicates
+                        .contains(&field.ty)
+                    {
+                        owned_predicates_to_encode.push(field.ty.clone());
+                    }
                 }
             }
-            vir_mid::TypeDecl::TypeVar(_) | vir_mid::TypeDecl::Trusted(_) => {
-                vir_low::PredicateDecl::new(
-                    predicate_name! { OwnedNonAliased<ty> },
-                    vars! { place: Place, root_address: Address, snapshot: {snapshot_type} },
-                    None,
-                )
-            }
-            vir_mid::TypeDecl::Tuple(tuple_decl) => self.encode_owned_non_aliased_with_fields(
-                ty,
-                snapshot,
-                snapshot_type,
-                validity,
-                tuple_decl.iter_fields(),
-            )?,
-            vir_mid::TypeDecl::Struct(struct_decl) => self.encode_owned_non_aliased_with_fields(
-                ty,
-                snapshot,
-                snapshot_type,
-                validity,
-                struct_decl.iter_fields(),
-            )?,
             vir_mid::TypeDecl::Enum(decl) => {
+                builder.add_padding_memory_block()?;
                 let mut variant_predicates = Vec::new();
-                let discriminant_call =
-                    self.lowerer
-                        .obtain_enum_discriminant(snapshot.clone().into(), ty, position)?;
-                for (&discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants)
-                {
-                    let variant_index = variant.name.clone().into();
-                    let variant_place = self.lowerer.encode_enum_variant_place(
-                        ty,
-                        &variant_index,
-                        place.clone().into(),
-                        position,
-                    )?;
-                    let variant_snapshot = self.lowerer.obtain_enum_variant_snapshot(
-                        ty,
-                        &variant_index,
-                        snapshot.clone().into(),
-                        position,
-                    )?;
+                for (discriminant, variant) in decl.iter_discriminant_variants() {
+                    let variant_index: vir_mid::ty::VariantIndex = variant.name.clone().into();
+                    let variant_type = vir_mid::Type::enum_(
+                        decl.name.clone(),
+                        decl.safety,
+                        decl.arguments.clone(),
+                        Some(variant_index.clone()),
+                        decl.lifetimes.clone(),
+                    );
+                    variant_predicates.push(builder.create_variant_predicate(
+                        discriminant,
+                        variant,
+                        &variant_type,
+                    )?);
                     let variant_type = ty.clone().variant(variant_index);
                     if !self
                         .unfolded_owned_non_aliased_predicates
                         .contains(&variant_type)
                     {
-                        // TODO: Optimization: This variant is never unfolded,
-                        // encode it as abstract predicate.
-                        self.encode_owned_non_aliased(&variant_type)?;
+                        owned_predicates_to_encode.push(variant_type);
                     }
-                    let variant_type = &variant_type;
-                    let acc = expr! {
-                        ([ discriminant_call.clone() ] == [ discriminant.into() ]) ==>
-                        (acc(OwnedNonAliased<variant_type>(
-                            [variant_place], root_address, [variant_snapshot]
-                        )))
-                    };
-                    variant_predicates.push(acc);
                 }
-                let discriminant_type = &decl.discriminant_type;
                 if !self
                     .unfolded_owned_non_aliased_predicates
-                    .contains(discriminant_type)
+                    .contains(&decl.discriminant_type)
                 {
-                    // TODO: Optimization: The discriminant is never unfolded,
-                    // encode it as abstract predicate.
-                    self.encode_owned_non_aliased(discriminant_type)?;
+                    owned_predicates_to_encode.push(decl.discriminant_type.clone());
                 }
-                let discriminant_field = decl.discriminant_field();
-                let discriminant_place = self.lowerer.encode_field_place(
-                    ty,
-                    &discriminant_field,
-                    place.into(),
-                    position,
-                )?;
-                let discriminant_snapshot = self.lowerer.construct_constant_snapshot(
-                    discriminant_type,
-                    discriminant_call,
-                    position,
-                )?;
-                predicate! {
-                    OwnedNonAliased<ty>(place: Place, root_address: Address, snapshot: {snapshot_type})
-                    {(
-                        ([validity]) &&
-                        (acc(OwnedNonAliased<discriminant_type>(
-                            [discriminant_place], root_address, [discriminant_snapshot]
-                        ))) &&
-                        ([variant_predicates.into_iter().conjoin()])
-                    )}
+                if decl.safety.is_enum() {
+                    builder.add_discriminant_predicate(decl)?;
                 }
+                builder.add_variant_predicates(variant_predicates)?;
             }
-            vir_mid::TypeDecl::Union(decl) => {
-                let mut variant_predicates = Vec::new();
-                let discriminant_call =
-                    self.lowerer
-                        .obtain_enum_discriminant(snapshot.clone().into(), ty, position)?;
-                for (&discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants)
-                {
-                    let variant_index = variant.name.clone().into();
-                    let variant_place = self.lowerer.encode_enum_variant_place(
-                        ty,
-                        &variant_index,
-                        place.clone().into(),
-                        position,
-                    )?;
-                    let variant_snapshot = self.lowerer.obtain_enum_variant_snapshot(
-                        ty,
-                        &variant_index,
-                        snapshot.clone().into(),
-                        position,
-                    )?;
-                    let variant_type = ty.clone().variant(variant_index);
-                    if !self
-                        .unfolded_owned_non_aliased_predicates
-                        .contains(&variant_type)
-                    {
-                        // TODO: Optimization: This variant is never unfolded,
-                        // encode it as abstract predicate.
-                        self.encode_owned_non_aliased(&variant_type)?;
-                    }
-                    let variant_type = &variant_type;
-                    let acc = expr! {
-                        ([ discriminant_call.clone() ] == [ discriminant.into() ]) ==>
-                        (acc(OwnedNonAliased<variant_type>(
-                            [variant_place], root_address, [variant_snapshot]
-                        )))
-                    };
-                    variant_predicates.push(acc);
-                }
-                predicate! {
-                    OwnedNonAliased<ty>(place: Place, root_address: Address, snapshot: {snapshot_type})
-                    {(
-                        ([validity]) &&
-                        ([variant_predicates.into_iter().conjoin()])
-                    )}
+            vir_mid::TypeDecl::Reference(decl) => {
+                builder.add_base_memory_block()?;
+                builder.add_bytes_address_snapshot_equality()?;
+                // FIXME: Have a getter for the first lifetime.
+                let lifetime = &decl.lifetimes[0];
+                if decl.uniqueness.is_unique() {
+                    builder.add_unique_ref_target_predicate(&decl.target_type, lifetime)?;
+                    unique_ref_predicates_to_encode.push(decl.target_type.clone());
+                } else {
+                    builder.add_frac_ref_target_predicate(&decl.target_type, lifetime)?;
+                    frac_ref_predicates_to_encode.push(decl.target_type.clone());
                 }
             }
             vir_mid::TypeDecl::Array(decl) => {
-                self.lowerer.encode_place_array_index_axioms(ty)?;
-                let element_type = &decl.element_type;
-                self.lowerer.encode_place_array_index_axioms(ty)?;
-                self.lowerer.ensure_type_definition(element_type)?;
-                let parameters = self.lowerer.extract_non_type_parameters_from_type(ty)?;
-                let parameters_validity: vir_low::Expression = self
-                    .lowerer
-                    .extract_non_type_parameters_from_type_validity(ty)?
-                    .into_iter()
-                    .conjoin();
-                let size_type = self.lowerer.size_type()?;
-                var_decls! {
-                    index: {size_type},
-                    snapshot: {snapshot_type.clone()}
+                builder.lowerer().encode_place_array_index_axioms(ty)?;
+                builder
+                    .lowerer()
+                    .ensure_type_definition(&decl.element_type)?;
+                owned_predicates_to_encode.push(decl.element_type.clone());
+                builder.add_const_parameters_validity()?;
+                // FIXME: Have a getter for the first const parameter.
+                let length = if normalized_type.is_slice() {
+                    builder.get_slice_len()?
+                } else {
+                    decl.const_parameters[0].clone()
                 };
-                let snapshot_length = self
-                    .lowerer
-                    .obtain_array_len_snapshot(snapshot.clone().into(), Default::default())?;
-                let array_length = self.lowerer.array_length_variable()?;
-                let size_type_mid = self.lowerer.size_type_mid()?;
-                let array_length_int = self.lowerer.obtain_constant_value(
-                    &size_type_mid,
-                    array_length.into(),
-                    Default::default(),
-                )?;
-                let index_int = self.lowerer.obtain_constant_value(
-                    &size_type_mid,
-                    index.clone().into(),
-                    position,
-                )?;
-                let index_validity = self
-                    .lowerer
-                    .encode_snapshot_valid_call_for_type(index.clone().into(), &size_type_mid)?;
-                let element_place = self.lowerer.encode_index_place(
-                    ty,
-                    place.into(),
-                    index.clone().into(),
-                    Default::default(),
-                )?;
-                let element_snapshot = self.lowerer.obtain_array_element_snapshot(
-                    snapshot.into(),
-                    index_int.clone(),
-                    Default::default(),
-                )?;
-
-                let element_predicate_acc = expr! {
-                    (acc(OwnedNonAliased<element_type>(
-                        [element_place], root_address, [element_snapshot]
-                    )))
-                };
-                let elements = vir_low::Expression::forall(
-                    vec![index],
-                    vec![vir_low::Trigger::new(vec![element_predicate_acc.clone()])],
-                    expr! {
-                        ([index_validity] && ([index_int] < [array_length_int.clone()])) ==>
-                        [element_predicate_acc]
-                    },
-                );
-                self.encode_owned_non_aliased(element_type)?;
-                predicate! {
-                    OwnedNonAliased<ty>(
-                        place: Place,
-                        root_address: Address,
-                        snapshot: {snapshot_type},
-                        *parameters
-                    )
-                    {(
-                        [validity] &&
-                        [parameters_validity] &&
-                        ([array_length_int] == [snapshot_length]) &&
-                        [elements]
-                    )}
-                }
+                builder.add_snapshot_len_equal_to(&length)?;
+                builder.add_quantified_permission(&length, &decl.element_type)?;
             }
-            vir_mid::TypeDecl::Reference(reference) if reference.uniqueness.is_unique() => {
-                let address_type = &self.lowerer.reference_address_type(ty)?;
-                self.lowerer
-                    .encode_snapshot_to_bytes_function(address_type)?;
-                self.lowerer.ensure_type_definition(address_type)?;
-                let target_address_snapshot = self.lowerer.reference_address_snapshot(
-                    ty,
-                    snapshot.clone().into(),
-                    position,
-                )?;
-                let target_address =
-                    self.lowerer
-                        .reference_address(ty, snapshot.clone().into(), position)?;
-                let current_snapshot = self.lowerer.reference_target_current_snapshot(
-                    ty,
-                    snapshot.clone().into(),
-                    position,
-                )?;
-                let final_snapshot =
-                    self.lowerer
-                        .reference_target_final_snapshot(ty, snapshot.into(), position)?;
-                let target_type = &reference.target_type;
-                let deref_place = self.lowerer.reference_deref_place(place.into(), position)?;
-                self.encode_unique_ref(target_type)?;
-                predicate! {
-                    OwnedNonAliased<ty>(
-                        place: Place,
-                        root_address: Address,
-                        snapshot: {snapshot_type},
-                        lifetime: Lifetime
-                    )
-                    {(
-                        ([validity]) &&
-                        (acc(MemoryBlock([compute_address], [size_of]))) &&
-                        (([bytes]) == (Snap<address_type>::to_bytes([target_address_snapshot]))) &&
-                        (acc(UniqueRef<target_type>(
-                            lifetime, [deref_place], [target_address], [current_snapshot], [final_snapshot]
-                        )))
-                    )}
-                }
+            _ => {
+                builder.add_base_memory_block()?;
+                builder.add_bytes_snapshot_equality()?;
+                unimplemented!("{}", type_decl);
             }
-            vir_mid::TypeDecl::Reference(reference) if reference.uniqueness.is_shared() => {
-                let address_type = &self.lowerer.reference_address_type(ty)?;
-                self.lowerer
-                    .encode_snapshot_to_bytes_function(address_type)?;
-                self.lowerer.ensure_type_definition(address_type)?;
-                let target_address_snapshot = self.lowerer.reference_address_snapshot(
-                    ty,
-                    snapshot.clone().into(),
-                    position,
-                )?;
-                let target_address =
-                    self.lowerer
-                        .reference_address(ty, snapshot.clone().into(), position)?;
-                let current_snapshot = self.lowerer.reference_target_current_snapshot(
-                    ty,
-                    snapshot.into(),
-                    position,
-                )?;
-                let target_type = &reference.target_type;
-                let deref_place = self.lowerer.reference_deref_place(place.into(), position)?;
-                self.encode_unique_ref(target_type)?;
-                self.encode_frac_ref(target_type)?;
-                predicate! {
-                    OwnedNonAliased<ty>(
-                        place: Place,
-                        root_address: Address,
-                        snapshot: {snapshot_type},
-                        lifetime: Lifetime
-                    )
-                    {(
-                        ([validity]) &&
-                        (acc(MemoryBlock([compute_address], [size_of]))) &&
-                        (([bytes]) == (Snap<address_type>::to_bytes([target_address_snapshot]))) &&
-                        (acc(FracRef<target_type>(
-                            lifetime, [deref_place], [target_address], [current_snapshot]
-                        )))
-                    )}
-                }
-            }
-            // vir_mid::TypeDecl::Never => {},
-            // vir_mid::TypeDecl::Closure(Closure) => {},
-            // vir_mid::TypeDecl::Unsupported(Unsupported) => {},
-            x => unimplemented!("{}", x),
-        };
-        self.predicates.push(predicate);
+        }
+        self.predicates.push(builder.build());
+        for ty in owned_predicates_to_encode {
+            // TODO: Optimization: This variant is never unfolded,
+            // encode it as abstract predicate.
+            self.encode_owned_non_aliased(&ty)?;
+        }
+        for ty in unique_ref_predicates_to_encode {
+            // TODO: Optimization: This variant is never unfolded,
+            // encode it as abstract predicate.
+            self.encode_unique_ref(&ty)?;
+        }
+        for ty in frac_ref_predicates_to_encode {
+            // TODO: Optimization: This variant is never unfolded,
+            // encode it as abstract predicate.
+            self.encode_frac_ref(&ty)?;
+        }
         Ok(())
-    }
-
-    fn encode_owned_non_aliased_with_fields<'a>(
-        &mut self,
-        ty: &vir_mid::Type,
-        snapshot: vir_low::VariableDecl,
-        snapshot_type: vir_low::Type,
-        validity: vir_low::Expression,
-        fields: impl Iterator<Item = Cow<'a, vir_mid::FieldDecl>>,
-    ) -> SpannedEncodingResult<vir_low::PredicateDecl> {
-        use vir_low::macros::*;
-        var_decls! {
-            place: Place,
-            root_address: Address
-        }
-        let mut field_predicates = Vec::new();
-        let mut lifetimes = Vec::new();
-        for (i, field) in fields.enumerate() {
-            let field_place = self.lowerer.encode_field_place(
-                ty,
-                &field,
-                place.clone().into(),
-                Default::default(),
-            )?;
-            let field_value = self.lowerer.obtain_struct_field_snapshot(
-                ty,
-                &field,
-                snapshot.clone().into(),
-                Default::default(),
-            )?;
-            let field_ty = &field.ty;
-            if !self
-                .unfolded_owned_non_aliased_predicates
-                .contains(field_ty)
-            {
-                // TODO: Optimization: This variant is never unfolded,
-                // encode it as abstract predicate.
-                self.encode_owned_non_aliased(field_ty)?;
-            }
-            if let vir_mid::Type::Reference(_) = field_ty {
-                let lifetime =
-                    vir_low::VariableDecl::new(format!("lft_field_{}", i), ty!(Lifetime));
-                lifetimes.push(lifetime.clone());
-                let acc = expr! {
-                    acc(OwnedNonAliased<field_ty>(
-                        [field_place], root_address, [field_value], [lifetime.into()]
-                    ))
-                };
-                field_predicates.push(acc);
-            } else {
-                let acc = expr! {
-                    acc(OwnedNonAliased<field_ty>(
-                        [field_place], root_address, [field_value]
-                    ))
-                };
-                field_predicates.push(acc);
-            }
-        }
-        if field_predicates.is_empty() {
-            // TODO: Extract this into a separate method and deduplicate with
-            // primitive type encoding.
-
-            // FIXME: We should add an extra memory block not only for ZSTs, but
-            // also for types to represent padding bytes and similar stuff.
-            let compute_address = ty!(Address);
-            let to_bytes = ty! { Bytes };
-            let compute_address = expr! { ComputeAddress::compute_address(place, root_address) };
-            let size_of = self.lowerer.encode_type_size_expression(ty)?;
-            let bytes = self
-                .lowerer
-                .encode_memory_block_bytes_expression(compute_address.clone(), size_of.clone())?;
-            field_predicates.push(expr! {
-                (acc(MemoryBlock([compute_address], [size_of])))
-            });
-            field_predicates.push(expr! {
-                (([bytes]) == (Snap<ty>::to_bytes(snapshot)))
-            });
-        }
-        let predicate_decl = predicate! {
-            OwnedNonAliased<ty>(place: Place, root_address: Address, snapshot: {snapshot_type}, *lifetimes)
-            {(
-                ([validity]) &&
-                ([field_predicates.into_iter().conjoin()])
-            )}
-        };
-        Ok(predicate_decl)
     }
 
     fn encode_frac_ref(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
-        if self.encoded_frac_borrow_predicates.contains(ty) {
+        let ty_identifier = ty.get_identifier();
+        if self.encoded_frac_borrow_predicates.contains(&ty_identifier) {
             return Ok(());
         }
-        self.encoded_frac_borrow_predicates.insert(ty.clone());
+        self.encoded_frac_borrow_predicates.insert(ty_identifier);
         self.lowerer.encode_compute_address(ty)?;
-        use vir_low::macros::*;
+
         let type_decl = self.lowerer.encoder.get_type_decl_mid(ty)?;
-        self.lowerer.encode_snapshot_to_bytes_function(ty)?;
-        let snapshot_type = ty.to_snapshot(self.lowerer)?;
-        let position = Default::default();
-        var_decls! {
-            lifetime: Lifetime,
-            place: Place,
-            root_address: Address,
-            snapshot: {snapshot_type}
+
+        let normalized_type = ty.normalize_type();
+        let mut predicates_to_encode = Vec::new();
+        let mut builder = FracRefBuilder::new(self.lowerer, &normalized_type, &type_decl)?;
+        builder.create_parameters()?;
+        if !matches!(
+            type_decl,
+            vir_mid::TypeDecl::Bool
+                | vir_mid::TypeDecl::Int(_)
+                | vir_mid::TypeDecl::Float(_)
+                | vir_mid::TypeDecl::Pointer(_)
+                | vir_mid::TypeDecl::Sequence(_)
+                | vir_mid::TypeDecl::Trusted(_)
+                | vir_mid::TypeDecl::Map(_)
+                | vir_mid::TypeDecl::TypeVar(_)
+        ) {
+            builder.create_body();
+            builder.add_validity()?;
         }
-        let current_validity = self
-            .lowerer
-            .encode_snapshot_valid_call_for_type(snapshot.clone().into(), ty)?;
-        let predicate = match &type_decl {
+        // Build the body.
+        match &type_decl {
             vir_mid::TypeDecl::Bool
             | vir_mid::TypeDecl::Int(_)
             | vir_mid::TypeDecl::Float(_)
             | vir_mid::TypeDecl::Pointer(_)
             | vir_mid::TypeDecl::Sequence(_)
+            | vir_mid::TypeDecl::Trusted(_)
             | vir_mid::TypeDecl::Map(_)
-            | vir_mid::TypeDecl::TypeVar(_)
-            | vir_mid::TypeDecl::Trusted(_) => vir_low::PredicateDecl::new(
-                predicate_name! {FracRef<ty>},
-                vec![lifetime, place, root_address, snapshot],
-                None,
-            ),
-            vir_mid::TypeDecl::Tuple(_decl) => unimplemented!(),
+            | vir_mid::TypeDecl::TypeVar(_) => {}
             vir_mid::TypeDecl::Struct(decl) => {
-                // TODO: test or add unimplemented!
-                let mut field_predicates = Vec::new();
                 for field in &decl.fields {
-                    let field_place = self.lowerer.encode_field_place(
-                        ty,
-                        field,
-                        place.clone().into(),
-                        Default::default(),
-                    )?;
-                    let field_snapshot = self.lowerer.obtain_struct_field_snapshot(
-                        ty,
-                        field,
-                        snapshot.clone().into(),
-                        Default::default(),
-                    )?;
-                    let field_ty = &field.ty;
-                    self.encode_frac_ref(field_ty)?;
-                    let acc = expr! {
-                        acc(FracRef<field_ty>(
-                            lifetime,
-                            [field_place],
-                            root_address,
-                            [field_snapshot]
-                        ))
-                    };
-                    field_predicates.push(acc);
+                    builder.add_field_predicate(field)?;
+                    predicates_to_encode.push(field.ty.clone());
                 }
-                if field_predicates.is_empty() {
-                    // FIXME: Add backing MemoryBlock unimplemented!();
-                }
-                vir_low::PredicateDecl::new(
-                    predicate_name! {FracRef<ty>},
-                    vec![lifetime, place, root_address, snapshot],
-                    Some(expr! {
-                        [current_validity] &&
-                        [field_predicates.into_iter().conjoin()]
-                    }),
-                )
             }
             vir_mid::TypeDecl::Enum(decl) => {
                 let mut variant_predicates = Vec::new();
-                let discriminant_call =
-                    self.lowerer
-                        .obtain_enum_discriminant(snapshot.clone().into(), ty, position)?;
-                for (&discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants)
-                {
+                for (discriminant, variant) in decl.iter_discriminant_variants() {
                     let variant_index = variant.name.clone().into();
-                    let variant_place = self.lowerer.encode_enum_variant_place(
-                        ty,
-                        &variant_index,
-                        place.clone().into(),
-                        position,
-                    )?;
-                    let variant_snapshot = self.lowerer.obtain_enum_variant_snapshot(
-                        ty,
-                        &variant_index,
-                        snapshot.clone().into(),
-                        position,
-                    )?;
                     let variant_type = ty.clone().variant(variant_index);
-                    self.encode_frac_ref(&variant_type)?;
-                    let variant_type = &variant_type;
-                    let acc = expr! {
-                        ([ discriminant_call.clone() ] == [ discriminant.into() ]) ==>
-                        (acc(FracRef<variant_type>(
-                            lifetime, [variant_place], root_address, [variant_snapshot]
-                        )))
-                    };
-                    variant_predicates.push(acc);
+                    variant_predicates.push(builder.create_variant_predicate(
+                        discriminant,
+                        variant,
+                        &variant_type,
+                    )?);
+                    predicates_to_encode.push(variant_type);
                 }
-                let discriminant_type = &decl.discriminant_type;
-                self.encode_frac_ref(discriminant_type)?;
-                let discriminant_field = decl.discriminant_field();
-                let discriminant_place = self.lowerer.encode_field_place(
-                    ty,
-                    &discriminant_field,
-                    place.clone().into(),
-                    position,
-                )?;
-                let discriminant_snapshot = self.lowerer.construct_constant_snapshot(
-                    discriminant_type,
-                    discriminant_call,
-                    position,
-                )?;
-                vir_low::PredicateDecl::new(
-                    predicate_name! {FracRef<ty>},
-                    vec![lifetime.clone(), place, root_address.clone(), snapshot],
-                    Some(expr! {
-                        [current_validity] &&
-                        (acc(FracRef<discriminant_type>(
-                            lifetime, [discriminant_place], root_address,
-                            [discriminant_snapshot]
-                        ))) &&
-                        [variant_predicates.into_iter().conjoin()]
-                    }),
-                )
+                predicates_to_encode.push(decl.discriminant_type.clone());
+                if decl.safety.is_enum() {
+                    builder.add_discriminant_predicate(decl)?;
+                }
+                builder.add_variant_predicates(variant_predicates)?;
             }
-            vir_mid::TypeDecl::Union(_decl) => {
-                unimplemented!();
+            vir_mid::TypeDecl::Reference(decl) => {
+                // FIXME: Have a getter for the first lifetime.
+                let lifetime = &decl.lifetimes[0];
+                builder.add_frac_ref_target_predicate(&decl.target_type, lifetime)?;
+                predicates_to_encode.push(decl.target_type.clone());
             }
-            // vir_mid::TypeDecl::Array(Array) => {},
-            vir_mid::TypeDecl::Reference(reference) if reference.uniqueness.is_unique() => {
-                unimplemented!();
+            vir_mid::TypeDecl::Array(decl) => {
+                builder.lowerer().encode_place_array_index_axioms(ty)?;
+                builder
+                    .lowerer()
+                    .ensure_type_definition(&decl.element_type)?;
+                predicates_to_encode.push(decl.element_type.clone());
+                builder.add_const_parameters_validity()?;
+                // FIXME: Have a getter for the first const parameter.
+                let length = if normalized_type.is_slice() {
+                    builder.get_slice_len()?
+                } else {
+                    decl.const_parameters[0].clone()
+                };
+                builder.add_snapshot_len_equal_to(&length)?;
+                builder.add_quantified_permission(&length, &decl.element_type)?;
             }
-            // vir_mid::TypeDecl::Never => {},
-            // vir_mid::TypeDecl::Closure(Closure) => {},
-            // vir_mid::TypeDecl::Unsupported(Unsupported) => {},
-            x => unimplemented!("{}", x),
-        };
-        self.predicates.push(predicate);
+            _ => {
+                unimplemented!("{:?}", type_decl);
+            }
+        }
+        self.predicates.push(builder.build());
+        for ty in predicates_to_encode {
+            // TODO: Optimization: This variant is never unfolded,
+            // encode it as abstract predicate.
+            self.encode_frac_ref(&ty)?;
+        }
         Ok(())
     }
 
-    fn encode_unique_ref(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
-        if self.encoded_mut_borrow_predicates.contains(ty) {
+    pub(super) fn encode_unique_ref(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
+        let ty_identifier = ty.get_identifier();
+        if self.encoded_mut_borrow_predicates.contains(&ty_identifier) {
             return Ok(());
         }
-        self.encoded_mut_borrow_predicates.insert(ty.clone());
+        self.encoded_mut_borrow_predicates.insert(ty_identifier);
         self.lowerer.encode_compute_address(ty)?;
-        use vir_low::macros::*;
-        let position = Default::default();
         let type_decl = self.lowerer.encoder.get_type_decl_mid(ty)?;
-        self.lowerer.encode_snapshot_to_bytes_function(ty)?;
-        let snapshot_type = ty.to_snapshot(self.lowerer)?;
-        var_decls! {
-            lifetime: Lifetime,
-            place: Place,
-            root_address: Address,
-            current_snapshot: {snapshot_type.clone()},
-            final_snapshot: {snapshot_type}
+
+        // FIXME: Make get_type_decl_mid to return the erased ty for which it
+        // returned type_decl.
+        let normalized_type = ty.normalize_type();
+        let mut unique_ref_predicates_to_encode = Vec::new();
+        let mut frac_ref_predicates_to_encode = Vec::new();
+        let mut builder = UniqueRefBuilder::new(self.lowerer, &normalized_type, &type_decl)?;
+        builder.create_parameters()?;
+        if !matches!(
+            type_decl,
+            vir_mid::TypeDecl::Bool
+                | vir_mid::TypeDecl::Int(_)
+                | vir_mid::TypeDecl::Float(_)
+                | vir_mid::TypeDecl::Pointer(_)
+                | vir_mid::TypeDecl::Sequence(_)
+                | vir_mid::TypeDecl::Trusted(_)
+                | vir_mid::TypeDecl::Map(_)
+                | vir_mid::TypeDecl::TypeVar(_)
+        ) {
+            builder.create_body();
+            builder.add_validity()?;
         }
-        let current_validity = self
-            .lowerer
-            .encode_snapshot_valid_call_for_type(current_snapshot.clone().into(), ty)?;
-        let predicate = match &type_decl {
+        // Build the body.
+        match &type_decl {
             vir_mid::TypeDecl::Bool
             | vir_mid::TypeDecl::Int(_)
             | vir_mid::TypeDecl::Float(_)
             | vir_mid::TypeDecl::Pointer(_)
             | vir_mid::TypeDecl::Sequence(_)
+            | vir_mid::TypeDecl::Trusted(_)
             | vir_mid::TypeDecl::Map(_)
-            | vir_mid::TypeDecl::TypeVar(_)
-            | vir_mid::TypeDecl::Trusted(_) => vir_low::PredicateDecl::new(
-                predicate_name! {UniqueRef<ty>},
-                vec![
-                    lifetime,
-                    place,
-                    root_address,
-                    current_snapshot,
-                    final_snapshot,
-                ],
-                None,
-            ),
-            vir_mid::TypeDecl::Tuple(_decl) => unimplemented!(),
+            | vir_mid::TypeDecl::TypeVar(_) => {}
             vir_mid::TypeDecl::Struct(decl) => {
-                let mut field_predicates = Vec::new();
                 for field in &decl.fields {
-                    let field_place = self.lowerer.encode_field_place(
-                        ty,
-                        field,
-                        place.clone().into(),
-                        Default::default(),
-                    )?;
-                    let current_field_snapshot = self.lowerer.obtain_struct_field_snapshot(
-                        ty,
-                        field,
-                        current_snapshot.clone().into(),
-                        Default::default(),
-                    )?;
-                    let final_field_snapshot = self.lowerer.obtain_struct_field_snapshot(
-                        ty,
-                        field,
-                        final_snapshot.clone().into(),
-                        Default::default(),
-                    )?;
-                    let field_ty = &field.ty;
-                    self.encode_unique_ref(field_ty)?;
-                    let acc = expr! {
-                        acc(UniqueRef<field_ty>(
-                            lifetime,
-                            [field_place],
-                            root_address,
-                            [current_field_snapshot],
-                            [final_field_snapshot]
-                        ))
-                    };
-                    field_predicates.push(acc);
+                    builder.add_field_predicate(field)?;
+                    unique_ref_predicates_to_encode.push(field.ty.clone());
                 }
-                if field_predicates.is_empty() {
-                    // FIXME: add MemoryBlock predicate unimplemented!();
-                }
-                vir_low::PredicateDecl::new(
-                    predicate_name! {UniqueRef<ty>},
-                    vec![
-                        lifetime,
-                        place,
-                        root_address,
-                        current_snapshot,
-                        final_snapshot,
-                    ],
-                    Some(expr! {
-                        [current_validity] &&
-                        [field_predicates.into_iter().conjoin()]
-                    }),
-                )
             }
             vir_mid::TypeDecl::Enum(decl) => {
                 let mut variant_predicates = Vec::new();
-                let discriminant_current_call = self.lowerer.obtain_enum_discriminant(
-                    current_snapshot.clone().into(),
-                    ty,
-                    position,
-                )?;
-                let discriminant_final_call = self.lowerer.obtain_enum_discriminant(
-                    final_snapshot.clone().into(),
-                    ty,
-                    position,
-                )?;
-                for (&discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants)
-                {
+                for (discriminant, variant) in decl.iter_discriminant_variants() {
                     let variant_index = variant.name.clone().into();
-                    let variant_place = self.lowerer.encode_enum_variant_place(
-                        ty,
-                        &variant_index,
-                        place.clone().into(),
-                        position,
-                    )?;
-                    let current_variant_snapshot = self.lowerer.obtain_enum_variant_snapshot(
-                        ty,
-                        &variant_index,
-                        current_snapshot.clone().into(),
-                        position,
-                    )?;
-                    let final_variant_snapshot = self.lowerer.obtain_enum_variant_snapshot(
-                        ty,
-                        &variant_index,
-                        final_snapshot.clone().into(),
-                        position,
-                    )?;
                     let variant_type = ty.clone().variant(variant_index);
-                    self.encode_unique_ref(&variant_type)?;
-                    let variant_type = &variant_type;
-                    let acc = expr! {
-                        ([ discriminant_current_call.clone() ] == [ discriminant.into() ]) ==>
-                        (acc(UniqueRef<variant_type>(
-                            lifetime, [variant_place], root_address,
-                            [current_variant_snapshot], [final_variant_snapshot]
-                        )))
-                    };
-                    variant_predicates.push(acc);
+                    variant_predicates.push(builder.create_variant_predicate(
+                        discriminant,
+                        variant,
+                        &variant_type,
+                    )?);
+                    unique_ref_predicates_to_encode.push(variant_type);
                 }
-                let discriminant_type = &decl.discriminant_type;
-                self.encode_unique_ref(discriminant_type)?;
-                let discriminant_field = decl.discriminant_field();
-                let discriminant_place = self.lowerer.encode_field_place(
-                    ty,
-                    &discriminant_field,
-                    place.clone().into(),
-                    position,
-                )?;
-                let discriminant_current_snapshot = self.lowerer.construct_constant_snapshot(
-                    discriminant_type,
-                    discriminant_current_call,
-                    position,
-                )?;
-                let discriminant_final_snapshot = self.lowerer.construct_constant_snapshot(
-                    discriminant_type,
-                    discriminant_final_call,
-                    position,
-                )?;
-                vir_low::PredicateDecl::new(
-                    predicate_name! {UniqueRef<ty>},
-                    vec![
-                        lifetime.clone(),
-                        place,
-                        root_address.clone(),
-                        current_snapshot,
-                        final_snapshot,
-                    ],
-                    Some(expr! {
-                        [current_validity] &&
-                        (acc(UniqueRef<discriminant_type>(
-                            lifetime, [discriminant_place], root_address,
-                            [discriminant_current_snapshot], [discriminant_final_snapshot]
-                        ))) &&
-                        [variant_predicates.into_iter().conjoin()]
-                    }),
-                )
+                unique_ref_predicates_to_encode.push(decl.discriminant_type.clone());
+                if decl.safety.is_enum() {
+                    builder.add_discriminant_predicate(decl)?;
+                }
+                builder.add_variant_predicates(variant_predicates)?;
             }
-            vir_mid::TypeDecl::Union(_decl) => {
-                unimplemented!();
+            vir_mid::TypeDecl::Reference(decl) => {
+                // FIXME: Have a getter for the first lifetime.
+                let lifetime = &decl.lifetimes[0];
+                if decl.uniqueness.is_unique() {
+                    builder.add_unique_ref_target_predicate(&decl.target_type, lifetime)?;
+                    unique_ref_predicates_to_encode.push(decl.target_type.clone());
+                } else {
+                    builder.add_frac_ref_target_predicate(&decl.target_type, lifetime)?;
+                    frac_ref_predicates_to_encode.push(decl.target_type.clone());
+                }
             }
-            // vir_mid::TypeDecl::Array(Array) => {},
-            vir_mid::TypeDecl::Reference(reference) if reference.uniqueness.is_unique() => {
-                unimplemented!();
+            vir_mid::TypeDecl::Array(decl) => {
+                builder.lowerer().encode_place_array_index_axioms(ty)?;
+                builder
+                    .lowerer()
+                    .ensure_type_definition(&decl.element_type)?;
+                unique_ref_predicates_to_encode.push(decl.element_type.clone());
+                builder.add_const_parameters_validity()?;
+                // FIXME: Have a getter for the first const parameter.
+                let length = if normalized_type.is_slice() {
+                    builder.get_slice_len()?
+                } else {
+                    decl.const_parameters[0].clone()
+                };
+                builder.add_snapshot_len_equal_to(&length)?;
+                builder.add_quantified_permission(&length, &decl.element_type)?;
             }
-            // vir_mid::TypeDecl::Never => {},
-            // vir_mid::TypeDecl::Closure(Closure) => {},
-            // vir_mid::TypeDecl::Unsupported(Unsupported) => {},
-            x => unimplemented!("{}", x),
-        };
-        self.predicates.push(predicate);
+            _ => {
+                unimplemented!("{:?}", type_decl);
+            }
+        }
+        self.predicates.push(builder.build());
+        for ty in unique_ref_predicates_to_encode {
+            // TODO: Optimization: This variant is never unfolded,
+            // encode it as abstract predicate.
+            self.encode_unique_ref(&ty)?;
+        }
+        for ty in frac_ref_predicates_to_encode {
+            self.encode_frac_ref(&ty)?;
+        }
         Ok(())
     }
 }

@@ -1,11 +1,12 @@
 use log::debug;
 
-use crate::high as vir_high;
+use crate::{common::check_mode::CheckMode, high as vir_high};
 use std::collections::BTreeMap;
 
 #[must_use]
 pub struct ProcedureBuilder {
     name: String,
+    check_mode: CheckMode,
     pre_statements: Vec<vir_high::Statement>,
     post_statements: Vec<vir_high::Statement>,
     start_label: vir_high::BasicBlockId,
@@ -43,11 +44,13 @@ pub enum SuccessorBuilder {
 impl ProcedureBuilder {
     pub fn new(
         name: String,
+        check_mode: CheckMode,
         pre_statements: Vec<vir_high::Statement>,
         post_statements: Vec<vir_high::Statement>,
     ) -> Self {
         Self {
             name,
+            check_mode,
             pre_statements,
             post_statements,
             start_label: vir_high::BasicBlockId::new("start_label".to_string()),
@@ -92,6 +95,7 @@ impl ProcedureBuilder {
             .is_none());
         vir_high::ProcedureDecl {
             name: self.name,
+            check_mode: self.check_mode,
             entry: self.start_label,
             exit: self.end_label,
             basic_blocks,

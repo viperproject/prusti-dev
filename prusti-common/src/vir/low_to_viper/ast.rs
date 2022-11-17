@@ -1,17 +1,13 @@
 use super::{Context, ToViper, ToViperDecl};
-use prusti_utils::force_matches;
 use viper::{self, AstFactory};
-use vir::low::{
-    ast::{
-        expression::{self, Expression},
-        function::FunctionDecl,
-        position::Position,
-        predicate::PredicateDecl,
-        statement::{self, Statement},
-        ty::{BitVector, BitVectorSize, Float, Map, Type},
-        variable::VariableDecl,
-    },
-    ty::Seq,
+use vir::low::ast::{
+    expression::{self, Expression},
+    function::FunctionDecl,
+    position::Position,
+    predicate::PredicateDecl,
+    statement::{self, Statement},
+    ty::{self, BitVector, BitVectorSize, Float, Type},
+    variable::VariableDecl,
 };
 
 impl<'a, 'v> ToViper<'v, viper::Predicate<'v>> for &'a PredicateDecl {
@@ -244,14 +240,12 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expression {
             Expression::BinaryOp(expression) => expression.to_viper(context, ast),
             Expression::PermBinaryOp(expression) => expression.to_viper(context, ast),
             Expression::ContainerOp(expression) => expression.to_viper(context, ast),
-            Expression::Seq(expression) => expression.to_viper(context, ast),
             Expression::Conditional(expression) => expression.to_viper(context, ast),
             Expression::Quantifier(expression) => expression.to_viper(context, ast),
             // Expression::LetExpr(expression) => expression.to_viper(context, ast),
             Expression::FuncApp(expression) => expression.to_viper(context, ast),
             Expression::DomainFuncApp(expression) => expression.to_viper(context, ast),
             // Expression::InhaleExhale(expression) => expression.to_viper(context, ast),
-            Expression::MapOp(expression) => expression.to_viper(context, ast),
             x => unimplemented!("{:?}", x),
         };
         if crate::config::simplify_encoding() {
@@ -319,6 +313,8 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Constant {
             Type::Float(_) => unimplemented!(),
             Type::BitVector(_) => unimplemented!(),
             Type::Seq(_) => unimplemented!(),
+            Type::Set(_) => unimplemented!(),
+            Type::MultiSet(_) => unimplemented!(),
             Type::Map(_) => unimplemented!(),
             Type::Ref => unimplemented!(),
             Type::Perm => match &self.value {
@@ -546,51 +542,86 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::DomainFuncApp {
     }
 }
 
-impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Seq {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
-        let elems = self
-            .elements
-            .iter()
-            .map(|e| e.to_viper(context, ast))
-            .collect::<Vec<_>>();
-        if elems.is_empty() {
-            let elem_ty = force_matches!(&self.ty, Type::Seq(Seq { element_type }) => element_type);
-            ast.empty_seq(elem_ty.to_viper(context, ast))
-        } else {
-            ast.explicit_seq(&elems)
-        }
-    }
-}
-
 impl<'v> ToViper<'v, viper::Expr<'v>> for expression::ContainerOp {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
-        let left = || self.left.to_viper(context, ast);
-        let right = || self.right.to_viper(context, ast);
-        match self.op_kind {
-            expression::ContainerOpKind::SeqConcat => ast.seq_append(left(), right()),
-            expression::ContainerOpKind::SeqIndex => ast.seq_index(left(), right()),
-            expression::ContainerOpKind::SeqLen => ast.seq_length(left()),
-        }
-    }
-}
-
-impl<'v> ToViper<'v, viper::Expr<'v>> for expression::MapOp {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Expr<'v> {
-        let (key_ty, val_ty) = match &self.map_ty {
-            Type::Map(Map { key_type, val_type }) => (key_type, val_type),
+        let element_type = || match &self.container_type {
+            Type::Seq(ty::Seq { element_type, .. })
+            | Type::Set(ty::Set { element_type, .. })
+            | Type::MultiSet(ty::MultiSet { element_type, .. }) => {
+                element_type.to_viper(context, ast)
+            }
+            _ => unreachable!("{}", self.container_type),
+        };
+        let key_value_types = || match &self.container_type {
+            Type::Map(ty::Map { key_type, val_type }) => {
+                let key_type = key_type.to_viper(context, ast);
+                let val_type = val_type.to_viper(context, ast);
+                (key_type, val_type)
+            }
             _ => unreachable!(),
         };
-        let key_ty = key_ty.to_viper(context, ast);
-        let val_ty = val_ty.to_viper(context, ast);
-
         let arg = |idx| (&self.operands[idx] as &Expression).to_viper(context, ast);
-
+        let args = || {
+            self.operands
+                .iter()
+                .map(|operand| operand.to_viper(context, ast))
+                .collect::<Vec<_>>()
+        };
         match self.kind {
-            expression::MapOpKind::Empty => ast.empty_map(key_ty, val_ty),
-            expression::MapOpKind::Update => ast.update_map(arg(0), arg(1), arg(2)),
-            expression::MapOpKind::Contains => ast.map_contains(arg(0), arg(1)),
-            expression::MapOpKind::Lookup => ast.lookup_map(arg(0), arg(1)),
-            expression::MapOpKind::Len => ast.map_len(arg(0)),
+            expression::ContainerOpKind::SeqEmpty => ast.empty_seq(element_type()),
+            expression::ContainerOpKind::SeqConstructor => {
+                let elements = args();
+                if elements.is_empty() {
+                    ast.empty_seq(element_type())
+                } else {
+                    ast.explicit_seq(&elements)
+                }
+            }
+            expression::ContainerOpKind::SeqIndex => ast.seq_index(arg(0), arg(1)),
+            expression::ContainerOpKind::SeqConcat => ast.seq_append(arg(0), arg(1)),
+            expression::ContainerOpKind::SeqLen => ast.seq_length(arg(0)),
+            expression::ContainerOpKind::MapEmpty => {
+                let (key_ty, val_ty) = key_value_types();
+                ast.empty_map(key_ty, val_ty)
+            }
+            expression::ContainerOpKind::MapUpdate => ast.update_map(arg(0), arg(1), arg(2)),
+            expression::ContainerOpKind::MapContains => ast.map_contains(arg(0), arg(1)),
+            expression::ContainerOpKind::MapLookup => ast.lookup_map(arg(0), arg(1)),
+            expression::ContainerOpKind::MapLen => ast.map_len(arg(0)),
+            expression::ContainerOpKind::SetEmpty => ast.empty_set(element_type()),
+            expression::ContainerOpKind::SetConstructor => {
+                let elements = args();
+                if elements.is_empty() {
+                    ast.empty_set(element_type())
+                } else {
+                    ast.explicit_set(&elements)
+                }
+            }
+            expression::ContainerOpKind::SetUnion | expression::ContainerOpKind::MultiSetUnion => {
+                ast.any_set_union(arg(0), arg(1))
+            }
+            expression::ContainerOpKind::SetIntersection
+            | expression::ContainerOpKind::MultiSetIntersection => {
+                ast.any_set_intersection(arg(0), arg(1))
+            }
+            expression::ContainerOpKind::SetSubset
+            | expression::ContainerOpKind::MultiSetSubset => ast.any_set_subset(arg(0), arg(1)),
+            expression::ContainerOpKind::SetMinus | expression::ContainerOpKind::MultiSetMinus => {
+                ast.any_set_minus(arg(0), arg(1))
+            }
+            expression::ContainerOpKind::SetContains
+            | expression::ContainerOpKind::MultiSetContains => ast.any_set_contains(arg(0), arg(1)),
+            expression::ContainerOpKind::SetCardinality
+            | expression::ContainerOpKind::MultiSetCardinality => ast.any_set_cardinality(arg(0)),
+            expression::ContainerOpKind::MultiSetEmpty => ast.empty_multiset(element_type()),
+            expression::ContainerOpKind::MultiSetConstructor => {
+                let elements = args();
+                if elements.is_empty() {
+                    ast.empty_multiset(element_type())
+                } else {
+                    ast.explicit_multiset(&elements)
+                }
+            }
         }
     }
 }
@@ -602,17 +633,19 @@ impl<'v> ToViper<'v, viper::Position<'v>> for Position {
 }
 
 impl<'v> ToViper<'v, viper::Type<'v>> for Type {
-    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Type<'v> {
+    fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Type<'v> {
         match self {
             Type::Int => ast.int_type(),
             Type::Bool => ast.bool_type(),
             Type::Ref => ast.ref_type(),
             Type::Perm => ast.perm_type(),
             Type::Domain(ty) => ast.domain_type(&ty.name, &[], &[]),
-            Type::Seq(ty) => ast.seq_type(ty.element_type.to_viper(context, ast)),
+            Type::Seq(ty) => ast.seq_type(ty.element_type.to_viper(_context, ast)),
+            Type::Set(ty) => ast.set_type(ty.element_type.to_viper(_context, ast)),
+            Type::MultiSet(ty) => ast.multiset_type(ty.element_type.to_viper(_context, ast)),
             Type::Map(ty) => ast.map_type(
-                ty.key_type.to_viper(context, ast),
-                ty.val_type.to_viper(context, ast),
+                ty.key_type.to_viper(_context, ast),
+                ty.val_type.to_viper(_context, ast),
             ),
             Type::Float(Float::F32) => ast.backend_f32_type(),
             Type::Float(Float::F64) => ast.backend_f64_type(),

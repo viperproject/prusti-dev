@@ -4,6 +4,7 @@ trait TraitWithAssocType {
     type Input;
     type Output;
 
+    #[requires(false)]
     fn do_something(&self, x: Self::Input) -> Self::Output;
 }
 

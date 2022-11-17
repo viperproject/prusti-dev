@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 use prusti_contracts::*;
 #[ensures(result > 0)]
 fn to_pos_u32(args: impl Into<u32>) -> u32 {

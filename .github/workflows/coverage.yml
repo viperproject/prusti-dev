@@ -8,8 +8,6 @@ on:
 env:
   RUST_BACKTRACE: 1
   PRUSTI_ASSERT_TIMEOUT: 60000
-  # The following are necessary for profiling (see https://github.com/mozilla/grcov)
-  LLVM_PROFILE_FILE: "prusti-%p-%m.profraw"
 
 jobs:
   test:
@@ -17,34 +15,49 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - uses: actions/setup-java@v1
+
+      - name: Set up Java
+        uses: actions/setup-java@v1
         with:
           java-version: '15'
+
       - name: Set up the environment
         run: python x.py setup
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "shared"
+
+      - name: Enable collection of source-based coverage
+        run: |
+          # The following are necessary for profiling (see https://github.com/mozilla/grcov)
+          echo "RUSTFLAGS=-Cinstrument-coverage" >> $GITHUB_ENV
+          echo "LLVM_PROFILE_FILE="${GITHUB_WORKSPACE}/target/coverage/gcov-%p-%m.profraw"" >> $GITHUB_ENV
+
       - name: Build with cargo
-        run: python x.py build --all --verbose
+        run: python x.py build --all
+
+      - name: Run cargo tests
+        run: python x.py test --all
+
+      - name: Rerun quick cargo tests, enabling debug dumps to cover more code
+        run: python x.py test quick
         env:
-          RUSTFLAGS: -Zinstrument-coverage
-      - name: Run cargo tests, enabling debug dumps
-        run: python x.py test --all --verbose
-        env:
-          RUSTFLAGS: -Zinstrument-coverage
           PRUSTI_DUMP_DEBUG_INFO: true
           PRUSTI_DUMP_VIPER_PROGRAM: true
           PRUSTI_IGNORE_REGIONS: true
+
       - name: Check prusti-contracts
         run: |
-          cd prusti-contracts-test/
+          cd prusti-contracts/prusti-contracts-test/
           cargo build
+
       - name: Collect coverage
         run: |
           curl -sL https://github.com/mozilla/grcov/releases/latest/download/grcov-x86_64-unknown-linux-gnu.tar.bz2 | tar jxf -
           ./grcov . --llvm --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing --ignore "/*" -o lcov.info
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
