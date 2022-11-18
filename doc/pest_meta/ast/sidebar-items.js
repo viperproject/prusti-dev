@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Expr",""],["RuleType",""]],"struct":[["ExprTopDownIterator",""],["Rule",""]]};
+window.SIDEBAR_ITEMS = {"enum":[["Expr","All possible rule expressions"],["RuleType","All possible rule types"]],"struct":[["ExprTopDownIterator","The top down iterator for an expression."],["Rule","A grammar rule"]]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"derive":[["Parser",""]]};
+window.SIDEBAR_ITEMS = {"derive":[["Parser","The main method that’s called by the proc macro (a wrapper around `pest_generator::derive_parser`)"]]};

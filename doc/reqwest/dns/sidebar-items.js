@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":[["Resolve","Trait for customizing DNS resolution in reqwest."]],"type":[["Addrs","Alias for an `Iterator` trait object over `SocketAddr`."],["Resolving","Alias for the `Future` type returned by a DNS resolver."]]};
