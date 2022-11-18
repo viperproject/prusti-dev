@@ -7,6 +7,8 @@
 #![feature(rustc_private)]
 #![feature(box_patterns)]
 #![feature(hash_drain_filter)]
+// Personal ergonomics, can be refactored if an issue
+#![feature(trait_alias)]
 
 extern crate polonius_engine;
 extern crate rustc_borrowck;
@@ -28,4 +30,6 @@ pub mod syntax;
 mod graph;
 mod pcs;
 mod util;
+mod hyperdigraph;
+mod coupling_digraph;
 pub use pcs::{dump_pcs, vis_pcs_facts};
