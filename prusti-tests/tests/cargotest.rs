@@ -68,6 +68,8 @@ fn simple_assert_false() {
         .with_stderr(
             "\
 [CHECKING] foo v0.0.1 ([..])
+[WARNING] Prusti specifications are supported only from 2018 edition. Please specify the edition with adding a command line argument `--edition=2018` or `--edition=2021`.
+
 [ERROR] [Prusti: verification error] the asserted expression might not hold
  --> src/main.rs:1:13
   |
@@ -76,7 +78,8 @@ fn simple_assert_false() {
   |
   = note: this error originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: could not compile `foo` due to previous error
+warning: `foo` (bin \"foo\") generated 1 warning
+error: could not compile `foo` due to previous error; 1 warning emitted
 ",
         )
         .run();
