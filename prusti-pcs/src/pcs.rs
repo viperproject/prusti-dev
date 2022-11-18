@@ -3,17 +3,16 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#![allow(unused_imports)]
 use prusti_rustc_interface::middle::mir::{
     Operand::Move,
     Rvalue::{Ref, Use},
     StatementKind::Assign,
 };
-use rustc_data_structures::sync::Atomic;
 use rustc_middle::mir::Statement;
-use std::{default::Default, fmt::Debug, hash::Hash};
+use std::{collections::BTreeSet, default::Default, fmt::Debug, hash::Hash};
 
 use crate::{
+    coupling_digraph::*,
     pcs::DagAnnotations::Borrow,
     pcs_analysis::conditional::CondPCSctx,
     syntax::MicroMirEncoder,
@@ -22,40 +21,24 @@ use crate::{
 use analysis::mir_utils::get_blocked_place;
 use itertools::Itertools;
 use prusti_common::report::log;
-use prusti_interface::{
-    environment::{
-        borrowck::facts::{
-            AllInputFacts, AllOutputFacts, BorrowckFacts, Loan, Point, PointIndex, PointType,
-        },
-        mir_analyses::{
-            allocation::{compute_definitely_allocated, DefinitelyAllocatedAnalysisResult},
-            initialization::{compute_definitely_initialized, DefinitelyInitializedAnalysisResult},
-        },
-        mir_sets::{LocalSet, PlaceSet},
-        polonius_info::{graphviz, PoloniusInfo},
-        Environment, Procedure,
+use prusti_interface::environment::{
+    borrowck::facts::{AllInputFacts, AllOutputFacts, Loan, PointIndex},
+    mir_analyses::{
+        allocation::compute_definitely_allocated, initialization::compute_definitely_initialized,
     },
-    utils::is_prefix,
-    PrustiError,
+    polonius_info::PoloniusInfo,
+    Environment, Procedure,
 };
 use prusti_rustc_interface::{
     data_structures::fx::{FxHashMap, FxHashSet},
-    errors::MultiSpan,
-    middle::mir::{BasicBlock, Body, Location, Mutability, Mutability::*, Place, TerminatorKind},
+    middle::mir::{BasicBlock, Body, Location, Place, TerminatorKind},
     polonius_engine::{Algorithm, Output},
 };
 use rustc_borrowck::consumers::{
     LocationTable, RichLocation,
     RichLocation::{Mid, Start},
 };
-use std::{
-    cell::RefCell,
-    collections::{BTreeMap, BTreeSet},
-    fs::File,
-    io,
-    io::Write,
-    rc::Rc,
-};
+use std::io;
 
 /// Computes the PCS and prints it to the console
 /// Currently the entry point for the compiler
@@ -89,16 +72,15 @@ pub fn dump_pcs<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> EncodingResul
 pub fn vis_pcs_facts<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> EncodingResult<()> {
     for proc_id in env.get_annotated_procedures_and_types().0.iter() {
         let local_def_id = proc_id.expect_local();
-        let def_path = env.tcx().hir().def_path(local_def_id);
+        let _def_path = env.tcx().hir().def_path(local_def_id);
         // This panics all the time and is never called by anything else. Fixable?
         // graphviz(env, &def_path, *proc_id);
         let current_procedure: Procedure<'tcx> = env.get_procedure(*proc_id);
         let mir: &Body<'tcx> = current_procedure.get_mir();
-        let current_procedure: Procedure<'tcx> = env.get_procedure(*proc_id);
 
         // There's probably a better way to do this, but local_mir_borrowck_facts
         // doesn't actually populate the output facts.
-        let mut polonius_facts = env.body.local_mir_borrowck_facts(local_def_id);
+        let polonius_facts = env.body.local_mir_borrowck_facts(local_def_id);
         let borrowck_in_facts = polonius_facts.input_facts.take().unwrap();
         let borrowck_out_facts = Output::compute(&borrowck_in_facts, Algorithm::Naive, true);
         let location_table = polonius_facts.location_table.take().unwrap();
@@ -109,15 +91,18 @@ pub fn vis_pcs_facts<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> Encoding
             mir: &mir,
         };
 
-        log::report_with_writer(
-            "scc_trace",
-            format!("{}.graph.dot", env.name.get_unique_item_name(*proc_id)),
-            |writer| vis_scc_trace(bctx, writer).unwrap(),
-        );
+        bctx.compute_cdg_trace();
+
+        // log::report_with_writer(
+        //     "scc_trace",
+        //     format!("{}.graph.dot", env.name.get_unique_item_name(*proc_id)),
+        //     |writer| vis_scc_trace(bctx, writer).unwrap(),
+        // );
     }
     Ok(())
 }
 
+#[allow(unused)]
 // Computes the reborrowing DAG and outputs a graphviz file with it's trace
 pub fn vis_input_facts<'facts, 'mir, 'tcx: 'mir>(
     ctx: BorrowingContext<'facts, 'mir, 'tcx>,
@@ -134,8 +119,6 @@ pub fn vis_scc_trace<'facts, 'mir, 'tcx: 'mir>(
 ) -> WriterResult {
     // collect information
     let name = "CFG";
-    // TODO: PUT THIS BACK IN
-    // let dag_trace = ctx.compute_dag_trace();
     let happy_cfg = ctx.compute_happy_cfg();
 
     // nodes
@@ -270,7 +253,6 @@ pub enum DagAnnotations {
     Repack,
 }
 
-// Flaw in trait system: this has to also have clone + debug + eq types
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Digraph<N: Clone + Debug + Eq, E: Clone + Debug + Eq> {
     pub nodes: Vec<N>,
@@ -319,184 +301,50 @@ impl<N: Clone + Debug + Eq, E: Clone + Debug + Eq> Digraph<N, E> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-struct AtomicDigraph<N: Clone + Debug + Eq, E: Clone + Debug + Eq> {
-    graph: Digraph<usize, usize>,
-    node_map: FxHashMap<usize, N>,
-    edge_map: FxHashMap<usize, E>,
-    last_sym: usize,
-}
+// TODO refactor this (and the CFG) to use the other Digraph implementation, which doens't
+//  use these janky tuples.
+pub struct LoanSCC(Digraph<Vec<Loan>, ()>);
 
-impl<N: Clone + Debug + Eq, E: Clone + Debug + Eq> Default for AtomicDigraph<N, E> {
-    fn default() -> Self {
-        AtomicDigraph {
-            graph: Digraph::default(),
-            node_map: FxHashMap::default(),
-            edge_map: FxHashMap::default(),
-            last_sym: 0,
+impl LoanSCC {
+    pub fn new(nodes: Vec<Vec<Loan>>, edges: Vec<(Vec<Loan>, Vec<Loan>, ())>) -> Self {
+        Self {
+            0: Digraph { nodes, edges },
         }
     }
-}
 
-impl<N: Clone + Debug + Eq, E: Clone + Debug + Eq> AtomicDigraph<N, E> {
-    fn gensym(&mut self) -> usize {
-        self.last_sym += 1;
-        self.last_sym
-    }
+    // Coarsest possible partition of the loans such that each collection of loans
+    //  is finer than the family of nodes.
 
-    pub fn mapped_edges(&self) -> Vec<(N, N, E)> {
-        self.graph
-            .edges
-            .iter()
-            .map(|(n1, n2, e)| {
-                (
-                    (*self.node_map.get(n1).unwrap()).clone(),
-                    (*self.node_map.get(n2).unwrap()).clone(),
-                    (*self.edge_map.get(e).unwrap()).clone(),
-                )
-            })
+    // Explanation of the algorithm: maintain the invariant "rr is the
+    //      coarsest partition which is finer than all l checked so far"
+    //      iteratively checking loans l:
+    //      For each rr in r:
+    //          if rr is finer than l, that's okay
+    //          if rr is coarser than l (rr is not a subset of l)
+    //               split rr in two: rr intersect l and rr minus l
+    //          re-add the two parts back in.
+    // The inner check can be combined into a statement about sets:
+    //       Set rr to be the set {rr - l | rr in r} U {rr intersect l | rr in r}
+    //  since when rr is finer than l, rr - l is empty and rr intersect l is rr.
+    pub fn distinguishing_loans(&self) -> BTreeSet<BTreeSet<Loan>> {
+        // Start with the coarsest possible partition (the union of all nodes)
+        let mut r: Vec<Vec<Loan>> = vec![self.0.nodes.iter().cloned().flatten().collect()];
+        for l in self.0.nodes.iter() {
+            let r_int = r.iter().cloned().map(|rr| vec_intersection(rr, &l));
+            let r_sub = r.iter().cloned().map(|rr| vec_set_difference(rr, &l));
+            r = r_int.chain(r_sub).collect();
+        }
+
+        // Remove empty set
+        // Change types to something easier to work with (fixme: refactor to other digraph implementation)
+        r.into_iter()
+            .filter(|p| p.len() > 0)
+            .map(|p| p.into_iter().collect())
             .collect()
     }
-
-    pub fn mapped_nodes(&self) -> Vec<(N)> {
-        self.graph
-            .nodes
-            .iter()
-            .map(|n| (*self.node_map.get(n).unwrap()).clone())
-            .collect()
-    }
-
-    // Returns the index of a node, if it exists
-    fn node_index(&self, n: &N) -> Option<usize> {
-        let matching_nodes = self
-            .node_map
-            .iter()
-            .filter(|(k, v)| *v == n)
-            .map(|(k, _)| k)
-            .cloned()
-            .collect::<Vec<usize>>();
-        if matching_nodes.len() == 1 {
-            Some(matching_nodes[0])
-        } else if matching_nodes.len() == 0 {
-            None
-        } else {
-            panic!("Atomic graph invalid state: values are not unique");
-        }
-    }
-
-    // Returns the index of a node, if it exists
-    fn edge_index(&self, e: &E) -> Option<usize> {
-        let matching_edges = self
-            .edge_map
-            .iter()
-            .filter(|(k, v)| *v == e)
-            .map(|(k, _)| k)
-            .cloned()
-            .collect::<Vec<usize>>();
-        if matching_edges.len() == 1 {
-            Some(matching_edges[0])
-        } else if matching_edges.len() == 0 {
-            None
-        } else {
-            panic!("Atomic graph invalid state: edges are not unique");
-        }
-    }
-
-    // Adds a node, if it doesn't exist
-    // Return its index
-    pub fn include_node(&mut self, n: N) -> usize {
-        match self.node_index(&n) {
-            None => {
-                let node_sym = self.gensym();
-                self.graph.nodes.push(node_sym);
-                self.node_map.insert(node_sym, n);
-                node_sym
-            }
-            Some(sym) => sym,
-        }
-    }
-
-    // Adds an edge, adding extra nodes if they don't exist
-    pub fn include_edge(&mut self, v: (N, N, E)) {
-        if let Some(_) = self.edge_index(&v.2) {
-            let edge_sym = self.gensym();
-            self.edge_map.insert(edge_sym, v.2.clone());
-            let n0 = self.include_node(v.0);
-            let n1 = self.include_node(v.1);
-            self.graph.edges.push((n0, n1, edge_sym));
-        }
-    }
-
-    // partitions nodes by a function
-    pub fn quotient_nodes<F, Z: Eq + Hash>(&self, f: F) -> FxHashMap<Z, FxHashSet<usize>>
-    where
-        F: Fn(&N) -> Z,
-    {
-        let mut r = FxHashMap::default();
-
-        for n in self.graph.nodes.iter() {
-            let res_z = f(&self.node_map.get(n).unwrap());
-            let entry_borrow = r.entry(res_z).or_insert(FxHashSet::default());
-            (*entry_borrow).insert((*n).clone());
-        }
-
-        r
-    }
 }
 
-struct LoanSCC(Digraph<Vec<Loan>, ()>);
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-struct ReborrowingDag<'tcx>(AtomicDigraph<FxHashSet<Place<'tcx>>, DagAnnotations>);
 struct CFG(Digraph<BasicBlock, ()>);
-
-impl DagAnnotations {
-    pub fn underlying_loan(&self) -> Option<Loan> {
-        match self {
-            Borrow(l) => Some((*l).clone()),
-            Repack => None,
-        }
-    }
-}
-
-impl<'tcx> ReborrowingDag<'tcx> {
-    pub fn new(
-        n: Vec<FxHashSet<Place<'tcx>>>,
-        e: Vec<(
-            FxHashSet<Place<'tcx>>,
-            FxHashSet<Place<'tcx>>,
-            DagAnnotations,
-        )>,
-    ) -> Self {
-        let mut g: AtomicDigraph<FxHashSet<Place<'tcx>>, DagAnnotations> = AtomicDigraph::default();
-        for nn in n.into_iter() {
-            g.include_node(nn);
-        }
-        for ee in e.iter() {
-            g.include_edge((*ee).clone());
-        }
-        Self { 0: g }
-    }
-
-    pub fn loans(&self) -> Vec<Loan> {
-        self.0
-            .mapped_edges()
-            .iter()
-            .filter_map(|(_, _, a)| a.underlying_loan())
-            .collect()
-    }
-
-    pub fn push_loan(
-        &mut self,
-        lhs: FxHashSet<Place<'tcx>>,
-        rhs: FxHashSet<Place<'tcx>>,
-        loan: Loan,
-    ) {
-        self.0.include_node(lhs.clone());
-        self.0.include_node(rhs.clone());
-        self.0.include_edge((lhs, rhs, Borrow(loan)));
-    }
-}
 
 impl CFG {
     pub fn new(n: Vec<BasicBlock>, e: Vec<(BasicBlock, BasicBlock)>) -> Self {
@@ -524,20 +372,6 @@ impl CFG {
     }
 }
 
-impl LoanSCC {
-    pub fn new(n: Vec<Vec<Loan>>, e: Vec<(Vec<Loan>, Vec<Loan>)>) -> Self {
-        Self {
-            0: Digraph {
-                nodes: n,
-                edges: e
-                    .iter()
-                    .map(|(l0, l1)| ((*l0).clone(), (*l1).clone(), ()))
-                    .collect(),
-            },
-        }
-    }
-}
-
 impl<'facts, 'mir, 'tcx: 'mir> BorrowingContext<'facts, 'mir, 'tcx> {
     /// Strongly connected components of the Origin Contains Loan At fact at a point
     pub fn loan_scc_at(&self, loc: PointIndex) -> Option<LoanSCC> {
@@ -547,7 +381,7 @@ impl<'facts, 'mir, 'tcx: 'mir> BorrowingContext<'facts, 'mir, 'tcx> {
             let sv: Vec<Loan> = s.iter().cloned().collect();
             nodes.push(sv);
         }
-        let mut edges: FxHashSet<(Vec<Loan>, Vec<Loan>)> = FxHashSet::default();
+        let mut edges: FxHashSet<(Vec<Loan>, Vec<Loan>, ())> = FxHashSet::default();
 
         // refactor: nodes.dedup() doesn't work... why? Does it not deeply check vectors?
         let mut nodes_tmp: Vec<Vec<Loan>> = vec![];
@@ -564,9 +398,9 @@ impl<'facts, 'mir, 'tcx: 'mir> BorrowingContext<'facts, 'mir, 'tcx> {
                 continue;
             }
             if v[0].is_subset(v[1]) {
-                edges.insert((v0.clone(), v1.clone()));
+                edges.insert((v0.clone(), v1.clone(), ()));
             } else if v[0].is_superset(v[1]) {
-                edges.insert((v1.clone(), v0.clone()));
+                edges.insert((v1.clone(), v0.clone(), ()));
             }
         }
         Some(LoanSCC::new(nodes, edges.into_iter().collect()))
@@ -657,148 +491,59 @@ impl<'facts, 'mir, 'tcx: 'mir> BorrowingContext<'facts, 'mir, 'tcx> {
         return CFG::new(nodes, edges);
     }
 
-    // Detect when two SCC's differ by exactly one new loan, and return it if so
-    fn scc_differ_by_loan_issue(
-        &self,
-        oscc1: &Option<LoanSCC>,
-        oscc2: &Option<LoanSCC>,
-    ) -> Option<Vec<Loan>> {
-        match (oscc1, oscc2) {
-            (_, None) => None,
-            (None, Some(ssc)) => {
-                let v = (*ssc.0.nodes).iter().cloned().collect::<Vec<_>>();
-                let e = (*ssc.0.edges).iter().cloned().collect::<Vec<_>>();
-                if v.iter().all(|vv| vv.len() == 1) && e.len() == 0 {
-                    Some(v.iter().map(|x| x[0]).collect())
-                } else {
-                    None
-                }
-            }
-            (Some(ssc1), Some(ssc2)) => {
-                let v1 = ssc1.0.nodes.iter().cloned().collect::<Vec<_>>();
-                let v2 = ssc2.0.nodes.iter().cloned().collect::<Vec<_>>();
-                // TODO: There's no self edges in the SCC... right?
-                let diff = vec_set_difference(v1.concat(), &v2.concat());
-                if diff.len() == 1 {
-                    Some(diff)
-                } else {
-                    None
-                }
-
-                // if vec_set_eq(&e1, &e2) {
-                //     // Vetices are vectors of loans
-                //     let diff = vec_set_difference((*v2).clone(), v1);
-                //     if diff.iter().all(|s| s.len() == 1) {
-                //         Some(diff.iter().map(|x| x[0]).collect())
-                //     } else {
-                //         None
-                //     }
-                // } else {
-                //     None
-                // }
-            }
-        }
-    }
-
-    fn compute_dag_trace(&self) -> FxHashMap<PointIndex, ReborrowingDag<'tcx>> {
-        let mut f: FxHashMap<PointIndex, ReborrowingDag<'tcx>> = FxHashMap::default();
+    fn compute_cdg_trace(&self) -> FxHashMap<PointIndex, CouplingDigraph<'tcx>> {
+        let mut f: FxHashMap<PointIndex, CouplingDigraph<'tcx>> = FxHashMap::default();
         let (pred_map, succ_map) = self.traversal_maps();
-        let mut dirty_single: Vec<(PointIndex, ReborrowingDag)> = vec![(
+        let mut dirty_single: Vec<(PointIndex, CouplingDigraph<'tcx>)> = vec![(
             self.location_table.all_points().next().unwrap(),
-            ReborrowingDag::new(vec![], vec![]),
+            CouplingDigraph::default(),
         )];
         let mut dirty_joins: Vec<PointIndex> = vec![];
         let mut done: Vec<PointIndex> = vec![];
 
         loop {
             let mut pt: PointIndex;
-            let mut working_dag: ReborrowingDag;
+            let mut working_cdg: CouplingDigraph<'tcx>;
 
             if let Some((curr_pt, prev_dag)) = dirty_single.pop() {
                 // Update the collection of essential nodes in the tree
-                working_dag = prev_dag.clone();
+                working_cdg = prev_dag.clone();
                 pt = curr_pt;
+                println!("enter {:?}", pt);
 
                 if let Some(new_loan) = self.loan_issued_at_at(curr_pt) {
-                    self.update_dag_with_issue(curr_pt, &mut working_dag);
+                    println!("-- new loan {:?}", new_loan);
+                    // self.update_dag_with_issue(curr_pt, &mut working_dag);
                 }
 
-                // Check for kills and invalidations
+                // Also need to check for kills (tags) and invalidations
 
-                // if let Some(scc) = self.loan_scc_at(curr_pt) {
-                //     println!("---- {:#?}", curr_pt);
-                //     print!("scc ");
-                //     debug_print_scc(&scc);
-                //     print!("old ");
-                //     debug_print_dag(&prev_dag);
-                //     let pred_pt = pred_map.get(&curr_pt).unwrap().iter().next().unwrap();
-                //     let pred_scc = self.loan_scc_at(*pred_pt);
-                //     let singleton_diff =
-                //         self.scc_differ_by_loan_issue(&pred_scc, &Some(scc.clone()));
-                //     print!("difference ");
-                //     if let Some(vd) = &singleton_diff {
-                //         for v in vd.iter() {
-                //             print!("{:?} ", v);
-                //         }
-                //     }
-                //     println!();
-
-                //     if Some(scc.clone()) == pred_scc {
-                //         // (1) If the scc is the same, do not update
-                //         pt = curr_pt;
-                //         working_dag = prev_dag;
-                //     } else if let Some(new_loans) = singleton_diff {
-                //         if new_loans.len() == 1 {
-                //             // One new loan issued, add it to the reborrowing DAG
-                //             working_dag = prev_dag.clone();
-                //             self.update_dag_with_issue(
-                //                 curr_pt.clone(),
-                //                 &mut working_dag,
-                //                 new_loans[0],
-                //             );
-                //             print!("new dag: ");
-                //             debug_print_dag(&working_dag);
-                //             pt = curr_pt;
-                //         } else {
-                //             // More than one new loan issued, or zero new loans issued (somehow)
-                //             panic!();
-                //         }
-                //     } else {
-                //         println!("UNHANDLED CASE:");
-                //         panic!();
-                //     }
-                //     // If
-                //     //  - we're at an odd location
-                //     //  - a singleton scc node is introduced
-                //     //  - the previous statement issued the loan in the singleton
-                //     // Then we add a new edge to the reborrowing DAG
-                // } else {
-                //     // If no SCC, the reborrowing DAG is read to be empty
-                //     pt = curr_pt;
-                //     working_dag = (vec![], vec![]);
-                // }
+                if let Some(scc_v) = self.loan_scc_at(pt) {
+                    print!("-- scc: ");
+                    debug_print_scc(&scc_v);
+                    working_cdg.constrain_by_scc(scc_v);
+                }
             } else if let Some(r) = dirty_joins.pop() {
                 // let preds = pred_map.get(r).unwrap();
-                todo!("construct a working_dag from the join");
                 pt = r;
-                working_dag = todo!();
+                working_cdg = CouplingDigraph::default();
+                println!("enter {:?}", pt);
+                println!("!!!! unhandled join");
             } else {
-                todo!("unhandled");
+                println!(
+                    "end, remaning jobs: {:?} {:?}",
+                    dirty_single.len(),
+                    dirty_joins.len()
+                );
                 break;
             };
 
-            // We should have a weaker version of the DAG at this point... possible missing some edges
-            // and possibly missing some coupling.
+            // self.strengthen_dag_by_scc(pt, &mut working_dag);
 
-            print!("pre-calculation dag: ");
-            debug_print_dag(&working_dag);
-
-            self.strengthen_dag_by_scc(pt, &mut working_dag);
-
-            println!("done {:#?}", pt);
-
-            // Add f to the map and continue
-            f.insert(pt, working_dag.clone());
+            println!(">> finished cdg computation");
+            working_cdg.pprint();
+            //f.insert(pt, working_cdg.clone());
+            println!("exit {:?}", pt);
 
             // Add all successors to the dirty lists
             if let Some(nexts) = succ_map.get(&pt) {
@@ -806,7 +551,7 @@ impl<'facts, 'mir, 'tcx: 'mir> BorrowingContext<'facts, 'mir, 'tcx> {
                     if !done.contains(nxt) {
                         let preds_len = pred_map.get(&nxt).unwrap().len();
                         if preds_len == 1 {
-                            dirty_single.push((*nxt, working_dag.clone()));
+                            dirty_single.push((*nxt, working_cdg.clone()));
                         } else {
                             dirty_joins.push(*nxt);
                         }
@@ -819,71 +564,37 @@ impl<'facts, 'mir, 'tcx: 'mir> BorrowingContext<'facts, 'mir, 'tcx> {
         f
     }
 
-    fn strengthen_dag_by_scc(&self, pt: PointIndex, dag: &mut ReborrowingDag<'tcx>) {
-        let scc = self.loan_scc_at(pt);
-        if let Some(scc_v) = scc {
-            print!("scc: ");
-            debug_print_scc(&scc_v);
+    // Plan: SCC nodes => subgraphs of the CDG
+    //      remember: SCC nodes correspond to origins
+    //      So if an origin has two loans in it, then those loans all possibly flowed
+    //          into some variable
+    //      It is our job to order those loans
+    // SCC edges => constraints on the structure of nodes
+    //      The LHS of a SCC edge must have a subgraph corresponding to the RHS
 
-            // for scc_node in scc_v.0.nodes.iter() {
-            //     // self.add_implicit_edges(dag, scc_node);
-            // }
-            // Plan: SCC nodes => subgraphs of the DAG
-            //      remember: SCC nodes correspond to origins
-            //      So if an origin has two loans in it, then those loans all possibly flowed
-            //          into some variable
-            //      It is our job to order those loans
-            // SCC edges => constraints on the structure of nodes
-            //      The LHS of a SCC edge must have a subgraph corresponding to the RHS
+    // 1. Figure out which edges belong to which SCC's
+    //          All SCC nodes should be in the same (directed) connected component
 
-            // 1. Figure out which edges belong to which SCC's
-            //          All SCC nodes should be in the same (directed) connected component
+    // 2. Figure out what the "signature" of each SCC subgraph should be
 
-            // 2. Figure out what the "signature" of each SCC subgraph should be
+    // eg. SCC contains {bw0, bw1} and {bw0}
+    // - It must be possible to unwind from from a dag with {bw0, bw1} live to one with {bw0} live
+    // - DAG contains the structure
+    //      [bw1] -(?)-> [bw0]
+    // Right now the "dag" looks like
+    //      a -bw1-> b  <--repack--> b -bw0-> c
+    // So we just select (?) to be the rightwards repacking
+    // The DAG then satisfies all SCC contstraints; we are done.
 
-            // eg. SCC contains {bw0, bw1} and {bw0}
-            // - It must be possible to unwind from from a dag with {bw0, bw1} live to one with {bw0} live
-            // - DAG contains the structure
-            //      [bw1] -(?)-> [bw0]
-            // Right now the "dag" looks like
-            //      a -bw1-> b  <--repack--> b -bw0-> c
-            // So we just select (?) to be the rightwards repacking
-            // The DAG then satisfies all SCC contstraints; we are done.
-        }
-    }
-
-    // Compute the minimal (directed) subgraph of the dag containg all nodes in scc_n
-    fn get_subgraph_from_loans(&self, dag: &mut ReborrowingDag, scc_n: &Vec<Loan>) {
-        // There's defeinitely a better way to find this
-        let mut working_dag = (*dag).clone();
-        todo!();
-    }
-
-    // Figure out all possible repack edges between nodes
-    fn add_implicit_edges(&self, dag: &mut ReborrowingDag) {
-        // Nodes are sets of places.
-        // "Hyperedges" can be represented as one edge (UNPACK p) --REPACK--> {p}
-        // and several edges A --incl--> B (where A is a subset of B)
-        // A hyperedge is then a family of incl/repack edges where the disjoint union of the RHS's
-        //  of the incl edges exactly meet the LHS of the REPACK edge.
-
-        // For now, we're going to ignore this construction and pretend everything unpacks to exactly
-        // one place (which it does in the list walk example)
-
-        // 1. For every place that occurs in some node, compute the unpacking of that place.
-        //      If that unpacking is the RHS of any node in the graph,
-        //          add a repack edge between the two.
-        todo!();
-    }
-
-    // Updates dag with newly issued loans
-    fn update_dag_with_issue(&self, loc: PointIndex, dag: &mut ReborrowingDag<'tcx>) {
+    // Updates cdg with any newly issued loans at a point.
+    fn update_cdg_with_issue(&self, loc: PointIndex, dag: &mut CouplingDigraph<'tcx>) {
         if let Some(loan) = self.loan_issued_at_at(loc) {
             match self.expect_mir_statement(loc).kind {
                 Assign(box (to, Ref(_, _, from))) | Assign(box (to, Use(Move(from)))) => {
                     let lhs: FxHashSet<_> = vec![to].iter().cloned().collect();
                     let rhs: FxHashSet<_> = vec![from].iter().cloned().collect();
-                    dag.push_loan(lhs, rhs, loan);
+                    todo!();
+                    // dag.push_loan(lhs, rhs, loan);
                 }
                 _ => {
                     panic!("unsupported borrow creation");
@@ -1089,24 +800,6 @@ fn bb_title(b: &BasicBlock) -> String {
     ))
 }
 
-fn debug_print_dag(d: &ReborrowingDag) {
-    for n in d.0.mapped_nodes().iter() {
-        print!("{:?} ", n);
-    }
-    println!();
-    for (lhs, rhs, ann) in d.0.mapped_edges().iter() {
-        for l in lhs.iter() {
-            print!("{:?} ", l);
-        }
-        print!("-> ");
-        for r in rhs.iter() {
-            print!("{:?} ", r);
-        }
-        debug_print_annotation(&ann);
-        println!();
-    }
-}
-
 fn debug_print_annotation(ann: &DagAnnotations) {
     match ann {
         Borrow(l) => {
@@ -1144,4 +837,8 @@ fn vec_set_difference<T: Eq + Clone>(v: Vec<T>, subtrahend: &Vec<T>) -> Vec<T> {
         .filter(|vv| !subtrahend.contains(vv))
         .cloned()
         .collect()
+}
+
+fn vec_intersection<T: Eq>(v1: Vec<T>, v2: &Vec<T>) -> Vec<T> {
+    v1.into_iter().filter(|vv| v2.contains(vv)).collect()
 }
