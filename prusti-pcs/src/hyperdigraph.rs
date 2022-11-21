@@ -5,21 +5,19 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prusti_interface::environment::borrowck::facts::{Loan, PointIndex};
-use prusti_rustc_interface::{
-    data_structures::fx::{FxHashMap, FxHashSet},
-    middle::mir::BasicBlock,
-};
-use rustc_middle::mir;
+use prusti_rustc_interface::data_structures::fx::{FxHashMap, FxHashSet};
 use std::{collections::BTreeSet, fmt::Debug, hash::Hash};
+
+pub trait Bijectable = Eq + Hash + Debug + Clone;
 
 /// Simple way to represent a bijection
 #[derive(Clone)]
-pub struct Bijection<A: Hash, B: Hash> {
+pub struct Bijection<A: Bijectable, B: Bijectable> {
     pub fwd: FxHashMap<A, B>,
-    pub rev: FxHashMap<A, B>,
+    pub rev: FxHashMap<B, A>,
 }
 
-impl<A: Hash, B: Hash> Default for Bijection<A, B> {
+impl<A: Bijectable, B: Bijectable> Default for Bijection<A, B> {
     fn default() -> Self {
         Self {
             fwd: Default::default(),
@@ -28,9 +26,10 @@ impl<A: Hash, B: Hash> Default for Bijection<A, B> {
     }
 }
 
-impl<A: Hash, B: Hash> Bijection<A, B> {
+impl<A: Bijectable, B: Bijectable> Bijection<A, B> {
     pub fn insert(&mut self, a: A, b: B) {
-        todo!();
+        assert!(None == self.fwd.insert(a.clone(), b.clone()));
+        assert!(None == self.rev.insert(b.clone(), a.clone()));
     }
 
     pub fn remove_a(&mut self, a: A) -> B {
@@ -40,9 +39,18 @@ impl<A: Hash, B: Hash> Bijection<A, B> {
     pub fn remove_b(&mut self, a: A) -> B {
         todo!();
     }
+    pub fn get_fwd(&self, a: &A) -> Option<&B> {
+        self.fwd.get(a)
+    }
+
+    pub fn pprint(&self) {
+        for (k, v) in self.fwd.iter() {
+            println!("\t** {:?} <-> {:?} ", k, v);
+        }
+    }
 }
 
-pub trait Node = PartialEq + Eq + Debug + Hash;
+pub trait Node = PartialEq + Eq + Debug + Hash + Ord + Clone;
 pub trait Annotation = Eq;
 
 /// Directed graph
@@ -69,11 +77,11 @@ impl<N: Node, A: Annotation> Digraph<N, A> {
 }
 
 /// Directed Hyperedge
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, PartialOrd, Ord)]
 
 pub struct DHEdge<N: Node> {
-    lhs: BTreeSet<N>,
-    rhs: BTreeSet<N>,
+    pub lhs: BTreeSet<N>,
+    pub rhs: BTreeSet<N>,
 }
 
 /// A Hyperdigraph is
@@ -84,20 +92,50 @@ pub struct DHEdge<N: Node> {
 ///             uniquely identified by their LHS and RHS.
 #[derive(Debug, Clone)]
 pub struct Hyperdigraph<N: Node> {
-    nodes: FxHashSet<N>,
-    edges: FxHashSet<DHEdge<N>>,
+    nodes: BTreeSet<N>,
+    edges: BTreeSet<DHEdge<N>>,
 }
 
 impl<N: Node> Default for Hyperdigraph<N> {
     fn default() -> Self {
         Self {
-            nodes: FxHashSet::default(),
-            edges: FxHashSet::default(),
+            nodes: Default::default(),
+            edges: Default::default(),
         }
     }
 }
 
 impl<N: Node> Hyperdigraph<N> {
+    pub fn nodes(&self) -> &BTreeSet<N> {
+        &self.nodes
+    }
+
+    pub fn include_edge(&mut self, e: DHEdge<N>) {
+        // Ensure that all nodes required by the edge are included in the graph
+        for n in e.lhs.iter().chain(e.rhs.iter()) {
+            self.include_node(n);
+        }
+        // Add the edge, if it doesn't exist.
+        if !self.edges.contains(&e) {
+            self.insert_edge(e);
+        }
+    }
+
+    /// Include an edge which doesn't exist, with nodes that do exist.
+    fn insert_edge(&mut self, e: DHEdge<N>) {
+        assert!(e.lhs.is_subset(&self.nodes));
+        assert!(e.rhs.is_subset(&self.nodes));
+        assert!(self.edges.insert(e))
+    }
+
+    /// Include a node that might exist
+    fn include_node(&mut self, n: &N) {
+        if !self.nodes.contains(n) {
+            self.insert_node(n.clone());
+        }
+    }
+
+    /// Include a node that doesn't exist
     pub fn insert_node(&mut self, n: N) {
         assert!(self.nodes.insert(n));
     }
@@ -135,10 +173,20 @@ impl<N: Node> Hyperdigraph<N> {
     //  and {Y} disjoint union {Bi} are equal. The above example is not a linear
     //  K-path.
 
-    pub fn pprint(&self) {
-        println!("nodes: {:?}", self.nodes);
+    pub fn find_linear_k_path(
+        &self,
+        from: BTreeSet<N>,
+        to: BTreeSet<N>,
+    ) -> Option<BTreeSet<DHEdge<N>>> {
+        // Brute force, stupid, algorithm
+
+        todo!();
+    }
+
+    pub fn pprint_with_annotations<T: Bijectable>(&self, ann: &Bijection<DHEdge<N>, T>) {
+        println!("\t** nodes: {:?}", self.nodes);
         for e in self.edges.iter() {
-            println!(" edge: {:?}", e);
+            println!("\t * edge: {:?}\t({:?})", e, ann.get_fwd(&e));
         }
     }
 }

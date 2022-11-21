@@ -89,6 +89,7 @@ pub fn vis_pcs_facts<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> Encoding
             borrowck_out_facts: &borrowck_out_facts,
             location_table: &location_table,
             mir: &mir,
+            env: &env,
         };
 
         bctx.compute_cdg_trace();
@@ -104,8 +105,8 @@ pub fn vis_pcs_facts<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> Encoding
 
 #[allow(unused)]
 // Computes the reborrowing DAG and outputs a graphviz file with it's trace
-pub fn vis_input_facts<'facts, 'mir, 'tcx: 'mir>(
-    ctx: BorrowingContext<'facts, 'mir, 'tcx>,
+pub fn vis_input_facts<'facts, 'env, 'mir: 'env, 'tcx: 'mir>(
+    ctx: BorrowingContext<'facts, 'mir, 'env, 'tcx>,
     writer: &mut dyn io::Write,
 ) -> Result<(), io::Error> {
     todo!();
@@ -113,8 +114,8 @@ pub fn vis_input_facts<'facts, 'mir, 'tcx: 'mir>(
 
 type WriterResult = Result<(), io::Error>;
 
-pub fn vis_scc_trace<'facts, 'mir, 'tcx: 'mir>(
-    ctx: BorrowingContext<'facts, 'mir, 'tcx>,
+pub fn vis_scc_trace<'facts, 'env, 'mir: 'env, 'tcx: 'mir>(
+    ctx: BorrowingContext<'facts, 'mir, 'env, 'tcx>,
     writer: &mut dyn io::Write,
 ) -> WriterResult {
     // collect information
@@ -240,11 +241,12 @@ pub fn vis_scc_trace<'facts, 'mir, 'tcx: 'mir>(
 }
 
 // Refactor: The first 4 fields here could be changed to a BodyWithBorrowckFacts
-pub struct BorrowingContext<'facts, 'mir, 'tcx: 'mir> {
+pub struct BorrowingContext<'facts, 'mir, 'env: 'mir, 'tcx: 'env> {
     borrowck_in_facts: &'facts AllInputFacts,
     borrowck_out_facts: &'facts AllOutputFacts,
     location_table: &'facts LocationTable,
     mir: &'mir Body<'tcx>,
+    env: &'env Environment<'tcx>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -254,7 +256,7 @@ pub enum DagAnnotations {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-struct Digraph<N: Clone + Debug + Eq, E: Clone + Debug + Eq> {
+pub struct Digraph<N: Clone + Debug + Eq, E: Clone + Debug + Eq> {
     pub nodes: Vec<N>,
     pub edges: Vec<(N, N, E)>,
 }
@@ -303,7 +305,7 @@ impl<N: Clone + Debug + Eq, E: Clone + Debug + Eq> Digraph<N, E> {
 
 // TODO refactor this (and the CFG) to use the other Digraph implementation, which doens't
 //  use these janky tuples.
-pub struct LoanSCC(Digraph<Vec<Loan>, ()>);
+pub struct LoanSCC(pub Digraph<Vec<Loan>, ()>);
 
 impl LoanSCC {
     pub fn new(nodes: Vec<Vec<Loan>>, edges: Vec<(Vec<Loan>, Vec<Loan>, ())>) -> Self {
@@ -372,7 +374,7 @@ impl CFG {
     }
 }
 
-impl<'facts, 'mir, 'tcx: 'mir> BorrowingContext<'facts, 'mir, 'tcx> {
+impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 'tcx> {
     /// Strongly connected components of the Origin Contains Loan At fact at a point
     pub fn loan_scc_at(&self, loc: PointIndex) -> Option<LoanSCC> {
         let ocla_data = self.borrowck_out_facts.origin_contains_loan_at.get(&loc)?;
@@ -511,15 +513,12 @@ impl<'facts, 'mir, 'tcx: 'mir> BorrowingContext<'facts, 'mir, 'tcx> {
                 pt = curr_pt;
                 println!("enter {:?}", pt);
 
-                if let Some(new_loan) = self.loan_issued_at_at(curr_pt) {
-                    println!("-- new loan {:?}", new_loan);
-                    // self.update_dag_with_issue(curr_pt, &mut working_dag);
-                }
+                self.update_cdg_with_issue(pt, &mut working_cdg);
 
                 // Also need to check for kills (tags) and invalidations
 
                 if let Some(scc_v) = self.loan_scc_at(pt) {
-                    print!("-- scc: ");
+                    print!("[scc]: ");
                     debug_print_scc(&scc_v);
                     working_cdg.constrain_by_scc(scc_v);
                 }
@@ -528,7 +527,8 @@ impl<'facts, 'mir, 'tcx: 'mir> BorrowingContext<'facts, 'mir, 'tcx> {
                 pt = r;
                 working_cdg = CouplingDigraph::default();
                 println!("enter {:?}", pt);
-                println!("!!!! unhandled join");
+                println!("!!!!!!!!!!!!!!!!!!! unhandled join !!!!!!!!!!!!!!!!!!!");
+                todo!();
             } else {
                 println!(
                     "end, remaning jobs: {:?} {:?}",
@@ -544,6 +544,7 @@ impl<'facts, 'mir, 'tcx: 'mir> BorrowingContext<'facts, 'mir, 'tcx> {
             working_cdg.pprint();
             //f.insert(pt, working_cdg.clone());
             println!("exit {:?}", pt);
+            println!();
 
             // Add all successors to the dirty lists
             if let Some(nexts) = succ_map.get(&pt) {
@@ -587,17 +588,16 @@ impl<'facts, 'mir, 'tcx: 'mir> BorrowingContext<'facts, 'mir, 'tcx> {
     // The DAG then satisfies all SCC contstraints; we are done.
 
     // Updates cdg with any newly issued loans at a point.
-    fn update_cdg_with_issue(&self, loc: PointIndex, dag: &mut CouplingDigraph<'tcx>) {
+    fn update_cdg_with_issue(&self, loc: PointIndex, cdg: &mut CouplingDigraph<'tcx>) {
         if let Some(loan) = self.loan_issued_at_at(loc) {
             match self.expect_mir_statement(loc).kind {
                 Assign(box (to, Ref(_, _, from))) | Assign(box (to, Use(Move(from)))) => {
-                    let lhs: FxHashSet<_> = vec![to].iter().cloned().collect();
-                    let rhs: FxHashSet<_> = vec![from].iter().cloned().collect();
-                    todo!();
-                    // dag.push_loan(lhs, rhs, loan);
+                    let lhs: BTreeSet<_> = vec![CPlace { 0: to }].iter().cloned().collect();
+                    let rhs: BTreeSet<_> = vec![CPlace { 0: from }].iter().cloned().collect();
+                    cdg.new_loan(self.mir, self.env.tcx().clone(), lhs, rhs, loan);
                 }
                 _ => {
-                    panic!("unsupported borrow creation");
+                    panic!("unsupported borrow creation, at ");
                 }
             }
         }
