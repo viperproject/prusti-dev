@@ -60,6 +60,16 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         compiler: &Compiler,
         queries: &'tcx Queries<'tcx>,
     ) -> Compilation {
+        if compiler.session().rust_2015() {
+            compiler
+                .session()
+                .struct_warn(
+                    "Prusti specifications are supported only from 2018 edition. Please \
+                 specify the edition with adding a command line argument `--edition=2018` or \
+                 `--edition=2021`.",
+                )
+                .emit();
+        }
         compiler.session().abort_if_errors();
         let (krate, _resolver, _lint_store) = &mut *queries.expansion().unwrap().peek_mut();
         if config::print_desugared_specs() {
