@@ -113,6 +113,16 @@
 <a href="#113" id="113">113</a>
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="verifier.rs.html#12"><span class="kw">crate</span>::verifier::verify</a>;
 <span class="kw">use </span><a href="../../prusti_utils/config/index.html">prusti_common::config</a>;
 <span class="kw">use </span>prusti_interface::{
@@ -175,13 +185,23 @@
         compiler: <span class="kw-2">&amp;</span>Compiler,
         queries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>Queries&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/enum.Compilation.html">Compilation</a> {
+        <span class="kw">if </span>compiler.session().rust_2015() {
+            <a href="#60">compiler</a>
+                .session()
+                .struct_warn(
+                    <span class="string">&quot;Prusti specifications are supported only from 2018 edition. Please \
+                 specify the edition with adding a command line argument `--edition=2018` or \
+                 `--edition=2021`.&quot;</span>,
+                )
+                .emit();
+        }
         <a href="#60">compiler</a>.session().abort_if_errors();
         <span class="kw">let </span>(krate, _resolver, _lint_store) = <span class="kw-2">&amp;mut *</span><a href="#61">queries</a>.expansion().unwrap().peek_mut();
         <span class="kw">if </span>config::print_desugared_specs() {
             prusti_rustc_interface::driver::pretty::print_after_parsing(
                 <a href="#60">compiler</a>.session(),
                 <a href="#60">compiler</a>.input(),
-                <a href="#64">krate</a>,
+                <a href="#74">krate</a>,
                 prusti_rustc_interface::session::config::PpMode::Source(
                     prusti_rustc_interface::session::config::PpSourceMode::Normal,
                 ),
@@ -195,32 +215,32 @@
         compiler: <span class="kw-2">&amp;</span>Compiler,
         queries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>Queries&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/enum.Compilation.html">Compilation</a> {
-        <a href="#80">compiler</a>.session().abort_if_errors();
-        <a href="#81">queries</a>.global_ctxt().unwrap().peek_mut().enter(|tcx| {
-            <span class="kw">let </span><span class="kw-2">mut </span>env = Environment::new(<a href="#84">tcx</a>, <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.env.html">env!</a>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>));
+        <a href="#90">compiler</a>.session().abort_if_errors();
+        <a href="#91">queries</a>.global_ctxt().unwrap().peek_mut().enter(|tcx| {
+            <span class="kw">let </span><span class="kw-2">mut </span>env = Environment::new(<a href="#94">tcx</a>, <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.env.html">env!</a>(<span class="string">&quot;CARGO_PKG_VERSION&quot;</span>));
             <span class="kw">let </span>spec_checker = specs::checker::SpecChecker::new();
-            <a href="#86">spec_checker</a>.check(<span class="kw-2">&amp;</span><a href="#85">env</a>);
-            <a href="#80">compiler</a>.session().abort_if_errors();
+            <a href="#96">spec_checker</a>.check(<span class="kw-2">&amp;</span><a href="#95">env</a>);
+            <a href="#90">compiler</a>.session().abort_if_errors();
 
-            <span class="kw">let </span>hir = <a href="#85">env</a>.query.hir();
-            <span class="kw">let </span><span class="kw-2">mut </span>spec_collector = specs::SpecCollector::new(<span class="kw-2">&amp;mut </span><a href="#85">env</a>);
-            <a href="#90">hir</a>.walk_toplevel_module(<span class="kw-2">&amp;mut </span><a href="#91">spec_collector</a>);
-            <a href="#90">hir</a>.walk_attributes(<span class="kw-2">&amp;mut </span><a href="#91">spec_collector</a>);
+            <span class="kw">let </span>hir = <a href="#95">env</a>.query.hir();
+            <span class="kw">let </span><span class="kw-2">mut </span>spec_collector = specs::SpecCollector::new(<span class="kw-2">&amp;mut </span><a href="#95">env</a>);
+            <a href="#100">hir</a>.walk_toplevel_module(<span class="kw-2">&amp;mut </span><a href="#101">spec_collector</a>);
+            <a href="#100">hir</a>.walk_attributes(<span class="kw-2">&amp;mut </span><a href="#101">spec_collector</a>);
 
-            <span class="kw">let </span><span class="kw-2">mut </span>def_spec = <a href="#91">spec_collector</a>.build_def_specs();
+            <span class="kw">let </span><span class="kw-2">mut </span>def_spec = <a href="#101">spec_collector</a>.build_def_specs();
             <span class="comment">// Do print_typeckd_specs prior to importing cross crate
             </span><span class="kw">if </span>config::print_typeckd_specs() {
                 <span class="kw">for </span>value <span class="kw">in </span>def_spec.all_values_debug(config::hide_uuids()) {
                     <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, value);
                 }
             }
-            CrossCrateSpecs::import_export_cross_crate(<span class="kw-2">&amp;mut </span><a href="#85">env</a>, <span class="kw-2">&amp;mut </span><a href="#95">def_spec</a>);
+            CrossCrateSpecs::import_export_cross_crate(<span class="kw-2">&amp;mut </span><a href="#95">env</a>, <span class="kw-2">&amp;mut </span><a href="#105">def_spec</a>);
             <span class="kw">if </span>!config::no_verify() {
-                <a href="verifier.rs.html#12">verify</a>(<a href="#85">env</a>, <a href="#95">def_spec</a>);
+                <a href="verifier.rs.html#12">verify</a>(<a href="#95">env</a>, <a href="#105">def_spec</a>);
             }
         });
 
-        <a href="#80">compiler</a>.session().abort_if_errors();
+        <a href="#90">compiler</a>.session().abort_if_errors();
         <span class="kw">if </span>config::full_compilation() {
             Compilation::Continue
         } <span class="kw">else </span>{
