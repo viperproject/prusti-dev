@@ -92,6 +92,13 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
                 ));
             }
             syn::ImplItem::Method(method) => {
+                if !is_stub(&method.block) {
+                    return Err(syn::Error::new(
+                        method.span(),
+                        "Unexpected method body. (Extern specs only define specifications.)",
+                    ));
+                }
+                
                 let (rewritten_method, spec_items) = generate_extern_spec_method_stub(
                     method,
                     item_ty,
@@ -122,6 +129,19 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
     impl_item.items = rewritten_items;
 
     Ok(())
+}
+
+/// Recognizes method stubs, e.g. `fn foo();`.
+/// 
+/// The absence of a body is represented in a roundabout way:
+/// They have a body comprising a single verbatim item containing a single semicolon token.
+fn is_stub(block: &syn::Block) -> bool {
+    if block.stmts.len() != 1 { return false; }
+    if let syn::Stmt::Item(syn::Item::Verbatim(tokens)) = &block.stmts[0] {
+        return tokens.to_string() == ";";
+    } else {
+        return false;
+    }
 }
 
 fn rewrite_trait_impl(
