@@ -47,18 +47,15 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
 }
 
 fn generate_where_clause_for_spec(
-    trait_bounds: &syn::PredicateType,
+    trait_bounds: &Vec<syn::PredicateType>,
     existing_where_clause: Option<&syn::WhereClause>,
 ) -> syn::WhereClause {
-    let span = trait_bounds.span();
-    if let Some(mut where_clause) = existing_where_clause.cloned() {
-        where_clause.predicates.push(parse_quote_spanned! {span=>
-            #trait_bounds
-        });
-        where_clause
-    } else {
+    let mut where_clause = existing_where_clause.cloned().unwrap_or_else(|| syn::parse_quote!(where));
+    where_clause.predicates.extend(trait_bounds.iter().map(|bound| -> syn::WherePredicate {
+        let span = bound.span();
         parse_quote_spanned! {span=>
-            where #trait_bounds
+            #bound
         }
-    }
+    }));
+    where_clause
 }
