@@ -28,7 +28,7 @@ fn collect_info_from_methods_and_functions(
     collector
 }
 
-/// Computes a map of Predicate to the predicates used  in that predicate
+/// Computes a map of Predicate to the predicates used in that predicate
 fn get_used_predicates_in_predicate_map(
     predicates: &[Predicate],
 ) -> FxHashMap<Type, FxHashSet<Type>> {
@@ -65,6 +65,7 @@ fn get_used_predicates_in_predicate_map(
                 map.insert(p.typ.clone(), res);
             }
             Predicate::Bodyless(_, _) => { /* ignore */ }
+            Predicate::ResourceAccess(_) => { /* ignore */ }
         }
     }
     map
@@ -121,18 +122,21 @@ pub fn delete_unused_predicates(
     );
 
     // Remove the bodies of predicats that are never folded or unfolded
-    predicates.iter_mut().for_each(|predicate| {
-        let predicate_type = &predicate.get_type().clone();
-        if !folded_predicates.contains(predicate_type) {
-            if let Predicate::Struct(sp) = predicate {
-                debug!("Removed body of {}", predicate_type);
-                sp.body = None;
+    predicates
+        .iter_mut()
+        .filter(|p| !p.is_resource_predicate())
+        .for_each(|predicate| {
+            let predicate_type = &predicate.get_type().clone();
+            if !folded_predicates.contains(predicate_type) {
+                if let Predicate::Struct(sp) = predicate {
+                    debug!("Removed body of {}", predicate_type);
+                    sp.body = None;
 
-                // since the predicate now has no body update the predicate map accordingly
-                predicates_in_predicates_map.remove(predicate_type);
+                    // since the predicate now has no body update the predicate map accordingly
+                    predicates_in_predicates_map.remove(predicate_type);
+                }
             }
-        }
-    });
+        });
 
     debug!(
         "Map of predicates used in predicates {:?}",
@@ -145,8 +149,15 @@ pub fn delete_unused_predicates(
     );
 
     debug!("All the used predicates are {:?}", &reachable_predicates);
+    debug!(
+        "All the used resource predicates are {:?}",
+        &collector.used_resource_predicates
+    );
 
-    predicates.retain(|p| reachable_predicates.contains(p.get_type()));
+    predicates.retain(|p| match p {
+        Predicate::ResourceAccess(typ) => collector.used_resource_predicates.contains(typ),
+        _ => reachable_predicates.contains(p.get_type()),
+    });
 
     predicates
 }
@@ -156,13 +167,16 @@ struct UsedPredicateCollector {
     used_predicates: FxHashSet<Type>,
     /// set of all predicates that are folded or unfolded
     folded_predicates: FxHashSet<Type>,
+    /// set of all resource predicates that are used
+    used_resource_predicates: FxHashSet<ResourceType>,
 }
 
 impl UsedPredicateCollector {
     fn new() -> Self {
         UsedPredicateCollector {
-            used_predicates: FxHashSet::default(),
-            folded_predicates: FxHashSet::default(),
+            used_predicates: FxHashSet::new(),
+            folded_predicates: FxHashSet::new(),
+            used_resource_predicates: FxHashSet::new(),
         }
     }
 }
@@ -178,6 +192,18 @@ impl ExprWalker for UsedPredicateCollector {
     ) {
         self.used_predicates.insert(predicate_type.clone());
         ExprWalker::walk(self, argument);
+    }
+
+    fn walk_resource_access_predicate(
+        &mut self,
+        ResourceAccessPredicate {
+            resource_type,
+            amount,
+            ..
+        }: &ResourceAccessPredicate,
+    ) {
+        self.used_resource_predicates.insert(resource_type.clone());
+        ExprWalker::walk(self, amount);
     }
 
     fn walk_unfolding(

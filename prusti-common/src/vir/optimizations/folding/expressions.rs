@@ -407,9 +407,9 @@ impl ast::FallibleExprFolder for ExprOptimizer {
     }
 
     fn fallible_fold_resource_access_predicate(
-            &mut self,
-            _resource_access_predicate: vir::polymorphic::ResourceAccessPredicate,
-        ) -> Result<vir::polymorphic::Expr, Self::Error> {
+        &mut self,
+        _resource_access_predicate: vir::polymorphic::ResourceAccessPredicate,
+    ) -> Result<vir::polymorphic::Expr, Self::Error> {
         Err(())
     }
 

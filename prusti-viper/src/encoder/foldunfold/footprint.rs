@@ -160,9 +160,7 @@ impl ExprFootprintGetter for vir::Expr {
                 Some(perm).into_iter().collect()
             }
 
-            vir::Expr::ResourceAccessPredicate(_) => {
-                FxHashSet::default()
-            }
+            vir::Expr::ResourceAccessPredicate(_) => FxHashSet::default(),
 
             vir::Expr::MagicWand(_) => {
                 // We don't track magic wands resources
@@ -213,6 +211,7 @@ impl PredicateFootprintGetter for vir::Predicate {
                 }
             }
             vir::Predicate::Bodyless(_, _) => FxHashSet::default(),
+            vir::Predicate::ResourceAccess(_) => FxHashSet::default(),
         }
     }
 }

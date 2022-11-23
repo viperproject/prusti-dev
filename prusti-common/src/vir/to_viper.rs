@@ -411,7 +411,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 // Resource are encoded as a predicate with no arguments
                 ast.predicate_access_predicate_with_pos(
                     ast.predicate_access(&[], resource_name),
-                    ast.perm_mul(amount.to_viper(context, ast), ast.full_perm()),
+                    ast.int_perm_mul(amount.to_viper(context, ast), ast.full_perm()),
                     // ast.fractional_perm(amount.to_viper(context, ast), ast.int_lit(1)),
                     pos.to_viper(context, ast),
                 )
@@ -824,6 +824,7 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for Predicate {
             Predicate::Bodyless(name, this) => {
                 ast.predicate(name, &[this.to_viper_decl(context, ast)], None)
             }
+            Predicate::ResourceAccess(typ) => ast.predicate(typ, &[], None),
         }
     }
 }

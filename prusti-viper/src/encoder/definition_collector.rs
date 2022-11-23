@@ -50,6 +50,7 @@ pub(super) fn collect_definitions(
         method_names: methods.iter().map(|method| method.name()).collect(),
         unfolded_predicates: unfolded_predicate_collector.unfolded_predicates,
         new_unfolded_predicates: Default::default(),
+        used_resource_type: Default::default(),
         used_predicates: Default::default(),
         used_fields: Default::default(),
         used_domains: Default::default(),
@@ -72,6 +73,8 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     /// The list of encoded methods for checking that they do not clash with
     /// functions.
     method_names: FxHashSet<String>,
+    /// The set of all resource predicates that are mentioned in the method.
+    used_resource_type: FxHashSet<vir::ResourceType>,
     /// The set of all predicates that are mentioned in the method.
     used_predicates: FxHashSet<vir::Type>,
     /// The set of predicates whose bodies have to be included because they are
@@ -192,6 +195,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                 predicate
             };
             predicates.push(predicate);
+        }
+        for resource in &self.used_resource_type {
+            predicates.push(vir::Predicate::ResourceAccess(resource.clone()));
         }
         predicates.push(vir::Predicate::Bodyless(
             vir::Type::typed_ref("DeadBorrowToken$"),
@@ -882,6 +888,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         self.used_predicates.insert(predicate_type.clone());
         FallibleExprWalker::fallible_walk(self, argument)
+    }
+    fn fallible_walk_resource_access_predicate(
+        &mut self,
+        vir::ResourceAccessPredicate {
+            resource_type,
+            amount,
+            ..
+        }: &vir::ResourceAccessPredicate,
+    ) -> SpannedEncodingResult<()> {
+        self.used_resource_type.insert(resource_type.clone());
+        FallibleExprWalker::fallible_walk(self, amount)
     }
     fn fallible_walk_unfolding(
         &mut self,
