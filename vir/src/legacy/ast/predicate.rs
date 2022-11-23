@@ -12,6 +12,7 @@ pub enum Predicate {
     Struct(StructPredicate),
     Enum(EnumPredicate),
     Bodyless(String, LocalVar),
+    ResourceAccess(String),
 }
 
 impl fmt::Display for Predicate {
@@ -20,6 +21,7 @@ impl fmt::Display for Predicate {
             Predicate::Struct(p) => write!(f, "{p}"),
             Predicate::Enum(p) => write!(f, "{p}"),
             Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {name}({this});"),
+            Predicate::ResourceAccess(typ) => write!(f, "{typ}"),
         }
     }
 }
@@ -104,6 +106,9 @@ impl Predicate {
             Predicate::Struct(p) => p.this.clone().into(),
             Predicate::Enum(p) => p.this.clone().into(),
             Predicate::Bodyless(_, this) => this.clone().into(),
+            Predicate::ResourceAccess(_) => {
+                unreachable!("Resource access does not have `self` place.")
+            }
         }
     }
     /// The predicate name getter.
@@ -112,6 +117,7 @@ impl Predicate {
             Predicate::Struct(p) => &p.name,
             Predicate::Enum(p) => &p.name,
             Predicate::Bodyless(ref name, _) => name,
+            Predicate::ResourceAccess(typ) => &typ,
         }
     }
     pub fn body(&self) -> Option<Expr> {
@@ -119,6 +125,7 @@ impl Predicate {
             Predicate::Struct(struct_predicate) => struct_predicate.body.clone(),
             Predicate::Enum(enum_predicate) => Some(enum_predicate.body()),
             Predicate::Bodyless(_, _) => None,
+            Predicate::ResourceAccess(_) => None,
         }
     }
 
@@ -129,6 +136,7 @@ impl Predicate {
             Predicate::Struct(p) => p.visit_expressions(visitor),
             Predicate::Enum(p) => p.visit_expressions(visitor),
             Predicate::Bodyless(..) => {}
+            Predicate::ResourceAccess(_) => {}
         }
     }
 
@@ -139,6 +147,7 @@ impl Predicate {
             Predicate::Struct(p) => p.visit_expressions_mut(visitor),
             Predicate::Enum(p) => p.visit_expressions_mut(visitor),
             Predicate::Bodyless(..) => {}
+            Predicate::ResourceAccess(_) => {}
         }
     }
 }
@@ -149,6 +158,7 @@ impl WithIdentifier for Predicate {
             Predicate::Struct(p) => p.get_identifier(),
             Predicate::Enum(p) => p.get_identifier(),
             Predicate::Bodyless(name, _) => name.clone(),
+            Predicate::ResourceAccess(typ) => typ.clone(),
         }
     }
 }

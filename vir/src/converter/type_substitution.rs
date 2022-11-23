@@ -484,6 +484,7 @@ impl Generic for Predicate {
             Predicate::Bodyless(label, local_var) => {
                 Predicate::Bodyless(label, local_var.substitute(map))
             }
+            p @ Predicate::ResourceAccess(_) => p,
         }
     }
 }

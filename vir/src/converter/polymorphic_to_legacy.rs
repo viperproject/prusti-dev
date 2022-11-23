@@ -555,6 +555,9 @@ impl From<polymorphic::Predicate> for legacy::Predicate {
             polymorphic::Predicate::Bodyless(typ, local_var) => {
                 legacy::Predicate::Bodyless(typ.encode_as_string(), local_var.into())
             }
+            polymorphic::Predicate::ResourceAccess(typ) => {
+                legacy::Predicate::ResourceAccess(typ.encode_as_string())
+            }
         }
     }
 }
