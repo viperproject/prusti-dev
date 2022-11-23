@@ -13,6 +13,7 @@ pub enum Predicate {
     Struct(StructPredicate),
     Enum(EnumPredicate),
     Bodyless(Type, LocalVar),
+    ResourceAccess(ResourceType),
 }
 
 impl fmt::Display for Predicate {
@@ -21,6 +22,7 @@ impl fmt::Display for Predicate {
             Predicate::Struct(p) => write!(f, "{}", p),
             Predicate::Enum(p) => write!(f, "{}", p),
             Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {}({});", name, this),
+            Predicate::ResourceAccess(resouce_type) => write!(f, "{}", resouce_type),
         }
     }
 }
@@ -97,12 +99,19 @@ impl Predicate {
             variants,
         })
     }
+    /// Construct a predicate that corresponds to a specific resource type.
+    pub fn new_resource(typ: ResourceType) -> Predicate {
+        Predicate::ResourceAccess(typ)
+    }
     /// A `self` place getter.
     pub fn self_place(&self) -> Expr {
         match self {
             Predicate::Struct(p) => p.this.clone().into(),
             Predicate::Enum(p) => p.this.clone().into(),
             Predicate::Bodyless(_, this) => this.clone().into(),
+            Predicate::ResourceAccess(_) => {
+                unreachable!("Resouce access predicate does not have `self` place.")
+            }
         }
     }
     /// The predicate type getter.
@@ -111,6 +120,9 @@ impl Predicate {
             Predicate::Struct(p) => &p.typ,
             Predicate::Enum(p) => &p.typ,
             Predicate::Bodyless(typ, _) => typ,
+            Predicate::ResourceAccess(_) => {
+                unreachable!("Resouce access predicate does not have types.")
+            }
         }
     }
     /// The predicate name getter.
@@ -119,6 +131,7 @@ impl Predicate {
             Predicate::Struct(p) => p.typ.name(),
             Predicate::Enum(p) => p.typ.name(),
             Predicate::Bodyless(ref typ, _) => typ.name(),
+            Predicate::ResourceAccess(typ) => typ.encode_as_string(),
         }
     }
     pub fn body(&self) -> Option<Expr> {
@@ -126,6 +139,7 @@ impl Predicate {
             Predicate::Struct(struct_predicate) => struct_predicate.body.clone(),
             Predicate::Enum(enum_predicate) => Some(enum_predicate.body()),
             Predicate::Bodyless(_, _) => None,
+            Predicate::ResourceAccess(_) => None,
         }
     }
     pub fn is_struct_with_empty_body(&self) -> bool {
@@ -133,6 +147,9 @@ impl Predicate {
             Predicate::Struct(struct_predicate) => struct_predicate.has_empty_body(),
             _ => false,
         }
+    }
+    pub fn is_resource_predicate(&self) -> bool {
+        matches!(self, Predicate::ResourceAccess(..))
     }
 }
 
@@ -142,6 +159,7 @@ impl WithIdentifier for Predicate {
             Predicate::Struct(p) => p.get_identifier(),
             Predicate::Enum(p) => p.get_identifier(),
             Predicate::Bodyless(typ, _) => typ.encode_as_string(),
+            Predicate::ResourceAccess(typ) => typ.encode_as_string(),
         }
     }
 }

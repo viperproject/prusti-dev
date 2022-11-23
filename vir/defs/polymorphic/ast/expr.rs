@@ -635,7 +635,7 @@ impl Expr {
         match self {
             Expr::PredicateAccessPredicate(..)
             // TODO check this not sure
-            | Expr::ResourceAccessPredicate(..) 
+            | Expr::ResourceAccessPredicate(..)
             | Expr::FieldAccessPredicate(..) => true,
             Expr::BinOp(BinOp {
                 op_kind: BinaryOpKind::And,
