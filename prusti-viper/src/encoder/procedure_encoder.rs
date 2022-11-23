@@ -6026,8 +6026,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let param_env = tcx.param_env(self.proc_def_id);
         let layout = match tcx.layout_of(param_env.and(op_ty)) {
             Ok(layout_of) => layout_of.layout,
-            Err(_) => return Err(SpannedEncodingError::unsupported(
-                format!("could not fetch layout of `{op_ty}`"),
+            Err(_) => return Err(SpannedEncodingError::internal(
+                format!("could not fetch layout of type `{op_ty}` while translating `{op:?}`"),
                 self.mir.source_info(location).span,
             )),
         };
