@@ -6028,15 +6028,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         match op {
             mir::NullOp::SizeOf => {
-                // TODO: ParamEnv::empty() should probably be tyctxt.param_env(def_id_of_method)
                 let bytes = match self.encoder.env().tcx()
-                    .layout_of(ParamEnv::empty().and(op_ty))
+                    .layout_of(self.encoder.env().query.tcx().param_env(self.proc_def_id).and(op_ty))
                 {
-                    Some(layout_of) => layout_of.layout.size().bytes(),
-                    None => return SpannedEncodingError::unsupported(
+                    Ok(layout_of) => layout_of.layout.size().bytes(),
+                    Err(_) => return Err(SpannedEncodingError::unsupported(
                         "could not fetch layout",
                         self.mir.source_info(location).span,
-                    ),
+                    )),
                 };
 
                 let bytes_vir = vir::Expr::from(bytes);

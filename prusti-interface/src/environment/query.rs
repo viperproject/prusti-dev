@@ -36,7 +36,7 @@ impl<'tcx> EnvQuery<'tcx> {
     }
 
     /// Returns the typing context
-    pub(crate) fn tcx(self) -> TyCtxt<'tcx> {
+    pub fn tcx(self) -> TyCtxt<'tcx> {
         self.tcx
     }
 
