@@ -31,13 +31,11 @@ macro_rules! known_size_spec {
         #[refine_trait_spec]
         impl KnownSize for $t {
             #[pure]
-            #[ensures(result == $size)]
             fn size() -> usize {
                 $size
             }
 
             #[pure]
-            #[ensures(result == $align)]
             fn align() -> usize {
                 $align
             }
