@@ -9,7 +9,6 @@ use core::result::*;
 
 #[extern_spec]
 impl<T, E> Result<T, E> {
-    // TODO: already in prusti-contracts
     #[pure]
     #[ensures(result == matches!(self, Ok(_)))]
     fn is_ok(&self) -> bool;
