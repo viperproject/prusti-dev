@@ -12,6 +12,9 @@ mod core {
         #[pure]
         #[ghost_constraint(T: core_spec::mem::KnownSize, [ensures(result == T::align())])]
         fn align_of<T>() -> usize;
+		
+		#[ensures(*x === old(snap(y)) && *y === old(snap(x)))]
+		fn swap<T>(x: &mut T, y: &mut T);
     }
 }
 
