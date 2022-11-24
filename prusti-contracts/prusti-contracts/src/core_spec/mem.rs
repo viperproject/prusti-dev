@@ -4,17 +4,17 @@ use crate::*;
 mod core {
     mod mem {
         use crate::*;
-        
+
         #[pure]
         #[ghost_constraint(T: core_spec::mem::KnownSize, [ensures(result == T::size())])]
         fn size_of<T>() -> usize;
-        
+
         #[pure]
         #[ghost_constraint(T: core_spec::mem::KnownSize, [ensures(result == T::align())])]
         fn align_of<T>() -> usize;
-		
-		#[ensures(*x === old(snap(y)) && *y === old(snap(x)))]
-		fn swap<T>(x: &mut T, y: &mut T);
+
+        #[ensures(*x === old(snap(y)) && *y === old(snap(x)))]
+        fn swap<T>(x: &mut T, y: &mut T);
     }
 }
 
@@ -35,7 +35,7 @@ macro_rules! known_size_spec {
             fn size() -> usize {
                 $size
             }
-        
+
             #[pure]
             #[ensures(result == $align)]
             fn align() -> usize {

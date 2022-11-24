@@ -2,10 +2,10 @@ use crate::*;
 
 #[extern_spec]
 trait Clone {
-	#[ghost_constraint(Self: SnapshotEqualClone, [
+    #[ghost_constraint(Self: SnapshotEqualClone, [
 		ensures(result === self),
 	])]
-	fn clone(&self) -> Self;
+    fn clone(&self) -> Self;
 }
 
 /// Specifies that `Clone::clone`, if implemented, preserves snapshot equality (`===`).

@@ -7,7 +7,7 @@ trait Default {
 }
 
 /// Specifies that `Default::default`, if implemented, is a pure method, allowing its usage in specs.
-/// 
+///
 /// Does not apply to types that do not implement `Copy`, since pure methods can only involve `Copy` types.
 pub auto trait PureDefault {}
 

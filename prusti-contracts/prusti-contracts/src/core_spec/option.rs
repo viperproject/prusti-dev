@@ -1,11 +1,11 @@
 use crate::*;
 
 #[allow(unused_imports)]
-use core::pin::Pin;
-#[allow(unused_imports)]
 use core::ops::{Deref, DerefMut};
 #[allow(unused_imports)]
 use core::option::*;
+#[allow(unused_imports)]
+use core::pin::Pin;
 
 // NOTE: these are all non-nightly methods without trait bounds as of 2022-09
 
@@ -195,16 +195,16 @@ impl<T> Option<T> {
     #[ensures(result === old(snap(self)))]
     #[ensures(self.is_none())]
     fn take(&mut self) -> Option<T>;
-    
+
     #[ensures(result === old(snap(self)))]
     #[ensures(*self === Some(value))]
     fn replace(&mut self, value: T) -> Option<T>;
-    
+
     #[ensures(match (old(self), old(other)) {
         (Some(v0), Some(v1)) => result === Some((v0, v1)),
         _ => result.is_none(),
     })]
     fn zip<U>(self, other: Option<U>) -> Option<(T, U)>;
-    
+
     // TODO: specific methods depending on trait bounds? flatten especially might be useful
 }

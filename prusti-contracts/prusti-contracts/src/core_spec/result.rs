@@ -101,7 +101,7 @@ impl<T, E> Result<T, E> {
         E: Debug;
 
     #[ensures(old(&self).is_err() || old(self) === Ok(result))]
-	#[ghost_constraint(T: super::default::PureDefault, [
+    #[ghost_constraint(T: super::default::PureDefault, [
 		ensures(result === match old(self) {
 			Ok(v) => v,
 			Err(_) => T::default(),
@@ -172,10 +172,10 @@ impl<T, E> Result<T, E> {
     #[requires(self.is_ok())]
     #[ensures(old(self) === Ok(result))]
     unsafe fn unwrap_unchecked(self) -> T;
-	
+
     #[requires(self.is_err())]
     #[ensures(old(self) === Err(result))]
     unsafe fn unwrap_err_unchecked(self) -> E;
-	
+
     // TODO: specific methods depending on trait bounds
 }
