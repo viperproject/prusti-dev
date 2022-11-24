@@ -53,7 +53,7 @@ use prusti_interface::utils;
 use prusti_rustc_interface::middle::mir::Mutability;
 use prusti_rustc_interface::middle::mir;
 use prusti_rustc_interface::middle::mir::{TerminatorKind};
-use prusti_rustc_interface::middle::ty::{self, layout::IntegerExt, ParamEnv, subst::SubstsRef};
+use prusti_rustc_interface::middle::ty::{self, layout::IntegerExt, subst::SubstsRef};
 use prusti_rustc_interface::target::abi::Integer;
 use rustc_hash::{FxHashMap, FxHashSet};
 use prusti_rustc_interface::attr::IntType::SignedInt;
@@ -6021,43 +6021,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         ty: ty::Ty<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        trace!(
-            "[enter] encode_assign_nullary_op(op={:?}, op_ty={:?})",
-            op,
-            op_ty
-        );
-        match op {
-            mir::NullOp::SizeOf => {
-                // TODO: ParamEnv::empty() should probably be tyctxt.param_env(def_id_of_method)
-                let bytes = self.encoder.env().tcx()
-                    .layout_of(ParamEnv::empty().and(op_ty))
-                    .unwrap().layout
-                    .size()
-                    .bytes();
-                let bytes_vir = vir::Expr::from(bytes);
-                self.encode_copy_value_assign(
-                    encoded_lhs,
-                    bytes_vir,
-                    ty,
-                    location,
-                )
-            },
-            mir::NullOp::AlignOf => {
-                // TODO: ParamEnv::empty() should probably be tyctxt.param_env(def_id_of_method)
-                let bytes = self.encoder.env().tcx()
-                    .layout_of(ParamEnv::empty().and(op_ty))
-                    .unwrap().layout
-                    .align().abi // FIXME: abi or pref?
-                    .bytes();
-                let bytes_vir = vir::Expr::from(bytes);
-                self.encode_copy_value_assign(
-                    encoded_lhs,
-                    bytes_vir,
-                    ty,
-                    location,
-                )
-            },
-        }
+        trace!("[enter] encode_assign_nullary_op(op={op:?}, op_ty={op_ty:?})");
+        let tcx = self.encoder.env().tcx();
+        let param_env = tcx.param_env(self.proc_def_id);
+        let layout = match tcx.layout_of(param_env.and(op_ty)) {
+            Ok(layout_of) => layout_of.layout,
+            Err(_) => return Err(SpannedEncodingError::internal(
+                format!("could not fetch layout of type `{op_ty}` while translating `{op:?}`"),
+                self.mir.source_info(location).span,
+            )),
+        };
+        let bytes = match op {
+            mir::NullOp::SizeOf => layout.size().bytes(),
+            // FIXME: abi or pref?
+            mir::NullOp::AlignOf => layout.align().abi.bytes(),
+        };
+        let bytes_vir = vir::Expr::from(bytes);
+        self.encode_copy_value_assign(
+            encoded_lhs,
+            bytes_vir,
+            ty,
+            location,
+        )
     }
 
     fn encode_assign_box(
