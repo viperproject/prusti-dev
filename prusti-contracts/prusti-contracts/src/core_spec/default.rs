@@ -18,9 +18,7 @@ macro_rules! default_spec {
         impl Default for $t {
             #[pure]
             #[ensures(result == $v)]
-            fn default() -> Self {
-                $v
-            }
+            fn default() -> Self;
         }
     };
 }
