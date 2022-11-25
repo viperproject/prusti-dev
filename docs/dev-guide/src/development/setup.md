@@ -66,16 +66,15 @@ To use the locally compiled version in Prusti Assistant, make sure to build Prus
 ./x.py build --release
 ```
 
-Add necessary symlinks to the release directory:
+Prepare a Prusti package in a new folder:
 
 ```bash
-ln -s $(pwd)/viper_tools $(pwd)/target/release/
-ln -s $(pwd)/rust-toolchain $(pwd)/target/release/
+./x.py package release <prusti-package-path>
 ```
 
-Open VS Code and its settings change as follows:
+Open VS Code and change its settings as follows:
 
  - Set `prusti-assistant.buildChannel` to `Local`.
- - Set `prusti-assistant.localPrustiPath` to `<prusti-dev-dir>/target/release/`.
+ - Set `prusti-assistant.localPrustiPath` to the `<prusti-package-path>` that you chose.
 
 Now, you should be able to verify Rust programs with a locally built version of Prusti.
