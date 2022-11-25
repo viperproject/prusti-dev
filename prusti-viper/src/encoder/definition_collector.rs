@@ -50,7 +50,7 @@ pub(super) fn collect_definitions(
         method_names: methods.iter().map(|method| method.name()).collect(),
         unfolded_predicates: unfolded_predicate_collector.unfolded_predicates,
         new_unfolded_predicates: Default::default(),
-        used_resource_type: Default::default(),
+        used_resource_types: Default::default(),
         used_predicates: Default::default(),
         used_fields: Default::default(),
         used_domains: Default::default(),
@@ -74,7 +74,7 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     /// functions.
     method_names: FxHashSet<String>,
     /// The set of all resource predicates that are mentioned in the method.
-    used_resource_type: FxHashSet<vir::ResourceType>,
+    used_resource_types: FxHashSet<vir::ResourceType>,
     /// The set of all predicates that are mentioned in the method.
     used_predicates: FxHashSet<vir::Type>,
     /// The set of predicates whose bodies have to be included because they are
@@ -196,7 +196,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
             };
             predicates.push(predicate);
         }
-        for resource in &self.used_resource_type {
+        for resource in &self.used_resource_types {
             predicates.push(vir::Predicate::ResourceAccess(resource.clone()));
         }
         predicates.push(vir::Predicate::Bodyless(
@@ -897,7 +897,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprWalker for Collector<'p, 'v, 'tcx> {
             ..
         }: &vir::ResourceAccessPredicate,
     ) -> SpannedEncodingResult<()> {
-        self.used_resource_type.insert(resource_type.clone());
+        self.used_resource_types.insert(resource_type.clone());
         FallibleExprWalker::fallible_walk(self, amount)
     }
     fn fallible_walk_unfolding(

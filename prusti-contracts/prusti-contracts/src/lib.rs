@@ -375,7 +375,7 @@ pub fn time_credits(_n: usize) -> bool {
 }
 
 /// This function is used to specify the number of time receipts ensured at the
-/// end of the execution of a function in its specification. It defined the
+/// end of the execution of a function in its specification. It defines the
 /// lower bound for its runtime.
 pub fn time_receipts(_n: usize) -> bool {
     true
