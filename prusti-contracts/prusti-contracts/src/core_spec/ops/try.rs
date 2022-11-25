@@ -11,9 +11,9 @@ impl<T, E> Try for Result<T, E> {
     fn from_output(output: T) -> Self;
 
     #[ensures(match old(self) {
-		Ok(output) => result === ControlFlow::Continue(output),
-		Err(error) => result === ControlFlow::Break(Err(error)),
-	})]
+        Ok(output) => result === ControlFlow::Continue(output),
+        Err(error) => result === ControlFlow::Break(Err(error)),
+    })]
     fn branch(self) -> ControlFlow<Result<Infallible, E>, T>;
 }
 
@@ -23,12 +23,12 @@ impl<T> Try for Option<T> {
     fn from_output(output: T) -> Self;
 
     #[ensures(match old(self) {
-		Some(output) => result === ControlFlow::Continue(output),
-		//None => result === ControlFlow::Break(None),
-		None => match result {
-			ControlFlow::Break(residual) => residual.is_none(),
-			_ => false,
-		},
-	})]
+        Some(output) => result === ControlFlow::Continue(output),
+        //None => result === ControlFlow::Break(None),
+        None => match result {
+            ControlFlow::Break(residual) => residual.is_none(),
+            _ => false,
+        },
+    })]
     fn branch(self) -> ControlFlow<Option<Infallible>, T>;
 }

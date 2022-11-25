@@ -3,8 +3,8 @@ use crate::*;
 #[extern_spec]
 trait Clone {
     #[ghost_constraint(Self: SnapshotEqualClone, [
-		ensures(result === self),
-	])]
+        ensures(result === self),
+    ])]
     fn clone(&self) -> Self;
 }
 

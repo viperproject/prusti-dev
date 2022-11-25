@@ -18,15 +18,15 @@ impl<T, E> Result<T, E> {
     fn is_err(&self) -> bool;
 
     #[ensures(result === match old(self) {
-		Ok(v) => Some(v),
-		Err(_) => None,
-	})]
+        Ok(v) => Some(v),
+        Err(_) => None,
+    })]
     fn ok(self) -> Option<T>;
 
     #[ensures(result === match old(self) {
-		Ok(_) => None,
-		Err(e) => Some(e),
-	})]
+        Ok(_) => None,
+        Err(e) => Some(e),
+    })]
     fn err(self) -> Option<E>;
 
     #[ensures(result.is_ok() == self.is_ok())]
@@ -56,18 +56,18 @@ impl<T, E> Result<T, E> {
         F: FnOnce(T) -> U;
 
     #[ensures(match old(self) {
-		Ok(v) => result === Ok(v),
-		Err(_) => result.is_err(),
-	})]
+        Ok(v) => result === Ok(v),
+        Err(_) => result.is_err(),
+    })]
     // FUTURE(calls): describe that and how the function is called if err, and that its result is returned
     fn map_err<F, O>(self, op: O) -> Result<T, F>
     where
         O: FnOnce(E) -> F;
 
     #[ensures(match self {
-		Ok(v) => result.is_ok(),
-		Err(e) => result === Err(e),
-	})]
+        Ok(v) => result.is_ok(),
+        Err(e) => result === Err(e),
+    })]
     // FUTURE(calls): describe as call to Deref::deref if some
     // FUTURE(refs): describe transformation of ok value and error not changing
     fn as_deref(&self) -> Result<&<T as Deref>::Target, &E>
@@ -101,11 +101,11 @@ impl<T, E> Result<T, E> {
 
     #[ensures(old(&self).is_err() || old(self) === Ok(result))]
     #[ghost_constraint(T: super::default::PureDefault, [
-		ensures(result === match old(self) {
-			Ok(v) => v,
-			Err(_) => T::default(),
-		})
-	])]
+        ensures(result === match old(self) {
+            Ok(v) => v,
+            Err(_) => T::default(),
+        })
+    ])]
     // FUTURE(calls): describe as call to Default::default if err
     fn unwrap_or_default(self) -> T
     where
@@ -124,39 +124,39 @@ impl<T, E> Result<T, E> {
         T: Debug;
 
     #[ensures(result === match old(self) {
-		Ok(v) => old(res),
-		Err(e) => Err(e),
-	})]
+        Ok(v) => old(res),
+        Err(e) => Err(e),
+    })]
     fn and<U>(self, res: Result<U, E>) -> Result<U, E>;
 
     #[ensures(match old(self) {
-		Ok(v) => true,
-		Err(e) => result === Err(e),
-	})]
+        Ok(v) => true,
+        Err(e) => result === Err(e),
+    })]
     // FUTURE(calls): describe call to function if ok, and that its result is returned
     fn and_then<U, F>(self, f: F) -> Result<U, E>
     where
         F: FnOnce(T) -> Result<U, E>;
 
     #[ensures(result === match old(self) {
-		Ok(v) => Ok(v),
-		Err(_) => old(res),
-	})]
+        Ok(v) => Ok(v),
+        Err(_) => old(res),
+    })]
     fn or<F>(self, res: Result<T, F>) -> Result<T, F>;
 
     #[ensures(match old(self) {
-		Ok(v) => result === Ok(v),
-		Err(_) => true,
-	})]
+        Ok(v) => result === Ok(v),
+        Err(_) => true,
+    })]
     // FUTURE(calls): describe call to function if err, and that its result is returned
     fn or_else<F, O>(self, op: O) -> Result<T, F>
     where
         O: FnOnce(E) -> Result<T, F>;
 
     #[ensures(result === match old(self) {
-		Ok(v) => v,
-		Err(_) => default,
-	})]
+        Ok(v) => v,
+        Err(_) => default,
+    })]
     fn unwrap_or(self, default: T) -> T;
 
     #[ensures(match old(self) {
