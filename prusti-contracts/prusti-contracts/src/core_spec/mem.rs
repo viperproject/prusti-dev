@@ -63,4 +63,17 @@ known_size_spec!(u128, 16);
 known_size_spec!(f32, 4);
 known_size_spec!(f64, 8);
 
-// usize/isize are not specified exactly because they are platform-dependent and programmers should not depend on their specific values anyway.
+#[cfg(target_pointer_width = "16")]
+known_size_spec!(usize, 2);
+#[cfg(target_pointer_width = "16")]
+known_size_spec!(isize, 2);
+
+#[cfg(target_pointer_width = "32")]
+known_size_spec!(usize, 4);
+#[cfg(target_pointer_width = "32")]
+known_size_spec!(isize, 4);
+
+#[cfg(target_pointer_width = "64")]
+known_size_spec!(usize, 8);
+#[cfg(target_pointer_width = "64")]
+known_size_spec!(isize, 8);
