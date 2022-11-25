@@ -42,8 +42,8 @@ macro_rules! known_size_spec {
         }
     };
     ($t:ty, $size:expr) => {
-		known_size_spec!($t, $size, $size);
-	};
+        known_size_spec!($t, $size, $size);
+    };
 }
 
 known_size_spec!(bool, 1);
