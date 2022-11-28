@@ -5,7 +5,7 @@
 //! Modules are rewritten so that their name does not clash with the module
 //! they are specifying.
 
-use super::common::generate_extern_spec_function_stub;
+use super::common::{generate_extern_spec_function_stub, check_is_stub};
 use crate::{specifications::common::generate_mod_name, ExternSpecKind};
 use proc_macro2::{Group, TokenStream, TokenTree};
 use quote::{quote, ToTokens};
@@ -35,6 +35,7 @@ fn rewrite_mod(item_mod: &mut syn::ItemMod, path: &syn::Path) -> syn::Result<()>
     for item in item_mod.content.as_mut().unwrap().1.iter_mut() {
         match item {
             syn::Item::Fn(item_fn) => {
+                check_is_stub(&item_fn.block)?;
                 rewrite_fn(item_fn, &path);
             }
             syn::Item::Mod(inner_mod) => {

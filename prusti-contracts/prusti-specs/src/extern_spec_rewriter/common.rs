@@ -325,3 +325,30 @@ pub fn rewrite_generics(gens: &syn::Generics) -> syn::AngleBracketedGenericArgum
         .collect();
     syn::parse_quote! { < #(#args),* > }
 }
+
+/// Checks that the given block is a stub (`;`), returning an error otherwise.
+pub(super) fn check_is_stub(block: &syn::Block) -> Result<(), syn::Error> {
+    if is_stub(block) {
+        Ok(())
+    } else {
+        Err(syn::Error::new(
+            block.span(),
+            "Unexpected method body. (Extern specs only define specifications.)",
+        ))
+    }
+}
+
+/// Recognizes method stubs, e.g. `fn foo();`.
+///
+/// The absence of a body is represented in a roundabout way:
+/// They have a body comprising a single verbatim item containing a single semicolon token.
+fn is_stub(block: &syn::Block) -> bool {
+    if block.stmts.len() != 1 {
+        return false;
+    }
+    if let syn::Stmt::Item(syn::Item::Verbatim(tokens)) = &block.stmts[0] {
+        return tokens.to_string() == ";";
+    } else {
+        return false;
+    }
+}

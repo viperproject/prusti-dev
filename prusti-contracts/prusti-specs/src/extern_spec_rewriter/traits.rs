@@ -148,10 +148,7 @@ impl<'a> GeneratedStruct<'a> {
                 }
                 syn::TraitItem::Method(trait_method) => {
                     if let Some(default) = &trait_method.default {
-                        return Err(syn::Error::new(
-                            default.span(),
-                            "Default methods in external trait specs are invalid",
-                        ));
+                        return Err(check_is_stub(&default).expect_err("this cannot be a stub"));
                     }
 
                     let (method, spec_fns) = self.generate_method_stub(trait_method)?;
