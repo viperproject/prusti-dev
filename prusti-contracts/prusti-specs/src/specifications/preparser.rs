@@ -500,7 +500,7 @@ pub struct GhostConstraint {
 impl Parse for GhostConstraint {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(GhostConstraint {
-            trait_bounds: parse_trait_bounds(input).map_err(with_ghost_constraint_example)?,
+            trait_bounds: parse_trait_bounds(input)?,
             specs: PrustiTokenStream::new(input.parse().unwrap())
                 .parse_rest(|pts| pts.pop_group_of_nested_specs(input.span()))?,
         })
@@ -512,7 +512,7 @@ fn parse_trait_bounds(input: ParseStream) -> syn::Result<Vec<syn::PredicateType>
     
     let mut bounds: Vec<syn::PredicateType> = Vec::new();
     loop {
-        let predicate = input.parse::<syn::WherePredicate>()?;
+        let predicate = input.parse::<syn::WherePredicate>().map_err(with_ghost_constraint_example)?;
         match predicate {
             Type(type_bound) => {
                 validate_trait_bounds(&type_bound)?;
@@ -521,7 +521,7 @@ fn parse_trait_bounds(input: ParseStream) -> syn::Result<Vec<syn::PredicateType>
             Lifetime(lifetime_bound) => disallowed_lifetime_error(lifetime_bound.span())?,
             Eq(eq_bound) => err(eq_bound.span(), "equality predicates are not supported in trait bounds")?,
         }
-        input.parse::<syn::token::Comma>()?;
+        input.parse::<syn::token::Comma>().map_err(with_ghost_constraint_example)?;
         if input.peek(syn::token::Bracket) {
             break;
         }
