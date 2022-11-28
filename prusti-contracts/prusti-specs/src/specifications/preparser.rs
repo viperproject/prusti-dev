@@ -556,7 +556,7 @@ fn parse_trait_bounds(input: ParseStream) -> syn::Result<Vec<syn::PredicateType>
         input
             .parse::<syn::token::Comma>()
             .map_err(with_ghost_constraint_example)?;
-        if input.peek(syn::token::Bracket) {
+        if input.peek(syn::token::Bracket) || input.is_empty() {
             break;
         }
     }
@@ -1035,18 +1035,18 @@ mod tests {
             );
             assert_error!(
                 parse_ghost_constraint(quote! {T: A, {} }),
-                "expected nested specification in brackets"
+                err_invalid_bounds
             );
         }
 
         #[test]
         fn multiple_bounds_multiple_specs() {
             let constraint = parse_ghost_constraint(
-                quote! { T: A+B+Foo<i32>, [requires(true), ensures(false), pure]},
+                quote! { T: A+B+Foo<i32>, U: C, [requires(true), ensures(false), pure]},
             )
             .unwrap();
 
-            assert_bounds_eq(constraint.trait_bounds, quote! { T : A + B + Foo < i32 > });
+            assert_bounds_eq(&constraint.trait_bounds, &[quote! { T : A + B + Foo < i32 > }, quote! { U : C }]);
             match &constraint.specs[0] {
                 NestedSpec::Requires(ts) => assert_eq!(ts.to_string(), "true"),
                 _ => panic!(),
@@ -1062,7 +1062,7 @@ mod tests {
         #[test]
         fn no_specs() {
             let constraint = parse_ghost_constraint(quote! { T: A, []}).unwrap();
-            assert_bounds_eq(constraint.trait_bounds, quote! { T : A });
+            assert_bounds_eq(&constraint.trait_bounds, &[quote! { T : A }]);
             assert!(constraint.specs.is_empty());
         }
 
@@ -1070,7 +1070,7 @@ mod tests {
         fn fully_qualified_trait_path() {
             let constraint =
                 parse_ghost_constraint(quote! { T: path::to::A, [requires(true)]}).unwrap();
-            assert_bounds_eq(constraint.trait_bounds, quote! { T : path :: to :: A });
+            assert_bounds_eq(&constraint.trait_bounds, &[quote! { T : path :: to :: A }]);
         }
 
         #[test]
@@ -1082,11 +1082,14 @@ mod tests {
             assert!(parse_ghost_constraint(quote! { T: Fn<(i32, bool,)>, []}).is_ok());
         }
 
-        fn assert_bounds_eq(parsed: syn::PredicateType, quote: TokenStream) {
-            assert_eq!(
-                syn::WherePredicate::Type(parsed),
-                syn::parse_quote! { #quote }
-            );
+        fn assert_bounds_eq(parsed: &[syn::PredicateType], quotes: &[TokenStream]) {
+            assert_eq!(parsed.len(), quotes.len());
+            for (parsed, quote) in parsed.iter().zip(quotes.iter()) {
+                assert_eq!(
+                    syn::WherePredicate::Type(parsed.clone()),
+                    syn::parse_quote! { #quote }
+                );
+            }
         }
     }
 }
