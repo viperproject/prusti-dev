@@ -164,6 +164,30 @@ impl AstRewriter {
         )
     }
 
+    pub fn process_pure_ghost_constraint(
+        &mut self,
+        spec_id: SpecificationId,
+        item: &untyped::AnyFnItem,
+    ) -> syn::Result<syn::Item> {
+        let item_span = item.span();
+        let item_name = syn::Ident::new(
+            &format!("prusti_pure_ghost_item_{}", item.sig().ident),
+            item_span,
+        );
+        
+        let spec_id_str = spec_id.to_string();
+        let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+            #[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
+            #[prusti::spec_only]
+            #[prusti::spec_id = #spec_id_str]
+            fn #item_name() {} // we only care about this for evaluating 
+        };
+
+        spec_item.sig.generics = item.sig().generics.clone();
+        spec_item.sig.inputs = item.sig().inputs.clone();
+        Ok(syn::Item::Fn(spec_item))
+    }
+
     /// Parse a pledge with lhs into a Rust expression
     pub fn process_assert_pledge(
         &mut self,

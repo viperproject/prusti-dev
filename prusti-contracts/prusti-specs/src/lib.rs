@@ -277,18 +277,25 @@ fn generate_for_pure(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedR
         ));
     }
 
-    do_generate_for_pure(item)
-}
-
-/// Generate spec items and attributes to typecheck and later retrieve "pure" annotations.
-///
-/// This the actual generating logic called by `generate_for_pure` after checking that the body is empty.
-/// It's exposed separately for use in ghost constraints.
-fn do_generate_for_pure(item: &untyped::AnyFnItem) -> GeneratedResult {
     Ok((
         vec![],
         vec![parse_quote_spanned! {item.span()=>
             #[prusti::pure]
+        }],
+    ))
+}
+
+/// Generate spec items and attributes to typecheck and later retrieve "pure" annotations, but encoded as a referenced separate function that ghost constraints can apply trait bounds to.
+fn generate_for_pure_ghost_constraint(item: &untyped::AnyFnItem) -> GeneratedResult {
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+    let spec_item = rewriter.process_pure_ghost_constraint(spec_id, item)?;
+    
+    Ok((
+        vec![spec_item],
+        vec![parse_quote_spanned! {item.span()=>
+            #[prusti::pure_spec_id_ref = #spec_id_str]
         }],
     ))
 }

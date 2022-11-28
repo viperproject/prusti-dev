@@ -1,5 +1,5 @@
 use crate::{
-    generate_for_ensures, generate_for_requires, do_generate_for_pure, parse_ghost_constraint, untyped, GeneratedResult,
+    generate_for_ensures, generate_for_requires, generate_for_pure_ghost_constraint, parse_ghost_constraint, untyped, GeneratedResult,
     NestedSpec,
 };
 use proc_macro2::TokenStream;
@@ -18,7 +18,7 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
         let (mut generated_items, generated_attrs) = match nested_spec {
             NestedSpec::Ensures(tokens) => generate_for_ensures(tokens, item)?,
             NestedSpec::Requires(tokens) => generate_for_requires(tokens, item)?,
-            NestedSpec::Pure => do_generate_for_pure(item)?,
+            NestedSpec::Pure => generate_for_pure_ghost_constraint(item)?,
         };
 
         for generated_item in generated_items.iter_mut() {

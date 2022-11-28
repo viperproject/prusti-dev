@@ -203,6 +203,7 @@ pub struct ProcedureSpecification {
     pub pledges: SpecificationItem<Vec<Pledge>>,
     pub trusted: SpecificationItem<bool>,
     pub terminates: SpecificationItem<Option<LocalDefId>>,
+    pub purity: SpecificationItem<Option<DefId>>, // for ghost constraints
 }
 
 impl ProcedureSpecification {
@@ -217,6 +218,7 @@ impl ProcedureSpecification {
             pledges: SpecificationItem::Empty,
             trusted: SpecificationItem::Inherent(false),
             terminates: SpecificationItem::Inherent(None),
+            purity: SpecificationItem::Inherent(None),
         }
     }
 }
@@ -432,6 +434,19 @@ impl SpecGraph<ProcedureSpecification> {
                 self.get_constrained_spec_mut(obligation)
                     .posts
                     .push(post.to_def_id());
+            }
+        }
+    }
+
+    pub fn add_purity<'tcx>(&mut self, purity: LocalDefId, env: &Environment<'tcx>) {
+        match self.get_constraint(purity, env) {
+            None => unreachable!("separate purity defs are only used for ghost constraints"),
+            Some(constraint) => {
+                let constrained_spec = self.get_constrained_spec_mut(constraint);
+                constrained_spec.kind =
+                    SpecificationItem::Inherent(ProcedureSpecificationKind::Pure);
+                // need to store this as well, since without pres or posts we couldn't find any def id with the trait bounds
+                constrained_spec.purity.set(Some(purity.to_def_id()));
             }
         }
     }
@@ -752,6 +767,7 @@ impl Refinable for ProcedureSpecification {
             kind: self.kind.refine(&other.kind),
             trusted: self.trusted.refine(&other.trusted),
             terminates: self.terminates.refine(&other.terminates),
+            purity: self.purity.refine(&other.purity), // ASK: include purity in refinement? only used for ghost constraints so doesn't really apply
         }
     }
 }

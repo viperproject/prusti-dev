@@ -58,7 +58,7 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
         }
 
         let context = match query {
-            SpecQuery::GetProcKind(_, _) | SpecQuery::FetchSpan(_) => {
+            SpecQuery::FetchSpan(_) => {
                 trace!("No need to resolve obligations for cause {:?}", query);
                 return Ok(&self.base_spec);
             }
@@ -74,7 +74,8 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
             // Obligations are resolved for function definition encodings to account
             // for ghost constraints on traits (behavioral subtyping rules will be checked
             // against the resolved spec).
-            SpecQuery::FunctionDefEncoding(proc_def_id, substs) => ConstraintSolvingContext {
+            SpecQuery::FunctionDefEncoding(proc_def_id, substs)
+            | SpecQuery::GetProcKind(proc_def_id, substs) => ConstraintSolvingContext {
                 proc_def_id: *proc_def_id,
                 substs,
                 caller_proc_def_id: None,
@@ -131,7 +132,7 @@ fn constraint_fulfilled<'spec, 'env: 'spec, 'tcx: 'env>(
     }
 }
 
-pub mod trait_bounds {
+mod trait_bounds {
     use super::*;
     use prusti_interface::{utils::has_trait_bounds_ghost_constraint, PrustiError};
     use rustc_hash::FxHashMap;
@@ -231,7 +232,12 @@ pub mod trait_bounds {
             .expect_empty_or_inherent()
             .cloned()
             .unwrap_or_default();
-        for spec_id in pres.iter().chain(posts.iter()) {
+        let purity = spec
+            .purity
+            .expect_empty_or_inherent()
+            .cloned()
+            .unwrap_or_default();
+        for spec_id in pres.iter().chain(posts.iter()).chain(purity.iter()) {
             let param_env = env.tcx().param_env(spec_id);
             let spec_span = env.query.get_def_span(spec_id);
             let attrs = env.query.get_attributes(*spec_id);
