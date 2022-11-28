@@ -512,9 +512,6 @@ fn parse_trait_bounds(input: ParseStream) -> syn::Result<Vec<syn::PredicateType>
     
     let mut bounds: Vec<syn::PredicateType> = Vec::new();
     loop {
-        if input.peek(syn::token::Bracket) {
-            break;
-        }
         let predicate = input.parse::<syn::WherePredicate>()?;
         match predicate {
             Type(type_bound) => {
@@ -525,6 +522,9 @@ fn parse_trait_bounds(input: ParseStream) -> syn::Result<Vec<syn::PredicateType>
             Eq(eq_bound) => err(eq_bound.span(), "equality predicates are not supported in trait bounds")?,
         }
         input.parse::<syn::token::Comma>()?;
+        if input.peek(syn::token::Bracket) {
+            break;
+        }
     }
     Ok(bounds)
 }
