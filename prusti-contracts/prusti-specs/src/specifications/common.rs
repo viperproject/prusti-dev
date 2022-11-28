@@ -3,8 +3,10 @@
 //! Please see the `parser.rs` file for more information about
 //! specifications.
 
-use std::convert::TryFrom;
-use std::fmt::{Display, Debug};
+use std::{
+    convert::TryFrom,
+    fmt::{Debug, Display},
+};
 use uuid::Uuid;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -45,7 +47,17 @@ impl<'a> TryFrom<&'a str> for SpecType {
 }
 
 #[derive(
-    Debug, Default, PartialEq, Eq, Hash, Clone, Copy, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    Hash,
+    Clone,
+    Copy,
+    serde::Serialize,
+    serde::Deserialize,
+    PartialOrd,
+    Ord,
 )]
 /// A unique ID of the specification element such as entire precondition
 /// or postcondition.
@@ -117,16 +129,17 @@ pub(crate) fn generate_mod_name(ident: &syn::Ident) -> String {
 
 fn generate_name_for_type(ty: &syn::Type) -> Option<String> {
     match ty {
-        syn::Type::Path(ty_path) => {
-            Some(String::from_iter(ty_path.path.segments.iter()
-                .map(|seg| seg.ident.to_string())))
-        },
+        syn::Type::Path(ty_path) => Some(String::from_iter(
+            ty_path
+                .path
+                .segments
+                .iter()
+                .map(|seg| seg.ident.to_string()),
+        )),
         syn::Type::Slice(ty_slice) => {
             let ty = &*ty_slice.elem;
             Some(format!("Slice{}", generate_name_for_type(ty)?.as_str()))
-        },
-        _ => {
-            None
         }
+        _ => None,
     }
 }

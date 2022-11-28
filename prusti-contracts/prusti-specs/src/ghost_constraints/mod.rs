@@ -1,6 +1,6 @@
 use crate::{
-    generate_for_ensures, generate_for_requires, generate_for_pure_ghost_constraint, parse_ghost_constraint, untyped, GeneratedResult,
-    NestedSpec,
+    generate_for_ensures, generate_for_pure_ghost_constraint, generate_for_requires,
+    parse_ghost_constraint, untyped, GeneratedResult, NestedSpec,
 };
 use proc_macro2::TokenStream;
 use syn::{parse_quote_spanned, spanned::Spanned};
@@ -50,12 +50,16 @@ fn generate_where_clause_for_spec(
     trait_bounds: &Vec<syn::PredicateType>,
     existing_where_clause: Option<&syn::WhereClause>,
 ) -> syn::WhereClause {
-    let mut where_clause = existing_where_clause.cloned().unwrap_or_else(|| syn::parse_quote!(where));
-    where_clause.predicates.extend(trait_bounds.iter().map(|bound| -> syn::WherePredicate {
-        let span = bound.span();
-        parse_quote_spanned! {span=>
-            #bound
-        }
-    }));
+    let mut where_clause = existing_where_clause
+        .cloned()
+        .unwrap_or_else(|| syn::parse_quote!(where));
+    where_clause
+        .predicates
+        .extend(trait_bounds.iter().map(|bound| -> syn::WherePredicate {
+            let span = bound.span();
+            parse_quote_spanned! {span=>
+                #bound
+            }
+        }));
     where_clause
 }

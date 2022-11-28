@@ -113,9 +113,15 @@ impl AstRewriter {
         //   terminator in MIR has a span set to the one character just after
         //   the identifier
         let (return_type, return_modifier) = if spec_type == SpecItemType::Termination {
-            (quote_spanned! {item_span => Int}, quote_spanned! {item_span => Int::new(0) + })
+            (
+                quote_spanned! {item_span => Int},
+                quote_spanned! {item_span => Int::new(0) + },
+            )
         } else {
-            (quote_spanned! {item_span => bool}, quote_spanned! {item_span => !!})
+            (
+                quote_spanned! {item_span => bool},
+                quote_spanned! {item_span => !!},
+            )
         };
         let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
             #[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
@@ -174,13 +180,13 @@ impl AstRewriter {
             &format!("prusti_pure_ghost_item_{}", item.sig().ident),
             item_span,
         );
-        
+
         let spec_id_str = spec_id.to_string();
         let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
             #[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
             #[prusti::spec_only]
             #[prusti::spec_id = #spec_id_str]
-            fn #item_name() {} // we only care about this for evaluating 
+            fn #item_name() {} // we only care about this for evaluating
         };
 
         spec_item.sig.generics = item.sig().generics.clone();

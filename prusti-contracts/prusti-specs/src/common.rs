@@ -1,20 +1,20 @@
 //! Common code for spec-rewriting
 
-use std::borrow::BorrowMut;
-use std::collections::HashMap;
 use proc_macro2::Ident;
-use syn::{GenericParam, parse_quote, TypeParam};
-use syn::punctuated::Punctuated;
-use syn::spanned::Spanned;
-use uuid::Uuid;
-pub(crate) use syn_extensions::*;
-pub(crate) use self_type_rewriter::*;
 pub(crate) use receiver_rewriter::*;
+pub(crate) use self_type_rewriter::*;
+use std::{borrow::BorrowMut, collections::HashMap};
+use syn::{parse_quote, punctuated::Punctuated, spanned::Spanned, GenericParam, TypeParam};
+pub(crate) use syn_extensions::*;
+use uuid::Uuid;
 
 /// Module which provides various extension traits for syn types.
 /// These allow for writing of generic code over these types.
 mod syn_extensions {
-    use syn::{Attribute, Generics, ImplItemMacro, ImplItemMethod, ItemFn, ItemImpl, ItemStruct, ItemTrait, Macro, Signature, TraitItemMacro, TraitItemMethod};
+    use syn::{
+        Attribute, Generics, ImplItemMacro, ImplItemMethod, ItemFn, ItemImpl, ItemStruct,
+        ItemTrait, Macro, Signature, TraitItemMacro, TraitItemMethod,
+    };
 
     /// Trait which signals that the corresponding syn item contains generics
     pub(crate) trait HasGenerics {
@@ -26,28 +26,36 @@ mod syn_extensions {
         fn generics(&self) -> &Generics {
             self
         }
-        fn generics_mut(&mut self) -> &mut Generics { self }
+        fn generics_mut(&mut self) -> &mut Generics {
+            self
+        }
     }
 
     impl HasGenerics for ItemTrait {
         fn generics(&self) -> &Generics {
             &self.generics
         }
-        fn generics_mut(&mut self) -> &mut Generics { &mut self.generics }
+        fn generics_mut(&mut self) -> &mut Generics {
+            &mut self.generics
+        }
     }
 
     impl HasGenerics for ItemStruct {
         fn generics(&self) -> &Generics {
             &self.generics
         }
-        fn generics_mut(&mut self) -> &mut Generics { &mut self.generics }
+        fn generics_mut(&mut self) -> &mut Generics {
+            &mut self.generics
+        }
     }
 
     impl HasGenerics for ItemImpl {
         fn generics(&self) -> &syn::Generics {
             &self.generics
         }
-        fn generics_mut(&mut self) -> &mut Generics { &mut self.generics }
+        fn generics_mut(&mut self) -> &mut Generics {
+            &mut self.generics
+        }
     }
 
     /// Abstraction over everything that has a [syn::Signature]
@@ -129,7 +137,7 @@ mod syn_extensions {
             &self.attrs
         }
     }
-    
+
     impl HasAttributes for ItemFn {
         fn attrs(&self) -> &Vec<Attribute> {
             &self.attrs
@@ -241,9 +249,10 @@ mod self_type_rewriter {
 mod receiver_rewriter {
     use proc_macro2::{Ident, TokenStream, TokenTree};
     use quote::{quote, quote_spanned};
-    use syn::{FnArg, ImplItemMethod, ItemFn, Macro, parse_quote_spanned, Type};
-    use syn::spanned::Spanned;
-    use syn::visit_mut::VisitMut;
+    use syn::{
+        parse_quote_spanned, spanned::Spanned, visit_mut::VisitMut, FnArg, ImplItemMethod, ItemFn,
+        Macro, Type,
+    };
 
     /// Rewrites the receiver of a method-like item.
     /// This can be used to convert impl methods to free-standing functions.
@@ -267,14 +276,14 @@ mod receiver_rewriter {
 
     impl RewritableReceiver for ImplItemMethod {
         fn rewrite_receiver(&mut self, new_ty: &Type) {
-            let mut rewriter = Rewriter {new_ty};
+            let mut rewriter = Rewriter { new_ty };
             rewriter.rewrite_impl_item_method(self);
         }
     }
 
     impl RewritableReceiver for ItemFn {
         fn rewrite_receiver(&mut self, new_ty: &Type) {
-            let mut rewriter = Rewriter {new_ty};
+            let mut rewriter = Rewriter { new_ty };
             rewriter.rewrite_item_fn(self);
         }
     }
@@ -296,13 +305,15 @@ mod receiver_rewriter {
             let tokens_span = tokens.span();
             let rewritten = TokenStream::from_iter(tokens.into_iter().map(|token| match token {
                 TokenTree::Group(group) => {
-                    let new_group =
-                        proc_macro2::Group::new(group.delimiter(), Self::rewrite_tokens(group.stream()));
+                    let new_group = proc_macro2::Group::new(
+                        group.delimiter(),
+                        Self::rewrite_tokens(group.stream()),
+                    );
                     TokenTree::Group(new_group)
                 }
                 TokenTree::Ident(ident) if ident == "self" => {
                     TokenTree::Ident(proc_macro2::Ident::new("_self", ident.span()))
-                },
+                }
                 other => other,
             }));
             parse_quote_spanned! {tokens_span=>
@@ -316,17 +327,15 @@ mod receiver_rewriter {
             if let FnArg::Receiver(receiver) = fn_arg {
                 let span = receiver.span();
                 let and = match &receiver.reference {
-                    Some((_, Some(lifetime))) =>
-                        quote_spanned!{span => &#lifetime},
-                    Some((_, None)) =>
-                        quote_spanned!{span => &},
-                    None => quote! {}
+                    Some((_, Some(lifetime))) => quote_spanned! {span => &#lifetime},
+                    Some((_, None)) => quote_spanned! {span => &},
+                    None => quote! {},
                 };
                 let mutability = &receiver.mutability;
                 let new_ty = self.new_ty;
                 let new_fn_arg: FnArg = parse_quote_spanned! {span=>
-                _self : #and #mutability #new_ty
-            };
+                    _self : #and #mutability #new_ty
+                };
                 *fn_arg = new_fn_arg;
             } else {
                 syn::visit_mut::visit_fn_arg_mut(self, fn_arg);
@@ -380,9 +389,12 @@ pub(crate) fn merge_generics<T: HasGenerics>(target: &mut T, source: &T) {
         if let GenericParam::Type(type_param_source) = param_source {
             // We can remove the target type param here, because the source will not have the
             // same type param with the same identifiers
-            let maybe_type_param_source = existing_target_type_params.remove(&type_param_source.ident);
+            let maybe_type_param_source =
+                existing_target_type_params.remove(&type_param_source.ident);
             if let Some(type_param_target) = maybe_type_param_source {
-                type_param_target.bounds.extend(type_param_source.bounds.clone());
+                type_param_target
+                    .bounds
+                    .extend(type_param_source.bounds.clone());
             } else {
                 new_generic_params.push(GenericParam::Type(type_param_source.clone()));
             }
@@ -398,8 +410,13 @@ pub(crate) fn merge_generics<T: HasGenerics>(target: &mut T, source: &T) {
     }
 
     // Merge the where clause
-    match (generics_target.where_clause.as_mut(), generics_source.where_clause.as_ref()) {
-        (Some(target_where), Some(source_where)) => target_where.predicates.extend(source_where.predicates.clone()),
+    match (
+        generics_target.where_clause.as_mut(),
+        generics_source.where_clause.as_ref(),
+    ) {
+        (Some(target_where), Some(source_where)) => target_where
+            .predicates
+            .extend(source_where.predicates.clone()),
         (None, Some(source_where)) => generics_target.where_clause = Some(source_where.clone()),
         _ => (),
     }
@@ -487,8 +504,8 @@ mod tests {
     use super::*;
 
     mod merge_generics {
-        use syn::parse_quote;
         use crate::merge_generics;
+        use syn::parse_quote;
 
         macro_rules! test_merge {
             ([$($source:tt)+] into [$($target:tt)+] gives [$($expected:tt)+]) => {

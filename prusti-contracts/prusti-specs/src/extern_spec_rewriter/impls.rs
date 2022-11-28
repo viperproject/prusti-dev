@@ -1,10 +1,10 @@
-use crate::SPECS_VERSION;
-use crate::{ExternSpecKind, is_predicate_macro, specifications::common::generate_struct_name};
+use super::common::*;
+use crate::{
+    is_predicate_macro, specifications::common::generate_struct_name, ExternSpecKind, SPECS_VERSION,
+};
 use proc_macro2::TokenStream;
 use quote::quote_spanned;
-use syn::parse_quote_spanned;
-use syn::spanned::Spanned;
-use super::common::*;
+use syn::{parse_quote_spanned, spanned::Spanned};
 
 pub fn rewrite_extern_spec(item_impl: &syn::ItemImpl) -> syn::Result<TokenStream> {
     let rewritten = rewrite_extern_spec_internal(item_impl)?;
@@ -33,7 +33,7 @@ fn rewrite_extern_spec_internal(item_impl: &syn::ItemImpl) -> syn::Result<Rewrit
     };
 
     if let Some((_, trait_path, _)) = &item_impl.trait_ {
-        if has_generic_arguments(trait_path) {
+        if false && has_generic_arguments(trait_path) {
             return Err(syn::Error::new(
                 item_impl.generics.params.span(),
                 "Generics for extern trait impls are not supported",
@@ -98,7 +98,7 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
                         "Unexpected method body. (Extern specs only define specifications.)",
                     ));
                 }
-                
+
                 let (rewritten_method, spec_items) = generate_extern_spec_method_stub(
                     method,
                     item_ty,
@@ -108,11 +108,11 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
 
                 rewritten_items.extend(spec_items.into_iter().map(syn::ImplItem::Method));
                 rewritten_items.push(syn::ImplItem::Method(rewritten_method));
-            },
+            }
             syn::ImplItem::Macro(makro) if is_predicate_macro(makro) => {
                 return Err(syn::Error::new(
                     makro.span(),
-                    "Can not declare abstract predicate in external spec"
+                    "Can not declare abstract predicate in external spec",
                 ));
             }
             _ => {
@@ -132,11 +132,13 @@ fn rewrite_plain_impl(impl_item: &mut syn::ItemImpl, new_ty: Box<syn::Type>) -> 
 }
 
 /// Recognizes method stubs, e.g. `fn foo();`.
-/// 
+///
 /// The absence of a body is represented in a roundabout way:
 /// They have a body comprising a single verbatim item containing a single semicolon token.
 fn is_stub(block: &syn::Block) -> bool {
-    if block.stmts.len() != 1 { return false; }
+    if block.stmts.len() != 1 {
+        return false;
+    }
     if let syn::Stmt::Item(syn::Item::Verbatim(tokens)) = &block.stmts[0] {
         return tokens.to_string() == ";";
     } else {
@@ -157,7 +159,8 @@ fn rewrite_trait_impl(
     new_impl.items.clear();
 
     let item_trait_path = impl_item.trait_.as_ref().unwrap().1.clone();
-    let item_trait_typath: syn::TypePath = parse_quote_spanned! {item_trait_path.span()=> #item_trait_path };
+    let item_trait_typath: syn::TypePath =
+        parse_quote_spanned! {item_trait_path.span()=> #item_trait_path };
 
     // TODO: reduce duplication with rewrite_plain_impl
     for item in impl_item.items.into_iter() {
@@ -176,7 +179,9 @@ fn rewrite_trait_impl(
                     ExternSpecKind::TraitImpl,
                 )?;
 
-                new_impl.items.extend(spec_items.into_iter().map(syn::ImplItem::Method));
+                new_impl
+                    .items
+                    .extend(spec_items.into_iter().map(syn::ImplItem::Method));
                 new_impl.items.push(syn::ImplItem::Method(rewritten_method));
             }
             _ => {

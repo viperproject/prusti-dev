@@ -23,7 +23,6 @@ mod type_model;
 mod user_provided_type_params;
 mod print_counterexample;
 
-
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use rewriter::AstRewriter;
@@ -57,8 +56,10 @@ fn extract_prusti_attributes(
     let mut prusti_attributes = Vec::new();
     let mut regular_attributes = Vec::new();
     for attr in item.attrs_mut().drain(0..) {
-        if attr.path.segments.len() == 1 || (attr.path.segments.len() == 2 && attr.path.segments[0].ident == "prusti_contracts") {
-            let idx = attr.path.segments.len()-1;
+        if attr.path.segments.len() == 1
+            || (attr.path.segments.len() == 2 && attr.path.segments[0].ident == "prusti_contracts")
+        {
+            let idx = attr.path.segments.len() - 1;
             if let Ok(attr_kind) = attr.path.segments[idx].ident.to_string().try_into() {
                 let tokens = match attr_kind {
                     SpecAttributeKind::Requires
@@ -84,7 +85,9 @@ fn extract_prusti_attributes(
                     }
                     SpecAttributeKind::Invariant => unreachable!("type invariant on function"),
                     SpecAttributeKind::Model => unreachable!("model on function"),
-                    SpecAttributeKind::PrintCounterexample => unreachable!("print_counterexample on function"),
+                    SpecAttributeKind::PrintCounterexample => {
+                        unreachable!("print_counterexample on function")
+                    }
                 };
                 prusti_attributes.push((attr_kind, tokens));
             } else {
@@ -291,7 +294,7 @@ fn generate_for_pure_ghost_constraint(item: &untyped::AnyFnItem) -> GeneratedRes
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
     let spec_item = rewriter.process_pure_ghost_constraint(spec_id, item)?;
-    
+
     Ok((
         vec![spec_item],
         vec![parse_quote_spanned! {item.span()=>
@@ -350,41 +353,29 @@ fn generate_for_trusted_for_types(attr: TokenStream, item: &syn::DeriveInput) ->
         .params
         .iter()
         .map(|generic_param| match generic_param {
-            syn::GenericParam::Type(param) => {
-                syn::GenericParam::Type(
-                    syn::TypeParam {
-                        attrs: Vec::new(),
-                        bounds: syn::punctuated::Punctuated::new(),
-                        colon_token: None,
-                        default: None,
-                        eq_token: None,
-                        ident: param.ident.clone(),
-                    }
-                )
-            },
-            syn::GenericParam::Lifetime(param) => {
-                syn::GenericParam::Lifetime(
-                    syn::LifetimeDef {
-                        attrs: Vec::new(),
-                        bounds: syn::punctuated::Punctuated::new(),
-                        colon_token: None,
-                        lifetime: param.lifetime.clone(),
-                    }
-                )
-            },
-            syn::GenericParam::Const(param) => {
-                syn::GenericParam::Const(
-                    syn::ConstParam {
-                        attrs: Vec::new(),
-                        colon_token: param.colon_token,
-                        const_token: param.const_token,
-                        default: None,
-                        eq_token: None,
-                        ident: param.ident.clone(),
-                        ty: param.ty.clone(),
-                    }
-                )
-            }
+            syn::GenericParam::Type(param) => syn::GenericParam::Type(syn::TypeParam {
+                attrs: Vec::new(),
+                bounds: syn::punctuated::Punctuated::new(),
+                colon_token: None,
+                default: None,
+                eq_token: None,
+                ident: param.ident.clone(),
+            }),
+            syn::GenericParam::Lifetime(param) => syn::GenericParam::Lifetime(syn::LifetimeDef {
+                attrs: Vec::new(),
+                bounds: syn::punctuated::Punctuated::new(),
+                colon_token: None,
+                lifetime: param.lifetime.clone(),
+            }),
+            syn::GenericParam::Const(param) => syn::GenericParam::Const(syn::ConstParam {
+                attrs: Vec::new(),
+                colon_token: param.colon_token,
+                const_token: param.const_token,
+                default: None,
+                eq_token: None,
+                ident: param.ident.clone(),
+                ty: param.ty.clone(),
+            }),
         })
         .collect::<syn::punctuated::Punctuated<_, syn::Token![,]>>();
     // TODO: similarly to extern_specs, don't generate an actual impl
@@ -394,10 +385,7 @@ fn generate_for_trusted_for_types(attr: TokenStream, item: &syn::DeriveInput) ->
         }
     };
 
-    Ok((
-        vec![syn::Item::Impl(item_impl)],
-        vec![],
-    ))
+    Ok((vec![syn::Item::Impl(item_impl)], vec![]))
 }
 
 pub fn body_variant(tokens: TokenStream) -> TokenStream {
@@ -645,41 +633,31 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
             .params
             .iter()
             .map(|generic_param| match generic_param {
-                syn::GenericParam::Type(param) => {
-                    syn::GenericParam::Type(
-                        syn::TypeParam {
-                            attrs: Vec::new(),
-                            bounds: syn::punctuated::Punctuated::new(),
-                            colon_token: None,
-                            default: None,
-                            eq_token: None,
-                            ident: param.ident.clone(),
-                        }
-                    )
-                },
+                syn::GenericParam::Type(param) => syn::GenericParam::Type(syn::TypeParam {
+                    attrs: Vec::new(),
+                    bounds: syn::punctuated::Punctuated::new(),
+                    colon_token: None,
+                    default: None,
+                    eq_token: None,
+                    ident: param.ident.clone(),
+                }),
                 syn::GenericParam::Lifetime(param) => {
-                    syn::GenericParam::Lifetime(
-                        syn::LifetimeDef {
-                            attrs: Vec::new(),
-                            bounds: syn::punctuated::Punctuated::new(),
-                            colon_token: None,
-                            lifetime: param.lifetime.clone(),
-                        }
-                    )
-                },
-                syn::GenericParam::Const(param) => {
-                    syn::GenericParam::Const(
-                        syn::ConstParam {
-                            attrs: Vec::new(),
-                            colon_token: param.colon_token,
-                            const_token: param.const_token,
-                            default: None,
-                            eq_token: None,
-                            ident: param.ident.clone(),
-                            ty: param.ty.clone(),
-                        }
-                    )
+                    syn::GenericParam::Lifetime(syn::LifetimeDef {
+                        attrs: Vec::new(),
+                        bounds: syn::punctuated::Punctuated::new(),
+                        colon_token: None,
+                        lifetime: param.lifetime.clone(),
+                    })
                 }
+                syn::GenericParam::Const(param) => syn::GenericParam::Const(syn::ConstParam {
+                    attrs: Vec::new(),
+                    colon_token: param.colon_token,
+                    const_token: param.const_token,
+                    default: None,
+                    eq_token: None,
+                    ident: param.ident.clone(),
+                    ty: param.ty.clone(),
+                }),
             })
             .collect::<syn::punctuated::Punctuated<_, syn::Token![,]>>();
         // TODO: similarly to extern_specs, don't generate an actual impl
@@ -786,9 +764,10 @@ pub fn rewrite_prusti_attributes_for_types(
     // Collect the remaining Prusti attributes, removing them from `item`.
     prusti_attributes.extend(extract_prusti_attributes_for_types(&mut item));
 
-    if prusti_attributes.len() > 1 && prusti_attributes
-        .iter()
-        .any(|(ak, _)| ak == &SpecAttributeKind::Trusted)
+    if prusti_attributes.len() > 1
+        && prusti_attributes
+            .iter()
+            .any(|(ak, _)| ak == &SpecAttributeKind::Trusted)
     {
         return syn::Error::new(
             item.span(),
@@ -800,8 +779,9 @@ pub fn rewrite_prusti_attributes_for_types(
     // we order the attributes to ensure a model attribute is processed first
     prusti_attributes.sort_by(|(ak1, _), (ak2, _)| ak1.cmp(ak2));
 
-    let (generated_spec_items, generated_attributes) =
-        handle_result!(generate_spec_and_assertions_for_types(prusti_attributes, &mut item));
+    let (generated_spec_items, generated_attributes) = handle_result!(
+        generate_spec_and_assertions_for_types(prusti_attributes, &mut item)
+    );
 
     quote_spanned! {item.span()=>
         #(#generated_attributes)*
@@ -809,7 +789,6 @@ pub fn rewrite_prusti_attributes_for_types(
         #(#generated_spec_items)*
     }
 }
-
 
 fn extract_prusti_attributes_for_types(
     item: &mut syn::DeriveInput,
@@ -829,8 +808,7 @@ fn extract_prusti_attributes_for_types(
                     SpecAttributeKind::Invariant => unreachable!("invariant on type"),
                     SpecAttributeKind::Predicate => unreachable!("predicate on type"),
                     SpecAttributeKind::Terminates => unreachable!("terminates on type"),
-                    SpecAttributeKind::Trusted |
-                    SpecAttributeKind::Model => {
+                    SpecAttributeKind::Trusted | SpecAttributeKind::Model => {
                         assert!(attr.tokens.is_empty(), "Unexpected shape of an attribute.");
                         attr.tokens
                     }
@@ -876,7 +854,9 @@ fn generate_spec_and_assertions_for_types(
             SpecAttributeKind::Terminates => unreachable!(),
             SpecAttributeKind::Trusted => generate_for_trusted_for_types(attr_tokens, item),
             SpecAttributeKind::Model => generate_for_model(attr_tokens, item),
-            SpecAttributeKind::PrintCounterexample => generate_for_print_counterexample(attr_tokens, item),
+            SpecAttributeKind::PrintCounterexample => {
+                generate_for_print_counterexample(attr_tokens, item)
+            }
         };
         let (new_items, new_attributes) = rewriting_result?;
         generated_items.extend(new_items);
@@ -890,7 +870,7 @@ fn generate_spec_and_assertions_for_types(
 fn generate_for_model(attr: TokenStream, item: &mut syn::DeriveInput) -> GeneratedResult {
     match syn::Item::from(item.clone()) {
         syn::Item::Struct(item_struct) => {
-            match type_model::rewrite(item_struct){
+            match type_model::rewrite(item_struct) {
                 Ok(result) => {
                     match result.first() {
                         Some(syn::Item::Struct(new_item)) => {
@@ -899,7 +879,7 @@ fn generate_for_model(attr: TokenStream, item: &mut syn::DeriveInput) -> Generat
                         }
                         _ => unreachable!(),
                     }
-                },
+                }
                 Err(err) => Err(err),
             }
         }
@@ -910,30 +890,31 @@ fn generate_for_model(attr: TokenStream, item: &mut syn::DeriveInput) -> Generat
     }
 }
 
-
 /// Generate spec items and attributes to typecheck and later retrieve "print_counterexample" annotations.
-fn generate_for_print_counterexample(attr: TokenStream, item: &mut syn::DeriveInput) -> GeneratedResult {
+fn generate_for_print_counterexample(
+    attr: TokenStream,
+    item: &mut syn::DeriveInput,
+) -> GeneratedResult {
     match syn::Item::from(item.clone()) {
         syn::Item::Struct(item_struct) => {
-            match print_counterexample::rewrite_struct(attr, item_struct){
+            match print_counterexample::rewrite_struct(attr, item_struct) {
                 Ok(result) => Ok((result, vec![])),
                 Err(err) => Err(err),
             }
         }
         syn::Item::Enum(item_enum) => {
-            match print_counterexample::rewrite_enum(attr, item_enum){
+            match print_counterexample::rewrite_enum(attr, item_enum) {
                 Ok(result) => {
                     match result.first() {
                         Some(syn::Item::Enum(new_item)) => {
                             *item = syn::DeriveInput::from(new_item.clone()); //print_counterexample removes all attributes inside the enum
                             Ok((vec![result[1].clone()], vec![]))
-                        },
+                        }
                         _ => unreachable!(),
                     }
-                },
+                }
                 Err(err) => Err(err),
             }
-
         }
         _ => Err(syn::Error::new(
             attr.span(),

@@ -1,11 +1,12 @@
 //! Encoding of external specs for traits
-use crate::{ExternSpecKind, is_predicate_macro, parse_quote_spanned};
-use crate::specifications::common::generate_struct_name_for_trait;
+use super::common::*;
+use crate::{
+    is_predicate_macro, parse_quote_spanned,
+    specifications::common::generate_struct_name_for_trait, ExternSpecKind,
+};
 use proc_macro2::TokenStream;
 use quote::{quote_spanned, ToTokens};
-use syn::parse_quote;
-use syn::spanned::Spanned;
-use super::common::*;
+use syn::{parse_quote, spanned::Spanned};
 
 /// Generates a struct for a `syn::ItemTrait` which is used for checking
 /// compilation of external specs on traits.
@@ -49,15 +50,19 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
 
     // Add a new type parameter to struct which represents an implementation of the trait
     let self_type_ident = syn::Ident::new("Prusti_T_Self", item_trait.span());
-    new_struct.generics.params.push(syn::GenericParam::Type(
-        parse_quote!(#self_type_ident),
-    ));
+    new_struct
+        .generics
+        .params
+        .push(syn::GenericParam::Type(parse_quote!(#self_type_ident)));
 
     let parsed_generics = parse_trait_type_params(item_trait)?;
     // Generic type parameters are added as generics to the struct
     for parsed_generic in parsed_generics.iter() {
         if let ProvidedTypeParam::GenericType(type_param) = parsed_generic {
-            new_struct.generics.params.push(syn::GenericParam::Type(type_param.clone()));
+            new_struct
+                .generics
+                .params
+                .push(syn::GenericParam::Type(type_param.clone()));
         }
     }
 
@@ -67,7 +72,10 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
 
     // Add a where clause which restricts this self type parameter to the trait
     if let Some(where_clause) = &item_trait.generics.where_clause {
-        return Err(syn::Error::new(where_clause.span(), "Where clauses for extern traits specs are not supported"));
+        return Err(syn::Error::new(
+            where_clause.span(),
+            "Where clauses for extern traits specs are not supported",
+        ));
     }
     let self_where_clause: syn::WhereClause = parse_quote! {
         where #self_type_ident: #self_type_trait
@@ -148,12 +156,14 @@ impl<'a> GeneratedStruct<'a> {
 
                     let (method, spec_fns) = self.generate_method_stub(trait_method)?;
                     struct_impl.items.push(syn::ImplItem::Method(method));
-                    struct_impl.items.extend(spec_fns.into_iter().map(syn::ImplItem::Method));
-                },
+                    struct_impl
+                        .items
+                        .extend(spec_fns.into_iter().map(syn::ImplItem::Method));
+                }
                 syn::TraitItem::Macro(makro) if is_predicate_macro(makro) => {
                     return Err(syn::Error::new(
                         makro.span(),
-                        "Can not declare abstract predicate in external spec"
+                        "Can not declare abstract predicate in external spec",
                     ));
                 }
                 _ => unimplemented!("Unimplemented trait item for extern spec"),
@@ -163,14 +173,22 @@ impl<'a> GeneratedStruct<'a> {
         Ok(struct_impl)
     }
 
-    fn generate_method_stub(&self, trait_method: &syn::TraitItemMethod) -> syn::Result<(syn::ImplItemMethod, Vec<syn::ImplItemMethod>)> {
+    fn generate_method_stub(
+        &self,
+        trait_method: &syn::TraitItemMethod,
+    ) -> syn::Result<(syn::ImplItemMethod, Vec<syn::ImplItemMethod>)> {
         let self_type_ident = &self.self_type_ident;
         let self_type_path: syn::TypePath = parse_quote_spanned! {self_type_ident.span()=>
             #self_type_ident
         };
         let self_type = syn::Type::Path(self_type_path);
 
-        generate_extern_spec_method_stub(trait_method, &self_type, Some(&self.self_type_trait), ExternSpecKind::Trait)
+        generate_extern_spec_method_stub(
+            trait_method,
+            &self_type,
+            Some(&self.self_type_trait),
+            ExternSpecKind::Trait,
+        )
     }
 }
 
@@ -203,7 +221,7 @@ impl ProvidedTypeParam {
         match path.segments[0].ident.to_string().as_str() {
             "generic" => Some(ProvidedTypeParam::GenericType(clone_without_attrs())),
             "concrete" => Some(ProvidedTypeParam::ConcreteType(clone_without_attrs())),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -211,7 +229,8 @@ impl ProvidedTypeParam {
 impl ToTokens for ProvidedTypeParam {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         match &self {
-            ProvidedTypeParam::ConcreteType(ty_param) |  ProvidedTypeParam::GenericType(ty_param) => ty_param.to_tokens(tokens),
+            ProvidedTypeParam::ConcreteType(ty_param)
+            | ProvidedTypeParam::GenericType(ty_param) => ty_param.to_tokens(tokens),
         }
     }
 }
