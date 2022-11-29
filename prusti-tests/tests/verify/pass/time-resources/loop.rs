@@ -16,6 +16,4 @@ fn sum(n: u32) -> u32 {
     res
 }
 
-fn main() {
-    // sum(4);
-}
+fn main() {}

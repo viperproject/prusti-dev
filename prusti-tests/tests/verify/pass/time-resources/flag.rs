@@ -1,5 +1,8 @@
+// compile-flags: -Ptime_reasoning=false
+
 use prusti_contracts::*;
 
+// This test checks that setting the time reasoning option to false ignores timing constrains
 #[requires(time_credits(1))]
 #[ensures(time_receipts(1))]
 fn sum(n: u32) -> u32 {
