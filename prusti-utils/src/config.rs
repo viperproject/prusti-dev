@@ -141,6 +141,7 @@ lazy_static::lazy_static! {
         settings.set_default::<Option<String>>("dump_fold_unfold_state_of_blocks", None).unwrap();
         settings.set_default("print_hash", false).unwrap();
         settings.set_default("enable_cache", true).unwrap();
+        settings.set_default("time_reasoning", false).unwrap();
 
         settings.set_default("cargo_path", "cargo").unwrap();
         settings.set_default("cargo_command", "check").unwrap();
@@ -364,6 +365,11 @@ pub fn java_home() -> String {
 /// When enabled, Prusti will check for an absence of `panic!`s.
 pub fn check_panics() -> bool {
     read_setting("check_panics")
+}
+
+/// When enabled, the time reasoning constrains are verified. Otherwise they are ignored.
+pub fn time_reasoning() -> bool {
+    read_setting("time_reasoning")
 }
 
 /// When enabled, the encoded program is simplified before it is passed to

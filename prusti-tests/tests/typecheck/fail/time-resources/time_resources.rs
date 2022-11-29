@@ -1,3 +1,5 @@
+// compile-flags: -Ptime_reasoning=true
+
 use prusti_contracts::*;
 
 struct MyStruct {
@@ -14,4 +16,3 @@ fn main() {
         i += 1;
     }
 }
-

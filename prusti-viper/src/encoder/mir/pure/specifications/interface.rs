@@ -27,6 +27,7 @@ use crate::encoder::{
     mir_encoder::{MirEncoder, PlaceEncoder, PRECONDITION_LABEL},
     snapshot::interface::SnapshotEncoderInterface,
 };
+use prusti_common::config;
 use prusti_rustc_interface::{
     hir::def_id::DefId,
     middle::{mir, ty::subst::SubstsRef},
@@ -255,14 +256,26 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
                 vir_poly::Expr::snap_app(encoded_args[0].clone()),
                 vir_poly::Expr::snap_app(encoded_args[1].clone()),
             )),
-            "prusti_contracts::time_credits" => Ok(vir_poly::Expr::resource_access_predicate(
-                vir_poly::ResourceType::TimeCredits,
-                encoded_args[0].clone(),
-            )),
-            "prusti_contracts::time_receipts" => Ok(vir_poly::Expr::resource_access_predicate(
-                vir_poly::ResourceType::TimeReceipts,
-                encoded_args[0].clone(),
-            )),
+            "prusti_contracts::time_credits" => {
+                if config::time_reasoning() {
+                    Ok(vir_poly::Expr::resource_access_predicate(
+                        vir_poly::ResourceType::TimeCredits,
+                        encoded_args[0].clone(),
+                    ))
+                } else {
+                    Ok(true.into())
+                }
+            }
+            "prusti_contracts::time_receipts" => {
+                if config::time_reasoning() {
+                    Ok(vir_poly::Expr::resource_access_predicate(
+                        vir_poly::ResourceType::TimeReceipts,
+                        encoded_args[0].clone(),
+                    ))
+                } else {
+                    Ok(true.into())
+                }
+            }
             _ => unimplemented!(),
         }
     }
