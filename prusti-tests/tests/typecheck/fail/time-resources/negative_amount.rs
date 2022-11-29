@@ -1,3 +1,5 @@
+// compile-flags: -Ptime_reasoning=true
+
 use prusti_contracts::*;
 
 #[requires(time_credits(-1))] //~ ERROR
