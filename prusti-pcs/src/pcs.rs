@@ -94,11 +94,11 @@ pub fn vis_pcs_facts<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> Encoding
 
         bctx.compute_cdg_trace();
 
-        // log::report_with_writer(
-        //     "scc_trace",
-        //     format!("{}.graph.dot", env.name.get_unique_item_name(*proc_id)),
-        //     |writer| vis_scc_trace(bctx, writer).unwrap(),
-        // );
+        log::report_with_writer(
+            "scc_trace",
+            format!("{}.graph.dot", env.name.get_unique_item_name(*proc_id)),
+            |writer| vis_scc_trace(bctx, writer).unwrap(),
+        );
     }
     Ok(())
 }
@@ -361,6 +361,10 @@ impl CFG {
         }
     }
 
+    pub fn is_node(&self, b: &BasicBlock) -> bool {
+        self.0.nodes.contains(b)
+    }
+
     pub fn blocks(&self) -> Vec<BasicBlock> {
         self.0.nodes.clone()
     }
@@ -495,7 +499,7 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
 
     fn compute_cdg_trace(&self) -> FxHashMap<PointIndex, CouplingDigraph<'tcx>> {
         let mut f: FxHashMap<PointIndex, CouplingDigraph<'tcx>> = FxHashMap::default();
-        let (pred_map, succ_map) = self.traversal_maps();
+        let (pred_map, succ_map) = self.traversal_maps_happy();
         let mut dirty_single: Vec<(PointIndex, CouplingDigraph<'tcx>)> = vec![(
             self.location_table.all_points().next().unwrap(),
             CouplingDigraph::default(),
@@ -525,10 +529,16 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
             } else if let Some(r) = dirty_joins.pop() {
                 // let preds = pred_map.get(r).unwrap();
                 pt = r;
-                working_cdg = CouplingDigraph::default();
                 println!("enter {:?}", pt);
-                println!("!!!!!!!!!!!!!!!!!!! unhandled join !!!!!!!!!!!!!!!!!!!");
-                todo!();
+                for p in pred_map.get(&pt).unwrap() {
+                    println!("\t[join] {:?}: ", p);
+                    match f.get(p) {
+                        None => println!("None"),
+                        Some(cdg) => cdg.pprint(),
+                    }
+                }
+                println!("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! incorrect join !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                working_cdg = CouplingDigraph::default();
             } else {
                 println!(
                     "end, remaning jobs: {:?} {:?}",
@@ -542,14 +552,14 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
 
             println!(">> finished cdg computation");
             working_cdg.pprint();
-            //f.insert(pt, working_cdg.clone());
+            f.insert(pt, working_cdg.clone());
             println!("exit {:?}", pt);
             println!();
 
             // Add all successors to the dirty lists
             if let Some(nexts) = succ_map.get(&pt) {
                 for nxt in nexts.iter() {
-                    if !done.contains(nxt) {
+                    if !done.contains(nxt) && !dirty_joins.contains(nxt) {
                         let preds_len = pred_map.get(&nxt).unwrap().len();
                         if preds_len == 1 {
                             dirty_single.push((*nxt, working_cdg.clone()));
@@ -695,6 +705,7 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
         Digraph { nodes, edges }
     }
 
+    #[allow(unused)]
     /// Constructs predecessor and successor maps from the cfg_edge fact
     fn traversal_maps(
         &self,
@@ -710,6 +721,30 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
 
             let entry_borrow = pred.entry(edge.1).or_insert(FxHashSet::default());
             (*entry_borrow).insert(edge.0.clone());
+        }
+        (pred, succ)
+    }
+
+    /// Traversal maps which ignore unwinding paths
+    fn traversal_maps_happy(
+        &self,
+    ) -> (
+        FxHashMap<PointIndex, FxHashSet<PointIndex>>,
+        FxHashMap<PointIndex, FxHashSet<PointIndex>>,
+    ) {
+        let mut succ: FxHashMap<PointIndex, FxHashSet<PointIndex>> = FxHashMap::default();
+        let mut pred: FxHashMap<PointIndex, FxHashSet<PointIndex>> = FxHashMap::default();
+        let cfg = self.compute_happy_cfg();
+        for edge in self.borrowck_in_facts.cfg_edge.iter() {
+            if cfg.is_node(&self.point_to_mir_block(edge.0))
+                && cfg.is_node(&self.point_to_mir_block(edge.0))
+            {
+                let entry_borrow = succ.entry(edge.0).or_insert(FxHashSet::default());
+                (*entry_borrow).insert(edge.1.clone());
+
+                let entry_borrow = pred.entry(edge.1).or_insert(FxHashSet::default());
+                (*entry_borrow).insert(edge.0.clone());
+            }
         }
         (pred, succ)
     }

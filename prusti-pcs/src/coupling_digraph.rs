@@ -175,9 +175,65 @@ impl<'tcx> CouplingDigraph<'tcx> {
         }
 
         // 1. Condense node constraints together
+        for df in distinguising_loans.iter() {
+            // 1.1 Using the reverse direction of the "annotation" bijection, assign each
+            //      partite set to a family of nodes
 
-        // 2. Right-associate arrow constraints
-        todo!();
+            let existing_edges = self
+                .annotations
+                .fwd
+                .iter()
+                .filter(|(_, v)| v.is_superset(df))
+                .collect::<BTreeSet<_>>();
+
+            if existing_edges.len() > 1 {
+                // replace me with code to take the union of K-paths between nodes in a cluster
+                // combine the K-path into a single hyperedge
+                // remove all existing edges from the graph
+                // insert the new edge
+                // update the bijection
+                todo!()
+            }
+        }
+
+        /*
+        // At this point, the "rev" map makes sense for all SCC nodes.
+        // 2. Right-associate arrow constraints (Is this even possible?)
+        for (l_v, lr_v, _) in scc.0.edges.iter() {
+            // The LHS is always a subset of the RHS
+            // fixme: get rid of the old vector implementation -> BTreeSets
+            let l: BTreeSet<Loan> = l_v.iter().cloned().collect();
+            let mut r: BTreeSet<Loan> = lr_v.iter().cloned().collect();
+            r.retain(|ln| !l.contains(ln));
+
+            // Decompose l and r by the partition
+            let l_pt: BTreeSet<_> = distinguising_loans
+                .iter()
+                .filter(|df| df.is_subset(&l))
+                .cloned()
+                .collect();
+            let r_pt: BTreeSet<_> = distinguising_loans
+                .iter()
+                .filter(|df| df.is_subset(&r))
+                .cloned()
+                .collect();
+
+            if l_pt.len() > 1 || r_pt.len() > 1 {
+                todo!();
+            }
+
+            // Figure our the RHS of one node, and the LHS of the next
+            // Take a K-path between them
+            // Give the entire K-path to the LHS node
+            // fixme: I can't seem to prove that this is what we really want
+            //  try on some more examples and rethink.
+
+            todo!();
+        }
+        */
+
+        // Checks
+        // todo!();
 
         println!("\texit constraint algorithm");
     }
