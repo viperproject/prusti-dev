@@ -175,12 +175,38 @@ impl<N: Node> Hyperdigraph<N> {
 
     pub fn find_linear_k_path(
         &self,
-        from: BTreeSet<N>,
-        to: BTreeSet<N>,
+        from: &BTreeSet<N>,
+        to: &BTreeSet<N>,
     ) -> Option<BTreeSet<DHEdge<N>>> {
-        // Brute force, stupid, algorithm
+        // Brute force, stupid, recursive algorithm
+        // Also, I'm pretty sure this breaks on cycles... though are they K-paths?
+        if from.is_subset(to) {
+            return Some(BTreeSet::new());
+        }
+        for next_edge in self.hyper_successor(from) {
+            let next_from: BTreeSet<_> = from
+                .difference(&next_edge.lhs)
+                .cloned()
+                .collect::<BTreeSet<_>>()
+                .union(&next_edge.rhs)
+                .cloned()
+                .collect();
+            if let Some(mut result) = self.find_linear_k_path(&next_from, to) {
+                assert!(result.insert(next_edge));
+                return Some(result);
+            }
+        }
 
-        todo!();
+        return None;
+    }
+
+    // Find all edges whose LHS is a subset of "nodes"
+    fn hyper_successor(&self, nodes: &BTreeSet<N>) -> Vec<DHEdge<N>> {
+        self.edges
+            .iter()
+            .filter(|e| e.lhs.is_subset(nodes))
+            .cloned()
+            .collect()
     }
 
     pub fn pprint_with_annotations<T: Bijectable>(&self, ann: &Bijection<DHEdge<N>, T>) {
