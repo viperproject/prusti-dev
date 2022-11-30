@@ -93,6 +93,28 @@ fn closest_node_to<'a, 'tcx>(
 }
 
 impl<'tcx> CouplingDigraph<'tcx> {
+    /// Instead of adding a repack edge,
+    ///     1. Remove the node p from the list of nodes
+    ///     2. Replace LHS/RHS in any edge which include p with unpack(p)
+    ///     3. Return a collection of the newly unpacked nodes
+    /// As written this action possibly changes the signature of every edge
+    ///     (but not the footprint). In practice I think it changes at most one edge,
+    ///     and I also think this edge isn't internal. I'll have to rethink this.
+    fn unpack_node_mut<'mir>(
+        &mut self,
+        mir: &'mir mir::Body<'tcx>,
+        tcx: TyCtxt<'tcx>,
+        node: &CPlace<'tcx>,
+    ) -> BTreeSet<CPlace<'tcx>> {
+        let unpacking = node.unpack(mir, tcx);
+        let from = BTreeSet::from([(*node).clone()]);
+        // Not sure yet that I want to replace in *all* nodes... revisit this.
+        self.graph
+            .replace_in_all_nodes(&from, &unpacking, &mut self.annotations);
+        unpacking
+    }
+
+    #[allow(unused)]
     /// Add repack edge, returns a collection of the new nodes
     fn unpack_node<'mir>(
         &mut self,
@@ -124,7 +146,7 @@ impl<'tcx> CouplingDigraph<'tcx> {
             if closest == target {
                 return true;
             }
-            space = self.unpack_node(mir, tcx, closest);
+            space = self.unpack_node_mut(mir, tcx, closest);
         }
     }
 
@@ -183,8 +205,10 @@ impl<'tcx> CouplingDigraph<'tcx> {
                 .annotations
                 .fwd
                 .iter()
-                .filter(|(_, v)| v.is_superset(df))
+                .filter(|(_, v)| v.is_subset(df))
                 .collect::<BTreeSet<_>>();
+
+            println!("EE: {:?}", existing_edges);
 
             if existing_edges.len() > 1 {
                 // replace me with code to take the union of K-paths between nodes in a cluster
@@ -199,6 +223,14 @@ impl<'tcx> CouplingDigraph<'tcx> {
         /*
         // At this point, the "rev" map makes sense for all SCC nodes.
         // 2. Right-associate arrow constraints (Is this even possible?)
+        // This might not be the right move in hindsight. An alternative idea is to
+        // mutate LHS's/RHS's and not add in any pack-unpack edges at all.
+        // Where might this be a problem?
+        //   Conditional join at two different unpacking levels:
+        //      A.x, A.y --> B
+        //      A --> B
+
+
         for (l_v, lr_v, _) in scc.0.edges.iter() {
             // The LHS is always a subset of the RHS
             // fixme: get rid of the old vector implementation -> BTreeSets

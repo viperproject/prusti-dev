@@ -8,6 +8,8 @@ use prusti_interface::environment::borrowck::facts::{Loan, PointIndex};
 use prusti_rustc_interface::data_structures::fx::{FxHashMap, FxHashSet};
 use std::{collections::BTreeSet, fmt::Debug, hash::Hash};
 
+use crate::coupling_digraph::CPlace;
+
 pub trait Bijectable = Eq + Hash + Debug + Clone;
 
 /// Simple way to represent a bijection
@@ -32,11 +34,13 @@ impl<A: Bijectable, B: Bijectable> Bijection<A, B> {
         assert!(None == self.rev.insert(b.clone(), a.clone()));
     }
 
-    pub fn remove_a(&mut self, a: A) -> B {
-        todo!();
+    pub fn remove_a(&mut self, a: &A) -> Option<B> {
+        let b = self.fwd.remove(a)?;
+        assert!(self.rev.remove(&b) != None);
+        Some(b)
     }
 
-    pub fn remove_b(&mut self, a: A) -> B {
+    pub fn remove_b(&mut self, a: &A) -> B {
         todo!();
     }
     pub fn get_fwd(&self, a: &A) -> Option<&B> {
@@ -84,6 +88,22 @@ pub struct DHEdge<N: Node> {
     pub rhs: BTreeSet<N>,
 }
 
+impl<N: Node> DHEdge<N> {
+    pub fn replace_lhs(&mut self, from: &BTreeSet<N>, to: &BTreeSet<N>) {
+        if from.is_subset(&self.lhs) {
+            self.lhs = self.lhs.difference(from).cloned().collect();
+            self.lhs = self.lhs.union(to).cloned().collect();
+        }
+    }
+
+    pub fn replace_rhs(&mut self, from: &BTreeSet<N>, to: &BTreeSet<N>) {
+        if from.is_subset(&self.rhs) {
+            self.rhs = self.rhs.difference(from).cloned().collect();
+            self.rhs = self.rhs.union(to).cloned().collect();
+        }
+    }
+}
+
 /// A Hyperdigraph is
 ///     - A collection of nodes
 ///     - A collection of directed edges between sets of nodes
@@ -109,6 +129,31 @@ impl<N: Node> Hyperdigraph<N> {
     pub fn nodes(&self) -> &BTreeSet<N> {
         &self.nodes
     }
+
+    /// Mutate all edges, also update a bijection
+    /// Really slow function, and incorrect seperation of concerns wrt. the bijection.
+    pub fn replace_in_all_nodes<X: Bijectable>(
+        &mut self,
+        from: &BTreeSet<N>,
+        to: &BTreeSet<N>,
+        edge_labels: &mut Bijection<DHEdge<N>, BTreeSet<X>>,
+    ) {
+        // This is a really bad way to do this, but BTreeSets don't have mutable iterators.
+        // A (sligtly) better way might be to only move out and back in the edges which need to be changed.
+        let owned_edges = std::mem::replace(&mut self.edges, BTreeSet::new());
+        for mut e in owned_edges.into_iter() {
+            let bij_rhs = (*edge_labels.get_fwd(&e).unwrap()).clone();
+            edge_labels.remove_a(&e).unwrap();
+            e.replace_lhs(from, to);
+            e.replace_rhs(from, to);
+            edge_labels.insert(e.clone(), bij_rhs);
+            self.edges.insert(e);
+        }
+    }
+
+    // pub fn mut_edges(&mut self) -> &mut BTreeSet<DHEdge<N>> {
+    //     &mut self.edges
+    // }
 
     pub fn include_edge(&mut self, e: DHEdge<N>) {
         // Ensure that all nodes required by the edge are included in the graph
