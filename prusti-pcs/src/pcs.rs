@@ -537,7 +537,7 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
                         Some(cdg) => cdg.pprint(),
                     }
                 }
-                println!("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! incorrect join !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                todo!("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! incorrect join !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                 working_cdg = CouplingDigraph::default();
             } else {
                 println!(

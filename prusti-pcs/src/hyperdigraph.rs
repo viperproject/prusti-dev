@@ -8,8 +8,6 @@ use prusti_interface::environment::borrowck::facts::{Loan, PointIndex};
 use prusti_rustc_interface::data_structures::fx::{FxHashMap, FxHashSet};
 use std::{collections::BTreeSet, fmt::Debug, hash::Hash};
 
-use crate::coupling_digraph::CPlace;
-
 pub trait Bijectable = Eq + Hash + Debug + Clone;
 
 /// Simple way to represent a bijection
@@ -166,6 +164,23 @@ impl<N: Node> Hyperdigraph<N> {
         }
     }
 
+    pub fn remove_edge(&mut self, e: &DHEdge<N>) {
+        self.edges.remove(e);
+        let mut dirty_nodes: BTreeSet<_> = e.lhs.union(&e.rhs).cloned().collect();
+        // Silly to do this but make prototyping easier
+        for se in self.edges.iter() {
+            for l in se.lhs.iter() {
+                dirty_nodes.remove(l);
+            }
+            for r in se.rhs.iter() {
+                dirty_nodes.remove(r);
+            }
+        }
+        for d in dirty_nodes.iter() {
+            self.nodes.remove(d);
+        }
+    }
+
     /// Include an edge which doesn't exist, with nodes that do exist.
     fn insert_edge(&mut self, e: DHEdge<N>) {
         assert!(e.lhs.is_subset(&self.nodes));
@@ -218,7 +233,7 @@ impl<N: Node> Hyperdigraph<N> {
     //  and {Y} disjoint union {Bi} are equal. The above example is not a linear
     //  K-path.
 
-    pub fn find_linear_k_path(
+    pub fn find_affine_path(
         &self,
         from: &BTreeSet<N>,
         to: &BTreeSet<N>,
@@ -236,13 +251,33 @@ impl<N: Node> Hyperdigraph<N> {
                 .union(&next_edge.rhs)
                 .cloned()
                 .collect();
-            if let Some(mut result) = self.find_linear_k_path(&next_from, to) {
+            if let Some(mut result) = self.find_affine_path(&next_from, to) {
                 assert!(result.insert(next_edge));
                 return Some(result);
             }
         }
 
         return None;
+    }
+
+    /// REQUIRES: edges is acyclic and an affine path
+    /// U{LHS's} U RHS = U{RHS's} U LHS
+    /// It also can't include any other named edges, for now that means no other edges (under mut assumption)
+    /// Return the edge
+    pub fn collapse_acyclic_affine_path(&self, edges: &BTreeSet<DHEdge<N>>) -> DHEdge<N> {
+        if edges.len() == 0 {
+            panic!("Internal error (affine hull of size zero");
+        }
+        let mut lhs: BTreeSet<N> = BTreeSet::default();
+        let mut rhs: BTreeSet<N> = BTreeSet::default();
+        for e in edges.iter() {
+            lhs = lhs.union(&e.lhs).cloned().collect();
+            rhs = rhs.union(&e.rhs).cloned().collect();
+        }
+        DHEdge {
+            lhs: rhs.difference(&lhs).cloned().collect::<BTreeSet<_>>(),
+            rhs: lhs.difference(&rhs).cloned().collect::<BTreeSet<_>>(),
+        }
     }
 
     // Find all edges whose LHS is a subset of "nodes"
