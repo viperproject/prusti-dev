@@ -20,9 +20,9 @@ use crate::vir::polymorphic_vir::{ast, cfg, FallibleExprFolder};
 use log::{debug, trace};
 use std::{
     cmp::Ordering,
-    collections::{HashMap, HashSet},
     mem,
 };
+use fxhash::{FxHashSet, FxHashMap};
 
 pub trait FoldingOptimizer {
     #[must_use]
@@ -57,8 +57,8 @@ impl FoldingOptimizer for ast::Expr {
     fn optimize(self) -> Self {
         trace!("[enter] FoldingOptimizer::optimize = \n{}", self);
         let mut optimizer = ExprOptimizer {
-            unfoldings: HashMap::new(),
-            requirements: HashSet::new(),
+            unfoldings: FxHashMap::default(),
+            requirements: FxHashSet::default(),
         };
         let original_expr = self.clone();
         if let Ok(new_expr) = optimizer.fallible_fold(self) {
@@ -93,8 +93,8 @@ impl ast::StmtFolder for StmtOptimizer {
     }
 }
 
-type UnfoldingMap = HashMap<ast::Expr, (ast::Type, ast::PermAmount, ast::MaybeEnumVariantIndex)>;
-type RequirementSet = HashSet<ast::Expr>;
+type UnfoldingMap = FxHashMap<ast::Expr, (ast::Type, ast::PermAmount, ast::MaybeEnumVariantIndex)>;
+type RequirementSet = FxHashSet<ast::Expr>;
 
 struct ExprOptimizer {
     /// Predicate argument → (predicate name, amount, enum index).
@@ -147,8 +147,8 @@ fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::
 fn check_requirements_conflict(
     reqs1: &RequirementSet,
     reqs2: &RequirementSet,
-) -> HashSet<ast::Expr> {
-    let mut conflict_set = HashSet::new();
+) -> FxHashSet<ast::Expr> {
+    let mut conflict_set = FxHashSet::default();
     for place1 in reqs1 {
         //debug_assert!(reqs1.iter().all(|p| !p.has_proper_prefix(place1)));
         for place2 in reqs2 {
@@ -207,10 +207,10 @@ fn check_requirements_conflict(
 /// Split the unfoldings map into two: to restore and to keep.
 fn split_unfoldings(
     unfoldings: UnfoldingMap,
-    conflicts: &HashSet<ast::Expr>,
+    conflicts: &FxHashSet<ast::Expr>,
 ) -> (UnfoldingMap, UnfoldingMap) {
-    let mut to_restore = HashMap::new();
-    let mut to_keep = HashMap::new();
+    let mut to_restore = FxHashMap::default();
+    let mut to_keep = FxHashMap::default();
     for (place, data) in unfoldings {
         if conflicts.iter().any(|c| place.has_prefix(c)) {
             to_restore.insert(place, data);
@@ -226,8 +226,8 @@ fn find_common_unfoldings2(
     first: UnfoldingMap,
     mut second: UnfoldingMap,
 ) -> (UnfoldingMap, UnfoldingMap, UnfoldingMap) {
-    let mut common = HashMap::new();
-    let mut new_first = HashMap::new();
+    let mut common = FxHashMap::default();
+    let mut new_first = FxHashMap::default();
     for (place, data) in first {
         if second.contains_key(&place) {
             second.remove(&place);
@@ -248,8 +248,8 @@ fn find_common_unfoldings3<'a>(
     mut third: UnfoldingMap,
     third_reqs: &'a RequirementSet,
 ) -> (UnfoldingMap, UnfoldingMap, UnfoldingMap, UnfoldingMap) {
-    let mut common = HashMap::new();
-    let mut new_first = HashMap::new();
+    let mut common = FxHashMap::default();
+    let mut new_first = FxHashMap::default();
     for (place, data) in first {
         let second_agrees =
             second.contains_key(&place) || second_reqs.iter().all(|p| !p.has_prefix(&place));

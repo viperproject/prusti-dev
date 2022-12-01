@@ -15,7 +15,7 @@ use crate::{
     },
 };
 use log::{info, trace};
-use std::collections::HashMap;
+use fxhash::FxHashMap;
 use viper::{self, AstFactory};
 use vir::common::identifier::WithIdentifier;
 
@@ -1045,7 +1045,7 @@ fn cfg_method_convert_basic_block_path<'v>(
     declarations: &mut Vec<viper::Declaration<'v>>,
 ) {
     path.reverse();
-    let mut remaining_blocks: HashMap<_, _> = cfg_method
+    let mut remaining_blocks: FxHashMap<_, _> = cfg_method
         .basic_blocks
         .iter()
         .enumerate()

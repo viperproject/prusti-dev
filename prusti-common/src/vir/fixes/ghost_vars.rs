@@ -8,7 +8,7 @@
 
 use super::super::polymorphic_vir::ast;
 use super::super::polymorphic_vir::cfg;
-use std::collections::HashSet;
+use fxhash::FxHashSet;
 use std::mem;
 
 /// Viper has a consistency check that only variables declared inside
@@ -41,7 +41,7 @@ struct GhostVarFixer {
     package_stmt_count: u32,
     /// A set of variables declared inside a package stmt that should be
     /// renamed.
-    vars: Option<HashSet<ast::LocalVar>>,
+    vars: Option<FxHashSet<ast::LocalVar>>,
 }
 
 impl GhostVarFixer {
