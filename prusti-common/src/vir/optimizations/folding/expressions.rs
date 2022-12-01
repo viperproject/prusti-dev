@@ -455,8 +455,8 @@ impl ast::FallibleExprFolder for ExprOptimizer {
             position,
         }: ast::BinOp,
     ) -> Result<ast::Expr, ()> {
-        let f = left.clone();
-        let s = right.clone();
+        trace!("fold_bin_op: {} {} {}", op_kind, left, right);
+        
         let first_folded = self.fallible_fold_boxed(left)?;
         let first_unfoldings = self.get_unfoldings();
         let first_requirements = self.get_requirements();
@@ -465,7 +465,6 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         let second_unfoldings = self.get_unfoldings();
         let second_requirements = self.get_requirements();
 
-        trace!("fold_bin_op: {} {} {}", op_kind, f, s);
         let conflicts = check_requirements_conflict(&first_requirements, &second_requirements);
 
         if conflicts.is_empty() {
@@ -531,9 +530,7 @@ impl ast::FallibleExprFolder for ExprOptimizer {
             position,
         }: ast::Cond,
     ) -> Result<ast::Expr, ()> {
-        let g = guard.clone();
-        let f = then_expr.clone();
-        let s = else_expr.clone();
+        trace!("\n\nfold_cond:\ng = {}\nt = {}\ne = {}", guard, then_expr, else_expr);
 
         let guard_folded = self.fallible_fold_boxed(guard)?;
         let guard_unfoldings = self.get_unfoldings();
@@ -547,7 +544,6 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         let else_unfoldings = self.get_unfoldings();
         let else_requirements = self.get_requirements();
 
-        trace!("\n\nfold_cond:\ng = {}\nt = {}\ne = {}", g, f, s);
 
         let mut conflicts = check_requirements_conflict(&guard_requirements, &then_requirements);
         conflicts.extend(check_requirements_conflict(
