@@ -15,17 +15,17 @@ use crate::{
 };
 use std::{
     self,
-    collections::{HashMap, HashSet},
     mem,
 };
+use fxhash::{FxHashSet, FxHashMap};
 
 /// Purify vars.
 pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {
     let mut collector = VarCollector {
-        all_vars: HashSet::new(),
-        impure_vars: HashSet::new(),
+        all_vars: FxHashSet::default(),
+        impure_vars: FxHashSet::default(),
         is_pure_context: false,
-        replacements: HashMap::new(),
+        replacements: FxHashMap::default(),
     };
     // Since we cannot purify the return value, mark it as impure.
     for return_var in method.get_formal_returns() {
@@ -82,13 +82,13 @@ fn is_purifiable_method(name: &str) -> bool {
 
 /// Collects all variables that cannot be purified.
 struct VarCollector {
-    all_vars: HashSet<ast::LocalVar>,
+    all_vars: FxHashSet<ast::LocalVar>,
     /// Vars that cannot be purified.
-    impure_vars: HashSet<ast::LocalVar>,
+    impure_vars: FxHashSet<ast::LocalVar>,
     /// Are we in a pure context?
     is_pure_context: bool,
     /// Variable replacement map.
-    replacements: HashMap<ast::LocalVar, ast::LocalVar>,
+    replacements: FxHashMap<ast::LocalVar, ast::LocalVar>,
 }
 
 impl VarCollector {
@@ -264,8 +264,8 @@ impl ast::StmtWalker for VarCollector {
 }
 
 struct VarPurifier {
-    pure_vars: HashSet<ast::LocalVar>,
-    replacements: HashMap<ast::LocalVar, ast::LocalVar>,
+    pure_vars: FxHashSet<ast::LocalVar>,
+    replacements: FxHashMap<ast::LocalVar, ast::LocalVar>,
 }
 
 impl VarPurifier {
