@@ -177,6 +177,26 @@ impl<'tcx> CouplingDigraph<'tcx> {
         self.annotations.insert(edge, BTreeSet::from([loan]))
     }
 
+    /// Core coupling method
+    fn couple_edges(&mut self, edges: &BTreeSet<DHEdge<CPlace<'tcx>>>) {
+        // I'm not sure this works in general, this function
+        // 1. Doesn't support repack edges (need to find an affine path first)
+        // 2. Breaks on cyclic borrows
+        let mut all_loans: BTreeSet<Loan> = BTreeSet::default();
+        for e in edges.iter() {
+            all_loans = all_loans
+                .union(self.annotations.get_fwd(e).unwrap())
+                .cloned()
+                .collect();
+            self.graph.remove_edge(e);
+            self.annotations.remove_a(e);
+        }
+
+        let new_edge = self.graph.collapse_acyclic_affine_path(edges);
+        self.graph.include_edge(new_edge.clone());
+        self.annotations.insert(new_edge, all_loans);
+    }
+
     /// This is going to be implemented slightly ad-hoc.
     /// After computing some examples I'll have a better idea of
     /// a general algorithm here.
@@ -208,15 +228,9 @@ impl<'tcx> CouplingDigraph<'tcx> {
                 .filter(|(_, v)| v.is_subset(df))
                 .collect::<BTreeSet<_>>();
 
-            println!("EE: {:?}", existing_edges);
-
             if existing_edges.len() > 1 {
-                // replace me with code to take the union of K-paths between nodes in a cluster
-                // combine the K-path into a single hyperedge
-                // remove all existing edges from the graph
-                // insert the new edge
-                // update the bijection
-                todo!()
+                let to_couple = existing_edges.iter().map(|x| x.0).cloned().collect();
+                self.couple_edges(&to_couple);
             }
         }
 
