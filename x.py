@@ -38,7 +38,7 @@ RUSTFMT_CRATES = [
     'analysis',
     'jni-gen',
     'prusti',
-    #'prusti-common',
+    'prusti-common',
     'prusti-contracts/prusti-contracts',
     'prusti-contracts/prusti-contracts-proc-macros',
     #'prusti-contracts/prusti-specs',
