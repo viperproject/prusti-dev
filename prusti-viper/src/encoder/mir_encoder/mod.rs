@@ -189,14 +189,13 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
             }
 
             mir::ProjectionElem::Deref => {
-                match encoded_base.try_into_expr() {
-                    Ok(e) => {
-                        let (e, ty, v) = self.encode_deref(e, base_ty)?;
-                        (PlaceEncoding::Expr(e), ty, v)
-                    }
-                    Err(_) => return Err(EncodingError::unsupported(
+                if let Ok(base_expr) = encoded_base.try_into_expr() {
+                    let (e, ty, v) = self.encode_deref(base_expr, base_ty)?;
+                    (PlaceEncoding::Expr(e), ty, v)
+                } else {
+                    return Err(EncodingError::unsupported(
                         "mixed dereferencing and array indexing projections are not supported"
-                    )),
+                    ));
                 }
             }
 
@@ -291,17 +290,38 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
         trace!("encode_deref {} {}", encoded_base, base_ty);
 
         Ok(match base_ty.kind() {
-            ty::TyKind::RawPtr(ty::TypeAndMut { ty, .. })
-            | ty::TyKind::Ref(_, ty, _) => {
-                let access = if encoded_base.is_addr_of() {
-                    // Simplify `*&<expr>` ==> `<expr>`
-                    encoded_base.get_parent().unwrap()
-                } else {
-                    let ref_field = self.encoder()
-                        .encode_dereference_field(*ty)?;
-                    encoded_base.field(ref_field)
+            &ty::TyKind::RawPtr(ty::TypeAndMut { ty: inner_ref_ty, .. })
+            | &ty::TyKind::Ref(_, inner_ref_ty, _) => {
+                // Build a the snapshot of the reference, just to see what the domain function looks
+                // like to implement the check in the following match.
+                let encoded_inner_ref_ty = self.encoder().encode_type(inner_ref_ty)?;
+                let vir::Expr::DomainFuncApp(dummy_ref_snap) = self.encoder().encode_snapshot(
+                    inner_ref_ty,
+                    None,
+                    vec![vir::Expr::local(vir::LocalVar::new("dummy", encoded_inner_ref_ty))],
+                )? else {
+                    unreachable!()
                 };
-                (access, *ty, None)
+                let access = match &encoded_base {
+                    place if place.is_addr_of() => {
+                        // Simplify `*&<expr>` ==> `<expr>`
+                        encoded_base.get_parent().unwrap()
+                    }
+                    vir::Expr::DomainFuncApp(vir::DomainFuncApp {
+                        domain_function,
+                        arguments,
+                        ..
+                    }) if arguments.len() == 1 && domain_function.name == dummy_ref_snap.domain_function.name => {
+                        // Simplify `*snap(&<expr>)` ==> `<expr>`
+                        arguments[0].clone()
+                    }
+                    _ => {
+                        let ref_field = self.encoder()
+                            .encode_dereference_field(inner_ref_ty)?;
+                        encoded_base.field(ref_field)
+                    }
+                };
+                (access, inner_ref_ty, None)
             }
             ty::TyKind::Adt(adt_def, _subst) if adt_def.is_box() => {
                 let access = if encoded_base.is_addr_of() {

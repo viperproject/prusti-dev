@@ -15,6 +15,13 @@ use vir_crate::polymorphic::{self as vir, Type};
 pub(super) enum Snapshot {
     /// Corresponds directly to an existing Viper type.
     Primitive(Type),
+    Reference {
+        predicate_type: Type,
+        _domain: String,
+        _snap_func: vir::FunctionIdentifier,
+        constructor: vir::DomainFunc,
+        deref_function: vir::DomainFunc,
+    },
     /// Encodes a complex type: tuples, ADTs, or closures.
     Complex {
         predicate_type: Type,
@@ -73,7 +80,8 @@ impl Snapshot {
     pub fn get_type(&self) -> Type {
         match self {
             Self::Primitive(ty) => ty.clone(),
-            Self::Complex { predicate_type, .. }
+            Self::Reference { predicate_type, .. }
+            | Self::Complex { predicate_type, .. }
             | Self::Abstract { predicate_type, .. }
             | Self::Array { predicate_type, .. }
             | Self::Slice { predicate_type, .. } => {

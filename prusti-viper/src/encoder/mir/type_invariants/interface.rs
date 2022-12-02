@@ -29,8 +29,8 @@ impl<'v, 'tcx: 'v> TypeInvariantEncoderInterface<'tcx> for super::super::super::
             return Ok(true.into());
         }
 
-        // match snapshot ref/box peeling
-        let ty = crate::encoder::snapshot::encoder::strip_refs_and_boxes(ty);
+        // match snapshot box peeling
+        let ty = crate::encoder::snapshot::encoder::strip_boxes(ty);
 
         let ty = self.env().tcx().erase_regions_ty(ty);
 
