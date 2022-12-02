@@ -1638,7 +1638,7 @@ impl SnapshotEncoder {
     }
 
     /// Encodes the snapshot for a reference type (shared or mutable).
-    /// The returned snapshot will be of the [Snapshot::Complex] variant.
+    /// The returned snapshot will be of the [Snapshot::Reference] variant.
     fn encode_reference<'p, 'v: 'p, 'tcx: 'v>(
         &mut self,
         encoder: &'p Encoder<'v, 'tcx>,
@@ -1646,7 +1646,6 @@ impl SnapshotEncoder {
         inner_ty: ty::Ty<'tcx>,
         arg_expr: &Expr,
     ) -> EncodingResult<Snapshot> {
-        // Reuse the Snapshot::Complex encoding to build a Snapshot::Reference
         let encoded_inner_ty = self.encode_type(encoder, inner_ty)?;
         let snap_field_access = self.snap_app(
             encoder,
@@ -1654,7 +1653,7 @@ impl SnapshotEncoder {
                 .clone()
                 .field(vir::Field::new(DEREF_FIELD_NAME, encoded_inner_ty.clone())),
         )?;
-        let snapshot_complex = self.encode_complex(
+        let mut snapshot = self.encode_generic_snapshot_domain(
             encoder,
             vec![SnapshotVariant {
                 discriminant: -1,
@@ -1668,24 +1667,35 @@ impl SnapshotEncoder {
             }],
             predicate_type,
         )?;
-        let Snapshot::Complex {
-            predicate_type,
-            _domain,
-            _snap_func,
-            mut variants,
-            ..
-        } = snapshot_complex else {
-            return Err(EncodingError::internal(
-                format!("expected complex snapshot; got {:?}", snapshot_complex)
-            ));
+        // encode snap function
+        let snap_func = {
+            // Since in the current encoding the predicates of `&x` is defined to be just a
+            // fractional permission of the predicate of `x`, then the snapshot constructor of `&x`
+            // is just the identity function.
+            let arg_ref_local = vir::LocalVar::new("self", predicate_type.clone());
+            let arg_ref_expr = Expr::local(arg_ref_local.clone());
+            let snapshot_type = predicate_type.convert_to_snapshot();
+            vir::Function {
+                name: SNAP_FUNC_NAME.to_string(),
+                type_arguments: vec![snapshot_type.clone()],
+                formal_args: vec![arg_ref_local],
+                return_type: snapshot_type,
+                pres: vec![Expr::predicate_access_predicate(
+                    predicate_type.clone(),
+                    arg_ref_expr.clone(),
+                    PermAmount::Read,
+                )],
+                posts: vec![],
+                body: Some(arg_ref_expr),
+            }
         };
-        let (constructor, mut fields) = variants.pop().unwrap();
+        let (constructor, mut fields) = snapshot.variant_domain_funcs.pop().unwrap();
         Ok(Snapshot::Reference {
-            predicate_type,
+            predicate_type: snapshot.predicate_type.convert_to_snapshot(),
             constructor,
             deref_function: fields.remove(DEREF_FIELD_NAME).unwrap(),
-            _domain,
-            _snap_func,
+            _domain: self.insert_domain(snapshot.domain),
+            _snap_func: self.insert_function(snap_func),
         })
     }
 
@@ -1697,6 +1707,29 @@ impl SnapshotEncoder {
         variants: Vec<SnapshotVariant<'tcx>>,
         predicate_type: &Type,
     ) -> EncodingResult<Snapshot> {
+        let snapshot = self.encode_generic_snapshot_domain(encoder, variants, predicate_type)?;
+        let snap_func = foldunfold::add_folding_unfolding_to_function(
+            snapshot.snap_func,
+            encoder.get_used_viper_predicates_map()?,
+        )
+        .unwrap();
+        Ok(Snapshot::Complex {
+            predicate_type: snapshot.predicate_type.convert_to_snapshot(),
+            _domain: self.insert_domain(snapshot.domain),
+            discriminant_func: snapshot.discriminant_func,
+            _snap_func: self.insert_function(snap_func),
+            variants: snapshot.variant_domain_funcs,
+            variant_names: snapshot.variant_names,
+        })
+    }
+
+    /// Encodes the domain of the snapshot for a generic data structure (reference, complex...).
+    fn encode_generic_snapshot_domain<'p, 'v: 'p, 'tcx: 'v>(
+        &mut self,
+        encoder: &'p Encoder<'v, 'tcx>,
+        variants: Vec<SnapshotVariant<'tcx>>,
+        predicate_type: &Type,
+    ) -> EncodingResult<GenericSnapshotDomain> {
         let domain_name = format!("Snap${}", predicate_type.name());
         let snapshot_type = predicate_type.convert_to_snapshot();
         let has_multiple_variants = variants.len() > 1;
@@ -1971,11 +2004,6 @@ impl SnapshotEncoder {
                 body,
             }
         };
-        let snap_func = foldunfold::add_folding_unfolding_to_function(
-            snap_func,
-            encoder.get_used_viper_predicates_map()?,
-        )
-        .unwrap();
 
         // create domain
         let domain = vir::Domain {
@@ -1985,15 +2013,31 @@ impl SnapshotEncoder {
             type_vars: vec![],
         };
 
-        Ok(Snapshot::Complex {
-            predicate_type: predicate_type.convert_to_snapshot(),
-            _domain: self.insert_domain(domain),
+        Ok(GenericSnapshotDomain {
+            predicate_type: predicate_type.clone(),
+            domain,
             discriminant_func,
-            _snap_func: self.insert_function(snap_func),
-            variants: variant_domain_funcs,
+            snap_func,
+            variant_domain_funcs,
             variant_names,
         })
     }
+}
+
+/// Just used for the result of the `encode_generic_snapshot_domain` method.
+struct GenericSnapshotDomain {
+    predicate_type: Type,
+    domain: vir::Domain,
+    discriminant_func: vir::DomainFunc,
+    snap_func: vir::Function,
+    /// [variant_domain_funcs] has one entry for tuples, structs, and closures.
+    /// For enums, it has as many entries as there are variants.
+    /// The first function is the constructor, the hashmap encodes the
+    /// field access functions, keyed by their name.
+    variant_domain_funcs: Vec<(vir::DomainFunc, FxHashMap<String, vir::DomainFunc>)>,
+    /// Mapping of variant names (as used by Prusti) to variant indices
+    /// in the [variants_names] vector. Empty for non-enums.
+    variant_names: FxHashMap<String, usize>,
 }
 
 struct SnapshotVariant<'tcx> {
