@@ -1,18 +1,15 @@
-// © 2019, ETH Zurich
+// © 2022, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use vir_crate::polymorphic as vir;
-use prusti_rustc_interface::middle::mir;
-use rustc_hash::{FxHashMap};
-use std::fmt::{self, Debug, Display};
-use std::iter::FromIterator;
-use std::marker::Sized;
-use log::trace;
-use std::mem;
+//! A MIR interpreter that translates MIR into vir_poly expressions.
 
+use log::trace;
+use prusti_rustc_interface::middle::mir;
+use rustc_hash::FxHashMap;
+use std::{fmt::Debug, iter::FromIterator, marker::Sized};
 
 /// Backward interpreter for a loop-less MIR
 pub trait BackwardMirInterpreter<'tcx> {
@@ -38,10 +35,11 @@ pub trait BackwardMirInterpreter<'tcx> {
 pub fn run_backward_interpretation<'tcx, S, E, I>(
     mir: &mir::Body<'tcx>,
     interpreter: &I,
-) -> Result<Option<S>, E> where
+) -> Result<Option<S>, E>
+where
     S: Debug,
     E: Debug,
-    I: BackwardMirInterpreter<'tcx, State = S, Error = E>
+    I: BackwardMirInterpreter<'tcx, State = S, Error = E>,
 {
     let basic_blocks = &mir.basic_blocks;
     let mut heads: FxHashMap<mir::BasicBlock, S> = FxHashMap::default();
@@ -83,7 +81,10 @@ pub fn run_backward_interpretation<'tcx, S, E, I>(
         // Put the preceding basic blocks
         for &pred_bb in mir.basic_blocks.predecessors()[curr_bb].iter() {
             if let Some(ref term) = basic_blocks[pred_bb].terminator {
-                if term.successors().all(|succ_bb| heads.contains_key(&succ_bb)) {
+                if term
+                    .successors()
+                    .all(|succ_bb| heads.contains_key(&succ_bb))
+                {
                     pending_blocks.push(pred_bb);
                 }
             }
@@ -155,11 +156,7 @@ pub fn run_backward_interpretation_point_to_point<
         trace!("States before: {:?}", states);
         debug_assert_eq!(states.len(), terminator.successors().count());
         trace!("Apply terminator {:?}", terminator);
-        let mut curr_state = interpreter.apply_terminator(
-            curr_bb,
-            terminator,
-            states
-        )?;
+        let mut curr_state = interpreter.apply_terminator(curr_bb, terminator, states)?;
         trace!("State after: {:?}", curr_state);
         if curr_bb == final_bbi && final_stmt_index == terminator_index {
             trace!("Final location reached in terminator");
@@ -211,62 +208,4 @@ pub fn run_backward_interpretation_point_to_point<
     );
 
     Ok(result)
-}
-
-#[derive(Clone, Debug)]
-pub struct ExprBackwardInterpreterState {
-    /// None if the expression is undefined.
-    expr: Option<vir::Expr>,
-    substs: FxHashMap<vir::TypeVar, vir::Type>,
-}
-
-impl Display for ExprBackwardInterpreterState {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if let Some(expr) = self.expr.as_ref() {
-            write!(f, "expr={}", expr)
-        } else {
-            write!(f, "expr=undefined")
-        }
-    }
-}
-
-impl ExprBackwardInterpreterState {
-    pub fn new(expr: Option<vir::Expr>) -> Self {
-        ExprBackwardInterpreterState { expr, substs: FxHashMap::default() }
-    }
-
-    pub fn new_defined(expr: vir::Expr) -> Self {
-        ExprBackwardInterpreterState { expr: Some(expr), substs: FxHashMap::default() }
-    }
-
-    pub fn expr(&self) -> Option<&vir::Expr> {
-        self.expr.as_ref()
-    }
-
-    pub fn expr_mut(&mut self) -> Option<&mut vir::Expr> {
-        self.expr.as_mut()
-    }
-
-    pub fn into_expr(self) -> Option<vir::Expr> {
-        self.expr
-    }
-
-    pub fn substitute_value(&mut self, target: &vir::Expr, replacement: vir::Expr) {
-        trace!("substitute_value {:?} --> {:?}", target, replacement);
-        let target = target.clone().patch_types(&self.substs);
-        let replacement = replacement.patch_types(&self.substs);
-
-        if let Some(curr_expr) = self.expr.as_mut() {
-            // Replace two times to avoid cloning `expr`, which could be big.
-            let expr = mem::replace(curr_expr, true.into());
-            let new_expr = expr.replace_place(&target, &replacement).simplify_addr_of();
-            let _ = mem::replace(curr_expr, new_expr);
-        }
-    }
-
-    pub fn uses_place(&self, sub_target: &vir::Expr) -> bool {
-        trace!("use_place {:?}", sub_target);
-        let sub_target = sub_target.clone().patch_types(&self.substs);
-        self.expr.as_ref().map(|expr| expr.find(&sub_target)).unwrap_or(false)
-    }
 }

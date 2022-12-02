@@ -4,17 +4,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::interpreter::PureFunctionBackwardInterpreter;
 use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface},
     mir::{
         contracts::{ContractsEncoderInterface, ProcedureContract},
-        pure::{PureEncodingContext, SpecificationEncoderInterface},
+        pure::{
+            interpreter::{
+                interpreter_poly::PureFunctionBackwardInterpreter, run_backward_interpretation,
+            },
+            PureEncodingContext, SpecificationEncoderInterface,
+        },
         specifications::SpecificationsInterface,
     },
     mir_encoder::PlaceEncoder,
-    mir_interpreter::run_backward_interpretation,
     snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
