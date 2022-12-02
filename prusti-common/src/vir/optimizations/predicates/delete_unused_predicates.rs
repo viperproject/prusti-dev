@@ -9,8 +9,8 @@ use crate::vir::polymorphic_vir::{
     cfg::CfgMethod,
     utils::{walk_functions, walk_methods},
 };
+use fxhash::{FxHashMap, FxHashSet};
 use log::debug;
-use fxhash::{FxHashSet, FxHashMap};
 
 fn collect_info_from_methods_and_functions(
     methods: &[CfgMethod],
@@ -29,7 +29,9 @@ fn collect_info_from_methods_and_functions(
 }
 
 /// Computes a map of Predicate to the predicates used  in that predicate
-fn get_used_predicates_in_predicate_map(predicates: &[Predicate]) -> FxHashMap<Type, FxHashSet<Type>> {
+fn get_used_predicates_in_predicate_map(
+    predicates: &[Predicate],
+) -> FxHashMap<Type, FxHashSet<Type>> {
     let mut collector = UsedPredicateCollector::new();
     let mut map = FxHashMap::default();
 

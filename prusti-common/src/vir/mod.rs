@@ -4,12 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-pub use self::low_to_viper::{ToViperDecl, ToViper};
-pub use self::to_graphviz::ToGraphViz;
-pub use vir::legacy::*;
-pub use vir::polymorphic as polymorphic_vir;
-pub use vir::high as vir_high;
+pub use self::{
+    low_to_viper::{ToViper, ToViperDecl},
+    to_graphviz::ToGraphViz,
+};
 pub use low_to_viper::Context as LoweringContext;
+pub use vir::{high as vir_high, legacy::*, polymorphic as polymorphic_vir};
 
 pub mod fixes;
 pub mod optimizations;

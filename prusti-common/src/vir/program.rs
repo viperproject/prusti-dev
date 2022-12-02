@@ -1,4 +1,4 @@
-use super::low_to_viper::{ToViper, Context};
+use super::low_to_viper::{Context, ToViper};
 use viper::{self, AstFactory};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Hash, Eq, PartialEq)]

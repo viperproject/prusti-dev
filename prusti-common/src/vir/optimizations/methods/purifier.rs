@@ -13,11 +13,8 @@ use crate::{
     config,
     vir::polymorphic_vir::{ast, cfg},
 };
-use std::{
-    self,
-    mem,
-};
-use fxhash::{FxHashSet, FxHashMap};
+use fxhash::{FxHashMap, FxHashSet};
+use std::{self, mem};
 
 /// Purify vars.
 pub fn purify_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {

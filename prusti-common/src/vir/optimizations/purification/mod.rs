@@ -1,9 +1,9 @@
 use crate::vir::polymorphic_vir::{
     ast, cfg, utils::walk_method, Expr, Field, LocalVar, Stmt, Type,
 };
+use fxhash::FxHashSet;
 use log::debug;
 use std::collections::BTreeSet;
-use fxhash::FxHashSet;
 
 /// This purifies local variables in a method body
 pub fn purify_methods(
