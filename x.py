@@ -267,7 +267,7 @@ def package(mode: str, package_path: str):
 
     # Prepare destination folder
     Path(package_path).mkdir(parents=True, exist_ok=True)
-    if not os.listdir(package_path):
+    if os.listdir(package_path):
         logging.warning(f"The destination folder '{package_path}' is not empty.")
 
     # The glob patterns of the files to copy and their destination folder inside the package.
