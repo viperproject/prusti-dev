@@ -7,8 +7,8 @@
 //! Optimization that removes unused temporary variables.
 
 use crate::vir::polymorphic_vir::{ast, cfg};
-use std::mem;
 use fxhash::FxHashSet;
+use std::mem;
 
 /// Remove unused temporary variables and related inhale statements.
 pub fn remove_unused_vars(mut method: cfg::CfgMethod) -> cfg::CfgMethod {

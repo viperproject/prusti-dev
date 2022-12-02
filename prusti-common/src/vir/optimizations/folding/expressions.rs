@@ -17,12 +17,9 @@
 //! See: <https://github.com/viperproject/silicon/issues/387>
 
 use crate::vir::polymorphic_vir::{ast, cfg, FallibleExprFolder};
+use fxhash::{FxHashMap, FxHashSet};
 use log::{debug, trace};
-use std::{
-    cmp::Ordering,
-    mem,
-};
-use fxhash::{FxHashSet, FxHashMap};
+use std::{cmp::Ordering, mem};
 
 pub trait FoldingOptimizer {
     #[must_use]
@@ -456,7 +453,7 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         }: ast::BinOp,
     ) -> Result<ast::Expr, ()> {
         trace!("fold_bin_op: {} {} {}", op_kind, left, right);
-        
+
         let first_folded = self.fallible_fold_boxed(left)?;
         let first_unfoldings = self.get_unfoldings();
         let first_requirements = self.get_requirements();
@@ -530,7 +527,12 @@ impl ast::FallibleExprFolder for ExprOptimizer {
             position,
         }: ast::Cond,
     ) -> Result<ast::Expr, ()> {
-        trace!("\n\nfold_cond:\ng = {}\nt = {}\ne = {}", guard, then_expr, else_expr);
+        trace!(
+            "\n\nfold_cond:\ng = {}\nt = {}\ne = {}",
+            guard,
+            then_expr,
+            else_expr
+        );
 
         let guard_folded = self.fallible_fold_boxed(guard)?;
         let guard_unfoldings = self.get_unfoldings();
@@ -543,7 +545,6 @@ impl ast::FallibleExprFolder for ExprOptimizer {
         let else_folded = self.fallible_fold_boxed(else_expr)?;
         let else_unfoldings = self.get_unfoldings();
         let else_requirements = self.get_requirements();
-
 
         let mut conflicts = check_requirements_conflict(&guard_requirements, &then_requirements);
         conflicts.extend(check_requirements_conflict(
