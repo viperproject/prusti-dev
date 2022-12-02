@@ -1146,7 +1146,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     &mir::Rvalue::Ref(_, mir::BorrowKind::Unique, base)
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, base)
                     | &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, base) => {
-                        let (encoded_base, inner_ty, _) = self.encode_place(base).with_span(span)?;
+                        let (encoded_base, _, _) = self.encode_place(base).with_span(span)?;
                         let encoded_ref = match encoded_base {
                             vir::Expr::Field(vir::FieldExpr {
                                 box base,
@@ -1158,7 +1158,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             },
                             _ => {
                                 let snap_base = vir::Expr::snap_app(encoded_base);
-                                self.encoder.encode_snapshot(inner_ty, None, vec![snap_base]).with_span(span)?
+                                self.encoder.encode_snapshot(ty, None, vec![snap_base]).with_span(span)?
                             }
                         };
 
