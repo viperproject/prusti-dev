@@ -14,8 +14,8 @@ use crate::{
         Program,
     },
 };
-use log::{info, trace};
 use fxhash::FxHashMap;
+use log::{info, trace};
 use viper::{self, AstFactory};
 use vir::common::identifier::WithIdentifier;
 
