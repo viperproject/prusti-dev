@@ -12,7 +12,7 @@ The easiest way to try out Prusti is by using the ["Prusti Assistant"](https://m
 > The settings for switching to this version in Prusti Assistant are found in
 > `File → Preferences → Settings → Prusti Assistant → Build Channel`.
 
-In case you experience difficulties or encounter bugs while using Prusti assistant, please [open an issue in Prusti Assistant's repository](https://github.com/viperproject/prusti-assistant/issues) or contact us in the [Zulip chat](https://prusti.zulipchat.com/).
+In case you experience difficulties or encounter bugs while using Prusti Assistant, please [open an issue in Prusti Assistant's repository](https://github.com/viperproject/prusti-assistant/issues) or contact us in the [Zulip chat](https://prusti.zulipchat.com/).
 
 ## Command-line setup
 
