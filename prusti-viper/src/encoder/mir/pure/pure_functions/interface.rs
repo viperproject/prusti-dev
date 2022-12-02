@@ -1,6 +1,6 @@
 //! A public interface to the pure function encoder.
 
-use super::encoder::{FunctionCallInfo, FunctionCallInfoHigh, PureFunctionEncoder};
+use super::encoder_poly::{FunctionCallInfo, FunctionCallInfoHigh, PureFunctionEncoder};
 use crate::encoder::{
     errors::{SpannedEncodingResult, WithSpan},
     mir::specifications::SpecificationsInterface,
@@ -215,7 +215,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             .borrow()
             .contains_key(&key)
         {
-            let body = super::new_encoder::encode_pure_expression(
+            let body = super::encoder_high::encode_pure_expression(
                 self,
                 proc_def_id,
                 if self.is_encoding_trigger.get() {
@@ -252,7 +252,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             .borrow()
             .contains_key(&key)
         {
-            let body = super::encoder::encode_body(
+            let body = super::encoder_poly::encode_body(
                 self,
                 proc_def_id,
                 if self.is_encoding_trigger.get() {
@@ -331,7 +331,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                             let function = pure_function_encoder.encode_function()?;
                             if config::use_new_encoder() {
                                 // Test the new encoding.
-                                let _ = super::new_encoder::encode_function_decl(
+                                let _ = super::encoder_high::encode_function_decl(
                                     self,
                                     proc_def_id,
                                     proc_def_id,
@@ -501,7 +501,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         if let std::collections::hash_map::Entry::Vacant(e) = call_infos.entry(key) {
             // Compute information necessary to encode the function call and
             // memoize it.
-            let function_call_info = super::new_encoder::encode_function_call_info(
+            let function_call_info = super::encoder_high::encode_function_call_info(
                 self,
                 proc_def_id,
                 parent_def_id,
@@ -520,7 +520,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             self.register_function_constructor_mir(
                 identifier,
                 Box::new(move |encoder| {
-                    super::new_encoder::encode_function_decl(
+                    super::encoder_high::encode_function_decl(
                         encoder,
                         proc_def_id,
                         proc_def_id,

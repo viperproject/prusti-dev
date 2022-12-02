@@ -3,9 +3,6 @@ mod pure_functions;
 mod specifications;
 
 pub(crate) use self::{
-    pure_functions::{
-        PureEncodingContext, PureFunctionBackwardInterpreter, PureFunctionEncoderInterface,
-        PureFunctionEncoderState,
-    },
+    pure_functions::{PureEncodingContext, PureFunctionEncoderInterface, PureFunctionEncoderState},
     specifications::SpecificationEncoderInterface,
 };
