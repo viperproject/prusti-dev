@@ -294,7 +294,7 @@ impl SnapshotEncoder {
                     })
             }
             _ => Err(EncodingError::internal(format!(
-                "invalid snapshot field (not Complex): {:?}",
+                "invalid snapshot variant field (not Complex): {:?}",
                 expr
             ))),
         }
@@ -342,9 +342,9 @@ impl SnapshotEncoder {
                         field.name, expr, expr
                     ))
                 }),
-            _ => Err(EncodingError::internal(format!(
-                "invalid snapshot field (not Complex): {:?}",
-                expr
+            (field_name, snapshot) => Err(EncodingError::internal(format!(
+                "invalid snapshot field (not Complex) when trying to access field {:?} of {:?}: {:?}",
+                field_name, expr, snapshot
             ))),
         }
     }
@@ -1672,6 +1672,7 @@ impl SnapshotEncoder {
             // Since in the current encoding the predicates of `&x` is defined to be just a
             // fractional permission of the predicate of `x`, then the snapshot constructor of `&x`
             // is just the identity function.
+            let _result_local = vir::LocalVar::new("result", predicate_type.clone());
             let arg_ref_local = vir::LocalVar::new("self", predicate_type.clone());
             let arg_ref_expr = Expr::local(arg_ref_local.clone());
             let snapshot_type = predicate_type.convert_to_snapshot();
@@ -1685,7 +1686,10 @@ impl SnapshotEncoder {
                     arg_ref_expr.clone(),
                     PermAmount::Read,
                 )],
-                posts: vec![],
+                posts: vec![
+                    // TODO(fpoli): Only if needed for completeness
+                    //vir::Expr::eq_cmp(result_local.into(), arg_ref_expr.clone().into())
+                ],
                 body: Some(arg_ref_expr),
             }
         };
