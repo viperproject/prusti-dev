@@ -295,12 +295,15 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 // Build a the snapshot of the reference, just to see what the domain function looks
                 // like to implement the check in the following match.
                 let encoded_inner_ref_ty = self.encoder().encode_type(inner_ref_ty)?;
-                let vir::Expr::DomainFuncApp(dummy_ref_snap) = self.encoder().encode_snapshot(
-                    inner_ref_ty,
+                let encoded_dummy_ref_snap = self.encoder().encode_snapshot(
+                    base_ty,
                     None,
                     vec![vir::Expr::local(vir::LocalVar::new("dummy", encoded_inner_ref_ty))],
-                )? else {
-                    unreachable!()
+                )?;
+                let vir::Expr::DomainFuncApp(dummy_ref_snap) = encoded_dummy_ref_snap else {
+                    return Err(EncodingError::internal(
+                        format!("Expected DomainFuncApp; got {:?}", encoded_dummy_ref_snap)
+                    ));
                 };
                 let access = match &encoded_base {
                     place if place.is_addr_of() => {
