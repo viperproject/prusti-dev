@@ -131,11 +131,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> FallibleExprFolder for SnapshotPatcher<'p, 'v, 'tcx> 
                     vir::Type::Int if field.name == "val_int" => Ok(*receiver),
                     vir::Type::Bool if field.name == "val_bool" => Ok(*receiver),
 
-                    vir::Type::Int if field.name == "val_ref" => Ok(*receiver),
-                    vir::Type::Bool if field.name == "val_ref" => Ok(*receiver),
-
                     vir::Type::Snapshot(_) => match field.name.as_str() {
-                        "val_ref" => Ok(*receiver),
+                        "val_ref" => self.snapshot_encoder.snap_deref(self.encoder, *receiver),
                         _ => self
                             .snapshot_encoder
                             .snap_field(self.encoder, *receiver, field),

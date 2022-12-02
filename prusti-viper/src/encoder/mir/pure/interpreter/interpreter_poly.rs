@@ -1143,24 +1143,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                         }
                     }
 
-                    &mir::Rvalue::Ref(_, mir::BorrowKind::Unique, place)
-                    | &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, place)
-                    | &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, place) => {
-                        let (encoded_place, _, _) = self.encode_place(place).with_span(span)?;
-                        // TODO: Instead of generating an `AddrOf(..)` expression, here we could
-                        // generate a shapshot representing a reference. If we do so, we should
-                        // also migrate the simplification done by `Expr::simplify_addr_of` to
-                        // snapshots.
-                        let encoded_ref = match encoded_place {
-                            vir::Expr::Field( vir::FieldExpr {
-                                box ref base,
-                                field: vir::Field { ref name, .. },
+                    &mir::Rvalue::Ref(_, mir::BorrowKind::Unique, base)
+                    | &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, base)
+                    | &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, base) => {
+                        let (encoded_base, inner_ty, _) = self.encode_place(base).with_span(span)?;
+                        let encoded_ref = match encoded_base {
+                            vir::Expr::Field(vir::FieldExpr {
+                                box base,
+                                field,
                                 ..
-                            }) if name == "val_ref" => {
-                                // Simplify "address of reference"
-                                base.clone()
+                            }) if field.name == "val_ref" => {
+                                // Simplify snapshot of `&*x` to just `x`, assuming that `x` is a reference.
+                                base
+                            },
+                            _ => {
+                                let snap_base = vir::Expr::snap_app(encoded_base);
+                                self.encoder.encode_snapshot(inner_ty, None, vec![snap_base]).with_span(span)?
                             }
-                            other_place => other_place.addr_of(),
                         };
 
                         // Substitute the place

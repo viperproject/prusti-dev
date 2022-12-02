@@ -39,6 +39,7 @@ use vir_crate::{
 type PredicateType = Type;
 
 const SNAP_FUNC_NAME: &str = "snap$";
+const DEREF_FIELD_NAME: &str = "val_ref";
 
 /// Encodes MIR types into snapshots, and keeps track of which types have
 /// already been encoded.
@@ -63,33 +64,26 @@ pub(super) struct SnapshotEncoder {
     domains: FxHashMap<String, vir::Domain>,
 }
 
-/// Snapshot encoding flattens references and boxes. This function removes any
-/// [Box<...>] or reference (mutable or shared) wrappers.
-pub(crate) fn strip_refs_and_boxes(ty: ty::Ty) -> ty::Ty {
+/// Snapshot encoding flattens boxes. This function removes any `Box<..>` wrapper.
+pub(crate) fn strip_boxes(ty: ty::Ty) -> ty::Ty {
     match ty.kind() {
-        _ if ty.is_box() => strip_refs_and_boxes(ty.boxed_ty()),
-        ty::TyKind::Ref(_, sub_ty, _) => strip_refs_and_boxes(*sub_ty),
+        _ if ty.is_box() => strip_boxes(ty.boxed_ty()),
         _ => ty,
     }
 }
 
-/// Same as [strip_refs_and_boxes], but also performs the needed field accesses
-/// on the given expression to deref/unbox it.
-fn strip_refs_and_boxes_expr<'p, 'v: 'p, 'tcx: 'v>(
+/// Same as [strip_boxes], but also performs the needed field accesses
+/// on the given expression to unbox it.
+fn strip_boxes_expr<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p Encoder<'v, 'tcx>,
     ty: ty::Ty<'tcx>,
     expr: Expr,
 ) -> EncodingResult<(ty::Ty<'tcx>, Expr)> {
     match ty.kind() {
-        _ if ty.is_box() => strip_refs_and_boxes_expr(
+        _ if ty.is_box() => strip_boxes_expr(
             encoder,
             ty.boxed_ty(),
             Expr::field(expr, encoder.encode_dereference_field(ty.boxed_ty())?),
-        ),
-        ty::TyKind::Ref(_, sub_ty, _) => strip_refs_and_boxes_expr(
-            encoder,
-            *sub_ty,
-            Expr::field(expr, encoder.encode_dereference_field(*sub_ty)?),
         ),
         _ => Ok((ty, expr)),
     }
@@ -207,7 +201,7 @@ impl SnapshotEncoder {
             Type::TypeVar(..) |
             Type::TypedRef(..) => {
                 let ty = encoder.decode_type_predicate_type(vir_ty)?;
-                let (ty, expr) = strip_refs_and_boxes_expr(encoder, ty, expr)?;
+                let (ty, expr) = strip_boxes_expr(encoder, ty, expr)?;
                 Ok(match ty.kind() {
                     ty::TyKind::Int(_)
                     | ty::TyKind::Uint(_)
@@ -303,6 +297,23 @@ impl SnapshotEncoder {
                 "invalid snapshot field (not Complex): {:?}",
                 expr
             ))),
+        }
+    }
+
+    /// Converts the dereferentiation of a reference to a domain function call.
+    pub(super) fn snap_deref<'p, 'v: 'p, 'tcx: 'v>(
+        &mut self,
+        encoder: &'p Encoder<'v, 'tcx>,
+        expr: Expr,
+    ) -> EncodingResult<Expr> {
+        let snapshot = self.decode_snapshot(encoder, expr.get_type())?;
+        if let Snapshot::Reference { deref_function, .. } = snapshot {
+            Ok(deref_function.apply(vec![expr]))
+        } else {
+            Err(EncodingError::internal(format!(
+                "invalid snapshot field (not Reference): {:?}",
+                expr
+            )))
         }
     }
 
@@ -418,6 +429,9 @@ impl SnapshotEncoder {
                 assert_eq!(args.len(), 1);
                 Ok(args.pop().unwrap())
             }
+            Snapshot::Reference {
+                ref constructor, ..
+            } => Ok(constructor.apply(args)),
             Snapshot::Complex { ref variants, .. } => {
                 assert!(variant.is_some() || variants.len() == 1);
                 Ok(variants[variant.unwrap_or(0)].0.apply(args))
@@ -463,18 +477,10 @@ impl SnapshotEncoder {
     ) -> EncodingResult<Expr> {
         let snapshot = self.encode_snapshot(encoder, ty)?;
         match snapshot {
-            Snapshot::Primitive(..) => {
-                unimplemented!();
-            }
-            Snapshot::Complex { .. } => {
-                unimplemented!();
-            }
+            Snapshot::Reference { deref_function, .. } => Ok(deref_function.apply(args)),
             Snapshot::Array { uncons, .. } => Ok(uncons.apply(args)),
-            Snapshot::Slice { .. } => {
-                unimplemented!()
-            }
             _ => Err(EncodingError::internal(format!(
-                "invalid constructor (not Complex): {}",
+                "unimplemented destructor of: {}",
                 ty
             ))),
         }
@@ -596,7 +602,7 @@ impl SnapshotEncoder {
         encoder: &'p Encoder<'v, 'tcx>,
         ty: ty::Ty<'tcx>,
     ) -> EncodingResult<Snapshot> {
-        let ty = strip_refs_and_boxes(ty);
+        let ty = strip_boxes(ty);
         let predicate_type = encoder.encode_type(ty)?;
 
         // was the snapshot for the type already encoded?
@@ -663,7 +669,6 @@ impl SnapshotEncoder {
             // never get a box or reference here
             _ if ty.is_box() => unreachable!(),
             _ if predicate_type.is_map() => Ok(Snapshot::Primitive(predicate_type.clone())),
-            ty::TyKind::Ref(_, _, _) => unreachable!(),
 
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
                 Ok(Snapshot::Primitive(Type::Int))
@@ -675,6 +680,10 @@ impl SnapshotEncoder {
                 Ok(Snapshot::Primitive(Type::Float(vir::Float::F64)))
             }
             ty::TyKind::Bool => Ok(Snapshot::Primitive(Type::Bool)),
+
+            &ty::TyKind::Ref(_, inner_ty, _mutability) => {
+                self.encode_reference(encoder, predicate_type, inner_ty, &arg_expr)
+            }
 
             // TODO: never type
             ty::TyKind::Tuple(substs) => {
@@ -1625,6 +1634,58 @@ impl SnapshotEncoder {
                 type_vars: vec![],
             }),
             _snap_func: self.insert_function(snap_func),
+        })
+    }
+
+    /// Encodes the snapshot for a reference type (shared or mutable).
+    /// The returned snapshot will be of the [Snapshot::Complex] variant.
+    fn encode_reference<'p, 'v: 'p, 'tcx: 'v>(
+        &mut self,
+        encoder: &'p Encoder<'v, 'tcx>,
+        predicate_type: &Type,
+        inner_ty: ty::Ty<'tcx>,
+        arg_expr: &Expr,
+    ) -> EncodingResult<Snapshot> {
+        // Reuse the Snapshot::Complex encoding to build a Snapshot::Reference
+        let encoded_inner_ty = self.encode_type(encoder, inner_ty)?;
+        let snap_field_access = self.snap_app(
+            encoder,
+            arg_expr
+                .clone()
+                .field(vir::Field::new(DEREF_FIELD_NAME, encoded_inner_ty.clone())),
+        )?;
+        let snapshot_complex = self.encode_complex(
+            encoder,
+            vec![SnapshotVariant {
+                discriminant: -1,
+                fields: vec![SnapshotField {
+                    name: DEREF_FIELD_NAME.to_string(),
+                    mir_type: inner_ty,
+                    typ: encoded_inner_ty,
+                    access: snap_field_access,
+                }],
+                name: None,
+            }],
+            predicate_type,
+        )?;
+        let Snapshot::Complex {
+            predicate_type,
+            _domain,
+            _snap_func,
+            mut variants,
+            ..
+        } = snapshot_complex else {
+            return Err(EncodingError::internal(
+                format!("expected complex snapshot; got {:?}", snapshot_complex)
+            ));
+        };
+        let (constructor, mut fields) = variants.pop().unwrap();
+        Ok(Snapshot::Reference {
+            predicate_type,
+            constructor,
+            deref_function: fields.remove(DEREF_FIELD_NAME).unwrap(),
+            _domain,
+            _snap_func,
         })
     }
 
