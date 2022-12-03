@@ -524,8 +524,10 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
                 // Sequential coupling procedure
                 self.update_cdg_with_issue(pt, &mut working_cdg);
                 let scc = self.loan_scc_at(pt);
+                if let Some(scc_v) = &scc {
+                    working_cdg.constrain_by_scc(scc_v);
+                }
                 working_cdg.update_cdg_with_expiries(&scc);
-                scc.map(|scc_v| working_cdg.constrain_by_scc(&scc_v));
             } else if let Some(r) = dirty_joins.pop() {
                 // let preds = pred_map.get(r).unwrap();
                 pt = r;
