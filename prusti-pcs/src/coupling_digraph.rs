@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 use crate::{
     hyperdigraph::{Bijection, DHEdge, Hyperdigraph},
-    pcs::LoanSCC,
+    pcs::{debug_print_scc, LoanSCC},
 };
 use analysis::mir_utils::{self, PlaceImpl};
 use prusti_interface::environment::{
@@ -197,6 +197,40 @@ impl<'tcx> CouplingDigraph<'tcx> {
         self.annotations.insert(new_edge, all_loans);
     }
 
+    /// Only retain loans in live origins
+    /// fixme: should loans be killed when they're not live, or when they're not propagated?
+    /// are these the same? implemented: the latter.
+    pub fn update_cdg_with_expiries(&mut self, scc: &Option<LoanSCC>) {
+        // For now, just remove from CDG
+        // IRL: This emits a squence of coupled borrows to expire
+        if let Some(scc_v) = scc {
+            let live_loan_sets = &scc_v
+                .0
+                .nodes
+                .iter()
+                .cloned()
+                .map(|ls| ls.into_iter().collect::<BTreeSet<_>>())
+                .collect::<BTreeSet<_>>();
+
+            let mut edges_to_remove: BTreeSet<DHEdge<CPlace<'tcx>>> = Default::default();
+            for e in self.graph.edges().iter() {
+                if !live_loan_sets.contains(self.annotations.get_fwd(e).unwrap()) {
+                    edges_to_remove.insert(e.clone());
+                }
+            }
+            for e in edges_to_remove.iter() {
+                self.annotations.remove_a(e);
+                self.graph.remove_edge(e);
+            }
+        } else {
+            // Expire all loans in graph
+            if !self.graph.is_empty() {
+                self.graph = Default::default();
+                self.annotations = Default::default();
+            }
+        }
+    }
+
     /// This is going to be implemented slightly ad-hoc.
     /// After computing some examples I'll have a better idea of
     /// a general algorithm here.
@@ -204,9 +238,12 @@ impl<'tcx> CouplingDigraph<'tcx> {
     /// REQUIRES: the nodes of the LoanSCC to be sets of nodes in the
     /// hypergraph (kills and new loans are applied)
     /// NOTE: Possibly less live loans than edges in CDG
-    pub fn constrain_by_scc(&mut self, scc: LoanSCC) {
+    pub fn constrain_by_scc(&mut self, scc: &LoanSCC) {
         // If all origins either contain or do not contain a K-path,
         // quotient the graph by that K-path ("collapse" them).
+
+        print!("\t[scc]");
+        debug_print_scc(&scc);
 
         // "before" relation: ensure that
         println!("\tenter constraint algorithm");
@@ -234,52 +271,7 @@ impl<'tcx> CouplingDigraph<'tcx> {
             }
         }
 
-        /*
-        // At this point, the "rev" map makes sense for all SCC nodes.
-        // 2. Right-associate arrow constraints (Is this even possible?)
-        // This might not be the right move in hindsight. An alternative idea is to
-        // mutate LHS's/RHS's and not add in any pack-unpack edges at all.
-        // Where might this be a problem?
-        //   Conditional join at two different unpacking levels:
-        //      A.x, A.y --> B
-        //      A --> B
-
-
-        for (l_v, lr_v, _) in scc.0.edges.iter() {
-            // The LHS is always a subset of the RHS
-            // fixme: get rid of the old vector implementation -> BTreeSets
-            let l: BTreeSet<Loan> = l_v.iter().cloned().collect();
-            let mut r: BTreeSet<Loan> = lr_v.iter().cloned().collect();
-            r.retain(|ln| !l.contains(ln));
-
-            // Decompose l and r by the partition
-            let l_pt: BTreeSet<_> = distinguising_loans
-                .iter()
-                .filter(|df| df.is_subset(&l))
-                .cloned()
-                .collect();
-            let r_pt: BTreeSet<_> = distinguising_loans
-                .iter()
-                .filter(|df| df.is_subset(&r))
-                .cloned()
-                .collect();
-
-            if l_pt.len() > 1 || r_pt.len() > 1 {
-                todo!();
-            }
-
-            // Figure our the RHS of one node, and the LHS of the next
-            // Take a K-path between them
-            // Give the entire K-path to the LHS node
-            // fixme: I can't seem to prove that this is what we really want
-            //  try on some more examples and rethink.
-
-            todo!();
-        }
-        */
-
-        // Checks
-        // todo!();
+        // 2. Do we need to do anything with the arrows in the SCC graph?
 
         println!("\texit constraint algorithm");
     }

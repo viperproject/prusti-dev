@@ -124,8 +124,16 @@ impl<N: Node> Default for Hyperdigraph<N> {
 }
 
 impl<N: Node> Hyperdigraph<N> {
+    pub fn is_empty(&self) -> bool {
+        self.nodes.is_empty() && self.edges.is_empty()
+    }
+
     pub fn nodes(&self) -> &BTreeSet<N> {
         &self.nodes
+    }
+
+    pub fn edges(&self) -> &BTreeSet<DHEdge<N>> {
+        &self.edges
     }
 
     /// Mutate all edges, also update a bijection
