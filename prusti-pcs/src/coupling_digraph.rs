@@ -210,14 +210,16 @@ impl<'tcx> CouplingDigraph<'tcx> {
                 .iter()
                 .cloned()
                 .map(|ls| ls.into_iter().collect::<BTreeSet<_>>())
+                .flatten()
                 .collect::<BTreeSet<_>>();
 
             let mut edges_to_remove: BTreeSet<DHEdge<CPlace<'tcx>>> = Default::default();
             for e in self.graph.edges().iter() {
-                if !live_loan_sets.contains(self.annotations.get_fwd(e).unwrap()) {
+                if !live_loan_sets.is_superset(self.annotations.get_fwd(e).unwrap()) {
                     edges_to_remove.insert(e.clone());
                 }
             }
+            // println!("\t[expiring]: {:?}", edges_to_remove);
             for e in edges_to_remove.iter() {
                 self.annotations.remove_a(e);
                 self.graph.remove_edge(e);
@@ -229,6 +231,9 @@ impl<'tcx> CouplingDigraph<'tcx> {
                 self.annotations = Default::default();
             }
         }
+
+        // todo (fixme) this is a hack
+        self.graph.cleanup_nodes();
     }
 
     /// This is going to be implemented slightly ad-hoc.
@@ -266,8 +271,8 @@ impl<'tcx> CouplingDigraph<'tcx> {
                 .collect::<BTreeSet<_>>();
 
             if existing_edges.len() > 1 {
-                let to_couple = existing_edges.iter().map(|x| x.0).cloned().collect();
-                self.couple_edges(&to_couple);
+                // let to_couple = existing_edges.iter().map(|x| x.0).cloned().collect();
+                // self.couple_edges(&to_couple);
             }
         }
 

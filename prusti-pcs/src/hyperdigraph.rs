@@ -172,6 +172,26 @@ impl<N: Node> Hyperdigraph<N> {
         }
     }
 
+    // This is a hack and (fixme) should be removed
+    pub fn cleanup_nodes(&mut self) {
+        let all_lhs = self
+            .edges
+            .iter()
+            .map(|e| (*e).lhs.clone())
+            .flatten()
+            .collect::<BTreeSet<_>>();
+
+        let all_rhs = self
+            .edges
+            .iter()
+            .map(|e| (*e).rhs.clone())
+            .flatten()
+            .collect::<BTreeSet<_>>();
+
+        self.nodes
+            .retain(|n| all_lhs.contains(n) || all_rhs.contains(n));
+    }
+
     pub fn remove_edge(&mut self, e: &DHEdge<N>) {
         self.edges.remove(e);
         let mut dirty_nodes: BTreeSet<_> = e.lhs.union(&e.rhs).cloned().collect();
