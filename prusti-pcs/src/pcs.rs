@@ -344,6 +344,10 @@ impl LoanSCC {
             .map(|p| p.into_iter().collect())
             .collect()
     }
+
+    pub fn all_loans(&self) -> BTreeSet<Loan> {
+        self.0.nodes.iter().cloned().flatten().collect()
+    }
 }
 
 struct CFG(Digraph<BasicBlock, ()>);
@@ -517,15 +521,11 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
                 pt = curr_pt;
                 println!("enter {:?}", pt);
 
+                // Sequential coupling procedure
                 self.update_cdg_with_issue(pt, &mut working_cdg);
-
-                // Also need to check for kills (tags) and invalidations
-
-                if let Some(scc_v) = self.loan_scc_at(pt) {
-                    print!("[scc]: ");
-                    debug_print_scc(&scc_v);
-                    working_cdg.constrain_by_scc(scc_v);
-                }
+                let scc = self.loan_scc_at(pt);
+                working_cdg.update_cdg_with_expiries(&scc);
+                scc.map(|scc_v| working_cdg.constrain_by_scc(&scc_v));
             } else if let Some(r) = dirty_joins.pop() {
                 // let preds = pred_map.get(r).unwrap();
                 pt = r;
@@ -537,7 +537,7 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
                         Some(cdg) => cdg.pprint(),
                     }
                 }
-                todo!("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! incorrect join !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                println!("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! incorrect join !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                 working_cdg = CouplingDigraph::default();
             } else {
                 println!(
@@ -844,7 +844,7 @@ fn debug_print_annotation(ann: &DagAnnotations) {
     }
 }
 
-fn debug_print_scc(s: &LoanSCC) {
+pub fn debug_print_scc(s: &LoanSCC) {
     for n in s.0.nodes.iter() {
         print!("{:?} ", n);
     }
