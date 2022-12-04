@@ -16,7 +16,7 @@ use prusti_rustc_interface::{
     },
     session::Session,
 };
-use crate::ide_helper::ide_info;
+use crate::ide_helper::{ide_info, fake_error};
 
 #[derive(Default)]
 pub struct PrustiCompilerCalls;
@@ -106,16 +106,12 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
 
             // determine procedures that have to be verified.
             let (annotated_procedures, types) = env.get_annotated_procedures_and_types();
-            let verification_task = VerificationTask {
-                procedures: annotated_procedures,
-                types,
-            };
 
             // todo: selective verification, filter procedures that are 
             // part of verification_task
             
             if config::show_ide_info() {
-                let ideinf = ide_info::IdeInfo::collect(&env, &verification_task);
+                let ideinf = ide_info::IdeInfo::collect(&env, &annotated_procedures);
                 let out = serde_json::to_string(&ideinf).unwrap();
                 // probably should make this part of compilers output..
                 // actually not sure which way is better...
@@ -124,8 +120,31 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
 
             // collect and output Information used by IDE:
 
-            if !config::no_verify() && !config::skip_verification() {
-                verify(env, def_spec, verification_task);
+            if !config::no_verify() { //&& !config::skip_verification() {
+                if config::selective_verify().is_none() {
+                    println!("verifying everything\n\n\n");
+                    let verification_task = VerificationTask {
+                        procedures: annotated_procedures,
+                        types,
+                    };
+                    verify(env, def_spec, verification_task);
+                } else {
+                    let target_def_path = config::selective_verify().unwrap();
+                    println!("Selective Verification invoked for method {}\n\n\n", target_def_path);
+                    let procedures = annotated_procedures.into_iter().filter(
+                        |x| env.name.get_item_def_path(*x) == target_def_path
+                    ).collect();
+                    let selective_task = VerificationTask {
+                        procedures,
+                        types
+                    };
+                    verify(env, def_spec, selective_task);
+                }
+            } else if config::show_ide_info() {
+                // add a fake error
+                // for now maybe only for our use-case
+                println!("Faking an error :)\n\n\n\n\n\n");
+                fake_error::fake_error(env)
             }
         });
 

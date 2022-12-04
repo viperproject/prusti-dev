@@ -29,7 +29,7 @@ impl<'tcx> CallSpanFinder<'tcx> {
 
 impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
     type Map = Map<'tcx>;
-    type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::All;
+    type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::OnlyBodies;
 
     fn nested_visit_map(&mut self) -> Self::Map {
         self.env_query.hir()
@@ -38,15 +38,17 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
         intravisit::walk_expr(self, ex);
         match ex.kind {
             // Find all calls and methodcalls, not sure what the difference is..
-            ExprKind::Call(e1, _e2) => {
+            ExprKind::Call(_e1, _e2) => {
                 // let ident = format!("{}", e1.hir_id); 
                 // self.spans.push((ident.clone(), ex.span));
             },
-            ExprKind::MethodCall(path, _e1, _e2, _sp) => {
+            //TODO: avoid duplicates by checking for nodes hir_id
+            ExprKind::MethodCall(path, _e1, _e2, sp) => {
                 let ident = format!("{}", path.ident.as_str());
                 // let path: &'tcx PathSegment<'tcx> = p;
+
                 
-                self.spans.push((ident.clone(), ex.span));
+                self.spans.push((ident.clone(), sp));
                 println!("MethodCall: {:?}", ident);
             },
             _ => {}

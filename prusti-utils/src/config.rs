@@ -165,7 +165,7 @@ lazy_static::lazy_static! {
 
         // Flags specifically for Prusti-Assistant:
         settings.set_default("show_ide_info", false).unwrap();
-        settings.set_default("skip_verification", false).unwrap();
+        settings.set_default::<Option<String>>("selective_verify", None).unwrap();
 
 
         // Get the list of all allowed flags.
@@ -978,9 +978,9 @@ pub fn show_ide_info() -> bool {
     read_setting("show_ide_info")
 }
 
-/// Also used by IDE, similar to the existing no_verify 
-/// flag, but still collects all the important information
-/// to be used in combination with show_ide_info
-pub fn skip_verification() -> bool {
-    read_setting("skip_verification")
+/// Used for selective verification, can be passed a String containing
+/// the DefPath of the method to be verified
+pub fn selective_verify() -> Option<String> {
+    read_setting("selective_verify")
 }
+

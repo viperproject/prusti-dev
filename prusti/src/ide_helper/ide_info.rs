@@ -1,10 +1,10 @@
-use prusti_interface::data::VerificationTask;
 use prusti_interface::environment::Environment;
 
 use prusti_rustc_interface::span::{
         Span,
         source_map::SourceMap,
     };
+use prusti_rustc_interface::hir::def_id::DefId;
 
 use serde::Serialize;
 use super::call_finder;
@@ -41,10 +41,10 @@ pub struct VscSpan {
 }
 
 // collect information about the program that will be passed to IDE:
-pub fn collect_procedures(env: &Environment<'_>, verification_task: &VerificationTask) -> Vec<ProcDef>{
+pub fn collect_procedures(env: &Environment<'_>, procedures: &Vec<DefId>) -> Vec<ProcDef>{
     let sourcemap: &SourceMap = env.tcx().sess.source_map();
     let mut procs = Vec::new();
-    for procedure in &verification_task.procedures {
+    for procedure in procedures {
         let defpath = env.name.get_item_def_path(*procedure);
         let span = env.query.get_def_span(procedure);
         println!("found procedure: {}, span: {:?}", defpath, span);
@@ -70,8 +70,8 @@ pub fn collect_fncalls(env: &Environment<'_>) -> Vec<(String, Span)>{
 }
 
 impl IdeInfo {
-    pub fn collect(env: &Environment<'_>, verification_task: &VerificationTask) -> Self {
-        let procs = collect_procedures(env, verification_task);
+    pub fn collect(env: &Environment<'_>, procedures: &Vec<DefId>) -> Self {
+        let procs = collect_procedures(env, procedures);
         let source_map = env.tcx().sess.source_map();
         let fncalls = collect_fncalls(env).into_iter()
             .map(|(name, sp)| 
