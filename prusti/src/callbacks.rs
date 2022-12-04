@@ -3,6 +3,7 @@ use prusti_common::config;
 use prusti_interface::{
     environment::{mir_storage, Environment},
     specs::{self, cross_crate::CrossCrateSpecs, is_spec_fn},
+    data::VerificationTask,
 };
 use prusti_rustc_interface::{
     driver::Compilation,
@@ -15,6 +16,7 @@ use prusti_rustc_interface::{
     },
     session::Session,
 };
+use crate::ide_helper::ide_info;
 
 #[derive(Default)]
 pub struct PrustiCompilerCalls;
@@ -87,6 +89,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             spec_checker.check(&env);
             compiler.session().abort_if_errors();
 
+
             let hir = env.query.hir();
             let mut spec_collector = specs::SpecCollector::new(&mut env);
             hir.walk_toplevel_module(&mut spec_collector);
@@ -101,8 +104,28 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             }
             CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
 
-            if !config::no_verify() {
-                verify(env, def_spec);
+            // determine procedures that have to be verified.
+            let (annotated_procedures, types) = env.get_annotated_procedures_and_types();
+            let verification_task = VerificationTask {
+                procedures: annotated_procedures,
+                types,
+            };
+
+            // todo: selective verification, filter procedures that are 
+            // part of verification_task
+            
+            if config::show_ide_info() {
+                let ideinf = ide_info::IdeInfo::collect(&env, &verification_task);
+                let out = serde_json::to_string(&ideinf).unwrap();
+                // probably should make this part of compilers output..
+                // actually not sure which way is better...
+                println!("{}", out);
+            }
+
+            // collect and output Information used by IDE:
+
+            if !config::no_verify() && !config::skip_verification() {
+                verify(env, def_spec, verification_task);
             }
         });
 

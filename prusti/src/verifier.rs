@@ -8,9 +8,12 @@ use prusti_interface::{
     specs::typed,
 };
 use prusti_viper::verifier::Verifier;
-use crate::ide_helper::ide_info;
 
-pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
+pub fn verify<'tcx>(
+    env: Environment<'tcx>, 
+    def_spec: typed::DefSpecificationMap,
+    verification_task: VerificationTask<'tcx>,
+) {
     trace!("[verify] enter");
 
 
@@ -20,11 +23,6 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
         debug!("Prepare verification task...");
         // TODO: can we replace `get_annotated_procedures` with information
         // that is already in `def_spec`?
-        let (annotated_procedures, types) = env.get_annotated_procedures_and_types();
-        let verification_task = VerificationTask {
-            procedures: annotated_procedures,
-            types,
-        };
         debug!("Verification task: {:?}", &verification_task);
 
         user::message(format!(
@@ -46,16 +44,6 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
             }
         }
         
-        if config::show_ide_info() {
-            let ideinf = ide_info::IdeInfo::collect(&env, &verification_task);
-            let out = serde_json::to_string(&ideinf).unwrap();
-            // probably should make this part of compilers output..
-            // actually not sure which way is better...
-            println!("Next line contains IDE-Info:");
-            println!("{}", out);
-        } else {
-            println!("IDE Info flag was not passed correctly");
-        }
 
         let verification_result =
             if verification_task.procedures.is_empty() && verification_task.types.is_empty() {

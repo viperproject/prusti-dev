@@ -165,6 +165,7 @@ lazy_static::lazy_static! {
 
         // Flags specifically for Prusti-Assistant:
         settings.set_default("show_ide_info", false).unwrap();
+        settings.set_default("skip_verification", false).unwrap();
 
 
         // Get the list of all allowed flags.
@@ -975,4 +976,11 @@ pub fn enable_type_invariants() -> bool {
 /// a list of all procedures to be verified, etc.
 pub fn show_ide_info() -> bool {
     read_setting("show_ide_info")
+}
+
+/// Also used by IDE, similar to the existing no_verify 
+/// flag, but still collects all the important information
+/// to be used in combination with show_ide_info
+pub fn skip_verification() -> bool {
+    read_setting("skip_verification")
 }
