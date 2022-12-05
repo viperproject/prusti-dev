@@ -1,4 +1,3 @@
-use super::interface::PureFunctionEncoderInterface;
 use crate::encoder::{
     builtin_encoder::BuiltinFunctionKind,
     errors::{EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
@@ -7,13 +6,17 @@ use crate::encoder::{
         generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
     },
     mir::{
-        pure::{specifications::SpecificationEncoderInterface, PureEncodingContext},
+        pure::{
+            interpreter::{state_poly::ExprBackwardInterpreterState, BackwardMirInterpreter},
+            pure_functions::PureFunctionEncoderInterface,
+            specifications::SpecificationEncoderInterface,
+            PureEncodingContext,
+        },
         sequences::MirSequencesEncoderInterface,
         specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
     },
     mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
-    mir_interpreter::{BackwardMirInterpreter, ExprBackwardInterpreterState},
     snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
