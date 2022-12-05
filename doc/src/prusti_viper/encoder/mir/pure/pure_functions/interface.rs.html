@@ -593,7 +593,7 @@
 <a href="#593" id="593">593</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A public interface to the pure function encoder.
 
-</span><span class="kw">use </span><span class="kw">super</span>::encoder::{<a href="encoder.rs.html#598">FunctionCallInfo</a>, <a href="encoder.rs.html#616">FunctionCallInfoHigh</a>, <a href="encoder.rs.html#38">PureFunctionEncoder</a>};
+</span><span class="kw">use </span><span class="kw">super</span>::encoder_poly::{<a href="encoder_poly.rs.html#601">FunctionCallInfo</a>, <a href="encoder_poly.rs.html#619">FunctionCallInfoHigh</a>, <a href="encoder_poly.rs.html#41">PureFunctionEncoder</a>};
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
     errors::{<a href="../../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>, <a href="../../../errors/with_span.rs.html#13">WithSpan</a>},
     <a href="../../specifications/interface.rs.html#72">mir::specifications::SpecificationsInterface</a>,
@@ -684,9 +684,9 @@
     bodies_poly: RefCell&lt;FxHashMap&lt;Key&lt;<span class="lifetime">&#39;tcx</span>&gt;, <a href="../../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir_poly::Expr</a>&gt;&gt;,
     <span class="doccomment">/// Information necessary to encode a function call. FIXME: Remove this one
     /// and have only call_infos_high.
-    </span>call_infos_poly: RefCell&lt;FxHashMap&lt;Key&lt;<span class="lifetime">&#39;tcx</span>&gt;, <a href="encoder.rs.html#598">FunctionCallInfo</a>&gt;&gt;,
+    </span>call_infos_poly: RefCell&lt;FxHashMap&lt;Key&lt;<span class="lifetime">&#39;tcx</span>&gt;, <a href="encoder_poly.rs.html#601">FunctionCallInfo</a>&gt;&gt;,
     <span class="doccomment">/// Information necessary to encode a function call.
-    </span>call_infos_high: RefCell&lt;FxHashMap&lt;Key&lt;<span class="lifetime">&#39;tcx</span>&gt;, <a href="encoder.rs.html#616">FunctionCallInfoHigh</a>&gt;&gt;,
+    </span>call_infos_high: RefCell&lt;FxHashMap&lt;Key&lt;<span class="lifetime">&#39;tcx</span>&gt;, <a href="encoder_poly.rs.html#619">FunctionCallInfoHigh</a>&gt;&gt;,
     <span class="doccomment">/// Pure functions whose encoding started (and potentially already
     /// finished). This is used to break recursion.
     </span>pure_functions_encoding_started: RefCell&lt;FxHashSet&lt;Key&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt;&gt;,
@@ -808,7 +808,7 @@
             .borrow()
             .contains_key(<span class="kw-2">&amp;</span>key)
         {
-            <span class="kw">let </span>body = <span class="kw">super</span>::new_encoder::encode_pure_expression(
+            <span class="kw">let </span>body = <span class="kw">super</span>::encoder_high::encode_pure_expression(
                 <span class="self">self</span>,
                 proc_def_id,
                 <span class="kw">if </span><span class="self">self</span>.is_encoding_trigger.get() {
@@ -845,7 +845,7 @@
             .borrow()
             .contains_key(<span class="kw-2">&amp;</span>key)
         {
-            <span class="kw">let </span>body = <span class="kw">super</span>::encoder::encode_body(
+            <span class="kw">let </span>body = <span class="kw">super</span>::encoder_poly::encode_body(
                 <span class="self">self</span>,
                 proc_def_id,
                 <span class="kw">if </span><span class="self">self</span>.is_encoding_trigger.get() {
@@ -924,7 +924,7 @@
                             <span class="kw">let </span>function = pure_function_encoder.encode_function()<span class="question-mark">?</span>;
                             <span class="kw">if </span>config::use_new_encoder() {
                                 <span class="comment">// Test the new encoding.
-                                </span><span class="kw">let _ </span>= <span class="kw">super</span>::new_encoder::encode_function_decl(
+                                </span><span class="kw">let _ </span>= <span class="kw">super</span>::encoder_high::encode_function_decl(
                                     <span class="self">self</span>,
                                     proc_def_id,
                                     proc_def_id,
@@ -1094,7 +1094,7 @@
         <span class="kw">if let </span>std::collections::hash_map::Entry::Vacant(e) = <a href="#497">call_infos</a>.entry(<a href="#495">key</a>) {
             <span class="comment">// Compute information necessary to encode the function call and
             // memoize it.
-            </span><span class="kw">let </span>function_call_info = <span class="kw">super</span>::new_encoder::encode_function_call_info(
+            </span><span class="kw">let </span>function_call_info = <span class="kw">super</span>::encoder_high::encode_function_call_info(
                 <span class="self">self</span>,
                 proc_def_id,
                 parent_def_id,
@@ -1113,7 +1113,7 @@
             <span class="self">self</span>.register_function_constructor_mir(
                 identifier,
                 Box::new(<span class="kw">move </span>|encoder| {
-                    <span class="kw">super</span>::new_encoder::encode_function_decl(
+                    <span class="kw">super</span>::encoder_high::encode_function_decl(
                         encoder,
                         proc_def_id,
                         proc_def_id,
