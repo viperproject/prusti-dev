@@ -1,8 +1,14 @@
 #[macro_export]
 macro_rules! vir_high_type {
-    (Int) => {$crate::vir::vir_high::Type::Int};
-    (Bool) => {$crate::vir::vir_high::Type::Bool};
-    ({$ty:expr}) => { $ty }
+    (Int) => {
+        $crate::vir::vir_high::Type::Int
+    };
+    (Bool) => {
+        $crate::vir::vir_high::Type::Bool
+    };
+    ({$ty:expr}) => {
+        $ty
+    };
 }
 
 #[macro_export]
@@ -10,9 +16,9 @@ macro_rules! vir_high_local {
     ($name:ident : $type:tt) => {
         $crate::vir::vir_high::VariableDecl {
             name: stringify!($name).to_string(),
-            ty: $crate::vir_type!($type)
+            ty: $crate::vir_type!($type),
         }
-    }
+    };
 }
 
 #[macro_export]

@@ -17,7 +17,7 @@ $ ./x.py setup
 
 The script will perform the following steps:
 
- 1. (Ubuntu only) Installs the [native dependencies](#native-dependencies).
+ 1. (Ubuntu only) Installs the [native dependencies](#native-dependencies) (except for java).
     - On other OS (including non-Ubuntu Linux distributions) this step has to be performed manually.
  2. Downloads and extracts the latest [Viper tools](#viper-tools).
  3. Sets up [the Rust toolchain](#rustup-setup).
@@ -34,14 +34,14 @@ On a Linux-based OS, the required libraries are:
 
  - `build-essential`
  - `pkg-config`
- - `wget`
+ - `curl`
  - `gcc`
  - `libssl-dev`
- - `openjdk-11-jdk`
+ - `openjdk-11-jdk` (or newer)
 
 ### macOS
 
-On macOS, [Java JDK 11](https://www.oracle.com/java/technologies/javase-downloads.html) is required.
+On macOS, [Java JDK 11](https://www.oracle.com/java/technologies/javase-downloads.html) or newer is required.
 
 ## Viper tools
 
