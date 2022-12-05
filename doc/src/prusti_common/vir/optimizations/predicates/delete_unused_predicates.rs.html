@@ -210,6 +210,8 @@
 <a href="#210" id="210">210</a>
 <a href="#211" id="211">211</a>
 <a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -221,13 +223,13 @@
     <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a>,
     utils::{<a href="../../../../../prusti_common/vir/polymorphic_vir/fn.walk_functions.html">walk_functions</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/fn.walk_methods.html">walk_methods</a>},
 };
+<span class="kw">use </span>fxhash::{<a href="../../../../../fxhash/type.FxHashMap.html">FxHashMap</a>, <a href="../../../../../fxhash/type.FxHashSet.html">FxHashSet</a>};
 <span class="kw">use </span><a href="../../../../../log/macro.debug.html">log::debug</a>;
-<span class="kw">use </span>std::collections::{<a href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">HashMap</a>, <a href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">HashSet</a>};
 
 <span class="kw">fn </span>collect_info_from_methods_and_functions(
     methods: <span class="kw-2">&amp;</span>[<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">CfgMethod</a>],
     functions: <span class="kw-2">&amp;</span>[<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">Function</a>],
-) -&gt; <a href="#151">UsedPredicateCollector</a> {
+) -&gt; <a href="#153">UsedPredicateCollector</a> {
     <span class="kw">let </span><span class="kw-2">mut </span>collector = UsedPredicateCollector::new();
     <a href="../../../../../prusti_common/vir/polymorphic_vir/fn.walk_methods.html">walk_methods</a>(<a href="#16">methods</a>, <span class="kw-2">&amp;mut </span><a href="#19">collector</a>);
     <a href="../../../../../prusti_common/vir/polymorphic_vir/fn.walk_functions.html">walk_functions</a>(<a href="#17">functions</a>, <span class="kw-2">&amp;mut </span><a href="#19">collector</a>);
@@ -241,9 +243,11 @@
 }
 
 <span class="doccomment">/// Computes a map of Predicate to the predicates used  in that predicate
-</span><span class="kw">fn </span>get_used_predicates_in_predicate_map(predicates: <span class="kw-2">&amp;</span>[<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Predicate.html">Predicate</a>]) -&gt; HashMap&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>, HashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt;&gt; {
+</span><span class="kw">fn </span>get_used_predicates_in_predicate_map(
+    predicates: <span class="kw-2">&amp;</span>[<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Predicate.html">Predicate</a>],
+) -&gt; FxHashMap&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>, FxHashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>collector = UsedPredicateCollector::new();
-    <span class="kw">let </span><span class="kw-2">mut </span>map = HashMap::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>map = FxHashMap::default();
 
     <span class="kw">for </span>pred <span class="kw">in </span>predicates {
         <span class="kw">match </span>pred {
@@ -251,7 +255,7 @@
                 typ, body: <span class="prelude-val">Some</span>(e), ..
             }) =&gt; {
                 ExprWalker::walk(<span class="kw-2">&amp;mut </span>collector, e);
-                <span class="kw">let </span><span class="kw-2">mut </span>res = HashSet::new();
+                <span class="kw">let </span><span class="kw-2">mut </span>res = FxHashSet::default();
                 std::mem::swap(<span class="kw-2">&amp;mut </span>res, <span class="kw-2">&amp;mut </span>collector.used_predicates);
                 map.insert(typ.clone(), res);
             }
@@ -270,43 +274,43 @@
                         .for_each(|e| ExprWalker::walk(<span class="kw-2">&amp;mut </span>collector, e))
                 }
 
-                <span class="kw">let </span><span class="kw-2">mut </span>res = HashSet::new();
+                <span class="kw">let </span><span class="kw-2">mut </span>res = FxHashSet::default();
                 std::mem::swap(<span class="kw-2">&amp;mut </span>res, <span class="kw-2">&amp;mut </span>collector.used_predicates);
                 map.insert(p.typ.clone(), res);
             }
             Predicate::Bodyless(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; { <span class="comment">/* ignore */ </span>}
         }
     }
-    <a href="#34">map</a>
+    <a href="#36">map</a>
 }
 
 <span class="doccomment">/// Return the set of the predicates in the predicate map that are actually
 /// reachable from the provided set of predicates
 </span><span class="kw">fn </span>compute_reachable_predicates(
-    predicates_in_predicates: <span class="kw-2">&amp;</span>HashMap&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>, HashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt;&gt;,
-    used_predicates: <span class="kw-2">&amp;</span>HashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt;,
-) -&gt; HashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>visited = HashSet::new();
+    predicates_in_predicates: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>, FxHashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt;&gt;,
+    used_predicates: <span class="kw-2">&amp;</span>FxHashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt;,
+) -&gt; FxHashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>visited = FxHashSet::default();
     <span class="kw">for </span>to_visit <span class="kw">in </span>used_predicates {
         visit_predicate(to_visit, predicates_in_predicates, <span class="kw-2">&amp;mut </span>visited);
     }
 
-    <a href="#77">visited</a>
+    <a href="#79">visited</a>
 }
 
 <span class="doccomment">/// Function used by compute_reachable_predicates to visit all the predicates
 </span><span class="kw">fn </span>visit_predicate(
     to_visit: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>,
-    predicates_in_predicates: <span class="kw-2">&amp;</span>HashMap&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>, HashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt;&gt;,
-    visited: <span class="kw-2">&amp;mut </span>HashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt;,
+    predicates_in_predicates: <span class="kw-2">&amp;</span>FxHashMap&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>, FxHashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt;&gt;,
+    visited: <span class="kw-2">&amp;mut </span>FxHashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt;,
 ) {
     <span class="kw">if </span>visited.contains(to_visit) {
         <span class="kw">return</span>;
     }
 
-    <a href="#89">visited</a>.insert(<a href="#87">to_visit</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+    <a href="#91">visited</a>.insert(<a href="#89">to_visit</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = <a href="#88">predicates_in_predicates</a>.get(<a href="#87">to_visit</a>) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = <a href="#90">predicates_in_predicates</a>.get(<a href="#89">to_visit</a>) {
         <span class="kw">for </span>p <span class="kw">in </span>v {
             visit_predicate(p, predicates_in_predicates, visited)
         }
@@ -319,10 +323,10 @@
     functions: <span class="kw-2">&amp;</span>[<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Function.html">Function</a>],
     <span class="kw-2">mut </span>predicates: Vec&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Predicate.html">Predicate</a>&gt;,
 ) -&gt; Vec&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Predicate.html">Predicate</a>&gt; {
-    <span class="kw">let </span>collector = <a href="#15-18">collect_info_from_methods_and_functions</a>(<a href="#106">methods</a>, <a href="#107">functions</a>);
-    <span class="kw">let </span>used_predicates_in_functions_and_methods = <a href="#110">collector</a>.used_predicates;
-    <span class="kw">let </span>folded_predicates = <a href="#110">collector</a>.folded_predicates;
-    <span class="kw">let </span><span class="kw-2">mut </span>predicates_in_predicates_map = <a href="#32">get_used_predicates_in_predicate_map</a>(<span class="kw-2">&amp;</span><a href="#108">predicates</a>);
+    <span class="kw">let </span>collector = <a href="#15-18">collect_info_from_methods_and_functions</a>(<a href="#108">methods</a>, <a href="#109">functions</a>);
+    <span class="kw">let </span>used_predicates_in_functions_and_methods = <a href="#112">collector</a>.used_predicates;
+    <span class="kw">let </span>folded_predicates = <a href="#112">collector</a>.folded_predicates;
+    <span class="kw">let </span><span class="kw-2">mut </span>predicates_in_predicates_map = <a href="#32-34">get_used_predicates_in_predicate_map</a>(<span class="kw-2">&amp;</span><a href="#110">predicates</a>);
 
     <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(
         <span class="string">&quot;The used predicates in functions and methods are {:?}&quot;</span>,
@@ -330,15 +334,15 @@
     );
 
     <span class="comment">// Remove the bodies of predicats that are never folded or unfolded
-    </span><a href="#108">predicates</a>.iter_mut().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|predicate| {
-        <span class="kw">let </span>predicate_type = <span class="kw-2">&amp;</span><a href="#121">predicate</a>.get_type().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+    </span><a href="#110">predicates</a>.iter_mut().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|predicate| {
+        <span class="kw">let </span>predicate_type = <span class="kw-2">&amp;</span><a href="#123">predicate</a>.get_type().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         <span class="kw">if </span>!folded_predicates.contains(predicate_type) {
-            <span class="kw">if let </span>Predicate::Struct(sp) = <a href="#121">predicate</a> {
+            <span class="kw">if let </span>Predicate::Struct(sp) = <a href="#123">predicate</a> {
                 <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Removed body of {}&quot;</span>, predicate_type);
-                <a href="#124">sp</a>.body = <span class="prelude-val">None</span>;
+                <a href="#126">sp</a>.body = <span class="prelude-val">None</span>;
 
                 <span class="comment">// since the predicate now has no body update the predicate map accordingly
-                </span><a href="#113">predicates_in_predicates_map</a>.remove(<a href="#122">predicate_type</a>);
+                </span><a href="#115">predicates_in_predicates_map</a>.remove(<a href="#124">predicate_type</a>);
             }
         }
     });
@@ -348,35 +352,35 @@
         <span class="kw-2">&amp;</span>predicates_in_predicates_map
     );
 
-    <span class="kw">let </span>reachable_predicates = <a href="#73-76">compute_reachable_predicates</a>(
-        <span class="kw-2">&amp;</span><a href="#113">predicates_in_predicates_map</a>,
-        <span class="kw-2">&amp;</span><a href="#111">used_predicates_in_functions_and_methods</a>,
+    <span class="kw">let </span>reachable_predicates = <a href="#75-78">compute_reachable_predicates</a>(
+        <span class="kw-2">&amp;</span><a href="#115">predicates_in_predicates_map</a>,
+        <span class="kw-2">&amp;</span><a href="#113">used_predicates_in_functions_and_methods</a>,
     );
 
     <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;All the used predicates are {:?}&quot;</span>, <span class="kw-2">&amp;</span>reachable_predicates);
 
-    <a href="#108">predicates</a>.retain(|p| <a href="#139">reachable_predicates</a>.contains(<a href="#146">p</a>.get_type()));
+    <a href="#110">predicates</a>.retain(|p| <a href="#141">reachable_predicates</a>.contains(<a href="#148">p</a>.get_type()));
 
-    <a href="#108">predicates</a>
+    <a href="#110">predicates</a>
 }
 
 <span class="kw">struct </span>UsedPredicateCollector {
     <span class="doccomment">/// set of all predicates that are used
-    </span>used_predicates: HashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt;,
+    </span>used_predicates: FxHashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt;,
     <span class="doccomment">/// set of all predicates that are folded or unfolded
-    </span>folded_predicates: HashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt;,
+    </span>folded_predicates: FxHashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Type.html">Type</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="#151">UsedPredicateCollector</a> {
+<span class="kw">impl </span><a href="#153">UsedPredicateCollector</a> {
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <a href="#151">UsedPredicateCollector</a> {
-            used_predicates: HashSet::new(),
-            folded_predicates: HashSet::new(),
+        <a href="#153">UsedPredicateCollector</a> {
+            used_predicates: FxHashSet::default(),
+            folded_predicates: FxHashSet::default(),
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for </span><a href="#151">UsedPredicateCollector</a> {
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for </span><a href="#153">UsedPredicateCollector</a> {
     <span class="kw">fn </span>walk_predicate_access_predicate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.PredicateAccessPredicate.html">PredicateAccessPredicate</a> {
@@ -385,8 +389,8 @@
             ..
         }: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.PredicateAccessPredicate.html">PredicateAccessPredicate</a>,
     ) {
-        <a class="self" href="#169">self</a>.used_predicates.insert(<a href="#171">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="#169">self</a>, <a href="#172">argument</a>);
+        <a class="self" href="#171">self</a>.used_predicates.insert(<a href="#173">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="#171">self</a>, <a href="#174">argument</a>);
     }
 
     <span class="kw">fn </span>walk_unfolding(
@@ -398,28 +402,28 @@
             ..
         }: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfolding.html">Unfolding</a>,
     ) {
-        <a class="self" href="#181">self</a>.used_predicates.insert(<a href="#183">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a class="self" href="#181">self</a>.folded_predicates.insert(<a href="#183">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="#183">self</a>.used_predicates.insert(<a href="#185">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="#183">self</a>.folded_predicates.insert(<a href="#185">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
         <span class="kw">for </span>arg <span class="kw">in </span>arguments {
             ExprWalker::walk(<span class="self">self</span>, arg);
         }
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="#181">self</a>, <a href="#185">base</a>);
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="#183">self</a>, <a href="#187">base</a>);
     }
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtWalker.html">StmtWalker</a> <span class="kw">for </span><a href="#151">UsedPredicateCollector</a> {
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtWalker.html">StmtWalker</a> <span class="kw">for </span><a href="#153">UsedPredicateCollector</a> {
     <span class="kw">fn </span>walk_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">Expr</a>) {
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="#200">self</a>, <a href="#200">expr</a>);
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="#202">self</a>, <a href="#202">expr</a>);
     }
     <span class="kw">fn </span>walk_fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Fold.html">Fold</a> { predicate, .. }: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Fold.html">Fold</a>) {
-        <a class="self" href="#203">self</a>.folded_predicates.insert(<a href="#203">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a class="self" href="#203">self</a>.used_predicates.insert(<a href="#203">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="#205">self</a>.folded_predicates.insert(<a href="#205">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="#205">self</a>.used_predicates.insert(<a href="#205">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
     }
 
     <span class="kw">fn </span>walk_unfold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfold.html">Unfold</a> { predicate, .. }: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Unfold.html">Unfold</a>) {
-        <a class="self" href="#208">self</a>.folded_predicates.insert(<a href="#208">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a class="self" href="#208">self</a>.used_predicates.insert(<a href="#208">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="#210">self</a>.folded_predicates.insert(<a href="#210">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="#210">self</a>.used_predicates.insert(<a href="#210">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
     }
 }
 </code></pre></div>

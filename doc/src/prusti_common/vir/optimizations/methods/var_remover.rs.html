@@ -146,6 +146,7 @@
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -155,17 +156,18 @@
 </span><span class="doccomment">//! Optimization that removes unused temporary variables.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::vir::polymorphic_vir::{<a href="../../../../../prusti_common/vir/polymorphic_vir/ast/index.html">ast</a>, <a href="../../../../../prusti_common/vir/polymorphic_vir/cfg/index.html">cfg</a>};
-<span class="kw">use </span>std::{<a href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">collections::HashSet</a>, <a href="https://doc.rust-lang.org/nightly/core/mem/index.html">mem</a>};
+<span class="kw">use </span><a href="../../../../../fxhash/type.FxHashSet.html">fxhash::FxHashSet</a>;
+<span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 
 <span class="doccomment">/// Remove unused temporary variables and related inhale statements.
 </span><span class="kw">pub fn </span>remove_unused_vars(<span class="kw-2">mut </span>method: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.CfgMethod.html">cfg::CfgMethod</a> {
-    <span class="kw">let </span><span class="kw-2">mut </span>collector = <a href="#52">UsedVarCollector</a> {
-        used_vars: HashSet::new(),
+    <span class="kw">let </span><span class="kw-2">mut </span>collector = <a href="#53">UsedVarCollector</a> {
+        used_vars: FxHashSet::default(),
     };
-    <a href="#13">method</a>.walk_statements(|stmt| {
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtWalker.html">ast::StmtWalker::walk</a>(<span class="kw-2">&amp;mut </span><a href="#14">collector</a>, <a href="#17">stmt</a>);
+    <a href="#14">method</a>.walk_statements(|stmt| {
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtWalker.html">ast::StmtWalker::walk</a>(<span class="kw-2">&amp;mut </span><a href="#15">collector</a>, <a href="#18">stmt</a>);
     });
-    <a href="#13">method</a>.walk_successors(|successor| <span class="kw">match </span><a href="#20">successor</a> {
+    <a href="#14">method</a>.walk_successors(|successor| <span class="kw">match </span><a href="#21">successor</a> {
         cfg::Successor::Undefined | cfg::Successor::Return | cfg::Successor::Goto(<span class="kw">_</span>) =&gt; {}
         cfg::Successor::GotoSwitch(conditional_targets, <span class="kw">_</span>) =&gt; {
             <span class="kw">for </span>(expr, <span class="kw">_</span>) <span class="kw">in </span>conditional_targets {
@@ -173,7 +175,7 @@
             }
         }
     });
-    <span class="kw">let </span><span class="kw-2">mut </span>unused_vars = HashSet::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>unused_vars = FxHashSet::default();
     <span class="kw">let </span><span class="kw-2">mut </span>used_vars = Vec::new();
     <span class="kw">for </span>local_var <span class="kw">in </span>method.local_vars {
         <span class="kw">if </span>collector.used_vars.contains(<span class="kw-2">&amp;</span>local_var.name) {
@@ -182,8 +184,8 @@
             unused_vars.insert(local_var);
         }
     }
-    <a href="#13">method</a>.local_vars = <a href="#29">used_vars</a>;
-    <span class="kw">let </span><span class="kw-2">mut </span>remover = <a href="#95">UnusedVarRemover</a> { <a href="#28">unused_vars</a> };
+    <a href="#14">method</a>.local_vars = <a href="#30">used_vars</a>;
+    <span class="kw">let </span><span class="kw-2">mut </span>remover = <a href="#96">UnusedVarRemover</a> { <a href="#29">unused_vars</a> };
     <span class="kw">let </span><span class="kw-2">mut </span>sentinel_stmt = ast::Stmt::comment(<span class="string">&quot;moved out stmt&quot;</span>);
     <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;mut </span>method.basic_blocks {
         <span class="kw">for </span>stmt <span class="kw">in </span><span class="kw-2">&amp;mut </span>block.stmts {
@@ -192,18 +194,18 @@
             mem::swap(<span class="kw-2">&amp;mut </span>sentinel_stmt, stmt);
         }
     }
-    <a href="#13">method</a>
+    <a href="#14">method</a>
 }
 
 <span class="doccomment">/// Collects all used variables. A variable is used if it is mentioned
 /// somewhere not inside an access predicate.
 </span><span class="kw">struct </span>UsedVarCollector {
-    used_vars: HashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    used_vars: FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ast::ExprWalker</a> <span class="kw">for </span><a href="#52">UsedVarCollector</a> {
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ast::ExprWalker</a> <span class="kw">for </span><a href="#53">UsedVarCollector</a> {
     <span class="kw">fn </span>walk_local_var(<span class="kw-2">&amp;mut </span><span class="self">self</span>, local_var: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">ast::LocalVar</a>) {
-        <a class="self" href="#57">self</a>.used_vars.insert(<a href="#57">local_var</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="#58">self</a>.used_vars.insert(<a href="#58">local_var</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
     }
     <span class="kw">fn </span>walk_predicate_access_predicate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -214,12 +216,12 @@
     }
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtWalker.html">ast::StmtWalker</a> <span class="kw">for </span><a href="#52">UsedVarCollector</a> {
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtWalker.html">ast::StmtWalker</a> <span class="kw">for </span><a href="#53">UsedVarCollector</a> {
     <span class="kw">fn </span>walk_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>) {
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ast::ExprWalker::walk</a>(<a class="self" href="#70">self</a>, <a href="#70">expr</a>);
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprWalker.html">ast::ExprWalker::walk</a>(<a class="self" href="#71">self</a>, <a href="#71">expr</a>);
     }
     <span class="kw">fn </span>walk_local_var(<span class="kw-2">&amp;mut </span><span class="self">self</span>, local_var: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">ast::LocalVar</a>) {
-        <a class="self" href="#73">self</a>.used_vars.insert(<a href="#73">local_var</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="#74">self</a>.used_vars.insert(<a href="#74">local_var</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
     }
     <span class="kw">fn </span>walk_package_magic_wand(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -230,7 +232,7 @@
             ..
         }: <span class="kw-2">&amp;</span><a href="../../../../../prusti_common/vir/polymorphic_vir/struct.PackageMagicWand.html">ast::PackageMagicWand</a>,
     ) {
-        <a class="self" href="#77">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtWalker.html">walk_expr</a>(<a href="#79">magic_wand</a>);
+        <a class="self" href="#78">self</a>.<a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtWalker.html">walk_expr</a>(<a href="#80">magic_wand</a>);
         <span class="kw">for </span>statement <span class="kw">in </span>package_stmts {
             <span class="self">self</span>.walk(statement);
         }
@@ -241,10 +243,10 @@
 }
 
 <span class="kw">struct </span>UnusedVarRemover {
-    unused_vars: HashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">ast::LocalVar</a>&gt;,
+    unused_vars: FxHashSet&lt;<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.LocalVar.html">ast::LocalVar</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder</a> <span class="kw">for </span><a href="#95">UnusedVarRemover</a> {
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder</a> <span class="kw">for </span><a href="#96">UnusedVarRemover</a> {
     <span class="kw">fn </span>fold_predicate_access_predicate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.PredicateAccessPredicate.html">ast::PredicateAccessPredicate</a> {
@@ -256,17 +258,17 @@
     ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
         <span class="kw">if let box </span>ast::Expr::Local(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.Local.html">ast::Local</a> {
             variable: <span class="kw-2">ref </span>var, ..
-        }) = <a href="#104">argument</a>
+        }) = <a href="#105">argument</a>
         {
             <span class="kw">if </span><span class="self">self</span>.unused_vars.contains(var) {
                 <span class="kw">return </span><span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
             }
         }
         ast::Expr::PredicateAccessPredicate(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.PredicateAccessPredicate.html">ast::PredicateAccessPredicate</a> {
-            <a href="#103">predicate_type</a>,
-            <a href="#104">argument</a>,
-            <a href="#105">permission</a>,
-            <a href="#106">position</a>,
+            <a href="#104">predicate_type</a>,
+            <a href="#105">argument</a>,
+            <a href="#106">permission</a>,
+            <a href="#107">position</a>,
         })
     }
     <span class="kw">fn </span>fold_field_access_predicate(
@@ -277,21 +279,21 @@
             position,
         }: <a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldAccessPredicate.html">ast::FieldAccessPredicate</a>,
     ) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
-        <span class="kw">let </span>var = <a href="#127">base</a>.get_base();
+        <span class="kw">let </span>var = <a href="#128">base</a>.get_base();
         <span class="kw">if </span><span class="self">self</span>.unused_vars.contains(<span class="kw-2">&amp;</span>var) {
             <span class="kw">return </span><span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         }
         ast::Expr::FieldAccessPredicate(<a href="../../../../../prusti_common/vir/polymorphic_vir/struct.FieldAccessPredicate.html">ast::FieldAccessPredicate</a> {
-            <a href="#127">base</a>,
-            <a href="#128">permission</a>,
-            <a href="#129">position</a>,
+            <a href="#128">base</a>,
+            <a href="#129">permission</a>,
+            <a href="#130">position</a>,
         })
     }
 }
 
-<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">ast::StmtFolder</a> <span class="kw">for </span><a href="#95">UnusedVarRemover</a> {
+<span class="kw">impl </span><a href="../../../../../prusti_common/vir/polymorphic_vir/trait.StmtFolder.html">ast::StmtFolder</a> <span class="kw">for </span><a href="#96">UnusedVarRemover</a> {
     <span class="kw">fn </span>fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a>) -&gt; <a href="../../../../../prusti_common/vir/polymorphic_vir/enum.Expr.html">ast::Expr</a> {
-        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder::fold</a>(<a class="self" href="#145">self</a>, <a href="#145">e</a>)
+        <a href="../../../../../prusti_common/vir/polymorphic_vir/trait.ExprFolder.html">ast::ExprFolder::fold</a>(<a class="self" href="#146">self</a>, <a href="#146">e</a>)
     }
 }
 </code></pre></div>
