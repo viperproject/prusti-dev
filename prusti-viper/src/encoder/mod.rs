@@ -15,7 +15,6 @@ mod initialisation;
 mod loop_encoder;
 mod mir_encoder;
 mod mir_successor;
-mod mir_interpreter;
 mod name_interner;
 mod places;
 mod procedure_encoder;
