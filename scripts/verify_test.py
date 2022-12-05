@@ -48,6 +48,7 @@ def generate_launch_json(args_file, env_file):
                 "--bin=prusti-driver",
                 "--package=prusti"
             ],
+            "env": get_env(),
             "filter": {
                 "name": "prusti-driver",
                 "kind": "bin"
