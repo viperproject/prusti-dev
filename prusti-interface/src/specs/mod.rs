@@ -166,8 +166,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 spec.set_kind(kind);
             }
 
-            if !spec.specs_with_constraints.is_empty()
-                && !*spec.base_spec.trusted.expect_inherent()
+            if !spec.specs_with_constraints.is_empty() && !*spec.base_spec.trusted.expect_inherent()
             {
                 let span = self.env.query.get_def_span(*local_id);
                 PrustiError::unsupported(

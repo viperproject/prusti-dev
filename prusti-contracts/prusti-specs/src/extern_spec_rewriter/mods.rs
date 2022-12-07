@@ -5,7 +5,7 @@
 //! Modules are rewritten so that their name does not clash with the module
 //! they are specifying.
 
-use super::common::{generate_extern_spec_function_stub, check_is_stub};
+use super::common::{check_is_stub, generate_extern_spec_function_stub};
 use crate::{specifications::common::generate_mod_name, ExternSpecKind};
 use proc_macro2::{Group, TokenStream, TokenTree};
 use quote::{quote, ToTokens};

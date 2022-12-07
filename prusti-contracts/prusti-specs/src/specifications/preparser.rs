@@ -549,9 +549,7 @@ fn validate_predicate(predicate: syn::WherePredicate) -> syn::Result<syn::Predic
             validate_trait_bounds(&type_bound)?;
             Ok(type_bound)
         }
-        Lifetime(lifetime_bound) => {
-            disallowed_lifetime_error(lifetime_bound.span())
-        }
+        Lifetime(lifetime_bound) => disallowed_lifetime_error(lifetime_bound.span()),
         Eq(eq_bound) => err(
             eq_bound.span(),
             "equality constraints are not allowed in conditional spec refinements",

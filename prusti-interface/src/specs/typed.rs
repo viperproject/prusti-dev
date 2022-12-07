@@ -440,7 +440,9 @@ impl SpecGraph<ProcedureSpecification> {
 
     pub fn add_purity<'tcx>(&mut self, purity: LocalDefId, env: &Environment<'tcx>) {
         match self.get_constraint(purity, env) {
-            None => unreachable!("separate purity defs are only used for conditional spec refinements"),
+            None => {
+                unreachable!("separate purity defs are only used for conditional spec refinements")
+            }
             Some(constraint) => {
                 let constrained_spec = self.get_constrained_spec_mut(constraint);
                 constrained_spec.kind =
@@ -767,7 +769,7 @@ impl Refinable for ProcedureSpecification {
             kind: self.kind.refine(&other.kind),
             trusted: self.trusted.refine(&other.trusted),
             terminates: self.terminates.refine(&other.terminates),
-            purity: self.purity.refine(&other.purity)
+            purity: self.purity.refine(&other.purity),
         }
     }
 }

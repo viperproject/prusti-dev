@@ -153,7 +153,7 @@ fn rewrite_trait_impl(
             }
             syn::ImplItem::Method(method) => {
                 check_is_stub(&method.block)?;
-                
+
                 let (rewritten_method, spec_items) = generate_extern_spec_method_stub(
                     &method,
                     &item_ty,
