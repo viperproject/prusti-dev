@@ -1,4 +1,3 @@
-// compile-flags: -Penable_ghost_constraints=true
 use prusti_contracts::*;
 
 trait A<T> {

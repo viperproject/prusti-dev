@@ -1,4 +1,3 @@
-// compile-flags: -Penable_ghost_constraints=true
 // This test demonstrates that ghost constraints inherit the specs from the function.
 
 use prusti_contracts::*;

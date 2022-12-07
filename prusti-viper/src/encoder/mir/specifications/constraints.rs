@@ -47,11 +47,6 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
     ) -> Result<&'spec ProcedureSpecification, PrustiError> {
         debug!("Resolving spec constraints for {query:?}");
 
-        if !prusti_common::config::enable_ghost_constraints() {
-            trace!("Ghost constraints are disabled, using base spec");
-            return Ok(&self.base_spec);
-        }
-
         if self.specs_with_constraints.is_empty() {
             trace!("Spec has no constraints, using base spec");
             return Ok(&self.base_spec);

@@ -1,5 +1,3 @@
-// compile-flags: -Penable_ghost_constraints=true
-
 use prusti_contracts::*;
 
 #[refine_spec(where T: Copy [pure])]

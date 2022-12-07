@@ -167,15 +167,6 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             }
 
             if !spec.specs_with_constraints.is_empty()
-                && !prusti_common::config::enable_ghost_constraints()
-            {
-                let span = self.env.query.get_def_span(*local_id);
-                PrustiError::unsupported(
-                    "Ghost constraints need to be enabled with the feature flag `enable_ghost_constraints`",
-                    MultiSpan::from(span),
-                )
-                .emit(&self.env.diagnostic);
-            } else if !spec.specs_with_constraints.is_empty()
                 && !*spec.base_spec.trusted.expect_inherent()
             {
                 let span = self.env.query.get_def_span(*local_id);
