@@ -47,7 +47,7 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
 }
 
 fn generate_where_clause_for_spec(
-    trait_bounds: &Vec<syn::PredicateType>,
+    trait_bounds: &[syn::PredicateType],
     existing_where_clause: Option<&syn::WhereClause>,
 ) -> syn::WhereClause {
     let mut where_clause = existing_where_clause

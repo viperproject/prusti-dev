@@ -5,6 +5,7 @@ use crate::{
     untyped::AnyFnItem,
     ExternSpecKind, RewritableReceiver, SelfTypeRewriter,
 };
+use itertools::Itertools;
 use quote::{quote, ToTokens};
 use syn::{
     parse_quote_spanned, punctuated::Punctuated, spanned::Spanned, visit::Visit,
@@ -343,12 +344,10 @@ pub(super) fn check_is_stub(block: &syn::Block) -> Result<(), syn::Error> {
 /// The absence of a body is represented in a roundabout way:
 /// They have a body comprising a single verbatim item containing a single semicolon token.
 fn is_stub(block: &syn::Block) -> bool {
-    if block.stmts.len() != 1 {
-        return false;
-    }
-    if let syn::Stmt::Item(syn::Item::Verbatim(tokens)) = &block.stmts[0] {
-        return tokens.to_string() == ";";
+    if let Ok(Some(syn::Stmt::Item(syn::Item::Verbatim(tokens)))) = block.stmts.iter().at_most_one()
+    {
+        tokens.to_string() == ";"
     } else {
-        return false;
+        false
     }
 }

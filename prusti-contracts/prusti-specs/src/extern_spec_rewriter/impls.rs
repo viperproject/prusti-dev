@@ -32,14 +32,7 @@ fn rewrite_extern_spec_internal(item_impl: &syn::ItemImpl) -> syn::Result<Rewrit
         #struct_ident #generic_args
     };
 
-    if let Some((_, trait_path, _)) = &item_impl.trait_ {
-        if false && has_generic_arguments(trait_path) {
-            return Err(syn::Error::new(
-                item_impl.generics.params.span(),
-                "Generics for extern trait impls are not supported",
-            ));
-        }
-
+    if item_impl.trait_.is_some() {
         let rewritten_impl = rewrite_trait_impl(item_impl.clone(), Box::from(struct_ty))?;
 
         Ok(RewrittenExternalSpecs {
@@ -178,17 +171,6 @@ fn rewrite_trait_impl(
     }
 
     Ok(new_impl)
-}
-
-fn has_generic_arguments(path: &syn::Path) -> bool {
-    for seg in path.segments.iter() {
-        if let syn::PathArguments::AngleBracketed(args) = &seg.arguments {
-            if !args.args.is_empty() {
-                return true;
-            }
-        }
-    }
-    false
 }
 
 #[cfg(test)]
