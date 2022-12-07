@@ -3,7 +3,7 @@ use prusti_contracts::*;
 #[refine_spec([ //~ ERROR: expected `where`
     ensures(result > 0)
 ])]
-//~| ERROR: expected a trait bound and specifications in brackets, e.g.: `ghost_constraint(T: A + B + ..., [requires(...), ...])`
+//~| ERROR: expected where constraint and specifications in brackets, e.g.: `refine_spec(where T: A + B, U: C [requires(...), ...])`
 fn foo<T>(_x: T) -> i32 {
     42
 }

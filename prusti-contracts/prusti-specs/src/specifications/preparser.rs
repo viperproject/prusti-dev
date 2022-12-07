@@ -587,7 +587,7 @@ fn validate_trait_bounds(trait_bounds: &syn::PredicateType) -> syn::Result<()> {
 }
 
 fn with_ghost_constraint_example(mut err: syn::Error) -> syn::Error {
-    err.combine(error(err.span(), "expected a trait bound and specifications in brackets, e.g.: `ghost_constraint(T: A + B + ..., [requires(...), ...])`"));
+    err.combine(error(err.span(), "expected where constraint and specifications in brackets, e.g.: `refine_spec(where T: A + B, U: C [requires(...), ...])`"));
     err
 }
 
