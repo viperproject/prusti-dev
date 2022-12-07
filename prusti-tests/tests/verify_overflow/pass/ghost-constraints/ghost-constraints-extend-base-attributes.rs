@@ -8,7 +8,7 @@ impl A for i32 {}
 
 #[pure]
 #[trusted]
-#[ghost_constraint(T: A, [
+#[refine_spec(where T: A [
     ensures(result == 42)
 ])]
 fn constrained_contract_stays_pure<T>(_x: &T) -> i32 {
@@ -20,7 +20,7 @@ fn verify_constrained_contract_stays_pure(a: i32) {}
 
 #[trusted]
 #[ensures(result % 2 == 0)]
-#[ghost_constraint(T: A, [
+#[refine_spec(where T: A [
     ensures(result == 42)
 ])]
 fn constrained_contract_inherits_posts<T>(_x: T) -> i32 {

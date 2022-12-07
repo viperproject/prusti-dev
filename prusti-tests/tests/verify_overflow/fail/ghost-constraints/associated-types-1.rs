@@ -11,8 +11,8 @@ impl A for Foo {
 }
 
 #[trusted]
-#[ghost_constraint(T: A<AssocType = u32> , [
-ensures(result > 0)
+#[refine_spec(where T: A<AssocType = u32> [
+    ensures(result > 0)
 ])]
 fn foo<T>(x: T) -> i32 {
     42

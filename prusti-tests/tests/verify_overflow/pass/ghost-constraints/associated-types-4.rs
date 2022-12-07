@@ -24,8 +24,8 @@ impl<T> SomeTrait<T> for Foo {
 
 #[extern_spec]
 trait SomeTrait<#[generic] T> {
-    #[ghost_constraint(Self: A<AssocType = <Self as SomeTrait<T>>::AssocType> , [
-    ensures(result > 0)
+    #[refine_spec(where Self: A<AssocType = <Self as SomeTrait<T>>::AssocType> [
+        ensures(result > 0)
     ])]
     fn foo(&self, x: T) -> i32;
 }

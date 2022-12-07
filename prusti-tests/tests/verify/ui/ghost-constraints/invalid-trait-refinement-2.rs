@@ -15,8 +15,8 @@ trait MyTrait {
 
 #[extern_spec]
 trait MyTrait {
-    #[ghost_constraint(Self: HasContract, [
-    requires(self.pre()), ensures(self.post())
+    #[refine_spec(where Self: HasContract [
+        requires(self.pre()), ensures(self.post())
     ])]
     fn foo(&mut self);
 }

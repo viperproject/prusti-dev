@@ -24,8 +24,8 @@ impl SomeTrait for Foo {
 
 #[extern_spec]
 trait SomeTrait {
-    #[ghost_constraint(Self: A<AssocType = <Self as SomeTrait>::AssocType> , [
-    ensures(result > 0)
+    #[refine_spec(where Self: A<AssocType = <Self as SomeTrait>::AssocType> [
+        ensures(result > 0)
     ])]
     fn foo(&self) -> i32;
 }

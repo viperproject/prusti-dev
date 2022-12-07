@@ -39,8 +39,8 @@ impl SomeTrait<i8, i16> for FooNoMatch2 {
 
 #[extern_spec]
 trait SomeTrait<#[generic] X, #[generic] Y> {
-    #[ghost_constraint(Self: A<X, Y, AssocType = <Self as SomeTrait<X, Y>>::AssocType> , [
-    ensures(result > 0)
+    #[refine_spec(where Self: A<X, Y, AssocType = <Self as SomeTrait<X, Y>>::AssocType> [
+        ensures(result > 0)
     ])]
     fn foo(&self) -> i32;
 }

@@ -9,11 +9,11 @@ trait A {}
 trait B {}
 
 #[trusted]
-#[ghost_constraint(T: A, [ //~ ERROR: [Prusti: unsupported feature] Multiple ghost constraints with different bounds defined
+#[refine_spec(where T: A [ //~ ERROR: [Prusti: unsupported feature] Multiple ghost constraints with different bounds defined
     requires(true),
     ensures(true),
 ])]
-#[ghost_constraint(T: B, [
+#[refine_spec(where T: B [
     requires(true),
     ensures(true),
 ])]

@@ -7,10 +7,10 @@ trait A {}
 impl A for i32 {}
 
 #[trusted]
-#[ghost_constraint(T: A, [
+#[refine_spec(where T: A [
     ensures(result % 2 == 0)
 ])]
-#[ghost_constraint(T: A, [
+#[refine_spec(where T: A [
     ensures(result > 0)
 ])]
 fn foo<T>(_x: T) -> i32 {

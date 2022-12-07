@@ -2,7 +2,7 @@
 
 use prusti_contracts::*;
 
-#[ghost_constraint(T: Copy, [pure])]
+#[refine_spec(where T: Copy [pure])]
 #[trusted]
 fn test<T>(_t: T) -> bool { true }
 

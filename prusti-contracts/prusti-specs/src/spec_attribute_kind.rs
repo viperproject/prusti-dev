@@ -32,7 +32,7 @@ impl TryFrom<String> for SpecAttributeKind {
             "trusted" => Ok(SpecAttributeKind::Trusted),
             "predicate" => Ok(SpecAttributeKind::Predicate),
             "invariant" => Ok(SpecAttributeKind::Invariant),
-            "ghost_constraint" => Ok(SpecAttributeKind::GhostConstraint),
+            "refine_spec" => Ok(SpecAttributeKind::GhostConstraint),
             "model" => Ok(SpecAttributeKind::Model),
             "print_counterexample" => Ok(SpecAttributeKind::PrintCounterexample),
             _ => Err(name),

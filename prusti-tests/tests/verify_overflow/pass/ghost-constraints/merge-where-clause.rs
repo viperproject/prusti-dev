@@ -22,7 +22,7 @@ impl B for i32 {
 
 // The specs under the constraint `T: B` are also aware of the fact that `T: A` (defined on the function)
 #[trusted]
-#[ghost_constraint(T: B, [
+#[refine_spec(where T: B [
     requires(x.a() == 42),
     ensures(result == x.b())
 ])]

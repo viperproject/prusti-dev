@@ -6,8 +6,8 @@ trait A {}
 
 trait MyTrait {
     #[ensures(result > 0)]
-    #[ghost_constraint(Self: A, [
-    ensures(result % 2 == 0)
+    #[refine_spec(where Self: A [
+        ensures(result % 2 == 0)
     ])]
     fn foo(&self) -> i32;
 }
@@ -17,8 +17,8 @@ struct MyStruct;
 impl MyTrait for MyStruct {
 
     #[ensures(result > 10)]
-    #[ghost_constraint(Self: A, [ //~ ERROR: Ghost constraints in trait spec refinements not supported
-    ensures(result % 6 == 0)
+    #[refine_spec(where Self: A [ //~ ERROR: Ghost constraints in trait spec refinements not supported
+        ensures(result % 6 == 0)
     ])]
     fn foo(&self) -> i32 {
         42

@@ -526,41 +526,37 @@ pub struct GhostConstraint {
 
 impl Parse for GhostConstraint {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        let where_clause = input
+            .parse::<syn::WhereClause>()
+            .map_err(with_ghost_constraint_example)?;
         Ok(GhostConstraint {
-            trait_bounds: parse_trait_bounds(input)?,
+            trait_bounds: where_clause
+                .predicates
+                .into_iter()
+                .map(validate_predicate)
+                .collect::<syn::Result<Vec<_>>>()?,
             specs: PrustiTokenStream::new(input.parse().unwrap())
                 .parse_rest(|pts| pts.pop_group_of_nested_specs(input.span()))?,
         })
     }
 }
 
-fn parse_trait_bounds(input: ParseStream) -> syn::Result<Vec<syn::PredicateType>> {
+fn validate_predicate(predicate: syn::WherePredicate) -> syn::Result<syn::PredicateType> {
     use syn::WherePredicate::*;
 
-    let mut bounds: Vec<syn::PredicateType> = Vec::new();
-    loop {
-        let predicate = input
-            .parse::<syn::WherePredicate>()
-            .map_err(with_ghost_constraint_example)?;
-        match predicate {
-            Type(type_bound) => {
-                validate_trait_bounds(&type_bound)?;
-                bounds.push(type_bound);
-            }
-            Lifetime(lifetime_bound) => disallowed_lifetime_error(lifetime_bound.span())?,
-            Eq(eq_bound) => err(
-                eq_bound.span(),
-                "equality predicates are not supported in trait bounds",
-            )?,
+    match predicate {
+        Type(type_bound) => {
+            validate_trait_bounds(&type_bound)?;
+            Ok(type_bound)
         }
-        input
-            .parse::<syn::token::Comma>()
-            .map_err(with_ghost_constraint_example)?;
-        if input.peek(syn::token::Bracket) || input.is_empty() {
-            break;
+        Lifetime(lifetime_bound) => {
+            disallowed_lifetime_error(lifetime_bound.span())
         }
+        Eq(eq_bound) => err(
+            eq_bound.span(),
+            "equality constraints are not allowed in ghost constraints",
+        ),
     }
-    Ok(bounds)
 }
 
 fn disallowed_lifetime_error<T>(span: Span) -> syn::Result<T> {
@@ -1046,7 +1042,10 @@ mod tests {
             )
             .unwrap();
 
-            assert_bounds_eq(&constraint.trait_bounds, &[quote! { T : A + B + Foo < i32 > }, quote! { U : C }]);
+            assert_bounds_eq(
+                &constraint.trait_bounds,
+                &[quote! { T : A + B + Foo < i32 > }, quote! { U : C }],
+            );
             match &constraint.specs[0] {
                 NestedSpec::Requires(ts) => assert_eq!(ts.to_string(), "true"),
                 _ => panic!(),

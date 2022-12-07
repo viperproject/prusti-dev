@@ -22,7 +22,7 @@ impl A<i8, i16> for FooNoMatch2 {
 
 
 #[trusted]
-#[ghost_constraint(T: A<i8, i16, AssocType = i32> , [
+#[refine_spec(where T: A<i8, i16, AssocType = i32> [
     ensures(result > 0)
 ])]
 fn foo<T>(x: T) -> i32 {
