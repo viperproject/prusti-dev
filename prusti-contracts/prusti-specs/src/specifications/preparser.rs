@@ -554,7 +554,7 @@ fn validate_predicate(predicate: syn::WherePredicate) -> syn::Result<syn::Predic
         }
         Eq(eq_bound) => err(
             eq_bound.span(),
-            "equality constraints are not allowed in ghost constraints",
+            "equality constraints are not allowed in conditional spec refinements",
         ),
     }
 }
@@ -562,7 +562,7 @@ fn validate_predicate(predicate: syn::WherePredicate) -> syn::Result<syn::Predic
 fn disallowed_lifetime_error<T>(span: Span) -> syn::Result<T> {
     err(
         span,
-        "lifetimes are not allowed in ghost constraint trait bounds",
+        "lifetimes are not allowed in conditional spec refinement trait bounds",
     )
 }
 
@@ -591,7 +591,7 @@ fn with_ghost_constraint_example(mut err: syn::Error) -> syn::Error {
     err
 }
 
-/// A specification enclosed in another specification (e.g. in spec entailments or ghost constraints)
+/// A specification enclosed in another specification (e.g. in spec entailments or conditional spec refinements)
 #[derive(Debug)]
 pub enum NestedSpec<T> {
     Requires(T),

@@ -203,7 +203,7 @@ pub struct ProcedureSpecification {
     pub pledges: SpecificationItem<Vec<Pledge>>,
     pub trusted: SpecificationItem<bool>,
     pub terminates: SpecificationItem<Option<LocalDefId>>,
-    pub purity: SpecificationItem<Option<DefId>>, // for ghost constraints
+    pub purity: SpecificationItem<Option<DefId>>, // for conditional spec refinements
 }
 
 impl ProcedureSpecification {
@@ -440,7 +440,7 @@ impl SpecGraph<ProcedureSpecification> {
 
     pub fn add_purity<'tcx>(&mut self, purity: LocalDefId, env: &Environment<'tcx>) {
         match self.get_constraint(purity, env) {
-            None => unreachable!("separate purity defs are only used for ghost constraints"),
+            None => unreachable!("separate purity defs are only used for conditional spec refinements"),
             Some(constraint) => {
                 let constrained_spec = self.get_constrained_spec_mut(constraint);
                 constrained_spec.kind =
@@ -767,7 +767,7 @@ impl Refinable for ProcedureSpecification {
             kind: self.kind.refine(&other.kind),
             trusted: self.trusted.refine(&other.trusted),
             terminates: self.terminates.refine(&other.terminates),
-            purity: self.purity.refine(&other.purity), // ASK: include purity in refinement? only used for ghost constraints so doesn't really apply
+            purity: self.purity.refine(&other.purity)
         }
     }
 }

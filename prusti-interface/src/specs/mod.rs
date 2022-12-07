@@ -171,7 +171,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             {
                 let span = self.env.query.get_def_span(*local_id);
                 PrustiError::unsupported(
-                    "Ghost constraints can only be used on trusted functions",
+                    "Conditional spec refinements can only be applied to trusted functions",
                     MultiSpan::from(span),
                 )
                 .emit(&self.env.diagnostic);
