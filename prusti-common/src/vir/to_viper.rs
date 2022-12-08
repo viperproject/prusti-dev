@@ -1176,7 +1176,11 @@ fn block_to_viper<'a>(
     index: usize,
 ) -> viper::Stmt<'a> {
     let label = &basic_block_labels[index];
-    let mut stmts: Vec<viper::Stmt> = vec![ast.label(label, &[])];
+    let mut stmts: Vec<viper::Stmt> = vec![
+        // To put a bit of white space between blocks.
+        ast.comment(""),
+        ast.label(label, &[])
+    ];
     stmts.extend(block.stmts.to_viper(context, ast));
     stmts.push(successor_to_viper(
         context,
