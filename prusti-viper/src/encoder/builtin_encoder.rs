@@ -304,6 +304,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
                 vec![vir::Trigger::new(vec![function_app.clone()])],
                 function_app);
             let axiom = vir::DomainAxiom {
+                comment: None,
                 name: format!("{}$axiom", f.get_identifier()),
                 expr: body,
                 domain_name: domain_name.to_string(),

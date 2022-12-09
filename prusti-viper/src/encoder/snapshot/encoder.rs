@@ -910,6 +910,7 @@ impl SnapshotEncoder {
                     let uncons_call = uncons.apply(vec![cons_call.clone()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$injectivity", domain_name),
                         expr: Expr::forall(
                             vec![arg.clone()],
@@ -926,6 +927,7 @@ impl SnapshotEncoder {
                     let cons_call = cons.apply(vec![uncons_call.clone()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$surjectivity", domain_name),
                         expr: Expr::forall(
                             vec![arg.clone()],
@@ -944,6 +946,7 @@ impl SnapshotEncoder {
                     let rhs_call = cons.apply(vec![rhs_arg.clone().into()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$extensionality", domain_name),
                         expr: Expr::forall(
                             vec![lhs_arg.clone(), rhs_arg.clone()],
@@ -971,6 +974,7 @@ impl SnapshotEncoder {
                         position: vir::Position::default(),
                     });
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$read_indices", predicate_type.name()),
                         expr: Expr::forall(
                             vec![data, idx],
@@ -1009,6 +1013,7 @@ impl SnapshotEncoder {
                         let read_call = read.apply(vec![self_expr, idx.clone().into()]);
 
                         vir::DomainAxiom {
+                            comment: None,
                             name: format!("{}$valid", domain_name),
                             expr: Expr::forall(
                                 vec![self_local, idx],
@@ -1159,6 +1164,7 @@ impl SnapshotEncoder {
                     let uncons_call = uncons.apply(vec![cons_call.clone()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$injectivity", domain_name),
                         expr: Expr::forall(
                             vec![arg.clone()],
@@ -1175,6 +1181,7 @@ impl SnapshotEncoder {
                     let cons_call = cons.apply(vec![uncons_call.clone()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$surjectivity", domain_name),
                         expr: Expr::forall(
                             vec![arg.clone()],
@@ -1193,6 +1200,7 @@ impl SnapshotEncoder {
                     let rhs_call = cons.apply(vec![rhs_arg.clone().into()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$extensionality", domain_name),
                         expr: Expr::forall(
                             vec![lhs_arg.clone(), rhs_arg.clone()],
@@ -1222,6 +1230,7 @@ impl SnapshotEncoder {
                     });
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$read_indices", predicate_type.name()),
                         expr: Expr::forall(
                             vec![data.clone(), idx],
@@ -1245,6 +1254,7 @@ impl SnapshotEncoder {
                     });
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$len_of_seq", predicate_type.name()),
                         expr: vir_expr! { forall data: {seq_type} :: { [len_call], [seq_len] } ([len_call] == [seq_len]) },
                         domain_name: domain_name.clone(),
@@ -1256,6 +1266,7 @@ impl SnapshotEncoder {
                         len.apply(vec![vir_local! { slice: {slice_snap_ty.clone()} }.into()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$len_positive", predicate_type.name()),
                         expr: vir_expr! { forall slice: {slice_snap_ty.clone()} :: { [len_call] } ([len_call] >= [Expr::from(0)]) },
                         domain_name: domain_name.clone(),
@@ -1279,6 +1290,7 @@ impl SnapshotEncoder {
                     };
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$len_upper_bound", predicate_type.name()),
                         expr: vir_expr! { forall slice: {slice_snap_ty.clone()} :: { [len_call] } [upper_bound] },
                         domain_name: domain_name.clone(),
@@ -1313,6 +1325,7 @@ impl SnapshotEncoder {
                         let read_call = read.apply(vec![self_expr, idx.clone().into()]);
 
                         vir::DomainAxiom {
+                            comment: None,
                             name: format!("{}$valid", domain_name),
                             expr: Expr::forall(
                                 vec![self_local, idx],
@@ -1656,6 +1669,7 @@ impl SnapshotEncoder {
             domain_axioms.push({
                 let disc_call = discriminant_func.apply(vec![arg_dom_expr]);
                 vir::DomainAxiom {
+                    comment: None,
                     name: format!("{}$discriminant_range", domain_name),
                     expr: Expr::forall(
                         vec![arg_dom_local],
@@ -1757,6 +1771,7 @@ impl SnapshotEncoder {
                     .conjoin();
 
                 domain_axioms.push(vir::DomainAxiom {
+                    comment: None,
                     name: format!("{}${}$injectivity", domain_name, variant_idx),
                     expr: forall_or_body(
                         forall_vars,
@@ -1773,6 +1788,7 @@ impl SnapshotEncoder {
                     let args = encode_prefixed_args("");
                     let call = encode_constructor_call(&args);
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}${}$discriminant_axiom", domain_name, variant_idx),
                         expr: forall_or_body(
                             args.to_vec(),
@@ -1809,6 +1825,7 @@ impl SnapshotEncoder {
                     let field_of_cons = field_access_func.apply(vec![call.clone()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}${}$field${}$axiom", domain_name, variant_idx, field.name),
                         expr: forall_or_body(
                             args.clone(),
@@ -1834,6 +1851,7 @@ impl SnapshotEncoder {
                         let field_of_self = field_access_func.apply(vec![self_expr.clone()]);
 
                         vir::DomainAxiom {
+                            comment: None,
                             name: format!(
                                 "{}${}$field${}$valid",
                                 domain_name, variant_idx, field.name

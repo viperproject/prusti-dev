@@ -185,6 +185,7 @@ impl From<polymorphic::DomainFunc> for legacy::DomainFunc {
 impl From<polymorphic::DomainAxiom> for legacy::DomainAxiom {
     fn from(domain_axiom: polymorphic::DomainAxiom) -> legacy::DomainAxiom {
         legacy::DomainAxiom {
+            comment: domain_axiom.comment,
             name: domain_axiom.name,
             expr: domain_axiom.expr.into(),
             domain_name: domain_axiom.domain_name,

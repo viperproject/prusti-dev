@@ -885,11 +885,20 @@ impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a DomainFunc {
 
 impl<'a, 'v> ToViper<'v, viper::NamedDomainAxiom<'v>> for &'a DomainAxiom {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::NamedDomainAxiom<'v> {
-        ast.named_domain_axiom(
-            &self.name,
-            self.expr.to_viper(context, ast),
-            &self.domain_name,
-        )
+        if let Some(comment) = &self.comment {
+            ast.named_domain_axiom_with_comment(
+                &self.name,
+                self.expr.to_viper(context, ast),
+                &self.domain_name,
+                comment,
+            )
+        } else {
+            ast.named_domain_axiom(
+                &self.name,
+                self.expr.to_viper(context, ast),
+                &self.domain_name,
+            )
+        }
     }
 }
 
