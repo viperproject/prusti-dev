@@ -305,6 +305,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
                     conjuncts.into_iter().conjoin(),
                 );
                 let axiom = vir_low::DomainAxiomDecl {
+                    comment: None,
                     name: format!("{}$bottom_up_injectivity_axiom", constructor_name),
                     body,
                 };
@@ -351,6 +352,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
                 equality
             };
             let axiom = vir_low::DomainAxiomDecl {
+                comment: None,
                 name: format!("{}$top_down_injectivity_axiom", constructor_name),
                 body: vir_low::Expression::forall(vec![value], triggers, forall_body),
             };

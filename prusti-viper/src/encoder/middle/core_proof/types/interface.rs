@@ -241,6 +241,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             expr! { [parameters_validity.into_iter().conjoin()] ==> ([op_constructor_call] == [constructor_call_op]) },
         );
         let axiom = vir_low::DomainAxiomDecl {
+            comment: None,
             name: format!("{}$simplification_axiom", variant),
             body,
         };
@@ -273,6 +274,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             expr! { [destructor] == [evaluation_result] },
         );
         let axiom = vir_low::DomainAxiomDecl {
+            comment: None,
             name: format!("{}$eval_axiom", variant),
             body,
         };
@@ -470,6 +472,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
                     expr! { [op_constructor_call] == [constructor_call_op] },
                 );
                 let axiom = vir_low::DomainAxiomDecl {
+                    comment: None,
                     name: format!("{}$simplification_axiom", variant_name),
                     body,
                 };

@@ -184,4 +184,24 @@ impl<'a> AstFactory<'a> {
             ));
         NamedDomainAxiom::new(obj)
     }
+
+    pub fn named_domain_axiom_with_comment(
+        &self,
+        name: &str,
+        expr: Expr,
+        domain_name: &str,
+        comment: &str,
+    ) -> NamedDomainAxiom<'a> {
+        let obj = self
+            .jni
+            .unwrap_result(ast::NamedDomainAxiom::with(self.env).new(
+                self.jni.new_string(name),
+                expr.to_jobject(),
+                self.no_position().to_jobject(),
+                self.simple_info(&[comment]),
+                self.jni.new_string(domain_name),
+                self.no_trafos(),
+            ));
+        NamedDomainAxiom::new(obj)
+    }
 }
