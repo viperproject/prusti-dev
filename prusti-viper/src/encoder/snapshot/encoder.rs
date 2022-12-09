@@ -880,7 +880,7 @@ impl SnapshotEncoder {
 
                     let indices = vir_expr! { ([Expr::from(0usize)] <= [i]) && ([i] < [Expr::from(array_types.sequence_len.unwrap())]) };
 
-                    vir_expr! { forall i: Int :: { [read_call], [lookup_call] } ([indices] ==> ([read_call] == [lookup_call])) }
+                    vir_expr! { forall i: Int :: { [read_call] } { [lookup_call] } :: ([indices] ==> ([read_call] == [lookup_call])) }
                 };
 
                 let snap_func = vir::Function {
@@ -1120,7 +1120,7 @@ impl SnapshotEncoder {
 
                     let indices = vir_expr! { ([Expr::from(0)] <= [i]) && ([i] < [slice_len]) };
 
-                    vir_expr! { forall i: Int :: { [read_call], [lookup_call] } ([indices] ==> ([read_call] == [lookup_call])) }
+                    vir_expr! { forall i: Int :: { [read_call] } { [lookup_call] } :: ([indices] ==> ([read_call] == [lookup_call])) }
                 };
 
                 let snap_len = len.apply(vec![result_expr]);
@@ -1256,7 +1256,7 @@ impl SnapshotEncoder {
                     vir::DomainAxiom {
                         comment: None,
                         name: format!("{}$len_of_seq", predicate_type.name()),
-                        expr: vir_expr! { forall data: {seq_type} :: { [len_call], [seq_len] } ([len_call] == [seq_len]) },
+                        expr: vir_expr! { forall data: {seq_type} :: { [len_call] } { [seq_len] } :: ([len_call] == [seq_len]) },
                         domain_name: domain_name.clone(),
                     }
                 };
@@ -1268,7 +1268,7 @@ impl SnapshotEncoder {
                     vir::DomainAxiom {
                         comment: None,
                         name: format!("{}$len_positive", predicate_type.name()),
-                        expr: vir_expr! { forall slice: {slice_snap_ty.clone()} :: { [len_call] } ([len_call] >= [Expr::from(0)]) },
+                        expr: vir_expr! { forall slice: {slice_snap_ty.clone()} :: { [len_call] } :: ([len_call] >= [Expr::from(0)]) },
                         domain_name: domain_name.clone(),
                     }
                 };
@@ -1292,7 +1292,7 @@ impl SnapshotEncoder {
                     vir::DomainAxiom {
                         comment: None,
                         name: format!("{}$len_upper_bound", predicate_type.name()),
-                        expr: vir_expr! { forall slice: {slice_snap_ty.clone()} :: { [len_call] } [upper_bound] },
+                        expr: vir_expr! { forall slice: {slice_snap_ty.clone()} :: { [len_call] } :: [upper_bound] },
                         domain_name: domain_name.clone(),
                     }
                 };
