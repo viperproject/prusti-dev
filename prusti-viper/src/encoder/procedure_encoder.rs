@@ -5672,7 +5672,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let lookup_array_i_old = sequence_types.encode_lookup_pure_call(self.encoder, old(encoded_array.clone()), i_var, lookup_ret_ty.clone());
         let lookup_same_as_old = vir_expr!{ [lookup_array_i] == [old(lookup_array_i)] };
         let forall_body = vir_expr!{ [idx_conditions] ==> [lookup_same_as_old] };
-        let all_others_unchanged = vir_expr!{ forall i: Int :: { [lookup_array_i_old] } [ forall_body ] };
+        let all_others_unchanged = vir_expr!{ forall i: Int :: { [lookup_array_i_old] } :: [ forall_body ] };
 
         stmts.push(vir_stmt!{ inhale [ all_others_unchanged ]});
 
@@ -6299,7 +6299,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: vir_expr! {
                 forall i: Int ::
-                { [array_lookup_call], [slice_lookup_call] }
+                { [array_lookup_call] } { [slice_lookup_call] } ::
                 ([indices] ==> ([array_lookup_call] == [slice_lookup_call])) }
         }));
 
@@ -6402,7 +6402,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: vir_expr! {
                 forall i: Int ::
-                { [lookup_pure_call] }
+                { [lookup_pure_call] } ::
                 ([indices] ==> ([lookup_pure_call] == [inhaled_operand])) }
         }));
 
@@ -6951,7 +6951,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         let lookup_same_as_old = vir_expr!{ [lookup_array_i] == [old(lookup_array_i.clone())] };
         let forall_body = vir_expr!{ [idx_conditions] ==> [lookup_same_as_old] };
-        let all_others_unchanged = vir_expr!{ forall i: Int :: { [lookup_array_i] } [ forall_body ] };
+        let all_others_unchanged = vir_expr!{ forall i: Int :: { [lookup_array_i] } :: [ forall_body ] };
         let indexed_lookup_pure = sequence_types.encode_lookup_pure_call(
             self.encoder,
             encoded_base_expr.clone(),
