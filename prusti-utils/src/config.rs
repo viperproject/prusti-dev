@@ -165,6 +165,7 @@ lazy_static::lazy_static! {
 
         // Flags specifically for Prusti-Assistant:
         settings.set_default("show_ide_info", false).unwrap();
+        settings.set_default("skip_verification", false).unwrap();
         settings.set_default::<Option<String>>("selective_verify", None).unwrap();
 
 
@@ -976,6 +977,12 @@ pub fn enable_type_invariants() -> bool {
 /// a list of all procedures to be verified, etc.
 pub fn show_ide_info() -> bool {
     read_setting("show_ide_info")
+}
+
+/// Very similar to no_verify but should only be used by prusti-assistant
+/// to avoid interference
+pub fn skip_verification() -> bool {
+    read_setting("skip_verification")
 }
 
 /// Used for selective verification, can be passed a String containing

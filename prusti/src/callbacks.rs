@@ -16,7 +16,7 @@ use prusti_rustc_interface::{
     },
     session::Session,
 };
-use crate::ide_helper::{ide_info, fake_error};
+use crate::ide_helper::{ide_info, fake_error::fake_error};
 
 #[derive(Default)]
 pub struct PrustiCompilerCalls;
@@ -120,7 +120,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
 
             // collect and output Information used by IDE:
 
-            if !config::no_verify() { //&& !config::skip_verification() {
+            if !config::no_verify() && !config::skip_verification() {
                 if config::selective_verify().is_none() {
                     println!("verifying everything\n\n\n");
                     let verification_task = VerificationTask {
@@ -140,11 +140,12 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                     };
                     verify(env, def_spec, selective_task);
                 }
-            } else if config::show_ide_info() {
+            } else if config::show_ide_info() && config::skip_verification() {
                 // add a fake error
                 // for now maybe only for our use-case
-                println!("Faking an error :)\n\n\n\n\n\n");
-                fake_error::fake_error(env)
+                // This stops cargo-prusti from successfully verifying crates
+                // it should not be able to after this invocation
+                fake_error(env)
             }
         });
 
