@@ -46,10 +46,12 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
             ExprKind::Call(e1, _e2) => {
                 match e1.kind {
                     ExprKind::Path(QPath::Resolved(_ty, path)) => {
-                        let defid = path.res.def_id();
-                        let defpath = self.tcx.def_path_debug_str(defid);
-                        println!("Call: {}", defpath);
-                        self.spans.push((defpath, path.span));
+                        let defid = path.res.opt_def_id();
+                        if defid.is_some() {
+                            let defpath = self.tcx.def_path_debug_str(defid.unwrap());
+                            println!("Call: {}", defpath);
+                            self.spans.push((defpath, path.span));
+                        }
                     },
                     _ => {},
                 }
