@@ -5,6 +5,8 @@ fn main() {
     assert!(value.combine(5) == 47);
     assert!(value.combine(true) == 42);
     assert!(value.combine(false) == 0);
+    let t = true;
+    assert!(t.combine(value));
 }
 
 trait Combine<T> {
@@ -23,6 +25,12 @@ impl Combine<bool> for i32 {
     }
 }
 
+impl<T> Combine<T> for bool {
+    fn combine(&self, _other: T) -> Self {
+        *self
+    }
+}
+
 #[extern_spec]
 impl Combine<i32> for i32 {
     #[ensures(result == *self + other)]
@@ -33,4 +41,10 @@ impl Combine<i32> for i32 {
 impl Combine<bool> for i32 {
     #[ensures(result == if other { *self } else { 0 })]
     fn combine(&self, other: bool) -> Self;
+}
+
+#[extern_spec]
+impl<T> Combine<T> for bool {
+    #[ensures(result == *self)]
+    fn combine(&self, _other: T) -> Self;
 }
