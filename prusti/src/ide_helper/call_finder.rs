@@ -49,7 +49,6 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
                         let defid = path.res.opt_def_id();
                         if defid.is_some() {
                             let defpath = self.tcx.def_path_debug_str(defid.unwrap());
-                            println!("Call: {}", defpath);
                             self.spans.push((defpath, path.span));
                         }
                     },
@@ -59,9 +58,17 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
             ExprKind::MethodCall(path, _e1, _e2, sp) => {
                 let ident = format!("{}", path.ident.as_str());
                 // let path: &'tcx PathSegment<'tcx> = p;
-                
-                self.spans.push((ident.clone(), sp));
-                println!("MethodCall: {:?}", ident);
+                let maybe_method_def_id = self
+                    .tcx
+                    .typeck(ex.hir_id.owner.def_id)
+                    .type_dependent_def_id(ex.hir_id);
+                if let Some(method_def_id) = maybe_method_def_id {
+                    let is_local = method_def_id.as_local().is_some();
+                    if !is_local {
+                        let defpath = self.tcx.def_path_debug_str(method_def_id);
+                        self.spans.push((defpath, sp));
+                    }
+                }
             },
             ExprKind::Binary(binop, _e1, _e2) | ExprKind::AssignOp(binop, _e1, _e2) => {
                 let ident = binop.node.as_str();

@@ -1,13 +1,13 @@
+use prusti_common::config;
 use prusti_interface::environment::Environment;
 
-use prusti_rustc_interface::span::{
-        Span,
-        source_map::SourceMap,
-    };
-use prusti_rustc_interface::hir::def_id::DefId;
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    span::{source_map::SourceMap, Span},
+};
 
-use serde::Serialize;
 use super::call_finder;
+use serde::Serialize;
 
 // create some struct storing all the information the IDE will ever need.
 // needs to be transformable into json!
@@ -19,6 +19,26 @@ pub struct IdeInfo {
     // additionally this will contain:
     // function_calls:
     // ... we'll see
+}
+
+impl IdeInfo {
+    pub fn collect(env: &Environment<'_>, procedures: &Vec<DefId>) -> Self {
+        let procs = collect_procedures(env, procedures);
+        let source_map = env.tcx().sess.source_map();
+        let fncalls = collect_fncalls(env)
+            .into_iter()
+            .map(|(name, sp)| ProcDef {
+                name,
+                span: VscSpan::from_span(sp, source_map).unwrap(),
+            })
+            .collect();
+        // For declaring external specifications:
+        let _queried_source = collect_queried_signatures(env);
+        Self {
+            procedure_defs: procs,
+            function_calls: fncalls,
+        }
+    }
 }
 
 #[derive(Serialize)]
@@ -41,7 +61,7 @@ pub struct VscSpan {
 }
 
 // collect information about the program that will be passed to IDE:
-pub fn collect_procedures(env: &Environment<'_>, procedures: &Vec<DefId>) -> Vec<ProcDef>{
+fn collect_procedures(env: &Environment<'_>, procedures: &Vec<DefId>) -> Vec<ProcDef> {
     let sourcemap: &SourceMap = env.tcx().sess.source_map();
     let mut procs = Vec::new();
     for procedure in procedures {
@@ -50,46 +70,32 @@ pub fn collect_procedures(env: &Environment<'_>, procedures: &Vec<DefId>) -> Vec
         println!("found procedure: {}, span: {:?}", defpath, span);
         let vscspan = VscSpan::from_span(span, sourcemap).unwrap();
 
-        procs.push(ProcDef{
-            name: defpath, 
-            span: vscspan
+        procs.push(ProcDef {
+            name: defpath,
+            span: vscspan,
         });
     }
     procs
 }
 
-pub fn collect_fncalls(env: &Environment<'_>) -> Vec<(String, Span)>{
+fn collect_fncalls(env: &Environment<'_>) -> Vec<(String, Span)> {
     // let l_hir = env.tcx().hir();
     // let hir_body = l_hir.body();
 
     let mut fnvisitor = call_finder::CallSpanFinder::new(env);
     // fnvisitor.visit_body(hir_body);
-    env.tcx().hir().visit_all_item_likes_in_crate(&mut fnvisitor);
+    env.tcx()
+        .hir()
+        .visit_all_item_likes_in_crate(&mut fnvisitor);
 
     return fnvisitor.spans;
 }
 
-impl IdeInfo {
-    pub fn collect(env: &Environment<'_>, procedures: &Vec<DefId>) -> Self {
-        let procs = collect_procedures(env, procedures);
-        let source_map = env.tcx().sess.source_map();
-        let fncalls = collect_fncalls(env).into_iter()
-            .map(|(name, sp)| 
-                ProcDef {
-                    name, 
-                    span: VscSpan::from_span(sp, source_map).unwrap()
-                }
-            )
-            .collect();
-        Self {
-            procedure_defs: procs,
-            function_calls: fncalls,
-        }
-    }
+fn collect_queried_signatures(env: &Environment<'_>) -> Option<String> {
+    let def_path_str: String = config::query_method_signature()?;
+
+    return Some(String::from("hello"))
 }
-
-
-
 
 impl VscSpan {
     pub fn from_span(sp: Span, sourcemap: &SourceMap) -> Option<Self> {
@@ -104,7 +110,7 @@ impl VscSpan {
                 line_end: l2.line,
                 line_start: l2.line,
                 file_name: fname,
-                // the following 3 are not relevant here, we just want to be 
+                // the following 3 are not relevant here, we just want to be
                 // able to reuse the existing methods and the parser
                 // for spans in VSCode
                 is_primary: false,

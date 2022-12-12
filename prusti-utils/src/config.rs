@@ -167,6 +167,7 @@ lazy_static::lazy_static! {
         settings.set_default("show_ide_info", false).unwrap();
         settings.set_default("skip_verification", false).unwrap();
         settings.set_default::<Option<String>>("selective_verify", None).unwrap();
+        settings.set_default::<Option<String>>("query_method_signature", None).unwrap();
 
 
         // Get the list of all allowed flags.
@@ -991,3 +992,9 @@ pub fn selective_verify() -> Option<String> {
     read_setting("selective_verify")
 }
 
+/// A flag that can be used to ask the compiler for the declaration /  
+/// signature of a method, used to automatically generate a skeleton
+/// for an external specification
+pub fn query_method_signature() -> Option<String> {
+    read_setting("query_method_signature")
+}
