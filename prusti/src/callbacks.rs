@@ -1,9 +1,12 @@
-use crate::verifier::verify;
+use crate::{
+    ide_helper::{fake_error::fake_error, ide_info},
+    verifier::verify,
+};
 use prusti_common::config;
 use prusti_interface::{
+    data::VerificationTask,
     environment::{mir_storage, Environment},
     specs::{self, cross_crate::CrossCrateSpecs, is_spec_fn},
-    data::VerificationTask,
 };
 use prusti_rustc_interface::{
     driver::Compilation,
@@ -16,7 +19,6 @@ use prusti_rustc_interface::{
     },
     session::Session,
 };
-use crate::ide_helper::{ide_info, fake_error::fake_error};
 
 #[derive(Default)]
 pub struct PrustiCompilerCalls;
@@ -89,7 +91,6 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             spec_checker.check(&env);
             compiler.session().abort_if_errors();
 
-
             let hir = env.query.hir();
             let mut spec_collector = specs::SpecCollector::new(&mut env);
             hir.walk_toplevel_module(&mut spec_collector);
@@ -107,10 +108,10 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             // determine procedures that have to be verified.
             let (annotated_procedures, types) = env.get_annotated_procedures_and_types();
 
-            // todo: selective verification, filter procedures that are 
+            // todo: selective verification, filter procedures that are
             // part of verification_task
-            
-            if config::show_ide_info() {
+
+            if config::show_ide_info() && !config::no_verify() {
                 let ideinf = ide_info::IdeInfo::collect(&env, &annotated_procedures);
                 let out = serde_json::to_string(&ideinf).unwrap();
                 // probably should make this part of compilers output..
@@ -130,17 +131,19 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                     verify(env, def_spec, verification_task);
                 } else {
                     let target_def_path = config::selective_verify().unwrap();
-                    println!("Selective Verification invoked for method {}\n\n\n", target_def_path);
-                    let procedures = annotated_procedures.into_iter().filter(
-                        |x| env.name.get_item_def_path(*x) == target_def_path
-                    ).collect();
-                    let selective_task = VerificationTask {
-                        procedures,
-                        types
-                    };
+                    println!(
+                        "Selective Verification invoked for method {}\n\n\n",
+                        target_def_path
+                    );
+                    let procedures = annotated_procedures
+                        .into_iter()
+                        .filter(|x| env.name.get_item_def_path(*x) == target_def_path)
+                        .collect();
+                    let selective_task = VerificationTask { procedures, types };
                     verify(env, def_spec, selective_task);
                 }
-            } else if config::show_ide_info() && config::skip_verification() {
+            } else if config::show_ide_info() && config::skip_verification() && !config::no_verify()
+            {
                 // add a fake error
                 // for now maybe only for our use-case
                 // This stops cargo-prusti from successfully verifying crates
