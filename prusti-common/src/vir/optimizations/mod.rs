@@ -122,6 +122,7 @@ pub fn optimize_program(p: Program, source_file_name: &str) -> Program {
         program.viper_predicates = predicates::delete_unused_predicates(
             &program.methods,
             &program.functions,
+            &program.builtin_methods,
             program.viper_predicates,
         );
     }

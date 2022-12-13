@@ -19,7 +19,9 @@ use crate::encoder::{
                 encoder_high::{
                     encode_quantifier_high, inline_closure_high, inline_spec_item_high,
                 },
-                encoder_poly::{encode_quantifier, inline_closure, inline_spec_item},
+                encoder_poly::{
+                    encode_quantifier, encode_time_specifications, inline_closure, inline_spec_item,
+                },
             },
             PureEncodingContext,
         },
@@ -256,21 +258,11 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
                 vir_poly::Expr::snap_app(encoded_args[0].clone()),
                 vir_poly::Expr::snap_app(encoded_args[1].clone()),
             )),
-            "prusti_contracts::time_credits" => {
+            "prusti_contracts::time_credits" | "prusti_contracts::time_receipts" => {
                 if config::time_reasoning() {
-                    Ok(vir_poly::Expr::resource_access_predicate(
-                        vir_poly::ResourceType::TimeCredits,
-                        encoded_args[0].clone(),
-                    ))
-                } else {
-                    Ok(true.into())
-                }
-            }
-            "prusti_contracts::time_receipts" => {
-                if config::time_reasoning() {
-                    Ok(vir_poly::Expr::resource_access_predicate(
-                        vir_poly::ResourceType::TimeReceipts,
-                        encoded_args[0].clone(),
+                    Ok(encode_time_specifications(
+                        &encoded_args[0],
+                        vir_poly::ResourceType::from_function_name(fn_name),
                     ))
                 } else {
                     Ok(true.into())

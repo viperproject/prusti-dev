@@ -10,5 +10,5 @@ fn foo() -> u32 {
 
 // This tests that calling a function with time constrains in a function without time constrant is okay
 fn main() {
-    sum(4);
+    foo();
 }

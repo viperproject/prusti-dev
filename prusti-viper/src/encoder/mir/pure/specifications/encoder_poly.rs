@@ -133,6 +133,16 @@ pub(super) fn inline_spec_item<'tcx>(
         .replace_multiple_places(&body_replacements))
 }
 
+pub(super) fn encode_time_specifications<'tcx>(
+    amount: &vir_crate::polymorphic::Expr,
+    resource_type: vir_crate::polymorphic::ResourceType,
+) -> vir_crate::polymorphic::Expr {
+    let amount_non_negative = vir_crate::polymorphic::Expr::ge_cmp(amount.clone(), 0.into());
+    let resource_access_predicate =
+        vir_crate::polymorphic::Expr::resource_access_predicate(resource_type, amount.clone());
+    vir_crate::polymorphic::Expr::and(amount_non_negative, resource_access_predicate)
+}
+
 pub(super) fn encode_quantifier<'tcx>(
     encoder: &Encoder<'_, 'tcx>,
     _span: Span,
