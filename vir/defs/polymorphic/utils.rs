@@ -120,6 +120,18 @@ pub fn walk_method(method: &CfgMethod, walker: &mut (impl StmtWalker + ExprWalke
     });
 }
 
+/// Walks all preconditions and postconditions of the given buildin methods
+pub fn walk_builtin_methods(methods: &[BodylessMethod], walker: &mut impl ExprWalker) {
+    for BodylessMethod { pres, posts, .. } in methods {
+        for expr in pres {
+            ExprWalker::walk(walker, expr);
+        }
+        for expr in posts {
+            ExprWalker::walk(walker, expr);
+        }
+    }
+}
+
 /// Walks all Expressions in the provided functions (including pre and post conditions)
 pub fn walk_functions(functions: &[Function], walker: &mut impl ExprWalker) {
     for function in functions {
@@ -136,7 +148,6 @@ pub fn walk_functions(functions: &[Function], walker: &mut impl ExprWalker) {
         }
     }
 }
-
 /// Walks all Statements and Expressions in the provided methods
 pub fn fallible_walk_methods<E>(
     methods: &[CfgMethod],

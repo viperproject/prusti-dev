@@ -20,6 +20,7 @@ use crate::encoder::mir_encoder::PRECONDITION_LABEL;
 use crate::encoder::mir_successor::MirSuccessor;
 use crate::encoder::places::{Local, LocalVariableManager, Place};
 use crate::encoder::Encoder;
+use crate::encoder::resources::interface::ResourcesEncoderInterface;
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use crate::encoder::mir::procedures::encoder::specification_blocks::SpecificationBlocks;
 use crate::error_unsupported;
@@ -511,6 +512,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Encode preconditions
         self.encode_preconditions(start_cfg_block, precondition_weakening)?;
+
+        if config::time_reasoning() {
+            // If time reasoning is enabled, add a call to tick after preconditions
+            self.cfg_method.add_stmt(start_cfg_block, self.encoder.get_tick_call(1));
+        }
 
         // Encode postcondition
         self.encode_postconditions(return_cfg_block, postcondition_strengthening)?;
@@ -3423,7 +3429,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             pre_func_spec,
         ) = self.encode_precondition_expr(&procedure_contract, substs, fake_expr_spans)?;
         let pos = self.register_error(call_site_span, ErrorCtxt::ExhaleMethodPrecondition);
-        stmts.push(vir::Stmt::Assert( vir::Assert {
+        stmts.push(vir::Stmt::Exhale( vir::Exhale {
             expr: replace_fake_exprs(pre_func_spec),
             position: pos,
         }));

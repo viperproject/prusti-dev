@@ -7,7 +7,7 @@
 use crate::vir::polymorphic_vir::{
     ast::*,
     cfg::CfgMethod,
-    utils::{walk_functions, walk_methods},
+    utils::{walk_builtin_methods, walk_functions, walk_methods},
 };
 use log::debug;
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -15,10 +15,12 @@ use rustc_hash::{FxHashMap, FxHashSet};
 fn collect_info_from_methods_and_functions(
     methods: &[CfgMethod],
     functions: &[Function],
+    buildin_methods: &[BodylessMethod],
 ) -> UsedPredicateCollector {
     let mut collector = UsedPredicateCollector::new();
     walk_methods(methods, &mut collector);
     walk_functions(functions, &mut collector);
+    walk_builtin_methods(buildin_methods, &mut collector);
 
     // DeadBorrowToken$ is a used predicate but it does not appear in VIR
     // becaue it is only created when viper code is created from VIR
@@ -109,9 +111,10 @@ fn visit_predicate(
 pub fn delete_unused_predicates(
     methods: &[CfgMethod],
     functions: &[Function],
+    buildin_methods: &[BodylessMethod],
     mut predicates: Vec<Predicate>,
 ) -> Vec<Predicate> {
-    let collector = collect_info_from_methods_and_functions(methods, functions);
+    let collector = collect_info_from_methods_and_functions(methods, functions, buildin_methods);
     let used_predicates_in_functions_and_methods = collector.used_predicates;
     let folded_predicates = collector.folded_predicates;
     let mut predicates_in_predicates_map = get_used_predicates_in_predicate_map(&predicates);

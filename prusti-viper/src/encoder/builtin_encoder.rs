@@ -9,7 +9,7 @@ use vir_crate::polymorphic::{self as vir};
 use vir_crate::common::identifier::WithIdentifier;
 use super::errors::EncodingResult;
 use super::high::builtin_functions::HighBuiltinFunctionEncoderInterface;
-use super::versioning;
+use super::{versioning, resources};
 
 const PRIMITIVE_VALID_DOMAIN_NAME: &str = "PrimitiveValidDomain";
 
@@ -23,6 +23,7 @@ pub enum BuiltinMethodKind {
     HavocBV(vir::BitVector),
     HavocRef,
     BumpMemVersion,
+    Tick,
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
@@ -77,6 +78,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
             BuiltinMethodKind::HavocF64 => "builtin$havoc_f64".to_string(),
             BuiltinMethodKind::HavocRef => "builtin$havoc_ref".to_string(),
             BuiltinMethodKind::BumpMemVersion => versioning::bump_mem_version_name().to_string(),
+            BuiltinMethodKind::Tick => resources::tick_name().to_string(),
         }
     }
 
@@ -91,6 +93,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
             BuiltinMethodKind::HavocRef => vir::Type::typed_ref(""),
             BuiltinMethodKind::BumpMemVersion => {
                 return Ok(versioning::bump_mem_version_definition());
+            }
+            BuiltinMethodKind::Tick =>{
+                return resources::tick_definition();
             }
         };
         Ok(vir::BodylessMethod {

@@ -132,6 +132,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                 self.fallible_walk_expr(body)?;
             }
         }
+        for vir::BodylessMethod { pres, posts, .. } in self.encoder.get_builtin_methods().values() {
+            // make sure we include builtin pres and posts expressions of builtin methods
+            for expr in pres {
+                self.fallible_walk_expr(expr)?;
+            }
+            for expr in posts {
+                self.fallible_walk_expr(expr)?;
+            }
+        }
         vir::utils::fallible_walk_methods(methods, self)?;
         self.used_predicates
             .extend(self.unfolded_predicates.iter().cloned());

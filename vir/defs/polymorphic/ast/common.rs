@@ -519,6 +519,16 @@ impl fmt::Display for ResourceType {
 }
 
 impl ResourceType {
+    pub fn from_function_name(function_name: &str) -> ResourceType {
+        match function_name {
+            "prusti_contracts::time_credits" => ResourceType::TimeCredits,
+            "prusti_contracts::time_receipts" => ResourceType::TimeReceipts,
+            _ => unreachable!(
+                "Fonction name: {} does not match any resource type.",
+                function_name
+            ),
+        }
+    }
     pub fn encode_as_string(&self) -> String {
         match self {
             ResourceType::TimeCredits => "time_credits".to_string(),

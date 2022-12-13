@@ -214,7 +214,9 @@ impl ast::StmtWalker for VarCollector {
         if is_purifiable_method(method_name) {
             self.is_pure_context = true;
         }
-        assert!(arguments.is_empty());
+        for arg in arguments {
+            self.walk_expr(arg);
+        }
         for target in targets {
             self.walk_local_var(target);
         }
@@ -468,8 +470,7 @@ impl ast::StmtFolder for VarPurifier {
             mut targets,
         }: ast::MethodCall,
     ) -> ast::Stmt {
-        assert!(targets.len() == 1);
-        if self.pure_vars.contains(&targets[0]) {
+        if targets.len() == 1 && self.pure_vars.contains(&targets[0]) {
             let target = &targets[0];
             let replacement = self
                 .replacements
