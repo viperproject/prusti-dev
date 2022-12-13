@@ -80,7 +80,7 @@ impl<'mir, 'tcx: 'mir> Serialize for ReachingDefsState<'mir, 'tcx> {
         let ordered_ass_map: BTreeMap<_, _> = self.reaching_defs.iter().collect();
         for (local, location_set) in ordered_ass_map {
             let ordered_loc_set: BTreeSet<_> = location_set.iter().collect();
-            let mut location_vec = Vec::new();
+            let mut location_vec = Vec::with_capacity(ordered_loc_set.len());
             for location in ordered_loc_set {
                 match location {
                     DefLocation::Assignment(l) => {
