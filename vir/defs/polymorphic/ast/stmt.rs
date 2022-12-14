@@ -457,6 +457,10 @@ impl Stmt {
         Stmt::Inhale(Inhale { expr })
     }
 
+    pub fn exhale(expr: Expr, position: Position) -> Self {
+        Stmt::Exhale(Exhale { expr, position })
+    }
+
     pub fn package_magic_wand(
         lhs: Expr,
         rhs: Expr,
