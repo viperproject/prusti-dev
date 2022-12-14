@@ -151,6 +151,11 @@ macro_rules! vir_expr {
             vir_expr!($body),
         )
     };
+
+    (local $($tokens: tt)+) => {
+        vir_local!($($tokens)+).into()
+    };
+
     ([ $e: expr ]) => { $e.clone() };
     (( $($tokens: tt)+ )) => { vir_expr!($($tokens)+) }
 }
