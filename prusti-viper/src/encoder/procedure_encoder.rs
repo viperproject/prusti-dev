@@ -973,8 +973,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         // We'll add later more statements at the end of inv_pre_block, to havoc local variables
         let fnspec_span = {
-            let (stmts, fnspec_span) =
+            let (mut stmts, fnspec_span) =
                 self.encode_loop_invariant_inhale_fnspec_stmts(loop_head, before_invariant_block, false)?;
+            if config::time_reasoning() {
+                stmts.push(self.encoder.get_tick_call(1));   
+            }
             self.cfg_method.add_stmts(inv_post_block_fnspc, stmts); fnspec_span
         };
         {
@@ -5401,7 +5404,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         });
         stmts.extend(obtain_predicates);
 
-        stmts.push(vir::Stmt::Assert( vir::Assert {
+        stmts.push(vir::Stmt::Exhale( vir::Exhale {
             expr: func_spec.into_iter().conjoin(),
             position: assert_pos,
         }));
