@@ -1179,7 +1179,7 @@ fn block_to_viper<'a>(
     let mut stmts: Vec<viper::Stmt> = vec![
         // To put a bit of white space between blocks.
         ast.comment(""),
-        ast.label(label, &[])
+        ast.label(label, &[]),
     ];
     stmts.extend(block.stmts.to_viper(context, ast));
     stmts.push(successor_to_viper(

@@ -22,6 +22,7 @@ use crate::encoder::places::{Local, LocalVariableManager, Place};
 use crate::encoder::Encoder;
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use crate::encoder::mir::procedures::encoder::specification_blocks::SpecificationBlocks;
+use crate::error_unsupported;
 use prusti_common::{
     config,
     utils::to_string::ToString,
@@ -1596,24 +1597,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
             mir::Rvalue::Cast(mir::CastKind::Pointer(_), _, _) |
             mir::Rvalue::Cast(mir::CastKind::DynStar, _, _) => {
-                return Err(EncodingError::unsupported(
-                    "raw pointers are not supported"
-                )).with_span(span);
+                return Err(SpannedEncodingError::unsupported(
+                    "raw pointers are not supported", span
+                ));
             }
             mir::Rvalue::Cast(cast_kind, _, _) => {
-                return Err(EncodingError::unsupported(
-                    format!("casts {:?} are not supported", cast_kind)
-                )).with_span(span);
+                return Err(SpannedEncodingError::unsupported(
+                    format!("casts {:?} are not supported", cast_kind), span
+                ));
             }
             mir::Rvalue::AddressOf(_, _) => {
-                return Err(EncodingError::unsupported(
-                    "raw addresses of expressions or casting a reference to a raw pointer are not supported"
-                )).with_span(span);
+                return Err(SpannedEncodingError::unsupported(
+                    "raw addresses of expressions or casting a reference to a raw pointer are not supported", span
+                ));
             }
             mir::Rvalue::ThreadLocalRef(_) => {
-                return Err(EncodingError::unsupported(
-                    "references to thread-local storage are not supported"
-                )).with_span(span);
+                return Err(SpannedEncodingError::unsupported(
+                    "references to thread-local storage are not supported", span
+                ));
             }
             mir::Rvalue::ShallowInitBox(_, op_ty) => {
                 self.encode_assign_box(
@@ -2862,9 +2863,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         )?;
         stmts.extend(encode_stmts);
         if !lhs_ty.is_slice_or_ref() && !lhs_ty.is_array_or_ref() {
-            return Err(EncodingError::unsupported(
-                format!("Non-slice LHS type '{:?}' not supported yet", lhs_ty)
-            ));
+            error_unsupported!("Non-slice LHS type '{:?}' not supported yet", lhs_ty);
         }
         let mutability = if let ty::TyKind::Ref(_, _, mutability) = lhs_ty.kind() { mutability } else { unreachable!() };
         let perm_amount = match mutability {
@@ -2882,9 +2881,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let base_seq_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
         if !base_seq_ty.is_slice_or_ref() && !base_seq_ty.is_array_or_ref() {
-            return Err(EncodingError::unsupported(
-                format!("Slicing is only supported for arrays/slices currently, not '{:?}'", base_seq_ty)
-            ));
+            error_unsupported!("Slicing is only supported for arrays/slices currently, not '{:?}'", base_seq_ty);
         }
 
         // base_seq is expected to be ref$Array$.. or ref$Slice$.., but lookup_pure wants the

@@ -2,9 +2,9 @@ use log::debug;
 use prusti_rustc_interface::middle::{mir, ty};
 use vir_crate::high::{self as vir_high};
 
-use crate::encoder::{
-    errors::{EncodingError, EncodingResult},
-    mir::types::MirTypeEncoderInterface,
+use crate::{
+    encoder::{errors::EncodingResult, mir::types::MirTypeEncoderInterface},
+    error_unsupported,
 };
 
 pub(crate) trait ConstantsEncoderInterface<'tcx> {
@@ -67,10 +67,7 @@ impl<'v, 'tcx: 'v> ConstantsEncoderInterface<'tcx> for super::super::super::Enco
                 vir_high::Expression::constructor_no_pos(ty, Vec::new())
             }
             _ => {
-                return Err(EncodingError::unsupported(format!(
-                    "unsupported constant type {:?}",
-                    mir_type.kind()
-                )));
+                error_unsupported!("unsupported constant type {:?}", mir_type.kind());
             }
         };
         debug!("encode_const_expr {:?} --> {:?}", constant.literal, expr);
