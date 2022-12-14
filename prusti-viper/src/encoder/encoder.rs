@@ -13,6 +13,7 @@ use crate::encoder::builtin_encoder::BuiltinMethodKind;
 use crate::encoder::errors::{ErrorManager, SpannedEncodingError, EncodingError};
 use crate::encoder::foldunfold;
 use crate::encoder::procedure_encoder::ProcedureEncoder;
+use crate::error_unsupported;
 use prusti_common::{vir_expr, vir_local};
 use prusti_common::config;
 use prusti_common::report::log;
@@ -316,7 +317,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     let mir_ct = mir::UnevaluatedConst::new(ct.def, ct.substs);
                     self.uneval_eval_intlike(mir_ct)
                 },
-                _ => return Err(EncodingError::unsupported(format!("unsupported const kind: {:?}", value))),
+                _ => error_unsupported!("unsupported const kind: {:?}", value),
             }
             mir::ConstantKind::Val(val, _) => val.try_to_scalar(),
             mir::ConstantKind::Unevaluated(ct, _) => self.uneval_eval_intlike(ct),
@@ -607,9 +608,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                 })
             }
             _ => {
-                return Err(EncodingError::unsupported(
-                    format!("unsupported constant type {:?}", ty.kind())
-                ));
+                error_unsupported!("unsupported constant type {:?}", ty.kind());
             }
         };
         debug!("encode_const_expr {:?} --> {:?}", value, expr);

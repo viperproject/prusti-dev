@@ -4,15 +4,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::{
-    encoder::encode_field_name,
-    errors::{EncodingError, EncodingResult},
-    foldunfold,
-    high::types::HighTypeEncoderInterface,
-    mir::{sequences::MirSequencesEncoderInterface, types::MirTypeEncoderInterface},
-    snapshot::{decls::Snapshot, patcher::SnapshotPatcher},
-    utils::range_extract,
-    Encoder,
+use crate::{
+    encoder::{
+        encoder::encode_field_name,
+        errors::{EncodingError, EncodingResult},
+        foldunfold,
+        high::types::HighTypeEncoderInterface,
+        mir::{sequences::MirSequencesEncoderInterface, types::MirTypeEncoderInterface},
+        snapshot::{decls::Snapshot, patcher::SnapshotPatcher},
+        utils::range_extract,
+        Encoder,
+    },
+    error_internal,
 };
 use log::debug;
 use prusti_common::{vir_expr, vir_local};
@@ -492,10 +495,7 @@ impl SnapshotEncoder {
             if let Snapshot::Array { read, .. } = self.encode_snapshot(encoder, array_ty)? {
                 read
             } else {
-                return Err(EncodingError::internal(format!(
-                    "called encode_array_idx on non-array-type {:?}",
-                    array_ty
-                )));
+                error_internal!("called encode_array_idx on non-array-type {:?}", array_ty);
             };
 
         Ok(read_func.apply(vec![array, idx]))
@@ -513,10 +513,7 @@ impl SnapshotEncoder {
             if let Snapshot::Slice { read, .. } = self.encode_snapshot(encoder, slice_ty)? {
                 read
             } else {
-                return Err(EncodingError::internal(format!(
-                    "called encode_slice_idx on non-slice-type {:?}",
-                    slice_ty
-                )));
+                error_internal!("called encode_slice_idx on non-slice-type {:?}", slice_ty);
             };
 
         Ok(read_func.apply(vec![slice, idx]))
@@ -532,10 +529,7 @@ impl SnapshotEncoder {
             if let Snapshot::Slice { len, .. } = self.encode_snapshot(encoder, slice_ty)? {
                 len
             } else {
-                return Err(EncodingError::internal(format!(
-                    "called encode_slice_len on non-slice-type {:?}",
-                    slice_ty
-                )));
+                error_internal!("called encode_slice_len on non-slice-type {:?}", slice_ty);
             };
 
         Ok(len_func.apply(vec![slice]))
@@ -558,10 +552,7 @@ impl SnapshotEncoder {
                 {
                     cons
                 } else {
-                    return Err(EncodingError::internal(format!(
-                        "called encode_slicing on non-slice-type {:?}",
-                        slice_ty
-                    )));
+                    error_internal!("called encode_slicing on non-slice-type {:?}", slice_ty);
                 };
 
                 Ok(slice_cons.apply(vec![self.apply_function(&slice_helper, vec![base, lo, hi])]))
@@ -777,10 +768,7 @@ impl SnapshotEncoder {
                         }
                         vir::Predicate::Struct(..) => (arg_expr.clone(), None),
                         _ => {
-                            return Err(EncodingError::internal(format!(
-                                "invalid Predicate for ADT: {}",
-                                predicate
-                            )))
+                            error_internal!("invalid Predicate for ADT: {}", predicate);
                         }
                     };
                     for field in &variant.fields {

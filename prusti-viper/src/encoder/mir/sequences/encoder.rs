@@ -1,8 +1,7 @@
 use super::interface::EncodedSequenceTypes;
-use crate::encoder::{
-    errors::{EncodingError, EncodingResult},
-    high::types::HighTypeEncoderInterface,
-    Encoder,
+use crate::{
+    encoder::{errors::EncodingResult, high::types::HighTypeEncoderInterface, Encoder},
+    error_unsupported,
 };
 use prusti_rustc_interface::middle::ty;
 
@@ -24,9 +23,7 @@ pub(super) fn encode_sequence_types<'p, 'v: 'p, 'tcx: 'v>(
         }
         ty::TyKind::Slice(elem_ty) => (*elem_ty, None),
         ty::TyKind::Str => {
-            return Err(EncodingError::unsupported(
-                "Encoding of Str slice type".to_string(),
-            ))
+            error_unsupported!("Encoding of Str slice type");
         }
         _ => unreachable!(),
     };
