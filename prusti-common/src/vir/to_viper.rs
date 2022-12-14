@@ -27,7 +27,8 @@ impl<'v> ToViper<'v, viper::Program<'v>> for Program {
         let viper_methods = if config::verify_only_preamble() {
             Vec::new()
         } else {
-            let mut tmp: Vec<_> = self.methods
+            let mut tmp: Vec<_> = self
+                .methods
                 .iter()
                 .map(|m| m.to_viper(context, ast))
                 .collect();
