@@ -16,4 +16,8 @@ fn sum(n: u32) -> u32 {
     res
 }
 
-fn main() {}
+#[requires(time_credits(12))]
+#[ensures(time_receipts(12))]
+fn main() {
+    sum(10);
+}
