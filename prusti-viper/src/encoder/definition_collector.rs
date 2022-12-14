@@ -42,6 +42,8 @@ pub(super) fn collect_definitions(
         unfolded_predicates: Default::default(),
     };
     vir::utils::walk_methods(&methods, &mut unfolded_predicate_collector);
+    // Keep all domains around. An alternative is to make the collector walk over domain axioms.
+    let used_builtin_domains = encoder.get_encoded_builtin_domains().into_iter().collect();
     let mut collector = Collector {
         error_span,
         encoder,
@@ -51,6 +53,7 @@ pub(super) fn collect_definitions(
         used_predicates: Default::default(),
         used_fields: Default::default(),
         used_domains: Default::default(),
+        used_builtin_domains,
         used_snap_domain_functions: Default::default(),
         used_functions: Default::default(),
         checked_function_contracts: Default::default(),
@@ -77,6 +80,7 @@ struct Collector<'p, 'v: 'p, 'tcx: 'v> {
     new_unfolded_predicates: FxHashSet<vir::Type>,
     used_fields: FxHashSet<vir::Field>,
     used_domains: FxHashSet<String>,
+    used_builtin_domains: FxHashSet<vir::Domain>,
     used_snap_domain_functions: FxHashSet<vir::FunctionIdentifier>,
     /// The set of all functions that are mentioned in the method.
     used_functions: FxHashSet<vir::FunctionIdentifier>,
@@ -287,6 +291,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                 domains.push(mirror_domain);
             }
         }
+        domains.extend(self.used_builtin_domains.iter().cloned());
         domains.sort_by_cached_key(|domain| domain.name.clone());
         domains
     }
