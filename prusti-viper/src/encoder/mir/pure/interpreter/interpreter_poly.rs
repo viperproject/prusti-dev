@@ -825,7 +825,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             }
 
             mir::StatementKind::Assign(box (lhs, ref rhs)) => {
-                let (encoded_lhs, ty, _) = self.encode_place(lhs).unwrap();
+                let (encoded_lhs, ty, _) = self.encode_place(lhs).with_span(span)?;
                 trace!("Encoding assignment to LHS {:?}", encoded_lhs);
 
                 if !state.uses_place(&encoded_lhs) {
