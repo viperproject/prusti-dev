@@ -22,7 +22,7 @@ The script will perform the following steps:
  2. Downloads and extracts the latest [Viper tools](#viper-tools).
  3. Sets up [the Rust toolchain](#rustup-setup).
 
-Steps 1 and 2 can be skipped by adding the `--rustup-only` argument to the command line. `--dry-run` can be used to prevent any shell commands from actually running, only printing them to the terminal.
+Step 1 can be skipped by adding the `--no-deps` argument to the command line. `--dry-run` can be used to prevent any shell commands from actually running, only printing them to the terminal.
 
 The `setup` step should be repeated if the Rust toolchain version changes, or if the native dependencies or Viper tools need to be updated.
 

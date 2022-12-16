@@ -4,16 +4,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::{
-    errors::{EncodingError, EncodingResult, SpannedEncodingResult, WithSpan},
-    high::types::HighTypeEncoderInterface,
-    mir::{
-        pure::{specifications::utils::extract_closure_from_ty, PureFunctionEncoderInterface},
-        types::MirTypeEncoderInterface,
+use crate::{
+    encoder::{
+        errors::{EncodingError, EncodingResult, SpannedEncodingResult, WithSpan},
+        high::types::HighTypeEncoderInterface,
+        mir::{
+            pure::{specifications::utils::extract_closure_from_ty, PureFunctionEncoderInterface},
+            types::MirTypeEncoderInterface,
+        },
+        mir_encoder::{MirEncoder, PlaceEncoder},
+        snapshot::interface::SnapshotEncoderInterface,
+        Encoder,
     },
-    mir_encoder::{MirEncoder, PlaceEncoder},
-    snapshot::interface::SnapshotEncoderInterface,
-    Encoder,
+    error_incorrect,
 };
 use prusti_common::config;
 use prusti_rustc_interface::{
@@ -356,9 +359,7 @@ fn check_trigger_set(
         .any(|var| !found_bounded_vars.contains(var))
     {
         // TODO: mention (+ span) the missing qvars in the error
-        return Err(EncodingError::incorrect(
-            "a trigger set must mention all bound variables",
-        ));
+        error_incorrect!("a trigger set must mention all bound variables");
     }
     Ok(())
 }

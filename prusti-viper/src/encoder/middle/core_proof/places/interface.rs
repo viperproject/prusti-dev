@@ -151,6 +151,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
                 },
             );
             let axiom = vir_low::DomainAxiomDecl {
+                comment: None,
                 name: format!("index_place$${}$$injectivity_axiom", ty.get_identifier()),
                 body,
             };

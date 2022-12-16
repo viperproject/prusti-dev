@@ -4,15 +4,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::encoder::{
-    encoder::encode_field_name,
-    errors::{EncodingError, EncodingResult},
-    foldunfold,
-    high::types::HighTypeEncoderInterface,
-    mir::{sequences::MirSequencesEncoderInterface, types::MirTypeEncoderInterface},
-    snapshot::{decls::Snapshot, patcher::SnapshotPatcher},
-    utils::range_extract,
-    Encoder,
+use crate::{
+    encoder::{
+        encoder::encode_field_name,
+        errors::{EncodingError, EncodingResult},
+        foldunfold,
+        high::types::HighTypeEncoderInterface,
+        mir::{sequences::MirSequencesEncoderInterface, types::MirTypeEncoderInterface},
+        snapshot::{decls::Snapshot, patcher::SnapshotPatcher},
+        utils::range_extract,
+        Encoder,
+    },
+    error_internal,
 };
 use log::debug;
 use prusti_common::{vir_expr, vir_local};
@@ -492,10 +495,7 @@ impl SnapshotEncoder {
             if let Snapshot::Array { read, .. } = self.encode_snapshot(encoder, array_ty)? {
                 read
             } else {
-                return Err(EncodingError::internal(format!(
-                    "called encode_array_idx on non-array-type {:?}",
-                    array_ty
-                )));
+                error_internal!("called encode_array_idx on non-array-type {:?}", array_ty);
             };
 
         Ok(read_func.apply(vec![array, idx]))
@@ -513,10 +513,7 @@ impl SnapshotEncoder {
             if let Snapshot::Slice { read, .. } = self.encode_snapshot(encoder, slice_ty)? {
                 read
             } else {
-                return Err(EncodingError::internal(format!(
-                    "called encode_slice_idx on non-slice-type {:?}",
-                    slice_ty
-                )));
+                error_internal!("called encode_slice_idx on non-slice-type {:?}", slice_ty);
             };
 
         Ok(read_func.apply(vec![slice, idx]))
@@ -532,10 +529,7 @@ impl SnapshotEncoder {
             if let Snapshot::Slice { len, .. } = self.encode_snapshot(encoder, slice_ty)? {
                 len
             } else {
-                return Err(EncodingError::internal(format!(
-                    "called encode_slice_len on non-slice-type {:?}",
-                    slice_ty
-                )));
+                error_internal!("called encode_slice_len on non-slice-type {:?}", slice_ty);
             };
 
         Ok(len_func.apply(vec![slice]))
@@ -558,10 +552,7 @@ impl SnapshotEncoder {
                 {
                     cons
                 } else {
-                    return Err(EncodingError::internal(format!(
-                        "called encode_slicing on non-slice-type {:?}",
-                        slice_ty
-                    )));
+                    error_internal!("called encode_slicing on non-slice-type {:?}", slice_ty);
                 };
 
                 Ok(slice_cons.apply(vec![self.apply_function(&slice_helper, vec![base, lo, hi])]))
@@ -777,10 +768,7 @@ impl SnapshotEncoder {
                         }
                         vir::Predicate::Struct(..) => (arg_expr.clone(), None),
                         _ => {
-                            return Err(EncodingError::internal(format!(
-                                "invalid Predicate for ADT: {}",
-                                predicate
-                            )))
+                            error_internal!("invalid Predicate for ADT: {}", predicate);
                         }
                     };
                     for field in &variant.fields {
@@ -892,7 +880,7 @@ impl SnapshotEncoder {
 
                     let indices = vir_expr! { ([Expr::from(0usize)] <= [i]) && ([i] < [Expr::from(array_types.sequence_len.unwrap())]) };
 
-                    vir_expr! { forall i: Int :: { [read_call], [lookup_call] } ([indices] ==> ([read_call] == [lookup_call])) }
+                    vir_expr! { forall i: Int :: { [read_call] } { [lookup_call] } :: ([indices] ==> ([read_call] == [lookup_call])) }
                 };
 
                 let snap_func = vir::Function {
@@ -922,6 +910,7 @@ impl SnapshotEncoder {
                     let uncons_call = uncons.apply(vec![cons_call.clone()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$injectivity", domain_name),
                         expr: Expr::forall(
                             vec![arg.clone()],
@@ -938,6 +927,7 @@ impl SnapshotEncoder {
                     let cons_call = cons.apply(vec![uncons_call.clone()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$surjectivity", domain_name),
                         expr: Expr::forall(
                             vec![arg.clone()],
@@ -956,6 +946,7 @@ impl SnapshotEncoder {
                     let rhs_call = cons.apply(vec![rhs_arg.clone().into()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$extensionality", domain_name),
                         expr: Expr::forall(
                             vec![lhs_arg.clone(), rhs_arg.clone()],
@@ -983,6 +974,7 @@ impl SnapshotEncoder {
                         position: vir::Position::default(),
                     });
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$read_indices", predicate_type.name()),
                         expr: Expr::forall(
                             vec![data, idx],
@@ -1021,6 +1013,7 @@ impl SnapshotEncoder {
                         let read_call = read.apply(vec![self_expr, idx.clone().into()]);
 
                         vir::DomainAxiom {
+                            comment: None,
                             name: format!("{}$valid", domain_name),
                             expr: Expr::forall(
                                 vec![self_local, idx],
@@ -1127,7 +1120,7 @@ impl SnapshotEncoder {
 
                     let indices = vir_expr! { ([Expr::from(0)] <= [i]) && ([i] < [slice_len]) };
 
-                    vir_expr! { forall i: Int :: { [read_call], [lookup_call] } ([indices] ==> ([read_call] == [lookup_call])) }
+                    vir_expr! { forall i: Int :: { [read_call] } { [lookup_call] } :: ([indices] ==> ([read_call] == [lookup_call])) }
                 };
 
                 let snap_len = len.apply(vec![result_expr]);
@@ -1171,6 +1164,7 @@ impl SnapshotEncoder {
                     let uncons_call = uncons.apply(vec![cons_call.clone()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$injectivity", domain_name),
                         expr: Expr::forall(
                             vec![arg.clone()],
@@ -1187,6 +1181,7 @@ impl SnapshotEncoder {
                     let cons_call = cons.apply(vec![uncons_call.clone()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$surjectivity", domain_name),
                         expr: Expr::forall(
                             vec![arg.clone()],
@@ -1205,6 +1200,7 @@ impl SnapshotEncoder {
                     let rhs_call = cons.apply(vec![rhs_arg.clone().into()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$extensionality", domain_name),
                         expr: Expr::forall(
                             vec![lhs_arg.clone(), rhs_arg.clone()],
@@ -1234,6 +1230,7 @@ impl SnapshotEncoder {
                     });
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$read_indices", predicate_type.name()),
                         expr: Expr::forall(
                             vec![data.clone(), idx],
@@ -1257,8 +1254,9 @@ impl SnapshotEncoder {
                     });
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$len_of_seq", predicate_type.name()),
-                        expr: vir_expr! { forall data: {seq_type} :: { [len_call], [seq_len] } ([len_call] == [seq_len]) },
+                        expr: vir_expr! { forall data: {seq_type} :: { [len_call] } { [seq_len] } :: ([len_call] == [seq_len]) },
                         domain_name: domain_name.clone(),
                     }
                 };
@@ -1268,8 +1266,9 @@ impl SnapshotEncoder {
                         len.apply(vec![vir_local! { slice: {slice_snap_ty.clone()} }.into()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$len_positive", predicate_type.name()),
-                        expr: vir_expr! { forall slice: {slice_snap_ty.clone()} :: { [len_call] } ([len_call] >= [Expr::from(0)]) },
+                        expr: vir_expr! { forall slice: {slice_snap_ty.clone()} :: { [len_call] } :: ([len_call] >= [Expr::from(0)]) },
                         domain_name: domain_name.clone(),
                     }
                 };
@@ -1291,8 +1290,9 @@ impl SnapshotEncoder {
                     };
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}$len_upper_bound", predicate_type.name()),
-                        expr: vir_expr! { forall slice: {slice_snap_ty.clone()} :: { [len_call] } [upper_bound] },
+                        expr: vir_expr! { forall slice: {slice_snap_ty.clone()} :: { [len_call] } :: [upper_bound] },
                         domain_name: domain_name.clone(),
                     }
                 };
@@ -1325,6 +1325,7 @@ impl SnapshotEncoder {
                         let read_call = read.apply(vec![self_expr, idx.clone().into()]);
 
                         vir::DomainAxiom {
+                            comment: None,
                             name: format!("{}$valid", domain_name),
                             expr: Expr::forall(
                                 vec![self_local, idx],
@@ -1668,6 +1669,7 @@ impl SnapshotEncoder {
             domain_axioms.push({
                 let disc_call = discriminant_func.apply(vec![arg_dom_expr]);
                 vir::DomainAxiom {
+                    comment: None,
                     name: format!("{}$discriminant_range", domain_name),
                     expr: Expr::forall(
                         vec![arg_dom_local],
@@ -1769,6 +1771,7 @@ impl SnapshotEncoder {
                     .conjoin();
 
                 domain_axioms.push(vir::DomainAxiom {
+                    comment: None,
                     name: format!("{}${}$injectivity", domain_name, variant_idx),
                     expr: forall_or_body(
                         forall_vars,
@@ -1785,6 +1788,7 @@ impl SnapshotEncoder {
                     let args = encode_prefixed_args("");
                     let call = encode_constructor_call(&args);
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}${}$discriminant_axiom", domain_name, variant_idx),
                         expr: forall_or_body(
                             args.to_vec(),
@@ -1821,6 +1825,7 @@ impl SnapshotEncoder {
                     let field_of_cons = field_access_func.apply(vec![call.clone()]);
 
                     vir::DomainAxiom {
+                        comment: None,
                         name: format!("{}${}$field${}$axiom", domain_name, variant_idx, field.name),
                         expr: forall_or_body(
                             args.clone(),
@@ -1846,6 +1851,7 @@ impl SnapshotEncoder {
                         let field_of_self = field_access_func.apply(vec![self_expr.clone()]);
 
                         vir::DomainAxiom {
+                            comment: None,
                             name: format!(
                                 "{}${}$field${}$valid",
                                 domain_name, variant_idx, field.name

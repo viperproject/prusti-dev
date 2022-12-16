@@ -1,5 +1,6 @@
 use super::encoder::{encode_invariant_def, encode_invariant_stub, needs_invariant_func};
 use crate::encoder::errors::EncodingResult;
+use prusti_common::config;
 use prusti_rustc_interface::middle::ty;
 use rustc_hash::FxHashMap;
 use std::cell::RefCell;
@@ -25,7 +26,7 @@ impl<'v, 'tcx: 'v> TypeInvariantEncoderInterface<'tcx> for super::super::super::
         ty: ty::Ty<'tcx>,
         encoded_arg: vir::Expr,
     ) -> EncodingResult<vir::Expr> {
-        if !prusti_common::config::enable_type_invariants() {
+        if !config::enable_type_invariants() {
             return Ok(true.into());
         }
 

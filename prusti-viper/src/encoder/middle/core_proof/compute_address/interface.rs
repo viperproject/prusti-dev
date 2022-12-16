@@ -77,6 +77,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             )
         };
         Ok(vir_low::DomainAxiomDecl {
+            comment: None,
             name: format!(
                 "{}${}$compute_address_axiom",
                 ty.get_identifier(),
@@ -160,6 +161,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
                             )
                         };
                         let axiom = vir_low::DomainAxiomDecl {
+                            comment: None,
                             name: format!(
                                 "{}${}$compute_address_axiom",
                                 ty.get_identifier(),
@@ -198,6 +200,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
                         )
                     };
                     let axiom = vir_low::DomainAxiomDecl {
+                        comment: None,
                         name: format!("{}$compute_address_axiom", ty.get_identifier(),),
                         body,
                     };
@@ -235,6 +238,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
             )
         };
         let axiom = vir_low::DomainAxiomDecl {
+            comment: None,
             name: format!(
                 "root${}$compute_address_axiom",
                 self.compute_address_state.encoded_roots.len()
