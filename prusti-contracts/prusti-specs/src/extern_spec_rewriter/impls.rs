@@ -331,7 +331,7 @@ mod tests {
         #[test]
         fn generics_supported() {
             let mut inp_impl: syn::ItemImpl = parse_quote!(
-                impl<X> MyTrait<I> for MyStruct {
+                impl MyTrait<I> for MyStruct {
                     fn foo(&mut self, arg1: I);
                 }
             );
