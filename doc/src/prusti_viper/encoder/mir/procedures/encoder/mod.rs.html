@@ -2165,11 +2165,11 @@
     mir::{
         <a href="../../casts/interface.rs.html#7">casts::CastsEncoderInterface</a>,
         <a href="../../constants/interface.rs.html#10">constants::ConstantsEncoderInterface</a>,
-        contracts::{<a href="../../contracts/interface.rs.html#22">ContractsEncoderInterface</a>, <a href="../../contracts/contracts.rs.html#139">ProcedureContractMirDef</a>},
+        contracts::{<a href="../../contracts/interface.rs.html#23">ContractsEncoderInterface</a>, <a href="../../contracts/contracts.rs.html#139">ProcedureContractMirDef</a>},
         <a href="../../errors/interface.rs.html#13">errors::ErrorInterface</a>,
         <a href="../../generics/interface.rs.html#10">generics::MirGenericsEncoderInterface</a>,
         <a href="../../panics/interface.rs.html#5">panics::MirPanicsEncoderInterface</a>,
-        <a href="../../places/interface.rs.html#25">places::PlacesEncoderInterface</a>,
+        <a href="../../places/interface.rs.html#27">places::PlacesEncoderInterface</a>,
         <a href="../../predicates/interface.rs.html#9">predicates::MirPredicateEncoderInterface</a>,
         pure::{<a href="../../pure/pure_functions/interface.rs.html#123">PureFunctionEncoderInterface</a>, <a href="../../pure/specifications/interface.rs.html#40">SpecificationEncoderInterface</a>},
         <a href="../../spans/interface.rs.html#9">spans::SpanInterface</a>,
@@ -2177,7 +2177,7 @@
         <a href="../../type_layouts/interface.rs.html#5">type_layouts::MirTypeLayoutsEncoderInterface</a>,
     },
     <a href="../../../mir_encoder/mod.rs.html#36">mir_encoder::PRECONDITION_LABEL</a>,
-    <a href="../../../encoder.rs.html#66">Encoder</a>,
+    <a href="../../../encoder.rs.html#67">Encoder</a>,
 };
 <span class="kw">use </span><a href="../../../../../../log/macro.debug.html">log::debug</a>;
 <span class="kw">use </span><a href="../../../../../../prusti_utils/config/index.html">prusti_common::config</a>;
@@ -2228,16 +2228,16 @@
     def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
     check_mode: <a href="../../../../../../vir/common/check_mode/enum.CheckMode.html">CheckMode</a>,
 ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/cfg/procedure/struct.ProcedureDecl.html">vir_high::ProcedureDecl</a>&gt; {
-    <span class="kw">let </span>procedure = Procedure::new(<a href="#70">encoder</a>.<a href="../../../encoder.rs.html#219">env</a>(), <a href="#71">def_id</a>);
-    <span class="kw">let </span>tcx = <a href="#70">encoder</a>.<a href="../../../encoder.rs.html#219">env</a>().tcx();
+    <span class="kw">let </span>procedure = Procedure::new(<a href="#70">encoder</a>.<a href="../../../encoder.rs.html#225">env</a>(), <a href="#71">def_id</a>);
+    <span class="kw">let </span>tcx = <a href="#70">encoder</a>.<a href="../../../encoder.rs.html#225">env</a>().tcx();
     <span class="kw">let </span>(mir, lifetimes) = <span class="self">self</span>::elaborate_drops::elaborate_drops(encoder, def_id, <span class="kw-2">&amp;</span>procedure)<span class="question-mark">?</span>;
     <span class="kw">let </span>mir = <span class="kw-2">&amp;</span><a href="#76">mir</a>; <span class="comment">// Mark body as immutable.
     </span><span class="kw">let </span>move_env = <a href="initialisation.rs.html#48-52"><span class="self">self</span>::initialisation::create_move_data_param_env</a>(<a href="#75">tcx</a>, <a href="#77">mir</a>, <a href="#71">def_id</a>);
     <span class="kw">let </span>init_data = InitializationData::new(<a href="#75">tcx</a>, <a href="#77">mir</a>, <span class="kw-2">&amp;</span><a href="#78">move_env</a>);
     <span class="kw">let </span>locals_without_explicit_allocation: BTreeSet&lt;<span class="kw">_</span>&gt; = <a href="#77">mir</a>.vars_and_temps_iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
     <span class="kw">let </span>specification_blocks =
-        SpecificationBlocks::build(<a href="#70">encoder</a>.<a href="../../../encoder.rs.html#219">env</a>().query, <a href="#77">mir</a>, <span class="kw-2">&amp;</span><a href="#74">procedure</a>, <span class="bool-val">true</span>);
-    <span class="kw">let </span>initialization = <a href="../../../../../../prusti_interface/environment/mir_analyses/initialization/fn.compute_definitely_initialized.html">compute_definitely_initialized</a>(<a href="#71">def_id</a>, <a href="#77">mir</a>, <a href="#70">encoder</a>.<a href="../../../encoder.rs.html#219">env</a>().tcx());
+        SpecificationBlocks::build(<a href="#70">encoder</a>.<a href="../../../encoder.rs.html#225">env</a>().query, <a href="#77">mir</a>, <span class="kw-2">&amp;</span><a href="#74">procedure</a>, <span class="bool-val">true</span>);
+    <span class="kw">let </span>initialization = <a href="../../../../../../prusti_interface/environment/mir_analyses/initialization/fn.compute_definitely_initialized.html">compute_definitely_initialized</a>(<a href="#71">def_id</a>, <a href="#77">mir</a>, <a href="#70">encoder</a>.<a href="../../../encoder.rs.html#225">env</a>().tcx());
     <span class="kw">let </span>allocation = <a href="../../../../../../prusti_interface/environment/mir_analyses/allocation/fn.compute_definitely_allocated.html">compute_definitely_allocated</a>(<a href="#71">def_id</a>, <a href="#77">mir</a>);
     <span class="kw">let </span>lifetime_count = <a href="#76">lifetimes</a>.lifetime_count();
     <span class="kw">let </span>lifetime_token_permission = <span class="prelude-val">None</span>;
@@ -2371,7 +2371,7 @@
                 <span class="string">&quot;Pure functions need to terminate&quot;</span>,
                 <a class="self" href="#211">self</a>.encoder.<a href="../../spans/interface.rs.html#12">get_mir_body_span</a>(<a class="self" href="#211">self</a>.mir),
             );
-            <a href="#213">err</a>.<a href="../../../errors/spanned_encoding_error.rs.html#99">set_help</a>(<span class="string">&quot;Consider adding the `#[terminates]` attribute.&quot;</span>);
+            <a href="#213">err</a>.<a href="../../../errors/spanned_encoding_error.rs.html#105">set_help</a>(<span class="string">&quot;Consider adding the `#[terminates]` attribute.&quot;</span>);
             <span class="prelude-val">Err</span>(<a href="#213">err</a>)
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(())
@@ -2399,7 +2399,7 @@
         use_span: <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>&gt;,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>&gt; {
         <a class="self" href="#240">self</a>.used_locals.insert(<a href="#241">place</a>.local);
-        <a class="self" href="#240">self</a>.encoder.<a href="../../places/interface.rs.html#56-61">encode_place_high</a>(<a class="self" href="#240">self</a>.mir, <a href="#241">place</a>, <a href="#242">use_span</a>)
+        <a class="self" href="#240">self</a>.encoder.<a href="../../places/interface.rs.html#58-63">encode_place_high</a>(<a class="self" href="#240">self</a>.mir, <a href="#241">place</a>, <a href="#242">use_span</a>)
     }
 
     <span class="kw">fn </span>encode_parameters(
@@ -2531,7 +2531,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
     ) -&gt; SpannedEncodingResult&lt;(Vec&lt;<a href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a>&gt;, Vec&lt;<a href="../../../../../../vir/gen/high/ast/statement/enum.Statement.html">vir_high::Statement</a>&gt;)&gt; {
         <span class="kw">let </span>mir_span = <a class="self" href="#374">self</a>.mir.span;
-        <span class="kw">let </span>substs = <a class="self" href="#374">self</a>.encoder.<a href="../../../encoder.rs.html#219">env</a>().query.identity_substs(<a class="self" href="#374">self</a>.def_id);
+        <span class="kw">let </span>substs = <a class="self" href="#374">self</a>.encoder.<a href="../../../encoder.rs.html#225">env</a>().query.identity_substs(<a class="self" href="#374">self</a>.def_id);
         <span class="comment">// Retrieve the contract
         </span><span class="kw">let </span>procedure_contract = <span class="self">self
             </span>.encoder
@@ -2840,7 +2840,7 @@
                 <span class="kw">let </span>new_borrow_lifetime = <a href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a> { name: <a href="#682">region_name</a> };
 
                 <span class="kw">let </span>encoded_rvalue = <span class="kw">if let </span><span class="prelude-val">Some</span>((place, <span class="kw">_</span>)) = <a href="#673">is_reborrow</a> {
-                    <span class="kw">let </span>reference_type = <a href="#685">place</a>.ty(<a class="self" href="#646">self</a>.mir, <a class="self" href="#646">self</a>.encoder.<a href="../../../encoder.rs.html#219">env</a>().tcx());
+                    <span class="kw">let </span>reference_type = <a href="#685">place</a>.ty(<a class="self" href="#646">self</a>.mir, <a class="self" href="#646">self</a>.encoder.<a href="../../../encoder.rs.html#225">env</a>().tcx());
                     <span class="kw">let </span>deref_lifetime = <span class="kw">match </span><a href="#686">reference_type</a>.ty.kind() {
                         ty::TyKind::Ref(region, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; <a href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a> {
                             name: <a href="#688">region</a>.<a href="../../../../../../prusti_interface/environment/debug_utils/to_text/trait.ToText.html">to_text</a>(),
@@ -2994,7 +2994,7 @@
             }
             mir::AggregateKind::Adt(adt_did, variant_index, _substs, <span class="kw">_</span>, active_field_index) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>ty = <a href="#830">encoded_target</a>.<a href="../../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">get_type</a>().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                <span class="kw">let </span>tcx = <a class="self" href="#827">self</a>.encoder.<a href="../../../encoder.rs.html#219">env</a>().tcx();
+                <span class="kw">let </span>tcx = <a class="self" href="#827">self</a>.encoder.<a href="../../../encoder.rs.html#225">env</a>().tcx();
                 <span class="kw">if </span>ty.is_enum() {
                     <span class="kw">let </span>adt_def = <a href="#840">tcx</a>.adt_def(<span class="kw-2">*</span><a href="#838">adt_did</a>);
                     <span class="kw">let </span>variant_def = <span class="kw-2">&amp;</span><a href="#842">adt_def</a>.variants()[<span class="kw-2">*</span><a href="#838">variant_index</a>];
@@ -3647,7 +3647,7 @@
         // and type substitutions.
         </span><span class="kw">let </span>(called_def_id, call_substs) =
             <a class="self" href="#1477">self</a>.encoder
-                .<a href="../../../encoder.rs.html#219">env</a>()
+                .<a href="../../../encoder.rs.html#225">env</a>()
                 .query
                 .resolve_method_call(<a class="self" href="#1477">self</a>.def_id, <a href="#1481">called_def_id</a>, <a href="#1482">call_substs</a>);
 
@@ -4052,7 +4052,7 @@
     <span class="kw">fn </span>register_error(<span class="kw-2">&amp;</span><span class="self">self</span>, location: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>, error_ctxt: <a href="../../../errors/error_manager.rs.html#52">ErrorCtxt</a>) -&gt; <a href="../../../../../../vir/common/position/struct.Position.html">vir_high::Position</a> {
         <span class="kw">let </span>span = <a class="self" href="#1895">self</a>.encoder.<a href="../../spans/interface.rs.html#18">get_mir_location_span</a>(<a class="self" href="#1895">self</a>.mir, <a href="#1895">location</a>);
         <a class="self" href="#1895">self</a>.encoder
-            .<a href="../../../encoder.rs.html#223">error_manager</a>()
+            .<a href="../../../encoder.rs.html#229">error_manager</a>()
             .<a href="../../../errors/error_manager.rs.html#247">register_error</a>(<a href="#1896">span</a>, <a href="#1895">error_ctxt</a>, <a class="self" href="#1895">self</a>.def_id)
             .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
     }
@@ -4260,7 +4260,7 @@
             } =&gt; {
                 <span class="kw">if let </span>ty::TyKind::FnDef(def_id, _substs) = <a href="#2096">literal</a>.ty().kind() {
                     <span class="kw">let </span>full_called_function_name =
-                        <a class="self" href="#2088">self</a>.encoder.<a href="../../../encoder.rs.html#219">env</a>().name.get_absolute_item_name(<span class="kw-2">*</span><a href="#2104">def_id</a>);
+                        <a class="self" href="#2088">self</a>.encoder.<a href="../../../encoder.rs.html#225">env</a>().name.get_absolute_item_name(<span class="kw-2">*</span><a href="#2104">def_id</a>);
                     <span class="kw">match </span><a href="#2105">full_called_function_name</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>() {
                         <span class="string">&quot;prusti_contracts::prusti_set_union_active_field&quot; </span>=&gt; {
                             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(args.len(), <span class="number">1</span>);

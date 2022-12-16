@@ -62,15 +62,9 @@
 <a href="#62" id="62">62</a>
 <a href="#63" id="63">63</a>
 <a href="#64" id="64">64</a>
-<a href="#65" id="65">65</a>
-<a href="#66" id="66">66</a>
-<a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a>
-<a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Helper functions for creating fields.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::encoder::errors::{<a href="../../errors/encoding_error.rs.html#15">EncodingError</a>, <a href="../../errors/encoding_error.rs.html#20">EncodingResult</a>};
+</span><span class="kw">use crate</span>::{<a href="../../errors/encoding_error.rs.html#20">encoder::errors::EncodingResult</a>, <a href="../../errors/encoding_error.rs.html#76">error_internal</a>, <a href="../../errors/encoding_error.rs.html#96">error_unsupported</a>};
 <span class="kw">use </span><a href="../../../../../log/macro.trace.html">log::trace</a>;
 
 <span class="kw">use </span><a href="../../../../../vir/high/index.html">vir_crate::high</a> <span class="kw">as </span>vir;
@@ -110,10 +104,7 @@
         }
 
         vir::Type::Array(<span class="kw">_</span>) | vir::Type::Slice(<span class="kw">_</span>) =&gt; {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::internal(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-                <span class="string">&quot;create_value_field should not be called for {}&quot;</span>,
-                ty
-            )));
+            <a class="macro" href="../../errors/encoding_error.rs.html#76-83">error_internal!</a>(<span class="string">&quot;create_value_field should not be called for {}&quot;</span>, ty);
         }
 
         vir::Type::Union(<span class="kw">_</span>)
@@ -121,10 +112,7 @@
         | vir::Type::Never
         | vir::Type::Str
         | vir::Type::Unsupported(<span class="kw">_</span>) =&gt; {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::unsupported(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-                <span class="string">&quot;{} type is not supported&quot;</span>,
-                ty
-            )));
+            <a class="macro" href="../../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(<span class="string">&quot;{} type is not supported&quot;</span>, ty);
         }
 
         vir::Type::MBool

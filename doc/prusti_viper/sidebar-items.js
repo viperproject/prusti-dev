@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["encoder",""],["verifier",""]]};
+window.SIDEBAR_ITEMS = {"macro":[["error_incorrect",""],["error_internal",""],["error_unsupported",""]],"mod":[["encoder",""],["verifier",""]]};

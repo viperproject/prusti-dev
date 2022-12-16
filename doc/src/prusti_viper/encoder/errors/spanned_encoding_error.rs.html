@@ -100,6 +100,12 @@
 <a href="#100" id="100">100</a>
 <a href="#101" id="101">101</a>
 <a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -107,7 +113,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 </span><span class="kw">use </span>prusti_rustc_interface::errors::MultiSpan;
-<span class="kw">use </span><a href="../../../../log/macro.trace.html">log::trace</a>;
+<span class="kw">use </span>log::{<a href="../../../../log/macro.debug.html">debug</a>, <a href="../../../../log/macro.error.html">error</a>};
 <span class="kw">use </span><a href="../../../../prusti_interface/prusti_error/struct.PrustiError.html">prusti_interface::PrustiError</a>;
 
 <span class="kw">use </span><a href="encoding_error_kind.rs.html#9"><span class="kw">crate</span>::encoder::errors::EncodingErrorKind</a>;
@@ -159,7 +165,9 @@
 
     <span class="doccomment">/// Usage of an unsupported Rust feature (e.g. dereferencing raw pointers)
     </span><span class="kw">pub fn </span>unsupported&lt;M: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>, S: Into&lt;MultiSpan&gt;&gt;(message: M, span: S) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Constructing unsupported error at:\n{:?}&quot;</span>, Backtrace::new());
+        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
+            <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Constructing unsupported error at:\n{:?}&quot;</span>, Backtrace::new());
+        }
         SpannedEncodingError::new(
             EncodingErrorKind::unsupported(<a href="#59">message</a>),
             <a href="#59">span</a>
@@ -168,38 +176,42 @@
 
     <span class="doccomment">/// An incorrect usage of Prusti (e.g. call an impure function in a contract)
     </span><span class="kw">pub fn </span>incorrect&lt;M: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>, S: Into&lt;MultiSpan&gt;&gt;(message: M, span: S) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Constructing incorrect error at:\n{:?}&quot;</span>, Backtrace::new());
+        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
+            <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Constructing incorrect error at:\n{:?}&quot;</span>, Backtrace::new());
+        }
         SpannedEncodingError::new(
-            EncodingErrorKind::incorrect(<a href="#68">message</a>),
-            <a href="#68">span</a>
+            EncodingErrorKind::incorrect(<a href="#70">message</a>),
+            <a href="#70">span</a>
         )
     }
 
     <span class="doccomment">/// An internal error of Prusti (e.g. failure of the fold-unfold)
     </span><span class="kw">pub fn </span>internal&lt;M: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>, S: Into&lt;MultiSpan&gt;&gt;(message: M, span: S) -&gt; <span class="self">Self </span>{
-        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Constructing internal error at:\n{:?}&quot;</span>, Backtrace::new());
+        <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(debug_assertions) {
+            <a class="macro" href="../../../../log/macro.error.html">error!</a>(<span class="string">&quot;Constructing internal error at:\n{:?}&quot;</span>, Backtrace::new());
+        }
         SpannedEncodingError::new(
-            EncodingErrorKind::internal(<a href="#77">message</a>),
-            <a href="#77">span</a>
+            EncodingErrorKind::internal(<a href="#81">message</a>),
+            <a href="#81">span</a>
         )
     }
 
     <span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a href="encoding_error_kind.rs.html#9">EncodingErrorKind</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="#85">self</a>.error
+        <span class="kw-2">&amp;</span><a class="self" href="#91">self</a>.error
     }
 
     <span class="kw">pub fn </span>with_span&lt;S: Into&lt;MultiSpan&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, span: S) -&gt; <a href="#16">SpannedEncodingError</a> {
         <span class="comment">// TODO: Stack error spans
-        </span><span class="kw-2">*</span><a class="self" href="#89">self</a>.span = <a href="#89">span</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="self"><a href="#89">self</a>
+        </span><span class="kw-2">*</span><a class="self" href="#95">self</a>.span = <a href="#95">span</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="self"><a href="#95">self</a>
     </span>}
 
     <span class="kw">pub fn </span>add_note&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: S, opt_span: <span class="prelude-ty">Option</span>&lt;MultiSpan&gt;) {
-        <a class="self" href="#95">self</a>.notes.push((<a href="#95">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#95">opt_span</a>));
+        <a class="self" href="#101">self</a>.notes.push((<a href="#101">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a href="#101">opt_span</a>));
     }
 
     <span class="kw">pub fn </span>set_help&lt;S: <a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: S) {
-        <a class="self" href="#99">self</a>.help = <span class="prelude-val">Some</span>(<a href="#99">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+        <a class="self" href="#105">self</a>.help = <span class="prelude-val">Some</span>(<a href="#105">message</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
     }
 }
 </code></pre></div>

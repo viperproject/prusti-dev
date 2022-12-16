@@ -65,8 +65,10 @@
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::encoder::{<a href="encoder.rs.html#57-60">encode_invariant_def</a>, <a href="encoder.rs.html#50-53">encode_invariant_stub</a>, <a href="encoder.rs.html#20">needs_invariant_func</a>};
 <span class="kw">use </span><a href="../../errors/encoding_error.rs.html#20"><span class="kw">crate</span>::encoder::errors::EncodingResult</a>;
+<span class="kw">use </span><a href="../../../../../prusti_utils/config/index.html">prusti_common::config</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">prusti_rustc_interface::middle::ty</a>;
 <span class="kw">use </span><a href="../../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
@@ -92,44 +94,44 @@
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         encoded_arg: <a href="../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>,
     ) -&gt; EncodingResult&lt;<a href="../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>&gt; {
-        <span class="kw">if </span>!prusti_common::config::enable_type_invariants() {
+        <span class="kw">if </span>!config::enable_type_invariants() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
 
         <span class="comment">// match snapshot ref/box peeling
-        </span><span class="kw">let </span>ty = <a href="../../snapshot/encoder.rs.html#68"><span class="kw">crate</span>::encoder::snapshot::encoder::strip_refs_and_boxes</a>(<a href="#25">ty</a>);
+        </span><span class="kw">let </span>ty = <a href="../../snapshot/encoder.rs.html#71"><span class="kw">crate</span>::encoder::snapshot::encoder::strip_refs_and_boxes</a>(<a href="#26">ty</a>);
 
-        <span class="kw">let </span>ty = <a class="self" href="#24">self</a>.<a href="../../encoder.rs.html#219">env</a>().tcx().erase_regions_ty(<a href="#33">ty</a>);
+        <span class="kw">let </span>ty = <a class="self" href="#25">self</a>.<a href="../../encoder.rs.html#225">env</a>().tcx().erase_regions_ty(<a href="#34">ty</a>);
 
         <span class="kw">if </span>!needs_invariant_func(ty) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(encoded) = <span class="self"><a href="#24">self</a>
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(encoded) = <span class="self"><a href="#25">self</a>
             </span>.type_invariant_encoder_state
             .encoded_invariants
             .borrow()
-            .get(<a href="#35">ty</a>.kind())
+            .get(<a href="#36">ty</a>.kind())
         {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#41">encoded</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[encoded_arg]));
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#42">encoded</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[encoded_arg]));
         }
 
         <span class="comment">// handle recursive definitions by inserting a bodyless stub
-        </span><a class="self" href="#24">self</a>.type_invariant_encoder_state
+        </span><a class="self" href="#25">self</a>.type_invariant_encoder_state
             .encoded_invariants
             .borrow_mut()
-            .insert(<a href="#35">ty</a>.kind().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), encode_invariant_stub(<span class="self">self</span>, ty)<span class="question-mark">?</span>);
+            .insert(<a href="#36">ty</a>.kind().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), encode_invariant_stub(<span class="self">self</span>, ty)<span class="question-mark">?</span>);
 
         <span class="kw">let </span>encoded = encode_invariant_def(<span class="self">self</span>, ty)<span class="question-mark">?</span>;
         <span class="comment">// TODO: clean up stub if encoding fails?
 
         // replace the stub with the full function
-        </span><a class="self" href="#24">self</a>.type_invariant_encoder_state
+        </span><a class="self" href="#25">self</a>.type_invariant_encoder_state
             .encoded_invariants
             .borrow_mut()
-            .insert(<a href="#35">ty</a>.kind().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#56">encoded</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            .insert(<a href="#36">ty</a>.kind().<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#57">encoded</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
-        <span class="prelude-val">Ok</span>(<a href="#56">encoded</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[encoded_arg]))
+        <span class="prelude-val">Ok</span>(<a href="#57">encoded</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[encoded_arg]))
     }
 }
 </code></pre></div>

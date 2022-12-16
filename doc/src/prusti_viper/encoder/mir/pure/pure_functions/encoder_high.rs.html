@@ -448,7 +448,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::encoder::{
     errors::{<a href="../../../errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../../../errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="../../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>, <a href="../../../errors/with_span.rs.html#13">WithSpan</a>},
     mir::{
-        contracts::{<a href="../../contracts/interface.rs.html#22">ContractsEncoderInterface</a>, <a href="../../contracts/contracts.rs.html#139">ProcedureContractMirDef</a>},
+        contracts::{<a href="../../contracts/interface.rs.html#23">ContractsEncoderInterface</a>, <a href="../../contracts/contracts.rs.html#139">ProcedureContractMirDef</a>},
         <a href="../../generics/interface.rs.html#10">generics::MirGenericsEncoderInterface</a>,
         pure::{
             interpreter::{
@@ -459,7 +459,7 @@
         <a href="../../specifications/interface.rs.html#72">specifications::SpecificationsInterface</a>,
         <a href="../../types/interface.rs.html#23">types::MirTypeEncoderInterface</a>,
     },
-    <a href="../../../encoder.rs.html#66">Encoder</a>,
+    <a href="../../../encoder.rs.html#67">Encoder</a>,
 };
 <span class="kw">use </span>log::{<a href="../../../../../../log/macro.debug.html">debug</a>, <a href="../../../../../../log/macro.trace.html">trace</a>};
 <span class="kw">use </span><a href="../../../../../../prusti_common/macro.vir_high_local.html">prusti_common::vir_high_local</a>;
@@ -489,7 +489,7 @@
     <span class="kw">let </span>function_decl = pure_encoder.encode_function_decl()<span class="question-mark">?</span>;
     <span class="kw">if </span>function_decl.body.is_some() {
         <span class="comment">// Check that function does not call itself in its contract.
-        </span><span class="kw">let </span>span = <a href="#31">encoder</a>.<a href="../../../encoder.rs.html#219">env</a>().query.get_def_span(<a href="#32">proc_def_id</a>);
+        </span><span class="kw">let </span>span = <a href="#31">encoder</a>.<a href="../../../encoder.rs.html#225">env</a>().query.get_def_span(<a href="#32">proc_def_id</a>);
         <span class="kw">struct </span>CallFinder&lt;<span class="lifetime">&#39;a</span>&gt; {
             function_name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
             span: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>,
@@ -533,7 +533,7 @@
     substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>&gt; {
     <span class="kw">let </span>mir = <a href="#83">encoder</a>
-        .<a href="../../../encoder.rs.html#219">env</a>()
+        .<a href="../../../encoder.rs.html#225">env</a>()
         .body
         .get_spec_body(<a href="#84">proc_def_id</a>, <a href="#87">substs</a>, <a href="#86">parent_def_id</a>);
     <span class="kw">let </span>interpreter = ExpressionBackwardInterpreter::new(
@@ -622,7 +622,7 @@
 
         <span class="kw">let </span>span = <a href="#162">encoder</a>.<a href="../../specifications/interface.rs.html#127">get_spec_span</a>(<a href="#163">proc_def_id</a>);
         <span class="kw">let </span>sig = <a href="#162">encoder</a>
-            .<a href="../../../encoder.rs.html#219">env</a>()
+            .<a href="../../../encoder.rs.html#225">env</a>()
             .query
             .get_fn_sig_resolved(<a href="#163">proc_def_id</a>, <a href="#166">substs</a>, <a href="#165">parent_def_id</a>);
 
@@ -641,11 +641,11 @@
     <span class="kw">fn </span>encode_function_decl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/ast/function/struct.FunctionDecl.html">vir_high::FunctionDecl</a>&gt; {
         <a class="macro" href="../../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;[enter] encode_function_decl({:?})&quot;</span>, <span class="self">self</span>.proc_def_id);
         <span class="kw">let </span>is_bodyless = <a class="self" href="#195">self</a>.encoder.<a href="../../specifications/interface.rs.html#82">is_trusted</a>(<a class="self" href="#195">self</a>.proc_def_id, <span class="prelude-val">Some</span>(<a class="self" href="#195">self</a>.substs))
-            || !<a class="self" href="#195">self</a>.encoder.<a href="../../../encoder.rs.html#219">env</a>().query.has_body(<a class="self" href="#195">self</a>.proc_def_id);
+            || !<a class="self" href="#195">self</a>.encoder.<a href="../../../encoder.rs.html#225">env</a>().query.has_body(<a class="self" href="#195">self</a>.proc_def_id);
         <span class="kw">let </span>body = <span class="kw">if </span>is_bodyless {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
-            <span class="kw">let </span>mir = <a class="self" href="#195">self</a>.encoder.<a href="../../../encoder.rs.html#219">env</a>().body.get_pure_fn_body(
+            <span class="kw">let </span>mir = <a class="self" href="#195">self</a>.encoder.<a href="../../../encoder.rs.html#225">env</a>().body.get_pure_fn_body(
                 <a class="self" href="#195">self</a>.proc_def_id,
                 <a class="self" href="#195">self</a>.substs,
                 <a class="self" href="#195">self</a>.parent_def_id,
@@ -678,7 +678,7 @@
     }
 
     <span class="kw">fn </span>encode_function_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="#234">self</a>.encoder.<a href="../../../encoder.rs.html#643">encode_item_name</a>(<a class="self" href="#234">self</a>.proc_def_id)
+        <a class="self" href="#234">self</a>.encoder.<a href="../../../encoder.rs.html#678">encode_item_name</a>(<a class="self" href="#234">self</a>.proc_def_id)
     }
 
     <span class="kw">fn </span>encode_function_decl_given_body(
@@ -829,7 +829,7 @@
         <span class="kw">let </span>post = <a href="#364">conjuncts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="../../../../../../vir/common/expression/trait.ExpressionIterator.html">conjoin</a>();
 
         <span class="comment">// TODO: use a better span
-        </span><span class="kw">let </span>postcondition_pos = <a class="self" href="#359">self</a>.encoder.<a href="../../../encoder.rs.html#223">error_manager</a>().<a href="../../../errors/error_manager.rs.html#247">register_error</a>(
+        </span><span class="kw">let </span>postcondition_pos = <a class="self" href="#359">self</a>.encoder.<a href="../../../encoder.rs.html#229">error_manager</a>().<a href="../../../errors/error_manager.rs.html#247">register_error</a>(
             <a class="self" href="#359">self</a>.span,
             <a href="../../../errors/error_manager.rs.html#123">ErrorCtxt::PureFunctionDefinition</a>,
             <a class="self" href="#359">self</a>.parent_def_id,

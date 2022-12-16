@@ -38,14 +38,10 @@
 <a href="#38" id="38">38</a>
 <a href="#39" id="39">39</a>
 <a href="#40" id="40">40</a>
-<a href="#41" id="41">41</a>
-<a href="#42" id="42">42</a>
-<a href="#43" id="43">43</a>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="interface.rs.html#20"><span class="kw">super</span>::interface::EncodedSequenceTypes</a>;
-<span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    errors::{<a href="../../errors/encoding_error.rs.html#15">EncodingError</a>, <a href="../../errors/encoding_error.rs.html#20">EncodingResult</a>},
-    <a href="../../high/types/interface.rs.html#127">high::types::HighTypeEncoderInterface</a>,
-    <a href="../../encoder.rs.html#66">Encoder</a>,
+<span class="kw">use crate</span>::{
+    encoder::{<a href="../../errors/encoding_error.rs.html#20">errors::EncodingResult</a>, <a href="../../high/types/interface.rs.html#127">high::types::HighTypeEncoderInterface</a>, <a href="../../encoder.rs.html#67">Encoder</a>},
+    <a href="../../errors/encoding_error.rs.html#96">error_unsupported</a>,
 };
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">prusti_rustc_interface::middle::ty</a>;
 
@@ -53,7 +49,7 @@
     encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
     sequence_ty_rs: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 ) -&gt; EncodingResult&lt;EncodedSequenceTypes&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-    <span class="kw">let </span>(elem_ty_rs, sequence_len) = <span class="kw">match </span><a href="#11">sequence_ty_rs</a>.kind() {
+    <span class="kw">let </span>(elem_ty_rs, sequence_len) = <span class="kw">match </span><a href="#10">sequence_ty_rs</a>.kind() {
         ty::TyKind::Array(elem_ty, array_len) =&gt; {
             <span class="kw">let </span>len = encoder
                 .const_eval_intlike(prusti_rustc_interface::middle::mir::ConstantKind::Ty(
@@ -63,13 +59,11 @@
                 .unwrap()
                 .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>()
                 .unwrap();
-            (<span class="kw-2">*</span><a href="#14">elem_ty</a>, <span class="prelude-val">Some</span>(<a href="#15">len</a>))
+            (<span class="kw-2">*</span><a href="#13">elem_ty</a>, <span class="prelude-val">Some</span>(<a href="#14">len</a>))
         }
-        ty::TyKind::Slice(elem_ty) =&gt; (<span class="kw-2">*</span><a href="#25">elem_ty</a>, <span class="prelude-val">None</span>),
+        ty::TyKind::Slice(elem_ty) =&gt; (<span class="kw-2">*</span><a href="#24">elem_ty</a>, <span class="prelude-val">None</span>),
         ty::TyKind::Str =&gt; {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::unsupported(
-                <span class="string">&quot;Encoding of Str slice type&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            ))
+            <a class="macro" href="../../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(<span class="string">&quot;Encoding of Str slice type&quot;</span>);
         }
         <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
     };
@@ -78,10 +72,10 @@
     <span class="kw">let </span>elem_pred_type = encoder.encode_type(elem_ty_rs)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(<a href="interface.rs.html#20">EncodedSequenceTypes</a> {
-        <a href="#34">sequence_pred_type</a>,
-        <a href="#35">elem_pred_type</a>,
-        <a href="#13">elem_ty_rs</a>,
-        <a href="#13">sequence_len</a>,
+        <a href="#31">sequence_pred_type</a>,
+        <a href="#32">elem_pred_type</a>,
+        <a href="#12">elem_ty_rs</a>,
+        <a href="#12">sequence_len</a>,
     })
 }
 </code></pre></div>

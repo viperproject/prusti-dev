@@ -492,6 +492,9 @@
 <a href="#492" id="492">492</a>
 <a href="#493" id="493">493</a>
 <a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A module that defines axioms for a specific type.
 //!
 //! ## Simplification and evaluation axioms
@@ -735,6 +738,7 @@
             <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{ [parameters_validity.into_iter().conjoin()] ==&gt; ([op_constructor_call] == [constructor_call_op]) },
         );
         <span class="kw">let </span>axiom = <a href="../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
+            comment: <span class="prelude-val">None</span>,
             name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$simplification_axiom&quot;</span>, variant),
             <a href="#238">body</a>,
         };
@@ -752,23 +756,24 @@
         <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
         <span class="kw">let </span>domain_name = <span class="self">self</span>.encode_snapshot_domain_name(ty)<span class="question-mark">?</span>;
         <span class="kw">let </span>op_constructor = vir_low::Expression::domain_function_call(
-            <span class="kw-2">&amp;</span><a href="#259">domain_name</a>,
+            <span class="kw-2">&amp;</span><a href="#260">domain_name</a>,
             <span class="self">self</span>.snapshot_constructor_struct_alternative_name(<span class="kw-2">&amp;</span>domain_name, variant)<span class="question-mark">?</span>,
-            <a href="#255">parameters</a>
+            <a href="#256">parameters</a>
                 .iter()
-                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|parameter| <a href="#265">parameter</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|parameter| <a href="#266">parameter</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
             ty.to_snapshot(<span class="self">self</span>)<span class="question-mark">?</span>,
         );
         <span class="kw">let </span>destructor = <span class="self">self</span>.obtain_constant_value(ty, op_constructor, Default::default())<span class="question-mark">?</span>;
         <span class="kw">let </span>body = vir_low::Expression::forall(
-            <a href="#255">parameters</a>,
+            <a href="#256">parameters</a>,
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[vir_low::Trigger::new(<span class="macro">vec!</span>[destructor.clone()])],
             <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{ [destructor] == [evaluation_result] },
         );
         <span class="kw">let </span>axiom = <a href="../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
+            comment: <span class="prelude-val">None</span>,
             name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$eval_axiom&quot;</span>, variant),
-            <a href="#270">body</a>,
+            <a href="#271">body</a>,
         };
         <span class="kw">if </span>config::use_eval_axioms() {
             <span class="self">self</span>.declare_axiom(<span class="kw-2">&amp;</span>domain_name, axiom)<span class="question-mark">?</span>;
@@ -794,7 +799,7 @@
     <span class="kw">fn </span>decode_type_low_into_mid(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/low/ast/ty/enum.Type.html">vir_low::Type</a>) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>&gt;;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <a href="#286">TypesInterface</a> <span class="kw">for </span>Lowerer&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <a href="#288">TypesInterface</a> <span class="kw">for </span>Lowerer&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>ensure_type_definition(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(
             ty,
@@ -807,7 +812,7 @@
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
         <span class="comment">// FIXME: We should avoid these copies in some smarter way.
-        </span><span class="kw">let </span>ty_identifier = <a href="#304">ty</a>.<a href="../../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>();
+        </span><span class="kw">let </span>ty_identifier = <a href="#306">ty</a>.<a href="../../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>();
         <span class="kw">if </span>!<span class="self">self
             </span>.types_state
             .ensured_definitions
@@ -815,7 +820,7 @@
         {
             <span class="comment">// We insert before doing the actual work to break infinite
             // recursion.
-            </span><a class="self" href="#304">self</a>.types_state.ensured_definitions.insert(<a href="#316">ty_identifier</a>);
+            </span><a class="self" href="#306">self</a>.types_state.ensured_definitions.insert(<a href="#318">ty_identifier</a>);
 
             <span class="kw">let </span>type_decl = <span class="self">self</span>.encoder.get_type_decl_mid(ty)<span class="question-mark">?</span>;
             <span class="self">self</span>.ensure_type_definition_for_decl(ty, <span class="kw-2">&amp;</span>type_decl)<span class="question-mark">?</span>;
@@ -833,12 +838,12 @@
             .encoded_unary_operations
             .contains(<span class="kw-2">&amp;</span>variant_name)
         {
-            <a class="self" href="#332">self</a>.types_state
+            <a class="self" href="#334">self</a>.types_state
                 .encoded_unary_operations
-                .insert(<a href="#336">variant_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                .insert(<a href="#338">variant_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
             <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
             <span class="kw">let </span>snapshot_type = argument_type.to_snapshot(<span class="self">self</span>)<span class="question-mark">?</span>;
-            <span class="kw">let </span>result_type = <a href="#334">argument_type</a>;
+            <span class="kw">let </span>result_type = <a href="#336">argument_type</a>;
             <span class="kw">let </span>result_domain = <span class="self">self</span>.encode_snapshot_domain_name(result_type)<span class="question-mark">?</span>;
             <span class="self">self</span>.register_alternative_constructor(
                 <span class="kw-2">&amp;</span>result_domain,
@@ -848,20 +853,20 @@
             )<span class="question-mark">?</span>;
             <span class="comment">// Simplification axioms.
             </span><span class="kw">let </span>op = op.to_snapshot(<span class="self">self</span>)<span class="question-mark">?</span>;
-            <span class="kw">let </span>simplification = <span class="kw">match </span><a href="#334">argument_type</a> {
+            <span class="kw">let </span>simplification = <span class="kw">match </span><a href="#336">argument_type</a> {
                 vir_mid::Type::Bool =&gt; {
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(op, vir_low::UnaryOpKind::Not);
                     <a class="macro" href="../../../../../../vir/low/macros/macro.var_decls.html">var_decls! </a>{ constant: Bool };
-                    <span class="prelude-val">Some</span>((<a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{ !constant }, <a href="#360">constant</a>))
+                    <span class="prelude-val">Some</span>((<a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{ !constant }, <a href="#362">constant</a>))
                 }
                 vir_mid::Type::Int(<span class="kw">_</span>) =&gt; {
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(op, vir_low::UnaryOpKind::Minus);
                     <a class="macro" href="../../../../../../vir/low/macros/macro.var_decls.html">var_decls! </a>{ constant: Int };
-                    <span class="prelude-val">Some</span>((<a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{ -constant }, <a href="#365">constant</a>))
+                    <span class="prelude-val">Some</span>((<a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{ -constant }, <a href="#367">constant</a>))
                 }
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             };
-            <span class="kw">if let </span><span class="prelude-val">Some</span>((simplification_result, parameter)) = <a href="#357">simplification</a> {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((simplification_result, parameter)) = <a href="#359">simplification</a> {
                 <span class="self">self</span>.declare_simplification_axiom(
                     result_type,
                     <span class="kw-2">&amp;</span>variant_name,
@@ -883,7 +888,7 @@
                 )<span class="question-mark">?</span>;
             }
         }
-        <span class="prelude-val">Ok</span>(<a href="#336">variant_name</a>)
+        <span class="prelude-val">Ok</span>(<a href="#338">variant_name</a>)
     }
     <span class="kw">fn </span>encode_binary_op_variant(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -896,12 +901,12 @@
             .encoded_binary_operations
             .contains(<span class="kw-2">&amp;</span>variant_name)
         {
-            <a class="self" href="#395">self</a>.types_state
+            <a class="self" href="#397">self</a>.types_state
                 .encoded_binary_operations
-                .insert(<a href="#399">variant_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                .insert(<a href="#401">variant_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
             <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
             <span class="kw">let </span>snapshot_type = argument_type.to_snapshot(<span class="self">self</span>)<span class="question-mark">?</span>;
-            <span class="kw">let </span>result_type = <a href="#396">op</a>.get_result_type(<a href="#397">argument_type</a>);
+            <span class="kw">let </span>result_type = <a href="#398">op</a>.get_result_type(<a href="#399">argument_type</a>);
             <span class="kw">let </span>result_domain = <span class="self">self</span>.encode_snapshot_domain_name(result_type)<span class="question-mark">?</span>;
             <span class="self">self</span>.register_alternative_constructor(
                 <span class="kw-2">&amp;</span>result_domain,
@@ -911,15 +916,15 @@
             )<span class="question-mark">?</span>;
             <span class="comment">// Simplification axioms.
             </span><span class="kw">let </span>op = op.to_snapshot(<span class="self">self</span>)<span class="question-mark">?</span>;
-            <span class="kw">let </span>constant_type = <span class="kw">match </span><a href="#397">argument_type</a> {
+            <span class="kw">let </span>constant_type = <span class="kw">match </span><a href="#399">argument_type</a> {
                 vir_mid::Type::Bool =&gt; <span class="prelude-val">Some</span>(<a class="macro" href="../../../../../../vir/vir/low/macros/macro.ty.html">ty! </a>{ Bool }),
                 vir_mid::Type::Int(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<a class="macro" href="../../../../../../vir/vir/low/macros/macro.ty.html">ty! </a>{Int}),
                 vir_mid::Type::Pointer(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<a class="macro" href="../../../../../../vir/vir/low/macros/macro.ty.html">ty!</a>(Address)),
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             };
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(constant_type) = <a href="#420">constant_type</a> {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(constant_type) = <a href="#422">constant_type</a> {
                 <a class="macro" href="../../../../../../vir/low/macros/macro.var_decls.html">var_decls! </a>{ left: {constant_type.clone()}, right: {constant_type} };
-                <span class="kw">let </span>result = vir_low::Expression::binary_op_no_pos(<a href="#419">op</a>, <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{left}, <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{right});
+                <span class="kw">let </span>result = vir_low::Expression::binary_op_no_pos(<a href="#421">op</a>, <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{left}, <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{right});
                 <span class="self">self</span>.declare_simplification_axiom(
                     result_type,
                     <span class="kw-2">&amp;</span>variant_name,
@@ -949,7 +954,7 @@
                 </span><a class="macro" href="../../../../../../vir/low/macros/macro.var_decls.html">var_decls! </a>{ left: {snapshot_type.clone()}, right: {snapshot_type} };
                 <span class="kw">let </span>domain_name = <span class="self">self</span>.encode_snapshot_domain_name(<span class="kw-2">&amp;</span>vir_mid::Type::Bool)<span class="question-mark">?</span>;
                 <span class="kw">let </span>op_constructor_call = vir_low::Expression::domain_function_call(
-                    <span class="kw-2">&amp;</span><a href="#456">domain_name</a>,
+                    <span class="kw-2">&amp;</span><a href="#458">domain_name</a>,
                     <span class="self">self</span>.snapshot_constructor_struct_alternative_name(<span class="kw-2">&amp;</span>domain_name, <span class="kw-2">&amp;</span>variant_name)<span class="question-mark">?</span>,
                     <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[left.clone().into(), right.clone().into()],
                     result_type.to_snapshot(<span class="self">self</span>)<span class="question-mark">?</span>,
@@ -964,26 +969,27 @@
                     <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{ [op_constructor_call] == [constructor_call_op] },
                 );
                 <span class="kw">let </span>axiom = <a href="../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
+                    comment: <span class="prelude-val">None</span>,
                     name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$simplification_axiom&quot;</span>, variant_name),
-                    <a href="#467">body</a>,
+                    <a href="#469">body</a>,
                 };
                 <span class="self">self</span>.declare_axiom(<span class="kw-2">&amp;</span>domain_name, axiom)<span class="question-mark">?</span>;
             }
         }
-        <span class="prelude-val">Ok</span>(<a href="#399">variant_name</a>)
+        <span class="prelude-val">Ok</span>(<a href="#401">variant_name</a>)
     }
     <span class="kw">fn </span>decode_type_low_into_mid(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/low/ast/ty/enum.Type.html">vir_low::Type</a>) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>&gt; {
-        <span class="kw">let </span>decoded_type = <span class="kw">match </span><a href="#481">ty</a> {
+        <span class="kw">let </span>decoded_type = <span class="kw">match </span><a href="#484">ty</a> {
             vir_low::Type::Domain(domain) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(decoded_type) = <span class="self">self</span>.try_decoding_snapshot_type(<span class="kw-2">&amp;</span>domain.name)<span class="question-mark">? </span>{
-                    <a href="#484">decoded_type</a>
+                    <a href="#487">decoded_type</a>
                 } <span class="kw">else </span>{
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;Failed to decode the snapshot type: {}&quot;</span>, ty);
                 }
             }
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;Trying to decode unsupported type: {}&quot;</span>, ty),
         };
-        <span class="prelude-val">Ok</span>(<a href="#482">decoded_type</a>)
+        <span class="prelude-val">Ok</span>(<a href="#485">decoded_type</a>)
     }
 }
 </code></pre></div>

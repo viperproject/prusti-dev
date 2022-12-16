@@ -1178,6 +1178,9 @@
 <a href="#1178" id="1178">1178</a>
 <a href="#1179" id="1179">1179</a>
 <a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::{
     borrows::{<a href="../borrows.rs.html#9">Borrow</a>, <a href="../borrows.rs.html#78">DAG</a> <span class="kw">as </span>ReborrowingDAG},
     <a href="../cfg/method.rs.html#40">cfg::CfgBlockIndex</a>,
@@ -1586,6 +1589,9 @@
     <span class="kw">pub fn </span>inhale(expr: <a href="expr.rs.html#13">Expr</a>) -&gt; <span class="self">Self </span>{
         <a href="#13">Stmt::Inhale</a>(<a href="#121">Inhale</a> { <a href="#406">expr</a> })
     }
+    <span class="kw">pub fn </span>exhale(expr: <a href="expr.rs.html#13">Expr</a>, position: <a href="common.rs.html#27">Position</a>) -&gt; <span class="self">Self </span>{
+        <a href="#14">Stmt::Exhale</a>(<a href="#130">Exhale</a> { <a href="#409">expr</a>, <a href="#409">position</a> })
+    }
     <span class="kw">pub fn </span>package_magic_wand(
         lhs: <a href="expr.rs.html#13">Expr</a>,
         rhs: <a href="expr.rs.html#13">Expr</a>,
@@ -1596,33 +1602,33 @@
     ) -&gt; <span class="self">Self </span>{
         <a href="#44">Stmt::PackageMagicWand</a>(<a href="#296">PackageMagicWand</a> {
             magic_wand: <a href="expr.rs.html#25">Expr::MagicWand</a>(<a href="expr.rs.html#1745">MagicWand</a> {
-                left: Box::new(<a href="#410">lhs</a>),
-                right: Box::new(<a href="#411">rhs</a>),
+                left: Box::new(<a href="#413">lhs</a>),
+                right: Box::new(<a href="#414">rhs</a>),
                 borrow: <span class="prelude-val">None</span>,
-                position: <a href="#415">pos</a>,
+                position: <a href="#418">pos</a>,
             }),
-            package_stmts: <a href="#412">stmts</a>,
-            <a href="#413">label</a>,
-            variables: <a href="#414">vars</a>,
-            position: <a href="#415">pos</a>,
+            package_stmts: <a href="#415">stmts</a>,
+            <a href="#416">label</a>,
+            variables: <a href="#417">vars</a>,
+            position: <a href="#418">pos</a>,
         })
     }
     <span class="kw">pub fn </span>apply_magic_wand(lhs: <a href="expr.rs.html#13">Expr</a>, rhs: <a href="expr.rs.html#13">Expr</a>, borrow: <a href="../borrows.rs.html#9">Borrow</a>, pos: <a href="common.rs.html#27">Position</a>) -&gt; <span class="self">Self </span>{
         <a href="#47">Stmt::ApplyMagicWand</a>(<a href="#326">ApplyMagicWand</a> {
-            magic_wand: Expr::magic_wand(<a href="#430">lhs</a>, <a href="#430">rhs</a>, <span class="prelude-val">Some</span>(<a href="#430">borrow</a>)),
-            position: <a href="#430">pos</a>,
+            magic_wand: Expr::magic_wand(<a href="#433">lhs</a>, <a href="#433">rhs</a>, <span class="prelude-val">Some</span>(<a href="#433">borrow</a>)),
+            position: <a href="#433">pos</a>,
         })
     }
     <span class="kw">pub fn </span>pos(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="common.rs.html#27">Position</a>&gt; {
-        <span class="kw">match </span><span class="self"><a href="#436">self</a> </span>{
-            <a href="#44">Stmt::PackageMagicWand</a>(<a href="#296">PackageMagicWand</a> { position, .. }) =&gt; <span class="prelude-val">Some</span>(<a href="#438">position</a>),
-            <a href="#14">Stmt::Exhale</a>(<a href="#130">Exhale</a> { position, .. }) =&gt; <span class="prelude-val">Some</span>(<a href="#439">position</a>),
+        <span class="kw">match </span><span class="self"><a href="#439">self</a> </span>{
+            <a href="#44">Stmt::PackageMagicWand</a>(<a href="#296">PackageMagicWand</a> { position, .. }) =&gt; <span class="prelude-val">Some</span>(<a href="#441">position</a>),
+            <a href="#14">Stmt::Exhale</a>(<a href="#130">Exhale</a> { position, .. }) =&gt; <span class="prelude-val">Some</span>(<a href="#442">position</a>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
     <span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>set_pos(<span class="self">self</span>, position: <a href="common.rs.html#27">Position</a>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self"><a href="#444">self</a> </span>{
+        <span class="kw">match </span><span class="self"><a href="#447">self</a> </span>{
             <a href="#44">Stmt::PackageMagicWand</a>(<a href="#296">PackageMagicWand</a> {
                 magic_wand,
                 package_stmts,
@@ -1630,81 +1636,81 @@
                 variables,
                 ..
             }) =&gt; <a href="#44">Stmt::PackageMagicWand</a>(<a href="#296">PackageMagicWand</a> {
-                <a href="#447">magic_wand</a>,
-                <a href="#448">package_stmts</a>,
-                <a href="#449">label</a>,
-                <a href="#450">variables</a>,
-                <a href="#444">position</a>,
+                <a href="#450">magic_wand</a>,
+                <a href="#451">package_stmts</a>,
+                <a href="#452">label</a>,
+                <a href="#453">variables</a>,
+                <a href="#447">position</a>,
             }),
-            <a href="#14">Stmt::Exhale</a>(<a href="#130">Exhale</a> { expr, .. }) =&gt; <a href="#14">Stmt::Exhale</a>(<a href="#130">Exhale</a> { <a href="#459">expr</a>, <a href="#444">position</a> }),
-            x =&gt; <a href="#460">x</a>,
+            <a href="#14">Stmt::Exhale</a>(<a href="#130">Exhale</a> { expr, .. }) =&gt; <a href="#14">Stmt::Exhale</a>(<a href="#130">Exhale</a> { <a href="#462">expr</a>, <a href="#447">position</a> }),
+            x =&gt; <a href="#463">x</a>,
         }
     }
     <span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>set_default_pos(<span class="self">self</span>, pos: <a href="common.rs.html#27">Position</a>) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span><span class="self">self</span>.pos().iter().any(|x| x.is_default()) {
-            <a class="self" href="#464">self</a>.<a href="#444">set_pos</a>(<a href="#464">pos</a>)
+            <a class="self" href="#467">self</a>.<a href="#447">set_pos</a>(<a href="#467">pos</a>)
         } <span class="kw">else </span>{
-            <span class="self"><a href="#464">self</a>
+            <span class="self"><a href="#467">self</a>
         </span>}
     }
     <span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>set_default_expr_pos(<span class="self">self</span>, pos: <a href="common.rs.html#27">Position</a>) -&gt; <span class="self">Self </span>{
-        <a class="self" href="#472">self</a>.<a href="../utils.rs.html#9-11">map_expr</a>(|e| <a href="#473">e</a>.<a href="expr.rs.html#161">set_default_pos</a>(<a href="#472">pos</a>))
+        <a class="self" href="#475">self</a>.<a href="../utils.rs.html#9-11">map_expr</a>(|e| <a href="#476">e</a>.<a href="expr.rs.html#161">set_default_pos</a>(<a href="#475">pos</a>))
     }
 }
 <span class="kw">pub trait </span>StmtFolder {
     <span class="kw">fn </span>fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="#10">Stmt</a>) -&gt; <a href="#10">Stmt</a> {
-        <span class="kw">match </span><a href="#477">e</a> {
-            <a href="#11">Stmt::Comment</a>(comment) =&gt; <a class="self" href="#477">self</a>.<a href="#504">fold_comment</a>(<a href="#479">comment</a>),
-            <a href="#12">Stmt::Label</a>(label) =&gt; <a class="self" href="#477">self</a>.<a href="#507">fold_label</a>(<a href="#480">label</a>),
-            <a href="#13">Stmt::Inhale</a>(inhale) =&gt; <a class="self" href="#477">self</a>.<a href="#510">fold_inhale</a>(<a href="#481">inhale</a>),
-            <a href="#14">Stmt::Exhale</a>(exhale) =&gt; <a class="self" href="#477">self</a>.<a href="#516">fold_exhale</a>(<a href="#482">exhale</a>),
-            <a href="#15">Stmt::Assert</a>(assert) =&gt; <a class="self" href="#477">self</a>.<a href="#523">fold_assert</a>(<a href="#483">assert</a>),
-            <a href="#17">Stmt::MethodCall</a>(method_call) =&gt; <a class="self" href="#477">self</a>.<a href="#530">fold_method_call</a>(<a href="#484">method_call</a>),
-            <a href="#19">Stmt::Assign</a>(assign) =&gt; <a class="self" href="#477">self</a>.<a href="#542">fold_assign</a>(<a href="#485">assign</a>),
-            <a href="#21">Stmt::Fold</a>(fold) =&gt; <a class="self" href="#477">self</a>.<a href="#554">fold_fold</a>(<a href="#486">fold</a>),
-            <a href="#23">Stmt::Unfold</a>(unfold) =&gt; <a class="self" href="#477">self</a>.<a href="#570">fold_unfold</a>(<a href="#487">unfold</a>),
-            <a href="#26">Stmt::Obtain</a>(obtain) =&gt; <a class="self" href="#477">self</a>.<a href="#584">fold_obtain</a>(<a href="#488">obtain</a>),
-            <a href="#29">Stmt::BeginFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#477">self</a>.<a href="#591">fold_begin_frame</a>(),
-            <a href="#32">Stmt::EndFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#477">self</a>.<a href="#594">fold_end_frame</a>(),
-            <a href="#39">Stmt::TransferPerm</a>(transfer_perm) =&gt; <a class="self" href="#477">self</a>.<a href="#597">fold_transfer_perm</a>(<a href="#491">transfer_perm</a>),
+        <span class="kw">match </span><a href="#480">e</a> {
+            <a href="#11">Stmt::Comment</a>(comment) =&gt; <a class="self" href="#480">self</a>.<a href="#507">fold_comment</a>(<a href="#482">comment</a>),
+            <a href="#12">Stmt::Label</a>(label) =&gt; <a class="self" href="#480">self</a>.<a href="#510">fold_label</a>(<a href="#483">label</a>),
+            <a href="#13">Stmt::Inhale</a>(inhale) =&gt; <a class="self" href="#480">self</a>.<a href="#513">fold_inhale</a>(<a href="#484">inhale</a>),
+            <a href="#14">Stmt::Exhale</a>(exhale) =&gt; <a class="self" href="#480">self</a>.<a href="#519">fold_exhale</a>(<a href="#485">exhale</a>),
+            <a href="#15">Stmt::Assert</a>(assert) =&gt; <a class="self" href="#480">self</a>.<a href="#526">fold_assert</a>(<a href="#486">assert</a>),
+            <a href="#17">Stmt::MethodCall</a>(method_call) =&gt; <a class="self" href="#480">self</a>.<a href="#533">fold_method_call</a>(<a href="#487">method_call</a>),
+            <a href="#19">Stmt::Assign</a>(assign) =&gt; <a class="self" href="#480">self</a>.<a href="#545">fold_assign</a>(<a href="#488">assign</a>),
+            <a href="#21">Stmt::Fold</a>(fold) =&gt; <a class="self" href="#480">self</a>.<a href="#557">fold_fold</a>(<a href="#489">fold</a>),
+            <a href="#23">Stmt::Unfold</a>(unfold) =&gt; <a class="self" href="#480">self</a>.<a href="#573">fold_unfold</a>(<a href="#490">unfold</a>),
+            <a href="#26">Stmt::Obtain</a>(obtain) =&gt; <a class="self" href="#480">self</a>.<a href="#587">fold_obtain</a>(<a href="#491">obtain</a>),
+            <a href="#29">Stmt::BeginFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#480">self</a>.<a href="#594">fold_begin_frame</a>(),
+            <a href="#32">Stmt::EndFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#480">self</a>.<a href="#597">fold_end_frame</a>(),
+            <a href="#39">Stmt::TransferPerm</a>(transfer_perm) =&gt; <a class="self" href="#480">self</a>.<a href="#600">fold_transfer_perm</a>(<a href="#494">transfer_perm</a>),
             <a href="#44">Stmt::PackageMagicWand</a>(package_magic_wand) =&gt; {
-                <a class="self" href="#477">self</a>.<a href="#609">fold_package_magic_wand</a>(<a href="#492">package_magic_wand</a>)
+                <a class="self" href="#480">self</a>.<a href="#612">fold_package_magic_wand</a>(<a href="#495">package_magic_wand</a>)
             }
-            <a href="#47">Stmt::ApplyMagicWand</a>(apply_magic_wand) =&gt; <a class="self" href="#477">self</a>.<a href="#625">fold_apply_magic_wand</a>(<a href="#495">apply_magic_wand</a>),
-            <a href="#49">Stmt::ExpireBorrows</a>(expire_borrows) =&gt; <a class="self" href="#477">self</a>.<a href="#635">fold_expire_borrows</a>(<a href="#496">expire_borrows</a>),
-            <a href="#51">Stmt::If</a>(if_stmt) =&gt; <a class="self" href="#477">self</a>.<a href="#639">fold_if</a>(<a href="#497">if_stmt</a>),
-            <a href="#57">Stmt::Downcast</a>(downcast) =&gt; <a class="self" href="#477">self</a>.<a href="#651">fold_downcast</a>(<a href="#498">downcast</a>),
+            <a href="#47">Stmt::ApplyMagicWand</a>(apply_magic_wand) =&gt; <a class="self" href="#480">self</a>.<a href="#628">fold_apply_magic_wand</a>(<a href="#498">apply_magic_wand</a>),
+            <a href="#49">Stmt::ExpireBorrows</a>(expire_borrows) =&gt; <a class="self" href="#480">self</a>.<a href="#638">fold_expire_borrows</a>(<a href="#499">expire_borrows</a>),
+            <a href="#51">Stmt::If</a>(if_stmt) =&gt; <a class="self" href="#480">self</a>.<a href="#642">fold_if</a>(<a href="#500">if_stmt</a>),
+            <a href="#57">Stmt::Downcast</a>(downcast) =&gt; <a class="self" href="#480">self</a>.<a href="#654">fold_downcast</a>(<a href="#501">downcast</a>),
         }
     }
     <span class="kw">fn </span>fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <a href="expr.rs.html#13">Expr</a>) -&gt; <a href="expr.rs.html#13">Expr</a> {
-        <a href="#501">expr</a>
+        <a href="#504">expr</a>
     }
     <span class="kw">fn </span>fold_comment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, comment: <a href="#103">Comment</a>) -&gt; <a href="#10">Stmt</a> {
-        <a href="#11">Stmt::Comment</a>(<a href="#504">comment</a>)
+        <a href="#11">Stmt::Comment</a>(<a href="#507">comment</a>)
     }
     <span class="kw">fn </span>fold_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <a href="#112">Label</a>) -&gt; <a href="#10">Stmt</a> {
-        <a href="#12">Stmt::Label</a>(<a href="#507">label</a>)
+        <a href="#12">Stmt::Label</a>(<a href="#510">label</a>)
     }
     <span class="kw">fn </span>fold_inhale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#121">Inhale</a>) -&gt; <a href="#10">Stmt</a> {
-        <span class="kw">let </span><a href="#121">Inhale</a> { expr } = <a href="#510">statement</a>;
+        <span class="kw">let </span><a href="#121">Inhale</a> { expr } = <a href="#513">statement</a>;
         <a href="#13">Stmt::Inhale</a>(<a href="#121">Inhale</a> {
-            expr: <a class="self" href="#510">self</a>.<a href="#501">fold_expr</a>(<a href="#511">expr</a>),
+            expr: <a class="self" href="#513">self</a>.<a href="#504">fold_expr</a>(<a href="#514">expr</a>),
         })
     }
     <span class="kw">fn </span>fold_exhale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#130">Exhale</a>) -&gt; <a href="#10">Stmt</a> {
-        <span class="kw">let </span><a href="#130">Exhale</a> { expr, position } = <a href="#516">statement</a>;
+        <span class="kw">let </span><a href="#130">Exhale</a> { expr, position } = <a href="#519">statement</a>;
         <a href="#14">Stmt::Exhale</a>(<a href="#130">Exhale</a> {
-            expr: <a class="self" href="#516">self</a>.<a href="#501">fold_expr</a>(<a href="#517">expr</a>),
-            <a href="#517">position</a>,
+            expr: <a class="self" href="#519">self</a>.<a href="#504">fold_expr</a>(<a href="#520">expr</a>),
+            <a href="#520">position</a>,
         })
     }
     <span class="kw">fn </span>fold_assert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#140">Assert</a>) -&gt; <a href="#10">Stmt</a> {
-        <span class="kw">let </span><a href="#140">Assert</a> { expr, position } = <a href="#523">statement</a>;
+        <span class="kw">let </span><a href="#140">Assert</a> { expr, position } = <a href="#526">statement</a>;
         <a href="#15">Stmt::Assert</a>(<a href="#140">Assert</a> {
-            expr: <a class="self" href="#523">self</a>.<a href="#501">fold_expr</a>(<a href="#524">expr</a>),
-            <a href="#524">position</a>,
+            expr: <a class="self" href="#526">self</a>.<a href="#504">fold_expr</a>(<a href="#527">expr</a>),
+            <a href="#527">position</a>,
         })
     }
     <span class="kw">fn </span>fold_method_call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#150">MethodCall</a>) -&gt; <a href="#10">Stmt</a> {
@@ -1712,11 +1718,11 @@
             method_name,
             arguments,
             targets,
-        } = <a href="#530">statement</a>;
+        } = <a href="#533">statement</a>;
         <a href="#17">Stmt::MethodCall</a>(<a href="#150">MethodCall</a> {
-            <a href="#532">method_name</a>,
-            arguments: <a href="#533">arguments</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#530">self</a>.<a href="#501">fold_expr</a>(<a href="#538">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a href="#534">targets</a>,
+            <a href="#535">method_name</a>,
+            arguments: <a href="#536">arguments</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#533">self</a>.<a href="#504">fold_expr</a>(<a href="#541">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            <a href="#537">targets</a>,
         })
     }
     <span class="kw">fn </span>fold_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#175">Assign</a>) -&gt; <a href="#10">Stmt</a> {
@@ -1724,11 +1730,11 @@
             target,
             source,
             kind,
-        } = <a href="#542">statement</a>;
+        } = <a href="#545">statement</a>;
         <a href="#19">Stmt::Assign</a>(<a href="#175">Assign</a> {
-            target: <a class="self" href="#542">self</a>.<a href="#501">fold_expr</a>(<a href="#544">target</a>),
-            source: <a class="self" href="#542">self</a>.<a href="#501">fold_expr</a>(<a href="#545">source</a>),
-            <a href="#546">kind</a>,
+            target: <a class="self" href="#545">self</a>.<a href="#504">fold_expr</a>(<a href="#547">target</a>),
+            source: <a class="self" href="#545">self</a>.<a href="#504">fold_expr</a>(<a href="#548">source</a>),
+            <a href="#549">kind</a>,
         })
     }
     <span class="kw">fn </span>fold_fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#204">Fold</a>) -&gt; <a href="#10">Stmt</a> {
@@ -1738,13 +1744,13 @@
             permission,
             enum_variant,
             position,
-        } = <a href="#554">statement</a>;
+        } = <a href="#557">statement</a>;
         <a href="#21">Stmt::Fold</a>(<a href="#204">Fold</a> {
-            <a href="#556">predicate</a>,
-            arguments: <a href="#557">arguments</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#554">self</a>.<a href="#501">fold_expr</a>(<a href="#564">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a href="#558">permission</a>,
-            <a href="#559">enum_variant</a>,
-            <a href="#560">position</a>,
+            <a href="#559">predicate</a>,
+            arguments: <a href="#560">arguments</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#557">self</a>.<a href="#504">fold_expr</a>(<a href="#567">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            <a href="#561">permission</a>,
+            <a href="#562">enum_variant</a>,
+            <a href="#563">position</a>,
         })
     }
     <span class="kw">fn </span>fold_unfold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#231">Unfold</a>) -&gt; <a href="#10">Stmt</a> {
@@ -1753,19 +1759,19 @@
             arguments,
             permission,
             enum_variant,
-        } = <a href="#570">statement</a>;
+        } = <a href="#573">statement</a>;
         <a href="#23">Stmt::Unfold</a>(<a href="#231">Unfold</a> {
-            <a href="#572">predicate</a>,
-            arguments: <a href="#573">arguments</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#570">self</a>.<a href="#501">fold_expr</a>(<a href="#579">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a href="#574">permission</a>,
-            <a href="#575">enum_variant</a>,
+            <a href="#575">predicate</a>,
+            arguments: <a href="#576">arguments</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|e| <a class="self" href="#573">self</a>.<a href="#504">fold_expr</a>(<a href="#582">e</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            <a href="#577">permission</a>,
+            <a href="#578">enum_variant</a>,
         })
     }
     <span class="kw">fn </span>fold_obtain(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#257">Obtain</a>) -&gt; <a href="#10">Stmt</a> {
-        <span class="kw">let </span><a href="#257">Obtain</a> { expr, position } = <a href="#584">statement</a>;
+        <span class="kw">let </span><a href="#257">Obtain</a> { expr, position } = <a href="#587">statement</a>;
         <a href="#26">Stmt::Obtain</a>(<a href="#257">Obtain</a> {
-            expr: <a class="self" href="#584">self</a>.<a href="#501">fold_expr</a>(<a href="#585">expr</a>),
-            <a href="#585">position</a>,
+            expr: <a class="self" href="#587">self</a>.<a href="#504">fold_expr</a>(<a href="#588">expr</a>),
+            <a href="#588">position</a>,
         })
     }
     <span class="kw">fn </span>fold_begin_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <a href="#10">Stmt</a> {
@@ -1779,11 +1785,11 @@
             left,
             right,
             unchecked,
-        } = <a href="#597">statement</a>;
+        } = <a href="#600">statement</a>;
         <a href="#39">Stmt::TransferPerm</a>(<a href="#281">TransferPerm</a> {
-            left: <a class="self" href="#597">self</a>.<a href="#501">fold_expr</a>(<a href="#599">left</a>),
-            right: <a class="self" href="#597">self</a>.<a href="#501">fold_expr</a>(<a href="#600">right</a>),
-            <a href="#601">unchecked</a>,
+            left: <a class="self" href="#600">self</a>.<a href="#504">fold_expr</a>(<a href="#602">left</a>),
+            right: <a class="self" href="#600">self</a>.<a href="#504">fold_expr</a>(<a href="#603">right</a>),
+            <a href="#604">unchecked</a>,
         })
     }
     <span class="kw">fn </span>fold_package_magic_wand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#296">PackageMagicWand</a>) -&gt; <a href="#10">Stmt</a> {
@@ -1793,106 +1799,106 @@
             label,
             variables,
             position,
-        } = <a href="#609">statement</a>;
+        } = <a href="#612">statement</a>;
         <a href="#44">Stmt::PackageMagicWand</a>(<a href="#296">PackageMagicWand</a> {
-            magic_wand: <a class="self" href="#609">self</a>.<a href="#501">fold_expr</a>(<a href="#611">magic_wand</a>),
-            package_stmts: <a href="#612">package_stmts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a class="self" href="#609">self</a>.<a href="#477">fold</a>(<a href="#619">x</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            <a href="#613">label</a>,
-            <a href="#614">variables</a>,
-            <a href="#615">position</a>,
+            magic_wand: <a class="self" href="#612">self</a>.<a href="#504">fold_expr</a>(<a href="#614">magic_wand</a>),
+            package_stmts: <a href="#615">package_stmts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a class="self" href="#612">self</a>.<a href="#480">fold</a>(<a href="#622">x</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            <a href="#616">label</a>,
+            <a href="#617">variables</a>,
+            <a href="#618">position</a>,
         })
     }
     <span class="kw">fn </span>fold_apply_magic_wand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#326">ApplyMagicWand</a>) -&gt; <a href="#10">Stmt</a> {
         <span class="kw">let </span><a href="#326">ApplyMagicWand</a> {
             magic_wand,
             position,
-        } = <a href="#625">statement</a>;
+        } = <a href="#628">statement</a>;
         <a href="#47">Stmt::ApplyMagicWand</a>(<a href="#326">ApplyMagicWand</a> {
-            magic_wand: <a class="self" href="#625">self</a>.<a href="#501">fold_expr</a>(<a href="#627">magic_wand</a>),
-            <a href="#628">position</a>,
+            magic_wand: <a class="self" href="#628">self</a>.<a href="#504">fold_expr</a>(<a href="#630">magic_wand</a>),
+            <a href="#631">position</a>,
         })
     }
     <span class="kw">fn </span>fold_expire_borrows(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#347">ExpireBorrows</a>) -&gt; <a href="#10">Stmt</a> {
-        <span class="kw">let </span><a href="#347">ExpireBorrows</a> { dag } = <a href="#635">statement</a>;
-        <a href="#49">Stmt::ExpireBorrows</a>(<a href="#347">ExpireBorrows</a> { <a href="#636">dag</a> })
+        <span class="kw">let </span><a href="#347">ExpireBorrows</a> { dag } = <a href="#638">statement</a>;
+        <a href="#49">Stmt::ExpireBorrows</a>(<a href="#347">ExpireBorrows</a> { <a href="#639">dag</a> })
     }
     <span class="kw">fn </span>fold_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#356">If</a>) -&gt; <a href="#10">Stmt</a> {
         <span class="kw">let </span><a href="#356">If</a> {
             guard,
             then_stmts,
             else_stmts,
-        } = <a href="#639">statement</a>;
+        } = <a href="#642">statement</a>;
         <a href="#51">Stmt::If</a>(<a href="#356">If</a> {
-            guard: <a class="self" href="#639">self</a>.<a href="#501">fold_expr</a>(<a href="#641">guard</a>),
-            then_stmts: <a href="#642">then_stmts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a class="self" href="#639">self</a>.<a href="#477">fold</a>(<a href="#647">x</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
-            else_stmts: <a href="#643">else_stmts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a class="self" href="#639">self</a>.<a href="#477">fold</a>(<a href="#648">x</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            guard: <a class="self" href="#642">self</a>.<a href="#504">fold_expr</a>(<a href="#644">guard</a>),
+            then_stmts: <a href="#645">then_stmts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a class="self" href="#642">self</a>.<a href="#480">fold</a>(<a href="#650">x</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+            else_stmts: <a href="#646">else_stmts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|x| <a class="self" href="#642">self</a>.<a href="#480">fold</a>(<a href="#651">x</a>)).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
         })
     }
     <span class="kw">fn </span>fold_downcast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#383">Downcast</a>) -&gt; <a href="#10">Stmt</a> {
-        <span class="kw">let </span><a href="#383">Downcast</a> { base, field } = <a href="#651">statement</a>;
+        <span class="kw">let </span><a href="#383">Downcast</a> { base, field } = <a href="#654">statement</a>;
         <a href="#57">Stmt::Downcast</a>(<a href="#383">Downcast</a> {
-            base: <a class="self" href="#651">self</a>.<a href="#501">fold_expr</a>(<a href="#652">base</a>),
-            <a href="#652">field</a>,
+            base: <a class="self" href="#654">self</a>.<a href="#504">fold_expr</a>(<a href="#655">base</a>),
+            <a href="#655">field</a>,
         })
     }
 }
 <span class="kw">pub trait </span>FallibleStmtFolder {
     <span class="kw">type </span>Error;
     <span class="kw">fn </span>fallible_fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <a href="#10">Stmt</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">Stmt</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="kw">match </span><a href="#661">e</a> {
-            <a href="#11">Stmt::Comment</a>(comment) =&gt; <a class="self" href="#661">self</a>.<a href="#692">fallible_fold_comment</a>(<a href="#663">comment</a>),
-            <a href="#12">Stmt::Label</a>(label) =&gt; <a class="self" href="#661">self</a>.<a href="#695">fallible_fold_label</a>(<a href="#664">label</a>),
-            <a href="#13">Stmt::Inhale</a>(inhale) =&gt; <a class="self" href="#661">self</a>.<a href="#698">fallible_fold_inhale</a>(<a href="#665">inhale</a>),
-            <a href="#14">Stmt::Exhale</a>(exhale) =&gt; <a class="self" href="#661">self</a>.<a href="#704">fallible_fold_exhale</a>(<a href="#666">exhale</a>),
-            <a href="#15">Stmt::Assert</a>(assert) =&gt; <a class="self" href="#661">self</a>.<a href="#711">fallible_fold_assert</a>(<a href="#667">assert</a>),
-            <a href="#17">Stmt::MethodCall</a>(method_call) =&gt; <a class="self" href="#661">self</a>.<a href="#718">fallible_fold_method_call</a>(<a href="#668">method_call</a>),
-            <a href="#19">Stmt::Assign</a>(assign) =&gt; <a class="self" href="#661">self</a>.<a href="#733">fallible_fold_assign</a>(<a href="#669">assign</a>),
-            <a href="#21">Stmt::Fold</a>(fold) =&gt; <a class="self" href="#661">self</a>.<a href="#745">fallible_fold_fold</a>(<a href="#670">fold</a>),
-            <a href="#23">Stmt::Unfold</a>(unfold) =&gt; <a class="self" href="#661">self</a>.<a href="#764">fallible_fold_unfold</a>(<a href="#671">unfold</a>),
-            <a href="#26">Stmt::Obtain</a>(obtain) =&gt; <a class="self" href="#661">self</a>.<a href="#781">fallible_fold_obtain</a>(<a href="#672">obtain</a>),
-            <a href="#29">Stmt::BeginFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#661">self</a>.<a href="#788">fallible_fold_begin_frame</a>(),
-            <a href="#32">Stmt::EndFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#661">self</a>.<a href="#791">fallible_fold_end_frame</a>(),
-            <a href="#39">Stmt::TransferPerm</a>(transfer_perm) =&gt; <a class="self" href="#661">self</a>.<a href="#794-797">fallible_fold_transfer_perm</a>(<a href="#675">transfer_perm</a>),
+        <span class="kw">match </span><a href="#664">e</a> {
+            <a href="#11">Stmt::Comment</a>(comment) =&gt; <a class="self" href="#664">self</a>.<a href="#695">fallible_fold_comment</a>(<a href="#666">comment</a>),
+            <a href="#12">Stmt::Label</a>(label) =&gt; <a class="self" href="#664">self</a>.<a href="#698">fallible_fold_label</a>(<a href="#667">label</a>),
+            <a href="#13">Stmt::Inhale</a>(inhale) =&gt; <a class="self" href="#664">self</a>.<a href="#701">fallible_fold_inhale</a>(<a href="#668">inhale</a>),
+            <a href="#14">Stmt::Exhale</a>(exhale) =&gt; <a class="self" href="#664">self</a>.<a href="#707">fallible_fold_exhale</a>(<a href="#669">exhale</a>),
+            <a href="#15">Stmt::Assert</a>(assert) =&gt; <a class="self" href="#664">self</a>.<a href="#714">fallible_fold_assert</a>(<a href="#670">assert</a>),
+            <a href="#17">Stmt::MethodCall</a>(method_call) =&gt; <a class="self" href="#664">self</a>.<a href="#721">fallible_fold_method_call</a>(<a href="#671">method_call</a>),
+            <a href="#19">Stmt::Assign</a>(assign) =&gt; <a class="self" href="#664">self</a>.<a href="#736">fallible_fold_assign</a>(<a href="#672">assign</a>),
+            <a href="#21">Stmt::Fold</a>(fold) =&gt; <a class="self" href="#664">self</a>.<a href="#748">fallible_fold_fold</a>(<a href="#673">fold</a>),
+            <a href="#23">Stmt::Unfold</a>(unfold) =&gt; <a class="self" href="#664">self</a>.<a href="#767">fallible_fold_unfold</a>(<a href="#674">unfold</a>),
+            <a href="#26">Stmt::Obtain</a>(obtain) =&gt; <a class="self" href="#664">self</a>.<a href="#784">fallible_fold_obtain</a>(<a href="#675">obtain</a>),
+            <a href="#29">Stmt::BeginFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#664">self</a>.<a href="#791">fallible_fold_begin_frame</a>(),
+            <a href="#32">Stmt::EndFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#664">self</a>.<a href="#794">fallible_fold_end_frame</a>(),
+            <a href="#39">Stmt::TransferPerm</a>(transfer_perm) =&gt; <a class="self" href="#664">self</a>.<a href="#797-800">fallible_fold_transfer_perm</a>(<a href="#678">transfer_perm</a>),
             <a href="#44">Stmt::PackageMagicWand</a>(package_magic_wand) =&gt; {
-                <a class="self" href="#661">self</a>.<a href="#809-812">fallible_fold_package_magic_wand</a>(<a href="#676">package_magic_wand</a>)
+                <a class="self" href="#664">self</a>.<a href="#812-815">fallible_fold_package_magic_wand</a>(<a href="#679">package_magic_wand</a>)
             }
             <a href="#47">Stmt::ApplyMagicWand</a>(apply_magic_wand) =&gt; {
-                <a class="self" href="#661">self</a>.<a href="#831-834">fallible_fold_apply_magic_wand</a>(<a href="#679">apply_magic_wand</a>)
+                <a class="self" href="#664">self</a>.<a href="#834-837">fallible_fold_apply_magic_wand</a>(<a href="#682">apply_magic_wand</a>)
             }
             <a href="#49">Stmt::ExpireBorrows</a>(expire_borrows) =&gt; {
-                <a class="self" href="#661">self</a>.<a href="#844-847">fallible_fold_expire_borrows</a>(<a href="#682">expire_borrows</a>)
+                <a class="self" href="#664">self</a>.<a href="#847-850">fallible_fold_expire_borrows</a>(<a href="#685">expire_borrows</a>)
             }
-            <a href="#51">Stmt::If</a>(if_stmt) =&gt; <a class="self" href="#661">self</a>.<a href="#851">fallible_fold_if</a>(<a href="#685">if_stmt</a>),
-            <a href="#57">Stmt::Downcast</a>(downcast) =&gt; <a class="self" href="#661">self</a>.<a href="#869">fallible_fold_downcast</a>(<a href="#686">downcast</a>),
+            <a href="#51">Stmt::If</a>(if_stmt) =&gt; <a class="self" href="#664">self</a>.<a href="#854">fallible_fold_if</a>(<a href="#688">if_stmt</a>),
+            <a href="#57">Stmt::Downcast</a>(downcast) =&gt; <a class="self" href="#664">self</a>.<a href="#872">fallible_fold_downcast</a>(<a href="#689">downcast</a>),
         }
     }
     <span class="kw">fn </span>fallible_fold_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <a href="expr.rs.html#13">Expr</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="expr.rs.html#13">Expr</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="#689">expr</a>)
+        <span class="prelude-val">Ok</span>(<a href="#692">expr</a>)
     }
     <span class="kw">fn </span>fallible_fold_comment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, comment: <a href="#103">Comment</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">Stmt</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="#11">Stmt::Comment</a>(<a href="#692">comment</a>))
+        <span class="prelude-val">Ok</span>(<a href="#11">Stmt::Comment</a>(<a href="#695">comment</a>))
     }
     <span class="kw">fn </span>fallible_fold_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: <a href="#112">Label</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">Stmt</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="prelude-val">Ok</span>(<a href="#12">Stmt::Label</a>(<a href="#695">label</a>))
+        <span class="prelude-val">Ok</span>(<a href="#12">Stmt::Label</a>(<a href="#698">label</a>))
     }
     <span class="kw">fn </span>fallible_fold_inhale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#121">Inhale</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">Stmt</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#121">Inhale</a> { expr } = <a href="#698">statement</a>;
+        <span class="kw">let </span><a href="#121">Inhale</a> { expr } = <a href="#701">statement</a>;
         <span class="prelude-val">Ok</span>(<a href="#13">Stmt::Inhale</a>(<a href="#121">Inhale</a> {
             expr: <span class="self">self</span>.fallible_fold_expr(expr)<span class="question-mark">?</span>,
         }))
     }
     <span class="kw">fn </span>fallible_fold_exhale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#130">Exhale</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">Stmt</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#130">Exhale</a> { expr, position } = <a href="#704">statement</a>;
+        <span class="kw">let </span><a href="#130">Exhale</a> { expr, position } = <a href="#707">statement</a>;
         <span class="prelude-val">Ok</span>(<a href="#14">Stmt::Exhale</a>(<a href="#130">Exhale</a> {
             expr: <span class="self">self</span>.fallible_fold_expr(expr)<span class="question-mark">?</span>,
-            <a href="#705">position</a>,
+            <a href="#708">position</a>,
         }))
     }
     <span class="kw">fn </span>fallible_fold_assert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#140">Assert</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">Stmt</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#140">Assert</a> { expr, position } = <a href="#711">statement</a>;
+        <span class="kw">let </span><a href="#140">Assert</a> { expr, position } = <a href="#714">statement</a>;
         <span class="prelude-val">Ok</span>(<a href="#15">Stmt::Assert</a>(<a href="#140">Assert</a> {
             expr: <span class="self">self</span>.fallible_fold_expr(expr)<span class="question-mark">?</span>,
-            <a href="#712">position</a>,
+            <a href="#715">position</a>,
         }))
     }
     <span class="kw">fn </span>fallible_fold_method_call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#150">MethodCall</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">Stmt</a>, <span class="self">Self</span>::Error&gt; {
@@ -1900,14 +1906,14 @@
             method_name,
             arguments,
             targets,
-        } = <a href="#718">statement</a>;
+        } = <a href="#721">statement</a>;
         <span class="prelude-val">Ok</span>(<a href="#17">Stmt::MethodCall</a>(<a href="#150">MethodCall</a> {
-            <a href="#720">method_name</a>,
+            <a href="#723">method_name</a>,
             arguments: arguments
                 .into_iter()
                 .map(|e| <span class="self">self</span>.fallible_fold_expr(e))
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>,
-            <a href="#722">targets</a>,
+            <a href="#725">targets</a>,
         }))
     }
     <span class="kw">fn </span>fallible_fold_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#175">Assign</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">Stmt</a>, <span class="self">Self</span>::Error&gt; {
@@ -1915,11 +1921,11 @@
             target,
             source,
             kind,
-        } = <a href="#733">statement</a>;
+        } = <a href="#736">statement</a>;
         <span class="prelude-val">Ok</span>(<a href="#19">Stmt::Assign</a>(<a href="#175">Assign</a> {
             target: <span class="self">self</span>.fallible_fold_expr(target)<span class="question-mark">?</span>,
             source: <span class="self">self</span>.fallible_fold_expr(source)<span class="question-mark">?</span>,
-            <a href="#737">kind</a>,
+            <a href="#740">kind</a>,
         }))
     }
     <span class="kw">fn </span>fallible_fold_fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#204">Fold</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">Stmt</a>, <span class="self">Self</span>::Error&gt; {
@@ -1929,16 +1935,16 @@
             permission,
             enum_variant,
             position,
-        } = <a href="#745">statement</a>;
+        } = <a href="#748">statement</a>;
         <span class="prelude-val">Ok</span>(<a href="#21">Stmt::Fold</a>(<a href="#204">Fold</a> {
-            <a href="#747">predicate</a>,
+            <a href="#750">predicate</a>,
             arguments: arguments
                 .into_iter()
                 .map(|e| <span class="self">self</span>.fallible_fold_expr(e))
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>,
-            <a href="#749">permission</a>,
-            <a href="#750">enum_variant</a>,
-            <a href="#751">position</a>,
+            <a href="#752">permission</a>,
+            <a href="#753">enum_variant</a>,
+            <a href="#754">position</a>,
         }))
     }
     <span class="kw">fn </span>fallible_fold_unfold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#231">Unfold</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">Stmt</a>, <span class="self">Self</span>::Error&gt; {
@@ -1947,22 +1953,22 @@
             arguments,
             permission,
             enum_variant,
-        } = <a href="#764">statement</a>;
+        } = <a href="#767">statement</a>;
         <span class="prelude-val">Ok</span>(<a href="#23">Stmt::Unfold</a>(<a href="#231">Unfold</a> {
-            <a href="#766">predicate</a>,
+            <a href="#769">predicate</a>,
             arguments: arguments
                 .into_iter()
                 .map(|e| <span class="self">self</span>.fallible_fold_expr(e))
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>,
-            <a href="#768">permission</a>,
-            <a href="#769">enum_variant</a>,
+            <a href="#771">permission</a>,
+            <a href="#772">enum_variant</a>,
         }))
     }
     <span class="kw">fn </span>fallible_fold_obtain(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#257">Obtain</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">Stmt</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#257">Obtain</a> { expr, position } = <a href="#781">statement</a>;
+        <span class="kw">let </span><a href="#257">Obtain</a> { expr, position } = <a href="#784">statement</a>;
         <span class="prelude-val">Ok</span>(<a href="#26">Stmt::Obtain</a>(<a href="#257">Obtain</a> {
             expr: <span class="self">self</span>.fallible_fold_expr(expr)<span class="question-mark">?</span>,
-            <a href="#782">position</a>,
+            <a href="#785">position</a>,
         }))
     }
     <span class="kw">fn </span>fallible_fold_begin_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">Stmt</a>, <span class="self">Self</span>::Error&gt; {
@@ -1979,11 +1985,11 @@
             left,
             right,
             unchecked,
-        } = <a href="#796">statement</a>;
+        } = <a href="#799">statement</a>;
         <span class="prelude-val">Ok</span>(<a href="#39">Stmt::TransferPerm</a>(<a href="#281">TransferPerm</a> {
             left: <span class="self">self</span>.fallible_fold_expr(left)<span class="question-mark">?</span>,
             right: <span class="self">self</span>.fallible_fold_expr(right)<span class="question-mark">?</span>,
-            <a href="#801">unchecked</a>,
+            <a href="#804">unchecked</a>,
         }))
     }
     <span class="kw">fn </span>fallible_fold_package_magic_wand(
@@ -1996,16 +2002,16 @@
             label,
             variables,
             position,
-        } = <a href="#811">statement</a>;
+        } = <a href="#814">statement</a>;
         <span class="prelude-val">Ok</span>(<a href="#44">Stmt::PackageMagicWand</a>(<a href="#296">PackageMagicWand</a> {
             magic_wand: <span class="self">self</span>.fallible_fold_expr(magic_wand)<span class="question-mark">?</span>,
             package_stmts: package_stmts
                 .into_iter()
                 .map(|x| <span class="self">self</span>.fallible_fold(x))
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>,
-            <a href="#816">label</a>,
-            <a href="#817">variables</a>,
-            <a href="#818">position</a>,
+            <a href="#819">label</a>,
+            <a href="#820">variables</a>,
+            <a href="#821">position</a>,
         }))
     }
     <span class="kw">fn </span>fallible_fold_apply_magic_wand(
@@ -2015,25 +2021,25 @@
         <span class="kw">let </span><a href="#326">ApplyMagicWand</a> {
             magic_wand,
             position,
-        } = <a href="#833">statement</a>;
+        } = <a href="#836">statement</a>;
         <span class="prelude-val">Ok</span>(<a href="#47">Stmt::ApplyMagicWand</a>(<a href="#326">ApplyMagicWand</a> {
             magic_wand: <span class="self">self</span>.fallible_fold_expr(magic_wand)<span class="question-mark">?</span>,
-            <a href="#837">position</a>,
+            <a href="#840">position</a>,
         }))
     }
     <span class="kw">fn </span>fallible_fold_expire_borrows(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         statement: <a href="#347">ExpireBorrows</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">Stmt</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#347">ExpireBorrows</a> { dag } = <a href="#846">statement</a>;
-        <span class="prelude-val">Ok</span>(<a href="#49">Stmt::ExpireBorrows</a>(<a href="#347">ExpireBorrows</a> { <a href="#848">dag</a> }))
+        <span class="kw">let </span><a href="#347">ExpireBorrows</a> { dag } = <a href="#849">statement</a>;
+        <span class="prelude-val">Ok</span>(<a href="#49">Stmt::ExpireBorrows</a>(<a href="#347">ExpireBorrows</a> { <a href="#851">dag</a> }))
     }
     <span class="kw">fn </span>fallible_fold_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#356">If</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">Stmt</a>, <span class="self">Self</span>::Error&gt; {
         <span class="kw">let </span><a href="#356">If</a> {
             guard,
             then_stmts,
             else_stmts,
-        } = <a href="#851">statement</a>;
+        } = <a href="#854">statement</a>;
         <span class="prelude-val">Ok</span>(<a href="#51">Stmt::If</a>(<a href="#356">If</a> {
             guard: <span class="self">self</span>.fallible_fold_expr(guard)<span class="question-mark">?</span>,
             then_stmts: then_stmts
@@ -2047,36 +2053,36 @@
         }))
     }
     <span class="kw">fn </span>fallible_fold_downcast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <a href="#383">Downcast</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="#10">Stmt</a>, <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#383">Downcast</a> { base, field } = <a href="#869">statement</a>;
+        <span class="kw">let </span><a href="#383">Downcast</a> { base, field } = <a href="#872">statement</a>;
         <span class="prelude-val">Ok</span>(<a href="#57">Stmt::Downcast</a>(<a href="#383">Downcast</a> {
             base: <span class="self">self</span>.fallible_fold_expr(base)<span class="question-mark">?</span>,
-            <a href="#870">field</a>,
+            <a href="#873">field</a>,
         }))
     }
 }
 <span class="kw">pub trait </span>StmtWalker {
     <span class="kw">fn </span>walk(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <span class="kw-2">&amp;</span><a href="#10">Stmt</a>) {
-        <span class="kw">match </span><a href="#878">e</a> {
-            <a href="#11">Stmt::Comment</a>(comment) =&gt; <a class="self" href="#878">self</a>.<a href="#904">walk_comment</a>(<a href="#880">comment</a>),
-            <a href="#12">Stmt::Label</a>(label) =&gt; <a class="self" href="#878">self</a>.<a href="#905">walk_label</a>(<a href="#881">label</a>),
-            <a href="#13">Stmt::Inhale</a>(inhale) =&gt; <a class="self" href="#878">self</a>.<a href="#906">walk_inhale</a>(<a href="#882">inhale</a>),
-            <a href="#14">Stmt::Exhale</a>(exhale) =&gt; <a class="self" href="#878">self</a>.<a href="#910">walk_exhale</a>(<a href="#883">exhale</a>),
-            <a href="#15">Stmt::Assert</a>(assert) =&gt; <a class="self" href="#878">self</a>.<a href="#914">walk_assert</a>(<a href="#884">assert</a>),
-            <a href="#17">Stmt::MethodCall</a>(method_call) =&gt; <a class="self" href="#878">self</a>.<a href="#918">walk_method_call</a>(<a href="#885">method_call</a>),
-            <a href="#19">Stmt::Assign</a>(assign) =&gt; <a class="self" href="#878">self</a>.<a href="#929">walk_assign</a>(<a href="#886">assign</a>),
-            <a href="#21">Stmt::Fold</a>(fold) =&gt; <a class="self" href="#878">self</a>.<a href="#934">walk_fold</a>(<a href="#887">fold</a>),
-            <a href="#23">Stmt::Unfold</a>(unfold) =&gt; <a class="self" href="#878">self</a>.<a href="#940">walk_unfold</a>(<a href="#888">unfold</a>),
-            <a href="#26">Stmt::Obtain</a>(obtain) =&gt; <a class="self" href="#878">self</a>.<a href="#946">walk_obtain</a>(<a href="#889">obtain</a>),
-            <a href="#29">Stmt::BeginFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#878">self</a>.<a href="#954">walk_begin_frame</a>(),
-            <a href="#32">Stmt::EndFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#878">self</a>.<a href="#955">walk_end_frame</a>(),
-            <a href="#39">Stmt::TransferPerm</a>(transfer_perm) =&gt; <a class="self" href="#878">self</a>.<a href="#956">walk_transfer_perm</a>(<a href="#892">transfer_perm</a>),
+        <span class="kw">match </span><a href="#881">e</a> {
+            <a href="#11">Stmt::Comment</a>(comment) =&gt; <a class="self" href="#881">self</a>.<a href="#907">walk_comment</a>(<a href="#883">comment</a>),
+            <a href="#12">Stmt::Label</a>(label) =&gt; <a class="self" href="#881">self</a>.<a href="#908">walk_label</a>(<a href="#884">label</a>),
+            <a href="#13">Stmt::Inhale</a>(inhale) =&gt; <a class="self" href="#881">self</a>.<a href="#909">walk_inhale</a>(<a href="#885">inhale</a>),
+            <a href="#14">Stmt::Exhale</a>(exhale) =&gt; <a class="self" href="#881">self</a>.<a href="#913">walk_exhale</a>(<a href="#886">exhale</a>),
+            <a href="#15">Stmt::Assert</a>(assert) =&gt; <a class="self" href="#881">self</a>.<a href="#917">walk_assert</a>(<a href="#887">assert</a>),
+            <a href="#17">Stmt::MethodCall</a>(method_call) =&gt; <a class="self" href="#881">self</a>.<a href="#921">walk_method_call</a>(<a href="#888">method_call</a>),
+            <a href="#19">Stmt::Assign</a>(assign) =&gt; <a class="self" href="#881">self</a>.<a href="#932">walk_assign</a>(<a href="#889">assign</a>),
+            <a href="#21">Stmt::Fold</a>(fold) =&gt; <a class="self" href="#881">self</a>.<a href="#937">walk_fold</a>(<a href="#890">fold</a>),
+            <a href="#23">Stmt::Unfold</a>(unfold) =&gt; <a class="self" href="#881">self</a>.<a href="#943">walk_unfold</a>(<a href="#891">unfold</a>),
+            <a href="#26">Stmt::Obtain</a>(obtain) =&gt; <a class="self" href="#881">self</a>.<a href="#949">walk_obtain</a>(<a href="#892">obtain</a>),
+            <a href="#29">Stmt::BeginFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#881">self</a>.<a href="#957">walk_begin_frame</a>(),
+            <a href="#32">Stmt::EndFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#881">self</a>.<a href="#958">walk_end_frame</a>(),
+            <a href="#39">Stmt::TransferPerm</a>(transfer_perm) =&gt; <a class="self" href="#881">self</a>.<a href="#959">walk_transfer_perm</a>(<a href="#895">transfer_perm</a>),
             <a href="#44">Stmt::PackageMagicWand</a>(package_magic_wand) =&gt; {
-                <a class="self" href="#878">self</a>.<a href="#961">walk_package_magic_wand</a>(<a href="#893">package_magic_wand</a>)
+                <a class="self" href="#881">self</a>.<a href="#964">walk_package_magic_wand</a>(<a href="#896">package_magic_wand</a>)
             }
-            <a href="#47">Stmt::ApplyMagicWand</a>(apply_magic_wand) =&gt; <a class="self" href="#878">self</a>.<a href="#976">walk_apply_magic_wand</a>(<a href="#896">apply_magic_wand</a>),
-            <a href="#49">Stmt::ExpireBorrows</a>(expire_borrows) =&gt; <a class="self" href="#878">self</a>.<a href="#980">walk_expire_borrows</a>(<a href="#897">expire_borrows</a>),
-            <a href="#51">Stmt::If</a>(if_stmt) =&gt; <a class="self" href="#878">self</a>.<a href="#982">walk_if</a>(<a href="#898">if_stmt</a>),
-            <a href="#57">Stmt::Downcast</a>(downcast) =&gt; <a class="self" href="#878">self</a>.<a href="#996">walk_downcast</a>(<a href="#899">downcast</a>),
+            <a href="#47">Stmt::ApplyMagicWand</a>(apply_magic_wand) =&gt; <a class="self" href="#881">self</a>.<a href="#979">walk_apply_magic_wand</a>(<a href="#899">apply_magic_wand</a>),
+            <a href="#49">Stmt::ExpireBorrows</a>(expire_borrows) =&gt; <a class="self" href="#881">self</a>.<a href="#983">walk_expire_borrows</a>(<a href="#900">expire_borrows</a>),
+            <a href="#51">Stmt::If</a>(if_stmt) =&gt; <a class="self" href="#881">self</a>.<a href="#985">walk_if</a>(<a href="#901">if_stmt</a>),
+            <a href="#57">Stmt::Downcast</a>(downcast) =&gt; <a class="self" href="#881">self</a>.<a href="#999">walk_downcast</a>(<a href="#902">downcast</a>),
         }
     }
     <span class="kw">fn </span>walk_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _expr: <span class="kw-2">&amp;</span><a href="expr.rs.html#13">Expr</a>) {}
@@ -2084,21 +2090,21 @@
     <span class="kw">fn </span>walk_comment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _comment: <span class="kw-2">&amp;</span><a href="#103">Comment</a>) {}
     <span class="kw">fn </span>walk_label(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _label: <span class="kw-2">&amp;</span><a href="#112">Label</a>) {}
     <span class="kw">fn </span>walk_inhale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#121">Inhale</a>) {
-        <span class="kw">let </span><a href="#121">Inhale</a> { expr } = <a href="#906">statement</a>;
-        <a class="self" href="#906">self</a>.<a href="#902">walk_expr</a>(<a href="#907">expr</a>);
+        <span class="kw">let </span><a href="#121">Inhale</a> { expr } = <a href="#909">statement</a>;
+        <a class="self" href="#909">self</a>.<a href="#905">walk_expr</a>(<a href="#910">expr</a>);
     }
     <span class="kw">fn </span>walk_exhale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#130">Exhale</a>) {
-        <span class="kw">let </span><a href="#130">Exhale</a> { expr, .. } = <a href="#910">statement</a>;
-        <a class="self" href="#910">self</a>.<a href="#902">walk_expr</a>(<a href="#911">expr</a>);
+        <span class="kw">let </span><a href="#130">Exhale</a> { expr, .. } = <a href="#913">statement</a>;
+        <a class="self" href="#913">self</a>.<a href="#905">walk_expr</a>(<a href="#914">expr</a>);
     }
     <span class="kw">fn </span>walk_assert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#140">Assert</a>) {
-        <span class="kw">let </span><a href="#140">Assert</a> { expr, .. } = <a href="#914">statement</a>;
-        <a class="self" href="#914">self</a>.<a href="#902">walk_expr</a>(<a href="#915">expr</a>);
+        <span class="kw">let </span><a href="#140">Assert</a> { expr, .. } = <a href="#917">statement</a>;
+        <a class="self" href="#917">self</a>.<a href="#905">walk_expr</a>(<a href="#918">expr</a>);
     }
     <span class="kw">fn </span>walk_method_call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#150">MethodCall</a>) {
         <span class="kw">let </span><a href="#150">MethodCall</a> {
             arguments, targets, ..
-        } = <a href="#918">statement</a>;
+        } = <a href="#921">statement</a>;
         <span class="kw">for </span>arg <span class="kw">in </span>arguments {
             <span class="self">self</span>.walk_expr(arg);
         }
@@ -2107,36 +2113,36 @@
         }
     }
     <span class="kw">fn </span>walk_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#175">Assign</a>) {
-        <span class="kw">let </span><a href="#175">Assign</a> { target, source, .. } = <a href="#929">statement</a>;
-        <a class="self" href="#929">self</a>.<a href="#902">walk_expr</a>(<a href="#930">target</a>);
-        <a class="self" href="#929">self</a>.<a href="#902">walk_expr</a>(<a href="#930">source</a>);
+        <span class="kw">let </span><a href="#175">Assign</a> { target, source, .. } = <a href="#932">statement</a>;
+        <a class="self" href="#932">self</a>.<a href="#905">walk_expr</a>(<a href="#933">target</a>);
+        <a class="self" href="#932">self</a>.<a href="#905">walk_expr</a>(<a href="#933">source</a>);
     }
     <span class="kw">fn </span>walk_fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#204">Fold</a>) {
-        <span class="kw">let </span><a href="#204">Fold</a> { arguments, .. } = <a href="#934">statement</a>;
+        <span class="kw">let </span><a href="#204">Fold</a> { arguments, .. } = <a href="#937">statement</a>;
         <span class="kw">for </span>arg <span class="kw">in </span>arguments {
             <span class="self">self</span>.walk_expr(arg);
         }
     }
     <span class="kw">fn </span>walk_unfold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#231">Unfold</a>) {
-        <span class="kw">let </span><a href="#231">Unfold</a> { arguments, .. } = <a href="#940">statement</a>;
+        <span class="kw">let </span><a href="#231">Unfold</a> { arguments, .. } = <a href="#943">statement</a>;
         <span class="kw">for </span>arg <span class="kw">in </span>arguments {
             <span class="self">self</span>.walk_expr(arg);
         }
     }
     <span class="kw">fn </span>walk_obtain(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#257">Obtain</a>) {
-        <span class="kw">let </span><a href="#257">Obtain</a> { expr, .. } = <a href="#946">statement</a>;
-        <a class="self" href="#946">self</a>.<a href="#902">walk_expr</a>(<a href="#947">expr</a>);
+        <span class="kw">let </span><a href="#257">Obtain</a> { expr, .. } = <a href="#949">statement</a>;
+        <a class="self" href="#949">self</a>.<a href="#905">walk_expr</a>(<a href="#950">expr</a>);
     }
     <span class="kw">fn </span>walk_weak_obtain(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><a href="expr.rs.html#13">Expr</a>) {
-        <a class="self" href="#950">self</a>.<a href="#902">walk_expr</a>(<a href="#950">expr</a>);
+        <a class="self" href="#953">self</a>.<a href="#905">walk_expr</a>(<a href="#953">expr</a>);
     }
     <span class="kw">fn </span>walk_havoc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {}
     <span class="kw">fn </span>walk_begin_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {}
     <span class="kw">fn </span>walk_end_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {}
     <span class="kw">fn </span>walk_transfer_perm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#281">TransferPerm</a>) {
-        <span class="kw">let </span><a href="#281">TransferPerm</a> { left, right, .. } = <a href="#956">statement</a>;
-        <a class="self" href="#956">self</a>.<a href="#902">walk_expr</a>(<a href="#957">left</a>);
-        <a class="self" href="#956">self</a>.<a href="#902">walk_expr</a>(<a href="#957">right</a>);
+        <span class="kw">let </span><a href="#281">TransferPerm</a> { left, right, .. } = <a href="#959">statement</a>;
+        <a class="self" href="#959">self</a>.<a href="#905">walk_expr</a>(<a href="#960">left</a>);
+        <a class="self" href="#959">self</a>.<a href="#905">walk_expr</a>(<a href="#960">right</a>);
     }
     <span class="kw">fn </span>walk_package_magic_wand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#296">PackageMagicWand</a>) {
         <span class="kw">let </span><a href="#296">PackageMagicWand</a> {
@@ -2144,8 +2150,8 @@
             package_stmts,
             variables,
             ..
-        } = <a href="#961">statement</a>;
-        <a class="self" href="#961">self</a>.<a href="#902">walk_expr</a>(<a href="#963">magic_wand</a>);
+        } = <a href="#964">statement</a>;
+        <a class="self" href="#964">self</a>.<a href="#905">walk_expr</a>(<a href="#966">magic_wand</a>);
         <span class="kw">for </span>var <span class="kw">in </span>variables {
             <span class="self">self</span>.walk_local_var(var);
         }
@@ -2154,8 +2160,8 @@
         }
     }
     <span class="kw">fn </span>walk_apply_magic_wand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#326">ApplyMagicWand</a>) {
-        <span class="kw">let </span><a href="#326">ApplyMagicWand</a> { magic_wand, .. } = <a href="#976">statement</a>;
-        <a class="self" href="#976">self</a>.<a href="#902">walk_expr</a>(<a href="#977">magic_wand</a>);
+        <span class="kw">let </span><a href="#326">ApplyMagicWand</a> { magic_wand, .. } = <a href="#979">statement</a>;
+        <a class="self" href="#979">self</a>.<a href="#905">walk_expr</a>(<a href="#980">magic_wand</a>);
     }
     <span class="kw">fn </span>walk_expire_borrows(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _expire_borrows: <span class="kw-2">&amp;</span><a href="#347">ExpireBorrows</a>) {}
     <span class="kw">fn </span>walk_nested_cfg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _entry: <span class="kw-2">&amp;</span><a href="../cfg/method.rs.html#40">CfgBlockIndex</a>, _exit: <span class="kw-2">&amp;</span><a href="../cfg/method.rs.html#40">CfgBlockIndex</a>) {}
@@ -2164,8 +2170,8 @@
             guard,
             then_stmts,
             else_stmts,
-        } = <a href="#982">statement</a>;
-        <a class="self" href="#982">self</a>.<a href="#902">walk_expr</a>(<a href="#984">guard</a>);
+        } = <a href="#985">statement</a>;
+        <a class="self" href="#985">self</a>.<a href="#905">walk_expr</a>(<a href="#987">guard</a>);
         <span class="kw">for </span>s <span class="kw">in </span>then_stmts {
             <span class="self">self</span>.walk(s);
         }
@@ -2174,38 +2180,38 @@
         }
     }
     <span class="kw">fn </span>walk_downcast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#383">Downcast</a>) {
-        <span class="kw">let </span><a href="#383">Downcast</a> { base, .. } = <a href="#996">statement</a>;
-        <a class="self" href="#996">self</a>.<a href="#902">walk_expr</a>(<a href="#997">base</a>);
+        <span class="kw">let </span><a href="#383">Downcast</a> { base, .. } = <a href="#999">statement</a>;
+        <a class="self" href="#999">self</a>.<a href="#905">walk_expr</a>(<a href="#1000">base</a>);
     }
 }
 <span class="kw">pub trait </span>FallibleStmtWalker {
     <span class="kw">type </span>Error;
     <span class="kw">fn </span>fallible_walk(<span class="kw-2">&amp;mut </span><span class="self">self</span>, e: <span class="kw-2">&amp;</span><a href="#10">Stmt</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">match </span><a href="#1003">e</a> {
-            <a href="#11">Stmt::Comment</a>(comment) =&gt; <a class="self" href="#1003">self</a>.<a href="#1037">fallible_walk_comment</a>(<a href="#1005">comment</a>),
-            <a href="#12">Stmt::Label</a>(label) =&gt; <a class="self" href="#1003">self</a>.<a href="#1040">fallible_walk_label</a>(<a href="#1006">label</a>),
-            <a href="#13">Stmt::Inhale</a>(inhale) =&gt; <a class="self" href="#1003">self</a>.<a href="#1043">fallible_walk_inhale</a>(<a href="#1007">inhale</a>),
-            <a href="#14">Stmt::Exhale</a>(exhale) =&gt; <a class="self" href="#1003">self</a>.<a href="#1048">fallible_walk_exhale</a>(<a href="#1008">exhale</a>),
-            <a href="#15">Stmt::Assert</a>(assert) =&gt; <a class="self" href="#1003">self</a>.<a href="#1053">fallible_walk_assert</a>(<a href="#1009">assert</a>),
-            <a href="#17">Stmt::MethodCall</a>(method_call) =&gt; <a class="self" href="#1003">self</a>.<a href="#1058">fallible_walk_method_call</a>(<a href="#1010">method_call</a>),
-            <a href="#19">Stmt::Assign</a>(assign) =&gt; <a class="self" href="#1003">self</a>.<a href="#1070">fallible_walk_assign</a>(<a href="#1011">assign</a>),
-            <a href="#21">Stmt::Fold</a>(fold) =&gt; <a class="self" href="#1003">self</a>.<a href="#1076">fallible_walk_fold</a>(<a href="#1012">fold</a>),
-            <a href="#23">Stmt::Unfold</a>(unfold) =&gt; <a class="self" href="#1003">self</a>.<a href="#1083">fallible_walk_unfold</a>(<a href="#1013">unfold</a>),
-            <a href="#26">Stmt::Obtain</a>(obtain) =&gt; <a class="self" href="#1003">self</a>.<a href="#1090">fallible_walk_obtain</a>(<a href="#1014">obtain</a>),
-            <a href="#29">Stmt::BeginFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#1003">self</a>.<a href="#1102">fallible_walk_begin_frame</a>(),
-            <a href="#32">Stmt::EndFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#1003">self</a>.<a href="#1105">fallible_walk_end_frame</a>(),
-            <a href="#39">Stmt::TransferPerm</a>(transfer_perm) =&gt; <a class="self" href="#1003">self</a>.<a href="#1108">fallible_walk_transfer_perm</a>(<a href="#1017">transfer_perm</a>),
+        <span class="kw">match </span><a href="#1006">e</a> {
+            <a href="#11">Stmt::Comment</a>(comment) =&gt; <a class="self" href="#1006">self</a>.<a href="#1040">fallible_walk_comment</a>(<a href="#1008">comment</a>),
+            <a href="#12">Stmt::Label</a>(label) =&gt; <a class="self" href="#1006">self</a>.<a href="#1043">fallible_walk_label</a>(<a href="#1009">label</a>),
+            <a href="#13">Stmt::Inhale</a>(inhale) =&gt; <a class="self" href="#1006">self</a>.<a href="#1046">fallible_walk_inhale</a>(<a href="#1010">inhale</a>),
+            <a href="#14">Stmt::Exhale</a>(exhale) =&gt; <a class="self" href="#1006">self</a>.<a href="#1051">fallible_walk_exhale</a>(<a href="#1011">exhale</a>),
+            <a href="#15">Stmt::Assert</a>(assert) =&gt; <a class="self" href="#1006">self</a>.<a href="#1056">fallible_walk_assert</a>(<a href="#1012">assert</a>),
+            <a href="#17">Stmt::MethodCall</a>(method_call) =&gt; <a class="self" href="#1006">self</a>.<a href="#1061">fallible_walk_method_call</a>(<a href="#1013">method_call</a>),
+            <a href="#19">Stmt::Assign</a>(assign) =&gt; <a class="self" href="#1006">self</a>.<a href="#1073">fallible_walk_assign</a>(<a href="#1014">assign</a>),
+            <a href="#21">Stmt::Fold</a>(fold) =&gt; <a class="self" href="#1006">self</a>.<a href="#1079">fallible_walk_fold</a>(<a href="#1015">fold</a>),
+            <a href="#23">Stmt::Unfold</a>(unfold) =&gt; <a class="self" href="#1006">self</a>.<a href="#1086">fallible_walk_unfold</a>(<a href="#1016">unfold</a>),
+            <a href="#26">Stmt::Obtain</a>(obtain) =&gt; <a class="self" href="#1006">self</a>.<a href="#1093">fallible_walk_obtain</a>(<a href="#1017">obtain</a>),
+            <a href="#29">Stmt::BeginFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#1006">self</a>.<a href="#1105">fallible_walk_begin_frame</a>(),
+            <a href="#32">Stmt::EndFrame</a>(<span class="kw">_</span>) =&gt; <a class="self" href="#1006">self</a>.<a href="#1108">fallible_walk_end_frame</a>(),
+            <a href="#39">Stmt::TransferPerm</a>(transfer_perm) =&gt; <a class="self" href="#1006">self</a>.<a href="#1111">fallible_walk_transfer_perm</a>(<a href="#1020">transfer_perm</a>),
             <a href="#44">Stmt::PackageMagicWand</a>(package_magic_wand) =&gt; {
-                <a class="self" href="#1003">self</a>.<a href="#1114-1117">fallible_walk_package_magic_wand</a>(<a href="#1018">package_magic_wand</a>)
+                <a class="self" href="#1006">self</a>.<a href="#1117-1120">fallible_walk_package_magic_wand</a>(<a href="#1021">package_magic_wand</a>)
             }
             <a href="#47">Stmt::ApplyMagicWand</a>(apply_magic_wand) =&gt; {
-                <a class="self" href="#1003">self</a>.<a href="#1133-1136">fallible_walk_apply_magic_wand</a>(<a href="#1021">apply_magic_wand</a>)
+                <a class="self" href="#1006">self</a>.<a href="#1136-1139">fallible_walk_apply_magic_wand</a>(<a href="#1024">apply_magic_wand</a>)
             }
             <a href="#49">Stmt::ExpireBorrows</a>(expire_borrows) =&gt; {
-                <a class="self" href="#1003">self</a>.<a href="#1141-1144">fallible_walk_expire_borrows</a>(<a href="#1024">expire_borrows</a>)
+                <a class="self" href="#1006">self</a>.<a href="#1144-1147">fallible_walk_expire_borrows</a>(<a href="#1027">expire_borrows</a>)
             }
-            <a href="#51">Stmt::If</a>(if_stmt) =&gt; <a class="self" href="#1003">self</a>.<a href="#1154">fallible_walk_if</a>(<a href="#1027">if_stmt</a>),
-            <a href="#57">Stmt::Downcast</a>(downcast) =&gt; <a class="self" href="#1003">self</a>.<a href="#1169">fallible_walk_downcast</a>(<a href="#1028">downcast</a>),
+            <a href="#51">Stmt::If</a>(if_stmt) =&gt; <a class="self" href="#1006">self</a>.<a href="#1157">fallible_walk_if</a>(<a href="#1030">if_stmt</a>),
+            <a href="#57">Stmt::Downcast</a>(downcast) =&gt; <a class="self" href="#1006">self</a>.<a href="#1172">fallible_walk_downcast</a>(<a href="#1031">downcast</a>),
         }
     }
     <span class="kw">fn </span>fallible_walk_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _expr: <span class="kw-2">&amp;</span><a href="expr.rs.html#13">Expr</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
@@ -2221,24 +2227,24 @@
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>fallible_walk_inhale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#121">Inhale</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#121">Inhale</a> { expr } = <a href="#1043">statement</a>;
+        <span class="kw">let </span><a href="#121">Inhale</a> { expr } = <a href="#1046">statement</a>;
         <span class="self">self</span>.fallible_walk_expr(expr)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>fallible_walk_exhale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#130">Exhale</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#130">Exhale</a> { expr, .. } = <a href="#1048">statement</a>;
+        <span class="kw">let </span><a href="#130">Exhale</a> { expr, .. } = <a href="#1051">statement</a>;
         <span class="self">self</span>.fallible_walk_expr(expr)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>fallible_walk_assert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#140">Assert</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#140">Assert</a> { expr, .. } = <a href="#1053">statement</a>;
+        <span class="kw">let </span><a href="#140">Assert</a> { expr, .. } = <a href="#1056">statement</a>;
         <span class="self">self</span>.fallible_walk_expr(expr)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>fallible_walk_method_call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#150">MethodCall</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
         <span class="kw">let </span><a href="#150">MethodCall</a> {
             arguments, targets, ..
-        } = <a href="#1058">statement</a>;
+        } = <a href="#1061">statement</a>;
         <span class="kw">for </span>arg <span class="kw">in </span>arguments {
             <span class="self">self</span>.fallible_walk_expr(arg)<span class="question-mark">?</span>;
         }
@@ -2248,27 +2254,27 @@
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>fallible_walk_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#175">Assign</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#175">Assign</a> { target, source, .. } = <a href="#1070">statement</a>;
+        <span class="kw">let </span><a href="#175">Assign</a> { target, source, .. } = <a href="#1073">statement</a>;
         <span class="self">self</span>.fallible_walk_expr(target)<span class="question-mark">?</span>;
         <span class="self">self</span>.fallible_walk_expr(source)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>fallible_walk_fold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#204">Fold</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#204">Fold</a> { arguments, .. } = <a href="#1076">statement</a>;
+        <span class="kw">let </span><a href="#204">Fold</a> { arguments, .. } = <a href="#1079">statement</a>;
         <span class="kw">for </span>arg <span class="kw">in </span>arguments {
             <span class="self">self</span>.fallible_walk_expr(arg)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>fallible_walk_unfold(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#231">Unfold</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#231">Unfold</a> { arguments, .. } = <a href="#1083">statement</a>;
+        <span class="kw">let </span><a href="#231">Unfold</a> { arguments, .. } = <a href="#1086">statement</a>;
         <span class="kw">for </span>arg <span class="kw">in </span>arguments {
             <span class="self">self</span>.fallible_walk_expr(arg)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>fallible_walk_obtain(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#257">Obtain</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#257">Obtain</a> { expr, .. } = <a href="#1090">statement</a>;
+        <span class="kw">let </span><a href="#257">Obtain</a> { expr, .. } = <a href="#1093">statement</a>;
         <span class="self">self</span>.fallible_walk_expr(expr)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
@@ -2286,7 +2292,7 @@
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>fallible_walk_transfer_perm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#281">TransferPerm</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#281">TransferPerm</a> { left, right, .. } = <a href="#1108">statement</a>;
+        <span class="kw">let </span><a href="#281">TransferPerm</a> { left, right, .. } = <a href="#1111">statement</a>;
         <span class="self">self</span>.fallible_walk_expr(left)<span class="question-mark">?</span>;
         <span class="self">self</span>.fallible_walk_expr(right)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -2300,7 +2306,7 @@
             package_stmts,
             variables,
             ..
-        } = <a href="#1116">statement</a>;
+        } = <a href="#1119">statement</a>;
         <span class="self">self</span>.fallible_walk_expr(magic_wand)<span class="question-mark">?</span>;
         <span class="kw">for </span>var <span class="kw">in </span>variables {
             <span class="self">self</span>.fallible_walk_local_var(var)<span class="question-mark">?</span>;
@@ -2314,7 +2320,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         statement: <span class="kw-2">&amp;</span><a href="#326">ApplyMagicWand</a>,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#326">ApplyMagicWand</a> { magic_wand, .. } = <a href="#1135">statement</a>;
+        <span class="kw">let </span><a href="#326">ApplyMagicWand</a> { magic_wand, .. } = <a href="#1138">statement</a>;
         <span class="self">self</span>.fallible_walk_expr(magic_wand)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
@@ -2336,7 +2342,7 @@
             guard,
             then_stmts,
             else_stmts,
-        } = <a href="#1154">statement</a>;
+        } = <a href="#1157">statement</a>;
         <span class="self">self</span>.fallible_walk_expr(guard)<span class="question-mark">?</span>;
         <span class="kw">for </span>s <span class="kw">in </span>then_stmts {
             <span class="self">self</span>.fallible_walk(s)<span class="question-mark">?</span>;
@@ -2347,13 +2353,13 @@
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>fallible_walk_downcast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="#383">Downcast</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
-        <span class="kw">let </span><a href="#383">Downcast</a> { base, .. } = <a href="#1169">statement</a>;
+        <span class="kw">let </span><a href="#383">Downcast</a> { base, .. } = <a href="#1172">statement</a>;
         <span class="self">self</span>.fallible_walk_expr(base)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
 <span class="kw">pub fn </span>stmts_to_str(stmts: <span class="kw-2">&amp;</span>[<a href="#10">Stmt</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-    <a href="#1175">stmts</a>
+    <a href="#1178">stmts</a>
         .iter()
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|stmt| <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}\n&quot;</span>, stmt))
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;()

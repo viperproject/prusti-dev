@@ -1093,7 +1093,7 @@
     mir::{
         <a href="../../casts/interface.rs.html#7">casts::CastsEncoderInterface</a>,
         <a href="../../generics/interface.rs.html#10">generics::MirGenericsEncoderInterface</a>,
-        <a href="../../places/interface.rs.html#25">places::PlacesEncoderInterface</a>,
+        <a href="../../places/interface.rs.html#27">places::PlacesEncoderInterface</a>,
         pure::{
             <a href="backward_interpreter.rs.html#15">interpreter::BackwardMirInterpreter</a>, <a href="../pure_functions/interface.rs.html#71">PureEncodingContext</a>, <a href="../pure_functions/interface.rs.html#123">PureFunctionEncoderInterface</a>,
             <a href="../specifications/interface.rs.html#40">SpecificationEncoderInterface</a>,
@@ -1101,8 +1101,8 @@
         <a href="../../specifications/interface.rs.html#72">specifications::SpecificationsInterface</a>,
         <a href="../../types/interface.rs.html#23">types::MirTypeEncoderInterface</a>,
     },
-    mir_encoder::{<a href="../../../mir_encoder/mod.rs.html#382">MirEncoder</a>, <a href="../../../mir_encoder/mod.rs.html#36">PRECONDITION_LABEL</a>},
-    <a href="../../../encoder.rs.html#66">Encoder</a>,
+    mir_encoder::{<a href="../../../mir_encoder/mod.rs.html#372">MirEncoder</a>, <a href="../../../mir_encoder/mod.rs.html#36">PRECONDITION_LABEL</a>},
+    <a href="../../../encoder.rs.html#67">Encoder</a>,
 };
 <span class="kw">use </span>log::{<a href="../../../../../../log/macro.debug.html">debug</a>, <a href="../../../../../../log/macro.trace.html">trace</a>};
 <span class="kw">use </span><a href="../../../../../../prusti_common/macro.vir_high_local.html">prusti_common::vir_high_local</a>;
@@ -1161,7 +1161,7 @@
     }
 
     <span class="kw">fn </span>encode_place(<span class="kw-2">&amp;</span><span class="self">self</span>, place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>&gt; {
-        <a class="self" href="#86">self</a>.encoder.<a href="../../places/interface.rs.html#56-61">encode_place_high</a>(<a class="self" href="#86">self</a>.mir, <a href="#86">place</a>, <span class="prelude-val">None</span>)
+        <a class="self" href="#86">self</a>.encoder.<a href="../../places/interface.rs.html#58-63">encode_place_high</a>(<a class="self" href="#86">self</a>.mir, <a href="#86">place</a>, <span class="prelude-val">None</span>)
     }
 
     <span class="kw">fn </span>encode_operand(
@@ -1170,7 +1170,7 @@
         span: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>&gt; {
         <a class="self" href="#91">self</a>.encoder
-            .<a href="../../places/interface.rs.html#69-74">encode_operand_high</a>(<a class="self" href="#91">self</a>.mir, <a href="#92">operand</a>, <a href="#93">span</a>)
+            .<a href="../../places/interface.rs.html#71-76">encode_operand_high</a>(<a class="self" href="#91">self</a>.mir, <a href="#92">operand</a>, <a href="#93">span</a>)
             .<a href="../../../errors/with_span.rs.html#14">with_span</a>(<a href="#93">span</a>)
     }
 
@@ -1181,7 +1181,7 @@
         right: <a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
         ty: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/high/ast/ty/enum.Type.html">vir_high::Type</a>,
     ) -&gt; EncodingResult&lt;<a href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>&gt; {
-        <a class="self" href="#101">self</a>.encoder.<a href="../../places/interface.rs.html#83-89">encode_binary_op_high</a>(<a href="#102">op</a>, <a href="#103">left</a>, <a href="#104">right</a>, <a href="#105">ty</a>)
+        <a class="self" href="#101">self</a>.encoder.<a href="../../places/interface.rs.html#85-91">encode_binary_op_high</a>(<a href="#102">op</a>, <a href="#103">left</a>, <a href="#104">right</a>, <a href="#105">ty</a>)
     }
 
     <span class="kw">fn </span>apply_assign_aggregate(
@@ -1206,7 +1206,7 @@
                 <a href="#112">state</a>.<a href="state_high.rs.html#60-64">substitute_value</a>(<a href="#114">lhs</a>, <a href="#128">rhs</a>);
             }
             mir::AggregateKind::Adt(adt_did, variant_index, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>tcx = <a class="self" href="#111">self</a>.encoder.<a href="../../../encoder.rs.html#219">env</a>().tcx();
+                <span class="kw">let </span>tcx = <a class="self" href="#111">self</a>.encoder.<a href="../../../encoder.rs.html#225">env</a>().tcx();
                 <span class="kw">let </span>adt_def = <a href="#132">tcx</a>.adt_def(<span class="kw-2">*</span><a href="#131">adt_did</a>);
                 <span class="kw">let </span>ty_with_variant = <span class="kw">if </span>adt_def.variants().len() &gt; <span class="number">1 </span>{
                     <span class="comment">// FIXME: Shouls use adt_def.is_enum() as a check.
@@ -1359,7 +1359,7 @@
                 operand,
                 cast_ty,
             ) =&gt; {
-                <span class="kw">let </span>rhs_ty = <a class="self" href="#157">self</a>.mir_encoder.<a href="../../../mir_encoder/mod.rs.html#463">get_operand_ty</a>(<a href="#282">operand</a>);
+                <span class="kw">let </span>rhs_ty = <a class="self" href="#157">self</a>.mir_encoder.<a href="../../../mir_encoder/mod.rs.html#453">get_operand_ty</a>(<a href="#282">operand</a>);
                 <span class="kw">if </span>rhs_ty.is_array_ref() &amp;&amp; cast_ty.is_slice_ref() {
                     <span class="comment">// We have a cast of a slice or array into a slice.
                     </span><span class="kw">let </span>arg = <span class="self">self</span>.encode_operand(operand, span)<span class="question-mark">?</span>;
@@ -1515,12 +1515,12 @@
     ) -&gt; SpannedEncodingResult&lt;<a href="state_high.rs.html#19">ExprBackwardInterpreterState</a>&gt; {
         <span class="kw">if let </span>ty::TyKind::FnDef(def_id, call_substs) = <a href="#435">ty</a>.kind() {
             <span class="kw">let </span>def_id = <span class="kw-2">*</span><a href="#439">def_id</a>;
-            <span class="kw">let </span>full_func_proc_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="kw-2">&amp;</span><a class="self" href="#431">self</a>.encoder.<a href="../../../encoder.rs.html#219">env</a>().name.get_absolute_item_name(<a href="#440">def_id</a>);
-            <span class="kw">let </span>func_proc_name = <span class="kw-2">&amp;</span><a class="self" href="#431">self</a>.encoder.<a href="../../../encoder.rs.html#219">env</a>().name.get_item_name(<a href="#440">def_id</a>);
+            <span class="kw">let </span>full_func_proc_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> = <span class="kw-2">&amp;</span><a class="self" href="#431">self</a>.encoder.<a href="../../../encoder.rs.html#225">env</a>().name.get_absolute_item_name(<a href="#440">def_id</a>);
+            <span class="kw">let </span>func_proc_name = <span class="kw-2">&amp;</span><a class="self" href="#431">self</a>.encoder.<a href="../../../encoder.rs.html#225">env</a>().name.get_item_name(<a href="#440">def_id</a>);
 
             <span class="comment">// compose substitutions
             // TODO(tymap): do we need this?
-            </span><span class="kw">let </span>substs = ty::EarlyBinder(<span class="kw-2">*</span><a href="#439">call_substs</a>).subst(<a class="self" href="#431">self</a>.encoder.<a href="../../../encoder.rs.html#219">env</a>().tcx(), <a class="self" href="#431">self</a>.substs);
+            </span><span class="kw">let </span>substs = ty::EarlyBinder(<span class="kw-2">*</span><a href="#439">call_substs</a>).subst(<a class="self" href="#431">self</a>.encoder.<a href="../../../encoder.rs.html#225">env</a>().tcx(), <a class="self" href="#431">self</a>.substs);
 
             <span class="kw">let </span>state = <span class="kw">if let </span><span class="prelude-val">Some</span>(target_block) = <a href="#434">target</a> {
                 <span class="kw">let </span>encoded_lhs = <span class="self">self</span>.encode_place(destination).with_span(span)<span class="question-mark">?</span>;
@@ -1573,13 +1573,13 @@
                         // args[0]: message
                         // args[1]: position of failing assertions
 
-                        </span><span class="kw">let </span>panic_cause = <a class="self" href="#431">self</a>.mir_encoder.<a href="../../../mir_encoder/mod.rs.html#833">encode_panic_cause</a>(<a href="#437">span</a>);
+                        </span><span class="kw">let </span>panic_cause = <a class="self" href="#431">self</a>.mir_encoder.<a href="../../../mir_encoder/mod.rs.html#818">encode_panic_cause</a>(<a href="#437">span</a>);
                         <a href="../../../errors/error_manager.rs.html#139">ErrorCtxt::PanicInPureFunction</a>(<a href="#499">panic_cause</a>)
                     }
 
                     <span class="kw">_ </span>=&gt; <a href="../../../errors/error_manager.rs.html#137">ErrorCtxt::DivergingCallInPureFunction</a>,
                 };
-                <span class="kw">let </span>pos = <a class="self" href="#431">self</a>.encoder.<a href="../../../encoder.rs.html#223">error_manager</a>().<a href="../../../errors/error_manager.rs.html#247">register_error</a>(
+                <span class="kw">let </span>pos = <a class="self" href="#431">self</a>.encoder.<a href="../../../encoder.rs.html#229">error_manager</a>().<a href="../../../errors/error_manager.rs.html#247">register_error</a>(
                     <a href="#437">span</a>,
                     <a href="#490">error_ctxt</a>,
                     <a class="self" href="#431">self</a>.caller_def_id,
@@ -1886,7 +1886,7 @@
             .encode_pure_function_use_high(def_id, <span class="self">self</span>.caller_def_id, substs)
             .with_span(span)<span class="question-mark">?</span>;
         <a class="macro" href="../../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Encoding pure function call &#39;{}&#39;&quot;</span>, function_name);
-        <span class="kw">let </span>pos = <a class="self" href="#798">self</a>.encoder.<a href="../../../encoder.rs.html#223">error_manager</a>().<a href="../../../errors/error_manager.rs.html#247">register_error</a>(
+        <span class="kw">let </span>pos = <a class="self" href="#798">self</a>.encoder.<a href="../../../encoder.rs.html#229">error_manager</a>().<a href="../../../errors/error_manager.rs.html#247">register_error</a>(
             <a href="#804">span</a>,
             <a href="../../../errors/error_manager.rs.html#125">ErrorCtxt::PureFunctionCall</a>,
             <a class="self" href="#798">self</a>.caller_def_id,
@@ -1940,7 +1940,7 @@
 
     <span class="kw">fn </span>has_structural_eq_impl(<span class="kw-2">&amp;</span><span class="self">self</span>, operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; EncodingResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
         <span class="kw">let </span>ty = <span class="self">self</span>.encoder.get_operand_type(<span class="self">self</span>.mir, operand)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="#864">self</a>.encoder.<a href="../../../encoder.rs.html#544">has_structural_eq_impl</a>(<a href="#865">ty</a>))
+        <span class="prelude-val">Ok</span>(<a class="self" href="#864">self</a>.encoder.<a href="../../../encoder.rs.html#581">has_structural_eq_impl</a>(<a href="#865">ty</a>))
     }
 }
 
@@ -1961,7 +1961,7 @@
         <span class="kw">let </span>state = <span class="kw">match </span><span class="kw-2">&amp;</span><a href="#879">terminator</a>.kind {
             TerminatorKind::Unreachable =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(states.is_empty());
-                <span class="kw">let </span>pos = <a class="self" href="#877">self</a>.encoder.<a href="../../../encoder.rs.html#223">error_manager</a>().<a href="../../../errors/error_manager.rs.html#247">register_error</a>(
+                <span class="kw">let </span>pos = <a class="self" href="#877">self</a>.encoder.<a href="../../../encoder.rs.html#229">error_manager</a>().<a href="../../../errors/error_manager.rs.html#247">register_error</a>(
                     <a href="#883">span</a>,
                     <a href="../../../errors/error_manager.rs.html#106">ErrorCtxt::Unexpected</a>,
                     <a class="self" href="#877">self</a>.caller_def_id,
@@ -1975,7 +1975,7 @@
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(states.is_empty());
                 <span class="kw">let </span>pos = <span class="self"><a href="#877">self</a>
                     </span>.encoder
-                    .<a href="../../../encoder.rs.html#223">error_manager</a>()
+                    .<a href="../../../encoder.rs.html#229">error_manager</a>()
                     .<a href="../../../errors/error_manager.rs.html#247">register_error</a>(<a href="#883">span</a>, <a href="../../../errors/error_manager.rs.html#106">ErrorCtxt::Unexpected</a>, <a class="self" href="#877">self</a>.caller_def_id)
                     .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
                 ExprBackwardInterpreterState::new_defined(
@@ -2062,7 +2062,7 @@
                     <a href="../../../errors/error_manager.rs.html#131">ErrorCtxt::PureFunctionAssertTerminator</a>(<a href="#984">assert_msg</a>)
                 };
 
-                <span class="kw">let </span>pos = <a class="self" href="#877">self</a>.encoder.<a href="../../../encoder.rs.html#223">error_manager</a>().<a href="../../../errors/error_manager.rs.html#247">register_error</a>(
+                <span class="kw">let </span>pos = <a class="self" href="#877">self</a>.encoder.<a href="../../../encoder.rs.html#229">error_manager</a>().<a href="../../../errors/error_manager.rs.html#247">register_error</a>(
                     <a href="#879">terminator</a>.source_info.span,
                     <a href="#981">error_ctxt</a>,
                     <a class="self" href="#877">self</a>.caller_def_id,

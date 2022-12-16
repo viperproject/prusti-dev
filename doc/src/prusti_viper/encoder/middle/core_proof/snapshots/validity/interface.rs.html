@@ -428,6 +428,13 @@
 <a href="#428" id="428">428</a>
 <a href="#429" id="429">429</a>
 <a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
     <a href="../../../../errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>,
     middle::core_proof::{
@@ -592,6 +599,7 @@
         <span class="kw">let </span>valid_constructor = <span class="self">self</span>.encode_snapshot_valid_call(domain_name, constructor_call)<span class="question-mark">?</span>;
         <span class="kw">if </span>parameters.is_empty() {
             <span class="kw">let </span>axiom = <a href="../../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
+                comment: <span class="prelude-val">None</span>,
                 name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                     <span class="string">&quot;{}$validity_axiom_bottom_up_alternative_no_parameters&quot;</span>,
                     domain_name
@@ -602,8 +610,8 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
         <span class="kw">let </span><span class="kw-2">mut </span>conjuncts = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[invariant]; <span class="comment">// FIXME: We need to replace the fields here.
-        </span><a href="#174">conjuncts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#146">valid_parameters</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <span class="kw">let </span>validity_expression = <a href="#174">conjuncts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="../../../../../../../vir/common/expression/trait.ExpressionIterator.html">conjoin</a>();
+        </span><a href="#175">conjuncts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#146">valid_parameters</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">let </span>validity_expression = <a href="#175">conjuncts</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="../../../../../../../vir/common/expression/trait.ExpressionIterator.html">conjoin</a>();
         <span class="kw">if </span>parameters
             .iter()
             .any(|parameter| <span class="self">self</span>.get_non_primitive_domain(<span class="kw-2">&amp;</span>parameter.ty).is_some())
@@ -611,7 +619,7 @@
             <span class="comment">// The top-down axiom allows proving that any of the fields is valid
             // if we know that the whole data strucure is valid. With no
             // parameters, the bottom-up and top-down axioms are equivalent.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>top_down_validity_expression = <a href="#176">validity_expression</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            </span><span class="kw">let </span><span class="kw-2">mut </span>top_down_validity_expression = <a href="#177">validity_expression</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
             <a class="macro" href="../../../../../../../vir/low/macros/macro.var_decls.html">var_decls! </a>{ snapshot: {vir_low::Type::domain(domain_name.to_string())}};
             <span class="kw">let </span>valid_constructor =
                 <span class="self">self</span>.encode_snapshot_valid_call(domain_name, snapshot.clone().into())<span class="question-mark">?</span>;
@@ -634,23 +642,24 @@
             }
             <span class="kw">let </span>axiom_top_down_body = vir_low::Expression::forall(
                 <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[snapshot],
-                <a href="#188">triggers</a>,
+                <a href="#189">triggers</a>,
                 <a class="macro" href="../../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{
                     [ valid_constructor ] == [ top_down_validity_expression ]
                 },
             );
             <span class="kw">let </span>axiom_top_down = <a href="../../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
+                comment: <span class="prelude-val">None</span>,
                 name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                     <span class="string">&quot;{}${}$validity_axiom_top_down_alternative&quot;</span>,
                     domain_name, variant_name
                 ),
-                body: <a href="#205">axiom_top_down_body</a>,
+                body: <a href="#206">axiom_top_down_body</a>,
             };
             <span class="self">self</span>.declare_axiom(domain_name, axiom_top_down)<span class="question-mark">?</span>;
         }
         <span class="kw">let </span>axiom_bottom_up_body = {
             <span class="kw">let </span><span class="kw-2">mut </span>trigger = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[valid_constructor.clone()];
-            <a href="#222">trigger</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#146">valid_parameters</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a href="#224">trigger</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#146">valid_parameters</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
             vir_low::Expression::forall(
                 <a href="#142">parameters</a>,
                 <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[vir_low::Trigger::new(trigger)],
@@ -662,11 +671,12 @@
         <span class="comment">// The axiom that allows proving that the data structure is
         // valid if we know that its fields are valid.
         </span><span class="kw">let </span>axiom_bottom_up = <a href="../../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
+            comment: <span class="prelude-val">None</span>,
             name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;{}${}$validity_axiom_bottom_up_alternative&quot;</span>,
                 domain_name, variant_name
             ),
-            body: <a href="#221">axiom_bottom_up_body</a>,
+            body: <a href="#223">axiom_bottom_up_body</a>,
         };
         <span class="self">self</span>.declare_axiom(domain_name, axiom_bottom_up)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -708,14 +718,14 @@
                 });
             }
             <span class="kw">let </span>discriminant_bounds =
-                <a href="#260">discriminant_call</a>.generate_discriminant_bounds(<a href="#250">discriminant_bounds</a>);
-            <a href="#258">triggers</a>.push(vir_low::Trigger::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
+                <a href="#263">discriminant_call</a>.generate_discriminant_bounds(<a href="#253">discriminant_bounds</a>);
+            <a href="#261">triggers</a>.push(vir_low::Trigger::new(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                 valid_constructor.clone(),
                 discriminant_call,
             ]));
             <span class="kw">let </span>axiom_top_down_body = vir_low::Expression::forall(
                 <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[snapshot],
-                <a href="#258">triggers</a>,
+                <a href="#261">triggers</a>,
                 <a class="macro" href="../../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{
                     [ valid_constructor ] == (
                         [ discriminant_bounds ] &amp;&amp; [ valid_variants.into_iter().conjoin() ]
@@ -723,8 +733,9 @@
                 },
             );
             <span class="kw">let </span>axiom_top_down = <a href="../../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
+                comment: <span class="prelude-val">None</span>,
                 name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$validity_axiom_top_down_enum&quot;</span>, domain_name),
-                body: <a href="#286">axiom_top_down_body</a>,
+                body: <a href="#289">axiom_top_down_body</a>,
             };
             <span class="self">self</span>.declare_axiom(domain_name, axiom_top_down)<span class="question-mark">?</span>;
         }
@@ -751,7 +762,7 @@
         invariant: <a href="../../../../../../../vir/gen/low/ast/expression/enum.Expression.html">vir_low::Expression</a>,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
-        <span class="kw">let </span>variant_type = vir_low::Type::domain(<a href="#319">variant_domain</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">let </span>variant_type = vir_low::Type::domain(<a href="#323">variant_domain</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
         <a class="macro" href="../../../../../../../vir/low/macros/macro.var_decls.html">var_decls! </a>{ variant: {variant_type} };
         <span class="kw">let </span>constructor_call = <span class="self">self</span>.adt_constructor_variant_call(
             domain_name,
@@ -775,11 +786,12 @@
         <span class="comment">// The axiom that allows proving that the data structure is
         // valid if we know that its fields are valid.
         </span><span class="kw">let </span>validity_axiom_bottom_up = <a href="../../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
+            comment: <span class="prelude-val">None</span>,
             name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;{}${}$validity_axiom_bottom_up_enum_variant&quot;</span>,
                 domain_name, variant_name
             ),
-            body: <a href="#335">axiom_bottom_up_body</a>,
+            body: <a href="#339">axiom_bottom_up_body</a>,
         };
         <span class="self">self</span>.declare_axiom(domain_name, validity_axiom_bottom_up)<span class="question-mark">?</span>;
         <span class="kw">let </span>discriminant_axiom_body = {
@@ -795,8 +807,9 @@
         };
         <span class="comment">// The axiom that defines the discriminant of the variant.
         </span><span class="kw">let </span>dicsriminant_axiom = <a href="../../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
+            comment: <span class="prelude-val">None</span>,
             name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}${}$discriminant_axiom&quot;</span>, domain_name, variant_name),
-            body: <a href="#355">discriminant_axiom_body</a>,
+            body: <a href="#360">discriminant_axiom_body</a>,
         };
         <span class="self">self</span>.declare_axiom(domain_name, dicsriminant_axiom)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -811,7 +824,7 @@
         <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
 
         <span class="kw">let </span>snapshot =
-            vir_low::VariableDecl::new(<span class="string">&quot;value&quot;</span>, vir_low::Type::seq(<a href="#379">parameter_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+            vir_low::VariableDecl::new(<span class="string">&quot;value&quot;</span>, vir_low::Type::seq(<a href="#385">parameter_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
         <span class="kw">let </span>valid_sequence =
             <span class="self">self</span>.encode_snapshot_valid_call(domain_name, snapshot.clone().into())<span class="question-mark">?</span>;
 
@@ -824,12 +837,12 @@
             <span class="self">self</span>.encode_snapshot_valid_call_for_type(index.clone().into(), <span class="kw-2">&amp;</span>size_type_mid)<span class="question-mark">?</span>;
         <span class="kw">let </span>element = vir_low::Expression::container_op_no_pos(
             vir_low::expression::ContainerOpKind::SeqIndex,
-            vir_low::Type::seq(<a href="#379">parameter_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+            vir_low::Type::seq(<a href="#385">parameter_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[snapshot.clone().into(), index_int.clone()],
         );
         <span class="kw">let </span>len = vir_low::Expression::container_op_no_pos(
             vir_low::expression::ContainerOpKind::SeqLen,
-            vir_low::Type::seq(<a href="#379">parameter_type</a>),
+            vir_low::Type::seq(<a href="#385">parameter_type</a>),
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[snapshot.clone().into()],
         );
         <span class="kw">let </span>valid_element = <span class="self">self</span>.encode_snapshot_valid_call(element_domain_name, element)<span class="question-mark">?</span>;
@@ -846,13 +859,14 @@
             },
         );
         <span class="kw">let </span>axiom_top_down = <a href="../../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
+            comment: <span class="prelude-val">None</span>,
             <span class="comment">// We use ty identifier to distinguish sequences from arrays.
             </span>name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;{}${}$validity_axiom_top_down_sequence&quot;</span>,
                 domain_name,
                 vir_crate::common::identifier::WithIdentifier::get_identifier(ty)
             ),
-            body: <a href="#411">axiom_top_down_body</a>,
+            body: <a href="#417">axiom_top_down_body</a>,
         };
         <span class="self">self</span>.declare_axiom(domain_name, axiom_top_down)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())

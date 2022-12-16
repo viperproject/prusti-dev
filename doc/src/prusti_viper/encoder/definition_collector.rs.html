@@ -575,10 +575,15 @@
 <a href="#575" id="575">575</a>
 <a href="#576" id="576">576</a>
 <a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
 </pre><pre class="rust"><code><span class="kw">use super</span>::{
     errors::{<a href="errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
     <a href="snapshot/interface.rs.html#12">snapshot::interface::SnapshotEncoderInterface</a>,
-    <a href="encoder.rs.html#66">Encoder</a>,
+    <a href="encoder.rs.html#67">Encoder</a>,
 };
 <span class="kw">use </span><a href="high/types/interface.rs.html#127"><span class="kw">crate</span>::encoder::high::types::HighTypeEncoderInterface</a>;
 <span class="kw">use </span><a href="../../../prusti_common/macro.vir_local.html">prusti_common::vir_local</a>;
@@ -611,23 +616,26 @@
 /// of the process.
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>collect_definitions(
     error_span: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>,
-    encoder: <span class="kw-2">&amp;</span><a href="encoder.rs.html#66">Encoder</a>,
+    encoder: <span class="kw-2">&amp;</span><a href="encoder.rs.html#67">Encoder</a>,
     name: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
     methods: Vec&lt;<a href="../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>&gt;,
 ) -&gt; SpannedEncodingResult&lt;<a href="../../../vir/gen/polymorphic/program/struct.Program.html">vir::Program</a>&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>unfolded_predicate_collector = <a href="#506">UnfoldedPredicateCollector</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>unfolded_predicate_collector = <a href="#511">UnfoldedPredicateCollector</a> {
         unfolded_predicates: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
     };
     vir::utils::walk_methods(<span class="kw-2">&amp;</span><a href="#39">methods</a>, <span class="kw-2">&amp;mut </span><a href="#41">unfolded_predicate_collector</a>);
-    <span class="kw">let </span><span class="kw-2">mut </span>collector = <a href="#66">Collector</a> {
+    <span class="comment">// Keep all domains around. An alternative is to make the collector walk over domain axioms.
+    </span><span class="kw">let </span>used_builtin_domains = <a href="#37">encoder</a>.<a href="encoder.rs.html#271">get_encoded_builtin_domains</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+    <span class="kw">let </span><span class="kw-2">mut </span>collector = <a href="#69">Collector</a> {
         <a href="#36">error_span</a>,
         <a href="#37">encoder</a>,
-        method_names: <a href="#39">methods</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|method| <a href="#48">method</a>.name()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
+        method_names: <a href="#39">methods</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|method| <a href="#50">method</a>.name()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>(),
         unfolded_predicates: <a href="#41">unfolded_predicate_collector</a>.unfolded_predicates,
         new_unfolded_predicates: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         used_predicates: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         used_fields: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         used_domains: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
+        <a href="#46">used_builtin_domains</a>,
         used_snap_domain_functions: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         used_functions: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         checked_function_contracts: <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
@@ -637,7 +645,7 @@
         in_directly_calling_state: <span class="bool-val">true</span>,
     };
     collector.walk_methods(<span class="kw-2">&amp;</span>methods)<span class="question-mark">?</span>;
-    <a href="#45">collector</a>.<a href="#96-100">into_program</a>(<a href="#38">name</a>, <a href="#39">methods</a>)
+    <a href="#47">collector</a>.<a href="#100-104">into_program</a>(<a href="#38">name</a>, <a href="#39">methods</a>)
 }
 
 <span class="kw">struct </span>Collector&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; {
@@ -654,6 +662,7 @@
     new_unfolded_predicates: FxHashSet&lt;<a href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>&gt;,
     used_fields: FxHashSet&lt;<a href="../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a>&gt;,
     used_domains: FxHashSet&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;,
+    used_builtin_domains: FxHashSet&lt;<a href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a>&gt;,
     used_snap_domain_functions: FxHashSet&lt;<a href="../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a>&gt;,
     <span class="doccomment">/// The set of all functions that are mentioned in the method.
     </span>used_functions: FxHashSet&lt;<a href="../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a>&gt;,
@@ -677,16 +686,16 @@
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../vir/gen/polymorphic/program/struct.Program.html">vir::Program</a>&gt; {
         <span class="kw">let </span>functions = <span class="self">self</span>.get_used_functions()<span class="question-mark">?</span>;
         <span class="kw">let </span>viper_predicates = <span class="self">self</span>.get_used_predicates()<span class="question-mark">?</span>;
-        <span class="kw">let </span>domains = <a class="self" href="#97">self</a>.<a href="#227">get_used_domains</a>();
-        <span class="kw">let </span>fields = <a class="self" href="#97">self</a>.<a href="#133">get_used_fields</a>();
+        <span class="kw">let </span>domains = <a class="self" href="#101">self</a>.<a href="#231">get_used_domains</a>();
+        <span class="kw">let </span>fields = <a class="self" href="#101">self</a>.<a href="#137">get_used_fields</a>();
         <span class="prelude-val">Ok</span>(<a href="../../../vir/gen/polymorphic/program/struct.Program.html">vir::Program</a> {
-            <a href="#98">name</a>,
-            <a href="#103">domains</a>,
-            <a href="#104">fields</a>,
-            builtin_methods: <a class="self" href="#97">self</a>.<a href="#148">get_all_methods</a>(),
-            <a href="#99">methods</a>,
-            <a href="#101">functions</a>,
-            <a href="#102">viper_predicates</a>,
+            <a href="#102">name</a>,
+            <a href="#107">domains</a>,
+            <a href="#108">fields</a>,
+            builtin_methods: <a class="self" href="#101">self</a>.<a href="#152">get_all_methods</a>(),
+            <a href="#103">methods</a>,
+            <a href="#105">functions</a>,
+            <a href="#106">viper_predicates</a>,
         })
     }
     <span class="kw">fn </span>walk_methods(<span class="kw-2">&amp;mut </span><span class="self">self</span>, methods: <span class="kw-2">&amp;</span>[<a href="../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>]) -&gt; SpannedEncodingResult&lt;()&gt; {
@@ -701,36 +710,36 @@
             }
         }
         vir::utils::fallible_walk_methods(methods, <span class="self">self</span>)<span class="question-mark">?</span>;
-        <a class="self" href="#115">self</a>.used_predicates
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#115">self</a>.unfolded_predicates.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
-        <a class="self" href="#115">self</a>.used_functions
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#115">self</a>.unfolded_functions.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
+        <a class="self" href="#119">self</a>.used_predicates
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#119">self</a>.unfolded_predicates.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
+        <a class="self" href="#119">self</a>.used_functions
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#119">self</a>.unfolded_functions.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>get_used_fields(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a>&gt; {
         <span class="comment">// TODO: Remove the deduplication once we switch to the offset-based
         // fields.
-        </span><span class="kw">let </span>used_fields: FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = <span class="self"><a href="#133">self</a>
+        </span><span class="kw">let </span>used_fields: FxHashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = <span class="self"><a href="#137">self</a>
             </span>.used_fields
             .iter()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|field| (<span class="kw-2">&amp;</span><a href="#139">field</a>.name, <a href="#139">field</a>))
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|field| (<span class="kw-2">&amp;</span><a href="#143">field</a>.name, <a href="#143">field</a>))
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>used_fields: Vec&lt;<span class="kw">_</span>&gt; = <a href="#136">used_fields</a>.values().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw-2">&amp;</span>field| <a href="#141">field</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#141">used_fields</a>.sort_by_cached_key(|f| <a href="#142">f</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>());
-        <a href="#141">used_fields</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>used_fields: Vec&lt;<span class="kw">_</span>&gt; = <a href="#140">used_fields</a>.values().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|<span class="kw-2">&amp;</span>field| <a href="#145">field</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <a href="#145">used_fields</a>.sort_by_cached_key(|f| <a href="#146">f</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>());
+        <a href="#145">used_fields</a>
     }
     <span class="doccomment">/// The purification optimization that is executed after this assumes that
     /// all bodyless methods are present. That is why we are returning all
     /// methods here.
     </span><span class="kw">fn </span>get_all_methods(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>methods: Vec&lt;<span class="kw">_</span>&gt; = <span class="self"><a href="#148">self</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>methods: Vec&lt;<span class="kw">_</span>&gt; = <span class="self"><a href="#152">self</a>
             </span>.encoder
-            .<a href="encoder.rs.html#283-285">get_builtin_methods</a>()
+            .<a href="encoder.rs.html#293-295">get_builtin_methods</a>()
             .values()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a href="#149">methods</a>.sort_by_cached_key(|method| <a href="#155">method</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a href="#149">methods</a>
+        <a href="#153">methods</a>.sort_by_cached_key(|method| <a href="#159">method</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a href="#153">methods</a>
     }
     <span class="kw">fn </span>get_used_predicates(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;Vec&lt;<a href="../../../vir/gen/polymorphic/ast/predicate/enum.Predicate.html">vir::Predicate</a>&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>predicates = Vec::new();
@@ -764,12 +773,12 @@
             };
             predicates.push(predicate);
         }
-        <a href="#159">predicates</a>.push(vir::Predicate::Bodyless(
+        <a href="#163">predicates</a>.push(vir::Predicate::Bodyless(
             vir::Type::typed_ref(<span class="string">&quot;DeadBorrowToken$&quot;</span>),
             <a class="macro" href="../../../prusti_common/macro.vir_local.html">vir_local! </a>{ borrow: Int },
         ));
-        <a href="#159">predicates</a>.sort_by_key(|f| <a href="#194">f</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>());
-        <span class="prelude-val">Ok</span>(<a href="#159">predicates</a>)
+        <a href="#163">predicates</a>.sort_by_key(|f| <a href="#198">f</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>());
+        <span class="prelude-val">Ok</span>(<a href="#163">predicates</a>)
     }
     <span class="kw">fn </span>get_used_functions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SpannedEncodingResult&lt;Vec&lt;<a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>functions = Vec::new();
@@ -798,16 +807,16 @@
             }
             functions.push(function);
         }
-        <a href="#198">functions</a>.sort_by_cached_key(|f| <a href="#224">f</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>());
-        <span class="prelude-val">Ok</span>(<a href="#198">functions</a>)
+        <a href="#202">functions</a>.sort_by_cached_key(|f| <a href="#228">f</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>());
+        <span class="prelude-val">Ok</span>(<a href="#202">functions</a>)
     }
     <span class="kw">fn </span>get_used_domains(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;<a href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a>&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>domains: Vec&lt;<span class="kw">_</span>&gt; = <span class="self"><a href="#227">self</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>domains: Vec&lt;<span class="kw">_</span>&gt; = <span class="self"><a href="#231">self</a>
             </span>.used_domains
             .iter()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|snapshot_name| {
-                <span class="kw">let </span><span class="kw-2">mut </span>domain = <a class="self" href="#227">self</a>.encoder.<a href="snapshot/interface.rs.html#13">get_domain</a>(<a href="#231">snapshot_name</a>);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(predicate_name) = <a href="#231">snapshot_name</a>.strip_prefix(<span class="string">&quot;Snap$&quot;</span>) {
+                <span class="kw">let </span><span class="kw-2">mut </span>domain = <a class="self" href="#231">self</a>.encoder.<a href="snapshot/interface.rs.html#13">get_domain</a>(<a href="#235">snapshot_name</a>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(predicate_name) = <a href="#235">snapshot_name</a>.strip_prefix(<span class="string">&quot;Snap$&quot;</span>) {
                     <span class="comment">// We have a snapshot for some type
                     </span><span class="kw">if </span>!contains(<span class="kw-2">&amp;</span><span class="self">self</span>.unfolded_predicates, predicate_name)
                         &amp;&amp; !contains(<span class="kw-2">&amp;</span><span class="self">self</span>.new_unfolded_predicates, predicate_name)
@@ -821,67 +830,68 @@
                         // on an axiom, then we should also retain the axiom.
                         </span><span class="kw">let </span><span class="kw-2">mut </span>used_snap_domain_function_prefixes = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
                         <span class="kw">let </span><span class="kw-2">mut </span>used_snap_domain_constructor = <span class="bool-val">false</span>;
-                        <a href="#232">domain</a>.functions.retain(|function| {
-                            <span class="kw">let </span>function_name = <a href="#247">function</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>();
-                            <span class="kw">let </span>prefix = <a href="#248">function_name</a>.split(<span class="string">&quot;__&quot;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(String::from);
-                            <span class="kw">let </span>is_constructor = <a href="#248">function_name</a>.starts_with(<span class="string">&quot;cons&quot;</span>);
+                        <a href="#236">domain</a>.functions.retain(|function| {
+                            <span class="kw">let </span>function_name = <a href="#251">function</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>();
+                            <span class="kw">let </span>prefix = <a href="#252">function_name</a>.split(<span class="string">&quot;__&quot;</span>).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().map(String::from);
+                            <span class="kw">let </span>is_constructor = <a href="#252">function_name</a>.starts_with(<span class="string">&quot;cons&quot;</span>);
                             <span class="kw">if </span><span class="self">self
                                 </span>.used_snap_domain_functions
                                 .contains(<span class="kw-2">&amp;</span>function_name.into())
                             {
-                                <a href="#245">used_snap_domain_function_prefixes</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#249">prefix</a>);
-                                <a href="#246">used_snap_domain_constructor</a> |= <a href="#250">is_constructor</a>;
+                                <a href="#249">used_snap_domain_function_prefixes</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a href="#253">prefix</a>);
+                                <a href="#250">used_snap_domain_constructor</a> |= <a href="#254">is_constructor</a>;
                                 <span class="bool-val">true
                             </span>} <span class="kw">else </span>{
                                 <span class="bool-val">false
                             </span>}
                         });
-                        <a href="#232">domain</a>.axioms.retain(|axiom| {
-                            <span class="kw">let </span>used = <a href="#245">used_snap_domain_function_prefixes</a>
+                        <a href="#236">domain</a>.axioms.retain(|axiom| {
+                            <span class="kw">let </span>used = <a href="#249">used_snap_domain_function_prefixes</a>
                                 .iter()
-                                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|prefix| <a href="#262">axiom</a>.name.starts_with(<a href="#265">prefix</a>));
-                            <span class="kw">let </span>retain_type_invariant = <a href="#262">axiom</a>.name.ends_with(<span class="string">&quot;$valid&quot;</span>) &amp;&amp; <a href="#263">used</a>;
-                            <span class="kw">let </span>retain_injectivity = <a href="#246">used_snap_domain_constructor</a>
-                                &amp;&amp; <a href="#262">axiom</a>.name.ends_with(<span class="string">&quot;$injectivity&quot;</span>);
-                            <span class="kw">let </span>retain_field_axiom = <a href="#246">used_snap_domain_constructor</a> &amp;&amp; <a href="#263">used</a>;
+                                .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|prefix| <a href="#266">axiom</a>.name.starts_with(<a href="#269">prefix</a>));
+                            <span class="kw">let </span>retain_type_invariant = <a href="#266">axiom</a>.name.ends_with(<span class="string">&quot;$valid&quot;</span>) &amp;&amp; <a href="#267">used</a>;
+                            <span class="kw">let </span>retain_injectivity = <a href="#250">used_snap_domain_constructor</a>
+                                &amp;&amp; <a href="#266">axiom</a>.name.ends_with(<span class="string">&quot;$injectivity&quot;</span>);
+                            <span class="kw">let </span>retain_field_axiom = <a href="#250">used_snap_domain_constructor</a> &amp;&amp; <a href="#267">used</a>;
 
-                            <a href="#266">retain_type_invariant</a> || <a href="#267">retain_injectivity</a> || <a href="#269">retain_field_axiom</a>
+                            <a href="#270">retain_type_invariant</a> || <a href="#271">retain_injectivity</a> || <a href="#273">retain_field_axiom</a>
                         });
                     }
                 }
-                <a href="#232">domain</a>
+                <a href="#236">domain</a>
             })
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>mirror_domain) = <a class="self" href="#227">self</a>.encoder.<a href="encoder.rs.html#261">get_mirror_domain</a>() {
-            <a href="#278">mirror_domain</a>.functions.retain(|function| {
-                <a class="self" href="#227">self</a>.used_mirror_functions
-                    .contains(<span class="kw-2">&amp;</span><a href="#279">function</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>mirror_domain) = <a class="self" href="#231">self</a>.encoder.<a href="encoder.rs.html#267">get_mirror_domain</a>() {
+            <a href="#282">mirror_domain</a>.functions.retain(|function| {
+                <a class="self" href="#231">self</a>.used_mirror_functions
+                    .contains(<span class="kw-2">&amp;</span><a href="#283">function</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
             });
             <span class="kw">if </span>!mirror_domain.functions.is_empty() {
-                <a href="#278">mirror_domain</a>
+                <a href="#282">mirror_domain</a>
                     .functions
-                    .sort_by_cached_key(|func| <a href="#286">func</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>());
-                <a href="#228">domains</a>.push(<a href="#278">mirror_domain</a>);
+                    .sort_by_cached_key(|func| <a href="#290">func</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>());
+                <a href="#232">domains</a>.push(<a href="#282">mirror_domain</a>);
             }
         }
-        <a href="#228">domains</a>.sort_by_cached_key(|domain| <a href="#290">domain</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a href="#228">domains</a>
+        <a href="#232">domains</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="#231">self</a>.used_builtin_domains.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
+        <a href="#232">domains</a>.sort_by_cached_key(|domain| <a href="#295">domain</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a href="#232">domains</a>
     }
     <span class="kw">fn </span>contains_unfolded_predicates(<span class="kw-2">&amp;</span><span class="self">self</span>, exprs: <span class="kw-2">&amp;</span>[<a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let </span>unfolded_predicate_checker = <span class="kw-2">&amp;mut </span><a href="#563">UnfoldedPredicateChecker</a> {
-            unfolded_predicates: <span class="kw-2">&amp;</span><a class="self" href="#293">self</a>.unfolded_predicates,
+        <span class="kw">let </span>unfolded_predicate_checker = <span class="kw-2">&amp;mut </span><a href="#568">UnfoldedPredicateChecker</a> {
+            unfolded_predicates: <span class="kw-2">&amp;</span><a class="self" href="#298">self</a>.unfolded_predicates,
             found: <span class="bool-val">false</span>,
         };
-        <a href="#293">exprs</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|expr| {
-            <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker::walk</a>(<a href="#294">unfolded_predicate_checker</a>, <a href="#298">expr</a>);
-            <a href="#294">unfolded_predicate_checker</a>.found
+        <a href="#298">exprs</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|expr| {
+            <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker::walk</a>(<a href="#299">unfolded_predicate_checker</a>, <a href="#303">expr</a>);
+            <a href="#299">unfolded_predicate_checker</a>.found
         })
     }
     <span class="kw">fn </span>contains_unfolded_parameters(<span class="kw-2">&amp;</span><span class="self">self</span>, formal_args: <span class="kw-2">&amp;</span>[<a href="../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir::LocalVar</a>]) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a href="#303">formal_args</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|parameter| {
-            <span class="kw">if let </span>vir::Type::Snapshot(snapshot_type) = <span class="kw-2">&amp;</span><a href="#304">parameter</a>.typ {
-                <span class="kw">let </span>typ = vir::Type::TypedRef(<a href="#305">snapshot_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                <a class="self" href="#303">self</a>.unfolded_predicates.contains(<span class="kw-2">&amp;</span><a href="#306">typ</a>)
+        <a href="#308">formal_args</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|parameter| {
+            <span class="kw">if let </span>vir::Type::Snapshot(snapshot_type) = <span class="kw-2">&amp;</span><a href="#309">parameter</a>.typ {
+                <span class="kw">let </span>typ = vir::Type::TypedRef(<a href="#310">snapshot_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                <a class="self" href="#308">self</a>.unfolded_predicates.contains(<span class="kw-2">&amp;</span><a href="#311">typ</a>)
             } <span class="kw">else </span>{
                 <span class="bool-val">false
             </span>}
@@ -890,13 +900,13 @@
 }
 
 <span class="kw">fn </span>contains(container: <span class="kw-2">&amp;</span>FxHashSet&lt;<a href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>&gt;, predicate_name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#315">container</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|typ| <a href="#316">typ</a>.name() == <a href="#315">predicate_name</a>)
+    <a href="#320">container</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|typ| <a href="#321">typ</a>.name() == <a href="#320">predicate_name</a>)
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <a href="../../../vir/gen/polymorphic/ast/stmt/trait.FallibleStmtWalker.html">FallibleStmtWalker</a> <span class="kw">for </span>Collector&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">type </span>Error = <a href="errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>;
     <span class="kw">fn </span>fallible_walk_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprWalker.html">FallibleExprWalker::fallible_walk</a>(<a class="self" href="#321">self</a>, <a href="#321">expr</a>)
+        <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprWalker.html">FallibleExprWalker::fallible_walk</a>(<a class="self" href="#326">self</a>, <a href="#326">expr</a>)
     }
 }
 
@@ -910,7 +920,7 @@
             ..
         }: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/struct.Variant.html">vir::Variant</a>,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <a class="self" href="#329">self</a>.used_fields.insert(<a href="#332">variant_index</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="#334">self</a>.used_fields.insert(<a href="#337">variant_index</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
         FallibleExprWalker::fallible_walk(<span class="self">self</span>, base)<span class="question-mark">?</span>;
         FallibleExprWalker::fallible_walk_type(<span class="self">self</span>, <span class="kw-2">&amp;</span>variant_index.typ)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -919,7 +929,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         <a href="../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a> { base, field, .. }: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/struct.FieldExpr.html">vir::FieldExpr</a>,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <a class="self" href="#342">self</a>.used_fields.insert(<a href="#343">field</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="#347">self</a>.used_fields.insert(<a href="#348">field</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
         FallibleExprWalker::fallible_walk(<span class="self">self</span>, base)<span class="question-mark">?</span>;
         FallibleExprWalker::fallible_walk_type(<span class="self">self</span>, <span class="kw-2">&amp;</span>field.typ)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -932,8 +942,8 @@
             ..
         }: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/struct.PredicateAccessPredicate.html">vir::PredicateAccessPredicate</a>,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <a class="self" href="#351">self</a>.used_predicates.insert(<a href="#353">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprWalker.html">FallibleExprWalker::fallible_walk</a>(<a class="self" href="#351">self</a>, <a href="#354">argument</a>)
+        <a class="self" href="#356">self</a>.used_predicates.insert(<a href="#358">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprWalker.html">FallibleExprWalker::fallible_walk</a>(<a class="self" href="#356">self</a>, <a href="#359">argument</a>)
     }
     <span class="kw">fn </span>fallible_walk_unfolding(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -947,7 +957,7 @@
         <span class="kw">if </span><span class="self">self</span>.new_unfolded_predicates.insert(predicate_type.clone()) {
             <span class="kw">let </span>predicate = <span class="self">self</span>.encoder.get_viper_predicate(predicate_type)<span class="question-mark">?</span>;
             <span class="comment">// make sure we include all the fields
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(body) = <a href="#371">predicate</a>.body().as_ref() {
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(body) = <a href="#376">predicate</a>.body().as_ref() {
                 <span class="self">self</span>.fallible_walk_expr(body)<span class="question-mark">?</span>;
             }
         }
@@ -969,45 +979,45 @@
         }: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/struct.FuncApp.html">vir::FuncApp</a>,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">let </span>identifier: <a href="../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a> =
-            <a href="../../../vir/gen/polymorphic/ast/function/fn.compute_identifier.html">compute_identifier</a>(<a href="#386">function_name</a>, <a href="#387">type_arguments</a>, <a href="#389">formal_arguments</a>, <a href="#390">return_type</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-        <span class="kw">let </span>should_visit = !<a class="self" href="#384">self</a>.used_functions.contains(<span class="kw-2">&amp;</span><a href="#394">identifier</a>);
+            <a href="../../../vir/gen/polymorphic/ast/function/fn.compute_identifier.html">compute_identifier</a>(<a href="#391">function_name</a>, <a href="#392">type_arguments</a>, <a href="#394">formal_arguments</a>, <a href="#395">return_type</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>should_visit = !<a class="self" href="#389">self</a>.used_functions.contains(<span class="kw-2">&amp;</span><a href="#399">identifier</a>);
         <span class="kw">let </span>should_visit_in_directly_calling_state =
-            <a class="self" href="#384">self</a>.in_directly_calling_state &amp;&amp; !<a class="self" href="#384">self</a>.directly_called_functions.contains(<span class="kw-2">&amp;</span><a href="#394">identifier</a>);
+            <a class="self" href="#389">self</a>.in_directly_calling_state &amp;&amp; !<a class="self" href="#389">self</a>.directly_called_functions.contains(<span class="kw-2">&amp;</span><a href="#399">identifier</a>);
         <span class="kw">if </span>should_visit || should_visit_in_directly_calling_state {
             <span class="kw">let </span>function = <span class="self">self</span>.encoder.get_function(<span class="kw-2">&amp;</span>identifier)<span class="question-mark">?</span>;
-            <a class="self" href="#384">self</a>.used_functions.insert(<a href="#394">identifier</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a class="self" href="#389">self</a>.used_functions.insert(<a href="#399">identifier</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
             <span class="kw">if </span>!<span class="self">self</span>.checked_function_contracts.contains(<span class="kw-2">&amp;</span>identifier)
                 || (should_visit_in_directly_calling_state &amp;&amp; function.body.is_some())
             {
-                <a class="self" href="#384">self</a>.checked_function_contracts.insert(<a href="#394">identifier</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <a class="self" href="#389">self</a>.checked_function_contracts.insert(<a href="#399">identifier</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                 <span class="kw">for </span>expr <span class="kw">in </span>function.pres.iter().chain(<span class="kw-2">&amp;</span>function.posts) {
                     <span class="self">self</span>.fallible_walk_expr(expr)<span class="question-mark">?</span>;
                 }
             }
-            <span class="kw">let </span>is_unfoldable = <a class="self" href="#384">self</a>.<a href="#293">contains_unfolded_predicates</a>(<span class="kw-2">&amp;</span><a href="#400">function</a>.pres)
-                || <a class="self" href="#384">self</a>.<a href="#303">contains_unfolded_parameters</a>(<span class="kw-2">&amp;</span><a href="#400">function</a>.formal_args);
+            <span class="kw">let </span>is_unfoldable = <a class="self" href="#389">self</a>.<a href="#298">contains_unfolded_predicates</a>(<span class="kw-2">&amp;</span><a href="#405">function</a>.pres)
+                || <a class="self" href="#389">self</a>.<a href="#308">contains_unfolded_parameters</a>(<span class="kw-2">&amp;</span><a href="#405">function</a>.formal_args);
             <span class="comment">// TODO: this post-condition check can be removed once verification of Viper functions is disabled,
             // TODO: this is just a temporary fix for https://github.com/viperproject/prusti-dev/issues/770
             // note that for now this is also true for any pure or predicate
             // function because a mirror postcondition is inserted
-            </span><span class="kw">let </span>post_conditions_depend_on_result = <a href="#400">function</a>.posts.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|postcondition| {
-                <a href="#416">postcondition</a>.find(<span class="kw-2">&amp;</span>vir::Expr::from(
+            </span><span class="kw">let </span>post_conditions_depend_on_result = <a href="#405">function</a>.posts.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(|postcondition| {
+                <a href="#421">postcondition</a>.find(<span class="kw-2">&amp;</span>vir::Expr::from(
                     <a class="macro" href="../../../prusti_common/macro.vir_local.html">vir_local! </a>{ __result: { function.return_type.clone() } },
                 ))
             });
             <span class="kw">if </span><span class="self">self</span>.in_directly_calling_state || is_unfoldable || post_conditions_depend_on_result {
-                <a class="self" href="#384">self</a>.directly_called_functions.insert(<a href="#394">identifier</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                <a class="self" href="#384">self</a>.unfolded_functions.insert(<a href="#394">identifier</a>);
-                <span class="kw">let </span>old_in_directly_calling_state = <a class="self" href="#384">self</a>.in_directly_calling_state;
+                <a class="self" href="#389">self</a>.directly_called_functions.insert(<a href="#399">identifier</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <a class="self" href="#389">self</a>.unfolded_functions.insert(<a href="#399">identifier</a>);
+                <span class="kw">let </span>old_in_directly_calling_state = <a class="self" href="#389">self</a>.in_directly_calling_state;
                 <span class="kw">if </span>!is_unfoldable {
                     <span class="comment">// The functions called in the body of this function are
                     // directly callable only if this function is unfoldable.
-                    </span><a class="self" href="#384">self</a>.in_directly_calling_state = <span class="bool-val">false</span>;
+                    </span><a class="self" href="#389">self</a>.in_directly_calling_state = <span class="bool-val">false</span>;
                 }
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(body) = <span class="kw-2">&amp;</span><a href="#400">function</a>.body {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(body) = <span class="kw-2">&amp;</span><a href="#405">function</a>.body {
                     <span class="self">self</span>.fallible_walk_expr(body)<span class="question-mark">?</span>;
                 }
-                <a class="self" href="#384">self</a>.in_directly_calling_state = <a href="#424">old_in_directly_calling_state</a>;
+                <a class="self" href="#389">self</a>.in_directly_calling_state = <a href="#429">old_in_directly_calling_state</a>;
             }
         }
         <span class="kw">for </span>arg <span class="kw">in </span>arguments {
@@ -1028,20 +1038,20 @@
         }: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/struct.DomainFuncApp.html">vir::DomainFuncApp</a>,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
         <span class="kw">if </span>domain_function.domain_name.starts_with(<span class="string">&quot;Snap$&quot;</span>) {
-            <a class="self" href="#446">self</a>.used_snap_domain_functions
-                .insert(<a href="#448">domain_function</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-            <a class="self" href="#446">self</a>.used_domains
-                .insert(<a href="#448">domain_function</a>.domain_name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a class="self" href="#451">self</a>.used_snap_domain_functions
+                .insert(<a href="#453">domain_function</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <a class="self" href="#451">self</a>.used_domains
+                .insert(<a href="#453">domain_function</a>.domain_name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
         } <span class="kw">else </span>{
-            <span class="kw">match </span><a href="#448">domain_function</a>.domain_name.as_str() {
+            <span class="kw">match </span><a href="#453">domain_function</a>.domain_name.as_str() {
                 <span class="string">&quot;MirrorDomain&quot; </span>=&gt; {
                     <span class="comment">// Always included when encoded, do nothing.
-                    </span><a class="self" href="#446">self</a>.used_mirror_functions
-                        .insert(<a href="#448">domain_function</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                    </span><a class="self" href="#451">self</a>.used_mirror_functions
+                        .insert(<a href="#453">domain_function</a>.<a href="../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
                 }
                 <span class="string">&quot;UnitDomain&quot; </span>=&gt; {
-                    <a class="self" href="#446">self</a>.used_domains
-                        .insert(<a href="#448">domain_function</a>.domain_name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                    <a class="self" href="#451">self</a>.used_domains
+                        .insert(<a href="#453">domain_function</a>.domain_name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                 }
                 name =&gt; {
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;Unexpected domain: {}&quot;</span>, name);
@@ -1057,21 +1067,21 @@
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn </span>fallible_walk_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, typ: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">match </span><a href="#482">typ</a> {
+        <span class="kw">match </span><a href="#487">typ</a> {
             vir::Type::Seq(<a href="../../../vir/gen/polymorphic/ast/common/struct.SeqType.html">vir::SeqType</a> { <span class="kw">box </span>typ }) =&gt; {
                 <span class="self">self</span>.fallible_walk_type(typ)<span class="question-mark">?</span>;
             }
             vir::Type::TypedRef(..) | vir::Type::TypeVar(..) =&gt; {
-                <a class="self" href="#482">self</a>.used_predicates.insert(<a href="#482">typ</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <a class="self" href="#487">self</a>.used_predicates.insert(<a href="#487">typ</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
             }
             vir::Type::Domain(..) =&gt; {
-                <span class="kw">let </span>name = <a href="#482">typ</a>.name();
+                <span class="kw">let </span>name = <a href="#487">typ</a>.name();
                 <span class="kw">if </span>name != <span class="string">&quot;UnitDomain&quot; </span>{
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;Unexpected type that is not snapshot: {}&quot;</span>, name);
                 }
             }
             vir::Type::Snapshot(..) =&gt; {
-                <a class="self" href="#482">self</a>.used_domains.insert(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Snap${}&quot;</span>, typ.name()));
+                <a class="self" href="#487">self</a>.used_domains.insert(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Snap${}&quot;</span>, typ.name()));
             }
             <span class="kw">_ </span>=&gt; {}
         }
@@ -1085,9 +1095,9 @@
     </span>unfolded_predicates: FxHashSet&lt;<a href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../../vir/gen/polymorphic/ast/stmt/trait.StmtWalker.html">StmtWalker</a> <span class="kw">for </span><a href="#506">UnfoldedPredicateCollector</a> {
+<span class="kw">impl </span><a href="../../../vir/gen/polymorphic/ast/stmt/trait.StmtWalker.html">StmtWalker</a> <span class="kw">for </span><a href="#511">UnfoldedPredicateCollector</a> {
     <span class="kw">fn </span>walk_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expr: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a>) {
-        <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="#512">self</a>, <a href="#512">expr</a>);
+        <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="#517">self</a>, <a href="#517">expr</a>);
     }
 
     <span class="kw">fn </span>walk_fold(
@@ -1098,7 +1108,7 @@
             ..
         }: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/stmt/struct.Fold.html">vir::Fold</a>,
     ) {
-        <a class="self" href="#517">self</a>.unfolded_predicates.insert(<a href="#519">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="#522">self</a>.unfolded_predicates.insert(<a href="#524">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
         <span class="kw">for </span>arg <span class="kw">in </span>arguments {
             <span class="self">self</span>.walk_expr(arg);
         }
@@ -1112,14 +1122,14 @@
             ..
         }: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/stmt/struct.Unfold.html">vir::Unfold</a>,
     ) {
-        <a class="self" href="#531">self</a>.unfolded_predicates.insert(<a href="#533">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="#536">self</a>.unfolded_predicates.insert(<a href="#538">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
         <span class="kw">for </span>arg <span class="kw">in </span>arguments {
             <span class="self">self</span>.walk_expr(arg);
         }
     }
 }
 
-<span class="kw">impl </span><a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for </span><a href="#506">UnfoldedPredicateCollector</a> {
+<span class="kw">impl </span><a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for </span><a href="#511">UnfoldedPredicateCollector</a> {
     <span class="kw">fn </span>walk_unfolding(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         <a href="../../../vir/gen/polymorphic/ast/expr/struct.Unfolding.html">vir::Unfolding</a> {
@@ -1129,11 +1139,11 @@
             ..
         }: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/struct.Unfolding.html">vir::Unfolding</a>,
     ) {
-        <a class="self" href="#547">self</a>.unfolded_predicates.insert(<a href="#549">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="#552">self</a>.unfolded_predicates.insert(<a href="#554">predicate</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
         <span class="kw">for </span>arg <span class="kw">in </span>arguments {
             ExprWalker::walk(<span class="self">self</span>, arg);
         }
-        <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="#547">self</a>, <a href="#551">base</a>);
+        <a href="../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker::walk</a>(<a class="self" href="#552">self</a>, <a href="#556">base</a>);
     }
 }
 
@@ -1148,7 +1158,7 @@
         <a href="../../../vir/gen/polymorphic/ast/expr/struct.PredicateAccessPredicate.html">vir::PredicateAccessPredicate</a> { predicate_type, .. }: <span class="kw-2">&amp;</span><a href="../../../vir/gen/polymorphic/ast/expr/struct.PredicateAccessPredicate.html">vir::PredicateAccessPredicate</a>,
     ) {
         <span class="kw">if </span><span class="self">self</span>.unfolded_predicates.contains(predicate_type) {
-            <a class="self" href="#570">self</a>.found = <span class="bool-val">true</span>;
+            <a class="self" href="#575">self</a>.found = <span class="bool-val">true</span>;
         }
     }
 }

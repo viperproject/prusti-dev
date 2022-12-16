@@ -1947,21 +1947,30 @@
 <a href="#1947" id="1947">1947</a>
 <a href="#1948" id="1948">1948</a>
 <a href="#1949" id="1949">1949</a>
+<a href="#1950" id="1950">1950</a>
+<a href="#1951" id="1951">1951</a>
+<a href="#1952" id="1952">1952</a>
+<a href="#1953" id="1953">1953</a>
+<a href="#1954" id="1954">1954</a>
+<a href="#1955" id="1955">1955</a>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    <a href="../encoder.rs.html#116">encoder::encode_field_name</a>,
-    errors::{<a href="../errors/encoding_error.rs.html#15">EncodingError</a>, <a href="../errors/encoding_error.rs.html#20">EncodingResult</a>},
-    <a href="../mod.rs.html#13">foldunfold</a>,
-    <a href="../high/types/interface.rs.html#127">high::types::HighTypeEncoderInterface</a>,
-    mir::{<a href="../mir/sequences/interface.rs.html#87">sequences::MirSequencesEncoderInterface</a>, <a href="../mir/types/interface.rs.html#23">types::MirTypeEncoderInterface</a>},
-    snapshot::{<a href="decls.rs.html#15">decls::Snapshot</a>, <a href="patcher.rs.html#15">patcher::SnapshotPatcher</a>},
-    <a href="../utils.rs.html#7">utils::range_extract</a>,
-    <a href="../encoder.rs.html#66">Encoder</a>,
+</span><span class="kw">use crate</span>::{
+    encoder::{
+        <a href="../encoder.rs.html#119">encoder::encode_field_name</a>,
+        errors::{<a href="../errors/encoding_error.rs.html#15">EncodingError</a>, <a href="../errors/encoding_error.rs.html#20">EncodingResult</a>},
+        <a href="../mod.rs.html#13">foldunfold</a>,
+        <a href="../high/types/interface.rs.html#127">high::types::HighTypeEncoderInterface</a>,
+        mir::{<a href="../mir/sequences/interface.rs.html#87">sequences::MirSequencesEncoderInterface</a>, <a href="../mir/types/interface.rs.html#23">types::MirTypeEncoderInterface</a>},
+        snapshot::{<a href="decls.rs.html#15">decls::Snapshot</a>, <a href="patcher.rs.html#15">patcher::SnapshotPatcher</a>},
+        <a href="../utils.rs.html#7">utils::range_extract</a>,
+        <a href="../encoder.rs.html#67">Encoder</a>,
+    },
+    <a href="../errors/encoding_error.rs.html#76">error_internal</a>,
 };
 <span class="kw">use </span><a href="../../../../log/macro.debug.html">log::debug</a>;
 <span class="kw">use </span>prusti_common::{<a href="../../../../prusti_common/macro.vir_expr.html">vir_expr</a>, <a href="../../../../prusti_common/macro.vir_local.html">vir_local</a>};
@@ -2000,10 +2009,10 @@
     /// This is necessary to be able to encode recursive types; when encoding
     /// a snapshot where once of the fields is the same type, it is enough to
     /// look up the resulting type from this hashmap.
-    </span>in_progress: FxHashMap&lt;<a href="#39">PredicateType</a>, <a href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">Type</a>&gt;,
+    </span>in_progress: FxHashMap&lt;<a href="#42">PredicateType</a>, <a href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">Type</a>&gt;,
 
     <span class="doccomment">/// Maps predicate types to encoded snapshots.
-    </span>encoded: FxHashMap&lt;<a href="#39">PredicateType</a>, <a href="decls.rs.html#15">Snapshot</a>&gt;,
+    </span>encoded: FxHashMap&lt;<a href="#42">PredicateType</a>, <a href="decls.rs.html#15">Snapshot</a>&gt;,
 
     <span class="doccomment">/// Interning table for functions.
     </span>functions: FxHashMap&lt;<a href="../../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a>, Rc&lt;<a href="../../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>&gt;&gt;,
@@ -2015,10 +2024,10 @@
 <span class="doccomment">/// Snapshot encoding flattens references and boxes. This function removes any
 /// [Box&lt;...&gt;] or reference (mutable or shared) wrappers.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>strip_refs_and_boxes(ty: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html">ty::Ty</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html">ty::Ty</a> {
-    <span class="kw">match </span><a href="#68">ty</a>.kind() {
-        <span class="kw">_ if </span><a href="#68">ty</a>.is_box() =&gt; <a href="#68">strip_refs_and_boxes</a>(<a href="#68">ty</a>.boxed_ty()),
-        ty::TyKind::Ref(<span class="kw">_</span>, sub_ty, <span class="kw">_</span>) =&gt; <a href="#68">strip_refs_and_boxes</a>(<span class="kw-2">*</span><a href="#71">sub_ty</a>),
-        <span class="kw">_ </span>=&gt; <a href="#68">ty</a>,
+    <span class="kw">match </span><a href="#71">ty</a>.kind() {
+        <span class="kw">_ if </span><a href="#71">ty</a>.is_box() =&gt; <a href="#71">strip_refs_and_boxes</a>(<a href="#71">ty</a>.boxed_ty()),
+        ty::TyKind::Ref(<span class="kw">_</span>, sub_ty, <span class="kw">_</span>) =&gt; <a href="#71">strip_refs_and_boxes</a>(<span class="kw-2">*</span><a href="#74">sub_ty</a>),
+        <span class="kw">_ </span>=&gt; <a href="#71">ty</a>,
     }
 }
 
@@ -2029,18 +2038,18 @@
     ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>,
 ) -&gt; EncodingResult&lt;(ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;, <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>)&gt; {
-    <span class="kw">match </span><a href="#80">ty</a>.kind() {
-        <span class="kw">_ if </span><a href="#80">ty</a>.is_box() =&gt; <a href="#78-82">strip_refs_and_boxes_expr</a>(
-            <a href="#79">encoder</a>,
-            <a href="#80">ty</a>.boxed_ty(),
-            Expr::field(<a href="#81">expr</a>, encoder.encode_dereference_field(ty.boxed_ty())<span class="question-mark">?</span>),
+    <span class="kw">match </span><a href="#83">ty</a>.kind() {
+        <span class="kw">_ if </span><a href="#83">ty</a>.is_box() =&gt; <a href="#81-85">strip_refs_and_boxes_expr</a>(
+            <a href="#82">encoder</a>,
+            <a href="#83">ty</a>.boxed_ty(),
+            Expr::field(<a href="#84">expr</a>, encoder.encode_dereference_field(ty.boxed_ty())<span class="question-mark">?</span>),
         ),
-        ty::TyKind::Ref(<span class="kw">_</span>, sub_ty, <span class="kw">_</span>) =&gt; <a href="#78-82">strip_refs_and_boxes_expr</a>(
-            <a href="#79">encoder</a>,
-            <span class="kw-2">*</span><a href="#89">sub_ty</a>,
-            Expr::field(<a href="#81">expr</a>, encoder.encode_dereference_field(<span class="kw-2">*</span>sub_ty)<span class="question-mark">?</span>),
+        ty::TyKind::Ref(<span class="kw">_</span>, sub_ty, <span class="kw">_</span>) =&gt; <a href="#81-85">strip_refs_and_boxes_expr</a>(
+            <a href="#82">encoder</a>,
+            <span class="kw-2">*</span><a href="#92">sub_ty</a>,
+            Expr::field(<a href="#84">expr</a>, encoder.encode_dereference_field(<span class="kw-2">*</span>sub_ty)<span class="question-mark">?</span>),
         ),
-        <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>((<a href="#80">ty</a>, <a href="#81">expr</a>)),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>((<a href="#83">ty</a>, <a href="#84">expr</a>)),
     }
 }
 
@@ -2048,33 +2057,33 @@
 /// the `body` directly.
 </span><span class="kw">fn </span>forall_or_body(vars: Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir::LocalVar</a>&gt;, triggers: Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/trigger/struct.Trigger.html">vir::Trigger</a>&gt;, body: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> {
     <span class="kw">if </span>vars.is_empty() {
-        <a href="#100">body</a>
+        <a href="#103">body</a>
     } <span class="kw">else </span>{
-        Expr::forall(<a href="#100">vars</a>, <a href="#100">triggers</a>, <a href="#100">body</a>)
+        Expr::forall(<a href="#103">vars</a>, <a href="#103">triggers</a>, <a href="#103">body</a>)
     }
 }
 
-<span class="kw">impl </span><a href="#46">SnapshotEncoder</a> {
+<span class="kw">impl </span><a href="#49">SnapshotEncoder</a> {
     <span class="kw">pub fn </span>get_domain(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a>&gt; {
-        <a class="self" href="#109">self</a>.domains.get(<a href="#109">name</a>)
+        <a class="self" href="#112">self</a>.domains.get(<a href="#112">name</a>)
     }
 
     <span class="kw">fn </span>insert_domain(<span class="kw-2">&amp;mut </span><span class="self">self</span>, domain: <a href="../../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let </span>name = <a href="#113">domain</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let </span>name = <a href="#116">domain</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.domains.insert(name.clone(), domain).is_none());
-        <a href="#114">name</a>
+        <a href="#117">name</a>
     }
 
     <span class="kw">pub fn </span>contains_function(<span class="kw-2">&amp;</span><span class="self">self</span>, identifier: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="#119">self</a>.functions.contains_key(<a href="#119">identifier</a>)
+        <a class="self" href="#122">self</a>.functions.contains_key(<a href="#122">identifier</a>)
     }
 
     <span class="kw">pub fn </span>get_function(<span class="kw-2">&amp;</span><span class="self">self</span>, identifier: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a>) -&gt; Rc&lt;<a href="../../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>&gt; {
-        <a class="self" href="#123">self</a>.functions[<a href="#123">identifier</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="#126">self</a>.functions[<a href="#126">identifier</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 
     <span class="kw">fn </span>insert_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: <a href="../../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>) -&gt; <a href="../../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a> {
-        <span class="kw">let </span>identifier: <a href="../../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a> = <a href="#127">function</a>.<a href="../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>identifier: <a href="../../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a> = <a href="#130">function</a>.<a href="../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
             <span class="self">self</span>.functions
                 .insert(identifier.clone(), Rc::new(function))
@@ -2082,11 +2091,11 @@
             <span class="string">&quot;{:?} is not unique&quot;</span>,
             identifier,
         );
-        <a href="#128">identifier</a>
+        <a href="#131">identifier</a>
     }
 
     <span class="kw">fn </span>apply_function(<span class="kw-2">&amp;</span><span class="self">self</span>, identifier: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir::FunctionIdentifier</a>, args: Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>&gt;) -&gt; <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> {
-        <a class="self" href="#139">self</a>.functions[<a href="#139">identifier</a>].apply(<a href="#139">args</a>)
+        <a class="self" href="#142">self</a>.functions[<a href="#142">identifier</a>].apply(<a href="#142">args</a>)
     }
 
     <span class="doccomment">/// Patches snapshots in a method.
@@ -2097,10 +2106,10 @@
     ) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/cfg/method/struct.CfgMethod.html">vir::CfgMethod</a>&gt; {
         <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;[snap] method: {:?}&quot;</span>, method.name());
         <span class="kw">let </span><span class="kw-2">mut </span>patcher = <a href="patcher.rs.html#15">SnapshotPatcher</a> {
-            snapshot_encoder: <a class="self" href="#145">self</a>,
-            <a href="#146">encoder</a>,
+            snapshot_encoder: <a class="self" href="#148">self</a>,
+            <a href="#149">encoder</a>,
         };
-        <a href="#147">method</a>.patch_statements(|stmt| <a href="../../../../vir/gen/polymorphic/ast/stmt/trait.FallibleStmtFolder.html">FallibleStmtFolder::fallible_fold</a>(<span class="kw-2">&amp;mut </span><a href="#150">patcher</a>, <a href="#154">stmt</a>))
+        <a href="#150">method</a>.patch_statements(|stmt| <a href="../../../../vir/gen/polymorphic/ast/stmt/trait.FallibleStmtFolder.html">FallibleStmtFolder::fallible_fold</a>(<span class="kw-2">&amp;mut </span><a href="#153">patcher</a>, <a href="#157">stmt</a>))
     }
 
     <span class="doccomment">/// Patches snapshots in a function.
@@ -2111,23 +2120,23 @@
     ) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a>&gt; {
         <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;[snap] function: {:?}&quot;</span>, function.name);
         <span class="kw">let </span><span class="kw-2">mut </span>patcher = <a href="patcher.rs.html#15">SnapshotPatcher</a> {
-            snapshot_encoder: <a class="self" href="#159">self</a>,
-            <a href="#160">encoder</a>,
+            snapshot_encoder: <a class="self" href="#162">self</a>,
+            <a href="#163">encoder</a>,
         };
-        <a href="#161">function</a>.pres = function
+        <a href="#164">function</a>.pres = function
             .pres
             .into_iter()
             .map(|e| FallibleExprFolder::fallible_fold(<span class="kw-2">&amp;mut </span>patcher, e))
             .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>;
-        <a href="#161">function</a>.posts = function
+        <a href="#164">function</a>.posts = function
             .posts
             .into_iter()
             .map(|e| FallibleExprFolder::fallible_fold(<span class="kw-2">&amp;mut </span>patcher, e))
             .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(body) = <a href="#161">function</a>.body {
-            <a href="#161">function</a>.body = <span class="prelude-val">Some</span>(FallibleExprFolder::fallible_fold(<span class="kw-2">&amp;mut </span>patcher, body)<span class="question-mark">?</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(body) = <a href="#164">function</a>.body {
+            <a href="#164">function</a>.body = <span class="prelude-val">Some</span>(FallibleExprFolder::fallible_fold(<span class="kw-2">&amp;mut </span>patcher, body)<span class="question-mark">?</span>);
         }
-        <span class="prelude-val">Ok</span>(<a href="#161">function</a>)
+        <span class="prelude-val">Ok</span>(<a href="#164">function</a>)
     }
 
     <span class="doccomment">/// Patches snapshots in an expression.
@@ -2138,10 +2147,10 @@
     ) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>&gt; {
         <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;[snap] expr: {:?}&quot;</span>, expr);
         <span class="kw">let </span><span class="kw-2">mut </span>patcher = <a href="patcher.rs.html#15">SnapshotPatcher</a> {
-            snapshot_encoder: <a class="self" href="#186">self</a>,
-            <a href="#187">encoder</a>,
+            snapshot_encoder: <a class="self" href="#189">self</a>,
+            <a href="#190">encoder</a>,
         };
-        <a href="../../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprFolder.html">FallibleExprFolder::fallible_fold</a>(<span class="kw-2">&amp;mut </span><a href="#191">patcher</a>, <a href="#188">expr</a>)
+        <a href="../../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprFolder.html">FallibleExprFolder::fallible_fold</a>(<span class="kw-2">&amp;mut </span><a href="#194">patcher</a>, <a href="#191">expr</a>)
     }
 
     <span class="doccomment">/// Converts a SnapApp(expr) into an appropriate expression based on the
@@ -2151,36 +2160,36 @@
         encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
         expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>,
     ) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>&gt; {
-        <span class="kw">let </span>vir_ty = <a href="#203">expr</a>.get_type();
-        <span class="kw">match </span><a href="#205">vir_ty</a> {
+        <span class="kw">let </span>vir_ty = <a href="#206">expr</a>.get_type();
+        <span class="kw">match </span><a href="#208">vir_ty</a> {
             Type::TypeVar(..) |
             Type::TypedRef(..) =&gt; {
                 <span class="kw">let </span>ty = encoder.decode_type_predicate_type(vir_ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>(ty, expr) = strip_refs_and_boxes_expr(encoder, ty, expr)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#210">ty</a>.kind() {
+                <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#213">ty</a>.kind() {
                     ty::TyKind::Int(<span class="kw">_</span>)
                     | ty::TyKind::Uint(<span class="kw">_</span>)
                     | ty::TyKind::Char =&gt; Expr::field(
-                        <a href="#210">expr</a>,
+                        <a href="#213">expr</a>,
                         vir::Field::new(<span class="string">&quot;val_int&quot;</span>, Type::Int),
                     ),
                     ty::TyKind::Float(ty::FloatTy::F32) =&gt; Expr::field(
-                        <a href="#210">expr</a>,
+                        <a href="#213">expr</a>,
                         vir::Field::new(<span class="string">&quot;val_float32&quot;</span>, Type::Float(F32)),
                     ),
                     ty::TyKind::Float(ty::FloatTy::F64) =&gt; Expr::field(
-                        <a href="#210">expr</a>,
+                        <a href="#213">expr</a>,
                         vir::Field::new(<span class="string">&quot;val_float64&quot;</span>, Type::Float(F64)),
                     ),
                     ty::TyKind::Bool =&gt; Expr::field(
-                        <a href="#210">expr</a>,
+                        <a href="#213">expr</a>,
                         vir::Field::new(<span class="string">&quot;val_bool&quot;</span>, Type::Bool),
                     ),
 
                     <span class="comment">// Param(_) | Adt(_) | Tuple(_), arrays and slices and unsupported types
                     </span><span class="kw">_ </span>=&gt; {
                         <span class="kw">let </span>snapshot = <span class="self">self</span>.encode_snapshot(encoder, ty)<span class="question-mark">?</span>;
-                        <a class="self" href="#201">self</a>.<a href="#256">snap_app_expr</a>(<a href="#210">expr</a>, <a href="#233">snapshot</a>.<a href="decls.rs.html#73">get_type</a>())
+                        <a class="self" href="#204">self</a>.<a href="#259">snap_app_expr</a>(<a href="#213">expr</a>, <a href="#236">snapshot</a>.<a href="decls.rs.html#73">get_type</a>())
                     }
                 })
             }
@@ -2191,7 +2200,7 @@
             </span>| Type::Int
             | Type::Map(..)
             | Type::Seq(..)
-            | Type::Float(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a href="#203">expr</a>),
+            | Type::Float(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a href="#206">expr</a>),
 
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(EncodingError::internal(
                 <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;SnapApp applied to expr of invalid type {:?}&quot;</span>, expr),
@@ -2206,11 +2215,11 @@
         <span class="comment">// here we rely on the name being the same for all complex types rather
         // than looking up the snapshot definition
         </span>Expr::func_app(
-            <a href="#41">SNAP_FUNC_NAME</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a href="#44">SNAP_FUNC_NAME</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[ty.clone()],
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[expr.clone()],
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[vir::LocalVar::new(<span class="string">&quot;_&quot;</span>, expr.get_type().clone())],
-            <a href="#256">ty</a>,
+            <a href="#259">ty</a>,
             vir::Position::default(),
         )
     }
@@ -2226,9 +2235,9 @@
     ) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>&gt; {
         <span class="comment">// TODO: we should not rely on string operations
         </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(variant.name.starts_with(<span class="string">&quot;enum_&quot;</span>));
-        <span class="kw">let </span>variant_name = <span class="kw-2">&amp;</span><a href="#275">variant</a>.name[<span class="number">5</span>..];
+        <span class="kw">let </span>variant_name = <span class="kw-2">&amp;</span><a href="#278">variant</a>.name[<span class="number">5</span>..];
         <span class="kw">let </span>snapshot = <span class="self">self</span>.decode_snapshot(encoder, expr.get_type())<span class="question-mark">?</span>;
-        <span class="kw">match </span><a href="#281">snapshot</a> {
+        <span class="kw">match </span><a href="#284">snapshot</a> {
             <a href="decls.rs.html#19">Snapshot::Complex</a> {
                 variants,
                 variant_names,
@@ -2237,10 +2246,10 @@
                 <span class="kw">let </span>variant_idx = variant_names.get(variant_name).ok_or_else(|| {
                     EncodingError::internal(<span class="macro">format!</span>(<span class="string">&quot;no such variant: {}&quot;</span>, variant_name))
                 })<span class="question-mark">?</span>;
-                <a href="#284">variants</a>[<span class="kw-2">*</span><a href="#288">variant_idx</a>]
+                <a href="#287">variants</a>[<span class="kw-2">*</span><a href="#291">variant_idx</a>]
                     .<span class="number">1
-                    </span>.get(<span class="kw-2">&amp;</span><a href="#276">field</a>.name)
-                    .map(|func| <a href="#294">func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[expr.clone()]))
+                    </span>.get(<span class="kw-2">&amp;</span><a href="#279">field</a>.name)
+                    .map(|func| <a href="#297">func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[expr.clone()]))
                     .ok_or_else(|| {
                         EncodingError::internal(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                             <span class="string">&quot;cannot snap_variant_field {}/{} of {:?}&quot;</span>,
@@ -2263,17 +2272,17 @@
         field: <a href="../../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir::Field</a>,
     ) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>&gt; {
         <span class="kw">let </span>snapshot = <span class="self">self</span>.decode_snapshot(encoder, expr.get_type())<span class="question-mark">?</span>;
-        <span class="kw">match </span>(<a href="#314">field</a>.name.as_str(), <a href="#316">snapshot</a>) {
+        <span class="kw">match </span>(<a href="#317">field</a>.name.as_str(), <a href="#319">snapshot</a>) {
             (
                 <span class="string">&quot;discriminant&quot;</span>,
                 <a href="decls.rs.html#19">Snapshot::Complex</a> {
                     discriminant_func, ..
                 },
-            ) =&gt; <span class="prelude-val">Ok</span>(<a href="#321">discriminant_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[expr])),
-            (<span class="kw">_</span>, <a href="decls.rs.html#19">Snapshot::Complex</a> { variants, .. }) =&gt; <a href="#324">variants</a>[<span class="number">0</span>]
+            ) =&gt; <span class="prelude-val">Ok</span>(<a href="#324">discriminant_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[expr])),
+            (<span class="kw">_</span>, <a href="decls.rs.html#19">Snapshot::Complex</a> { variants, .. }) =&gt; <a href="#327">variants</a>[<span class="number">0</span>]
                 .<span class="number">1
-                </span>.get(<span class="kw-2">&amp;</span><a href="#314">field</a>.name)
-                .map(|func| <a href="#327">func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[expr.clone()]))
+                </span>.get(<span class="kw-2">&amp;</span><a href="#317">field</a>.name)
+                .map(|func| <a href="#330">func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[expr.clone()]))
                 .ok_or_else(|| {
                     EncodingError::internal(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                         <span class="string">&quot;cannot snap_field {} of {}: {:?}&quot;</span>,
@@ -2293,10 +2302,10 @@
         encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
         vir_ty: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">Type</a>,
     ) -&gt; EncodingResult&lt;<a href="decls.rs.html#15">Snapshot</a>&gt; {
-        <span class="kw">match </span><a href="#345">vir_ty</a> {
+        <span class="kw">match </span><a href="#348">vir_ty</a> {
             Type::Snapshot(<span class="kw">_</span>) | Type::TypedRef(<span class="kw">_</span>) =&gt; {
                 <span class="kw">let </span>ty = encoder.decode_type_predicate_type(vir_ty)<span class="question-mark">?</span>;
-                <a class="self" href="#343">self</a>.<a href="#594-598">encode_snapshot</a>(<a href="#344">encoder</a>, <a href="#349">ty</a>)
+                <a class="self" href="#346">self</a>.<a href="#585-589">encode_snapshot</a>(<a href="#347">encoder</a>, <a href="#352">ty</a>)
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(EncodingError::internal(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;expected Snapshot type: {:?}&quot;</span>,
@@ -2312,8 +2321,8 @@
         encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; EncodingResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-        <a class="self" href="#362">self</a>.<a href="#594-598">encode_snapshot</a>(<a href="#363">encoder</a>, <a href="#364">ty</a>)
-            .map(|snapshot| <a href="#367">snapshot</a>.<a href="decls.rs.html#92">supports_equality</a>())
+        <a class="self" href="#365">self</a>.<a href="#585-589">encode_snapshot</a>(<a href="#366">encoder</a>, <a href="#367">ty</a>)
+            .map(|snapshot| <a href="#370">snapshot</a>.<a href="decls.rs.html#92">supports_equality</a>())
     }
 
     <span class="doccomment">/// Returns [true] iff the given type can be used as a quantified variable
@@ -2324,8 +2333,8 @@
         encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; EncodingResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-        <a class="self" href="#374">self</a>.<a href="#594-598">encode_snapshot</a>(<a href="#375">encoder</a>, <a href="#376">ty</a>)
-            .map(|snapshot| <a href="#379">snapshot</a>.<a href="decls.rs.html#87">is_quantifiable</a>())
+        <a class="self" href="#377">self</a>.<a href="#585-589">encode_snapshot</a>(<a href="#378">encoder</a>, <a href="#379">ty</a>)
+            .map(|snapshot| <a href="#382">snapshot</a>.<a href="decls.rs.html#87">is_quantifiable</a>())
     }
 
     <span class="doccomment">/// Encodes the postcondition asserting that the discriminant of the
@@ -2337,13 +2346,13 @@
         expr_result: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>,
     ) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>&gt; {
         <span class="kw">let </span>snapshot = <span class="self">self</span>.decode_snapshot(encoder, expr_self.get_type())<span class="question-mark">?</span>;
-        <span class="kw">match </span><a href="#390">snapshot</a> {
+        <span class="kw">match </span><a href="#393">snapshot</a> {
             <a href="decls.rs.html#19">Snapshot::Complex</a> {
                 <span class="kw-2">ref </span>discriminant_func,
                 ..
             } =&gt; <span class="prelude-val">Ok</span>(Expr::eq_cmp(
-                <a href="#393">discriminant_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="self">self</span>.snap_app_expr(expr_self, snapshot.get_type())]),
-                <a href="#388">expr_result</a>,
+                <a href="#396">discriminant_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="self">self</span>.snap_app_expr(expr_self, snapshot.get_type())]),
+                <a href="#391">expr_result</a>,
             )),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(EncodingError::internal(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;invalid discriminant post (not Complex): {:?}&quot;</span>,
@@ -2362,14 +2371,14 @@
         <span class="kw-2">mut </span>args: Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>&gt;,
     ) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>&gt; {
         <span class="kw">let </span>snapshot = <span class="self">self</span>.encode_snapshot(encoder, ty)<span class="question-mark">?</span>;
-        <span class="kw">match </span><a href="#415">snapshot</a> {
+        <span class="kw">match </span><a href="#418">snapshot</a> {
             <a href="decls.rs.html#17">Snapshot::Primitive</a>(..) =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(args.len(), <span class="number">1</span>);
-                <span class="prelude-val">Ok</span>(<a href="#413">args</a>.pop().unwrap())
+                <span class="prelude-val">Ok</span>(<a href="#416">args</a>.pop().unwrap())
             }
             <a href="decls.rs.html#19">Snapshot::Complex</a> { <span class="kw-2">ref </span>variants, .. } =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(variant.is_some() || variants.len() == <span class="number">1</span>);
-                <span class="prelude-val">Ok</span>(<a href="#421">variants</a>[<a href="#412">variant</a>.unwrap_or(<span class="number">0</span>)].<span class="number">0</span>.apply(<a href="#413">args</a>))
+                <span class="prelude-val">Ok</span>(<a href="#424">variants</a>[<a href="#415">variant</a>.unwrap_or(<span class="number">0</span>)].<span class="number">0</span>.apply(<a href="#416">args</a>))
             }
             <a href="decls.rs.html#34">Snapshot::Array</a> { cons, .. } =&gt; {
                 <span class="comment">// the caller must have created a vir::Expr::Seq already
@@ -2389,13 +2398,13 @@
                     <span class="string">&quot;Seq expected for array snapshot&quot;
                 </span>);
 
-                <span class="prelude-val">Ok</span>(<a href="#425">cons</a>.apply(<a href="#413">args</a>))
+                <span class="prelude-val">Ok</span>(<a href="#428">cons</a>.apply(<a href="#416">args</a>))
             }
             <a href="decls.rs.html#45">Snapshot::Slice</a> { cons, .. } =&gt; {
                 <span class="comment">// the caller must have created a vir::Expr::Seq already
                 </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(args.len(), <span class="number">1</span>);
 
-                <span class="prelude-val">Ok</span>(<a href="#445">cons</a>.apply(<a href="#413">args</a>))
+                <span class="prelude-val">Ok</span>(<a href="#448">cons</a>.apply(<a href="#416">args</a>))
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(EncodingError::internal(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;invalid constructor (not Complex): {}&quot;</span>,
@@ -2411,14 +2420,14 @@
         args: Vec&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>&gt;,
     ) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>&gt; {
         <span class="kw">let </span>snapshot = <span class="self">self</span>.encode_snapshot(encoder, ty)<span class="question-mark">?</span>;
-        <span class="kw">match </span><a href="#464">snapshot</a> {
+        <span class="kw">match </span><a href="#467">snapshot</a> {
             <a href="decls.rs.html#17">Snapshot::Primitive</a>(..) =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>();
             }
             <a href="decls.rs.html#19">Snapshot::Complex</a> { .. } =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>();
             }
-            <a href="decls.rs.html#34">Snapshot::Array</a> { uncons, .. } =&gt; <span class="prelude-val">Ok</span>(<a href="#472">uncons</a>.apply(<a href="#462">args</a>)),
+            <a href="decls.rs.html#34">Snapshot::Array</a> { uncons, .. } =&gt; <span class="prelude-val">Ok</span>(<a href="#475">uncons</a>.apply(<a href="#465">args</a>)),
             <a href="decls.rs.html#45">Snapshot::Slice</a> { .. } =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>()
             }
@@ -2439,15 +2448,12 @@
     ) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>&gt; {
         <span class="kw">let </span>read_func =
             <span class="kw">if let </span><a href="decls.rs.html#34">Snapshot::Array</a> { read, .. } = <span class="self">self</span>.encode_snapshot(encoder, array_ty)<span class="question-mark">? </span>{
-                <a href="#492">read</a>
+                <a href="#495">read</a>
             } <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::internal(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-                    <span class="string">&quot;called encode_array_idx on non-array-type {:?}&quot;</span>,
-                    array_ty
-                )));
+                <a class="macro" href="../errors/encoding_error.rs.html#76-83">error_internal!</a>(<span class="string">&quot;called encode_array_idx on non-array-type {:?}&quot;</span>, array_ty);
             };
 
-        <span class="prelude-val">Ok</span>(<a href="#491">read_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[array, idx]))
+        <span class="prelude-val">Ok</span>(<a href="#494">read_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[array, idx]))
     }
 
     <span class="doccomment">/// Encode slice indexing operation `a[i]`.
@@ -2462,10 +2468,7 @@
             <span class="kw">if let </span><a href="decls.rs.html#45">Snapshot::Slice</a> { read, .. } = <span class="self">self</span>.encode_snapshot(encoder, slice_ty)<span class="question-mark">? </span>{
                 <a href="#513">read</a>
             } <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::internal(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-                    <span class="string">&quot;called encode_slice_idx on non-slice-type {:?}&quot;</span>,
-                    slice_ty
-                )));
+                <a class="macro" href="../errors/encoding_error.rs.html#76-83">error_internal!</a>(<span class="string">&quot;called encode_slice_idx on non-slice-type {:?}&quot;</span>, slice_ty);
             };
 
         <span class="prelude-val">Ok</span>(<a href="#512">read_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[slice, idx]))
@@ -2479,15 +2482,12 @@
     ) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a>&gt; {
         <span class="kw">let </span>len_func =
             <span class="kw">if let </span><a href="decls.rs.html#45">Snapshot::Slice</a> { len, .. } = <span class="self">self</span>.encode_snapshot(encoder, slice_ty)<span class="question-mark">? </span>{
-                <a href="#532">len</a>
+                <a href="#529">len</a>
             } <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::internal(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-                    <span class="string">&quot;called encode_slice_len on non-slice-type {:?}&quot;</span>,
-                    slice_ty
-                )));
+                <a class="macro" href="../errors/encoding_error.rs.html#76-83">error_internal!</a>(<span class="string">&quot;called encode_slice_len on non-slice-type {:?}&quot;</span>, slice_ty);
             };
 
-        <span class="prelude-val">Ok</span>(<a href="#531">len_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[slice]))
+        <span class="prelude-val">Ok</span>(<a href="#528">len_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[slice]))
     }
 
     <span class="attr">#[allow(clippy::too_many_arguments)]
@@ -2505,15 +2505,12 @@
                 <span class="kw">let </span>slice_cons = <span class="kw">if let </span><a href="decls.rs.html#45">Snapshot::Slice</a> { cons, .. } =
                     <span class="self">self</span>.encode_snapshot(encoder, slice_ty)<span class="question-mark">?
                 </span>{
-                    <a href="#556">cons</a>
+                    <a href="#550">cons</a>
                 } <span class="kw">else </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::internal(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-                        <span class="string">&quot;called encode_slicing on non-slice-type {:?}&quot;</span>,
-                        slice_ty
-                    )));
+                    <a class="macro" href="../errors/encoding_error.rs.html#76-83">error_internal!</a>(<span class="string">&quot;called encode_slicing on non-slice-type {:?}&quot;</span>, slice_ty);
                 };
 
-                <span class="prelude-val">Ok</span>(<a href="#556">slice_cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="self">self</span>.apply_function(<span class="kw-2">&amp;</span>slice_helper, <span class="macro">vec!</span>[base, lo, hi])]))
+                <span class="prelude-val">Ok</span>(<a href="#550">slice_cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="self">self</span>.apply_function(<span class="kw-2">&amp;</span>slice_helper, <span class="macro">vec!</span>[base, lo, hi])]))
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(EncodingError::internal(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;cannot slice type {:?}&quot;</span>,
@@ -2529,8 +2526,8 @@
         encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; EncodingResult&lt;<a href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">Type</a>&gt; {
-        <a class="self" href="#579">self</a>.<a href="#594-598">encode_snapshot</a>(<a href="#580">encoder</a>, <a href="#581">ty</a>)
-            .map(|snapshot| <a href="#584">snapshot</a>.<a href="decls.rs.html#73">get_type</a>())
+        <a class="self" href="#570">self</a>.<a href="#585-589">encode_snapshot</a>(<a href="#571">encoder</a>, <a href="#572">ty</a>)
+            .map(|snapshot| <a href="#575">snapshot</a>.<a href="decls.rs.html#73">get_type</a>())
     }
 
     <span class="doccomment">/// Starts the snapshot encoding for the given type. This function is
@@ -2545,23 +2542,23 @@
         encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;,
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; EncodingResult&lt;<a href="decls.rs.html#15">Snapshot</a>&gt; {
-        <span class="kw">let </span>ty = <a href="#68">strip_refs_and_boxes</a>(<a href="#597">ty</a>);
+        <span class="kw">let </span>ty = <a href="#71">strip_refs_and_boxes</a>(<a href="#588">ty</a>);
         <span class="kw">let </span>predicate_type = encoder.encode_type(ty)<span class="question-mark">?</span>;
 
         <span class="comment">// was the snapshot for the type already encoded?
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(snapshot) = <a class="self" href="#595">self</a>.encoded.get(<span class="kw-2">&amp;</span><a href="#600">predicate_type</a>) {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="kw-2">*</span><a href="#603">snapshot</a>).<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()); <span class="comment">// TODO: can we not clone?
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(snapshot) = <a class="self" href="#586">self</a>.encoded.get(<span class="kw-2">&amp;</span><a href="#591">predicate_type</a>) {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="kw-2">*</span><a href="#594">snapshot</a>).<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()); <span class="comment">// TODO: can we not clone?
         </span>}
 
         <span class="comment">// is the snapshot currently being encoded? (handle recursive data types)
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(ty) = <a class="self" href="#595">self</a>.in_progress.get(<span class="kw-2">&amp;</span><a href="#600">predicate_type</a>) {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="decls.rs.html#69">Snapshot::Lazy</a>(<a href="#608">ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(ty) = <a class="self" href="#586">self</a>.in_progress.get(<span class="kw-2">&amp;</span><a href="#591">predicate_type</a>) {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="decls.rs.html#69">Snapshot::Lazy</a>(<a href="#599">ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
         }
 
         <span class="comment">// otherwise, encode
 
         // figure out resulting type
-        </span><span class="kw">let </span>snapshot_type = <span class="kw">match </span><a href="#599">ty</a>.kind() {
+        </span><span class="kw">let </span>snapshot_type = <span class="kw">match </span><a href="#590">ty</a>.kind() {
             ty::TyKind::Int(<span class="kw">_</span>) =&gt; Type::Int,
             ty::TyKind::Uint(<span class="kw">_</span>) =&gt; Type::Int,
             ty::TyKind::Char =&gt; Type::Int,
@@ -2569,14 +2566,14 @@
             ty::TyKind::Float(ty::FloatTy::F64) =&gt; Type::Float(vir::Float::F64),
             ty::TyKind::Bool =&gt; Type::Bool,
 
-            <span class="kw">_ if </span><a href="#600">predicate_type</a>.is_map() || <a href="#600">predicate_type</a>.is_seq() =&gt; <a href="#600">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <span class="kw">_ if </span><a href="#591">predicate_type</a>.is_map() || <a href="#591">predicate_type</a>.is_seq() =&gt; <a href="#591">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             <span class="comment">// Param(_) | Adt(_) | Tuple(_), arrays and slices and unsupported types
-            </span><span class="kw">_ </span>=&gt; <a href="#600">predicate_type</a>.convert_to_snapshot(),
+            </span><span class="kw">_ </span>=&gt; <a href="#591">predicate_type</a>.convert_to_snapshot(),
         };
 
         <span class="comment">// record in-progress encoding
-        </span><a class="self" href="#595">self</a>.in_progress
-            .insert(<a href="#600">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#615">snapshot_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        </span><a class="self" href="#586">self</a>.in_progress
+            .insert(<a href="#591">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#606">snapshot_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
         <span class="comment">// encode snapshot
         </span><span class="kw">let </span>snapshot = <span class="self">self
@@ -2587,13 +2584,13 @@
             })<span class="question-mark">?</span>;
 
         <span class="comment">// remove in-progress encoding
-        </span><a class="self" href="#595">self</a>.in_progress.remove(<span class="kw-2">&amp;</span><a href="#600">predicate_type</a>);
+        </span><a class="self" href="#586">self</a>.in_progress.remove(<span class="kw-2">&amp;</span><a href="#591">predicate_type</a>);
 
         <span class="comment">// remember resulting snapshot
         </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(snapshot_type, snapshot.get_type());
-        <a class="self" href="#595">self</a>.encoded.insert(<a href="#600">predicate_type</a>, <a href="#633">snapshot</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="#586">self</a>.encoded.insert(<a href="#591">predicate_type</a>, <a href="#624">snapshot</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
-        <span class="prelude-val">Ok</span>(<a href="#633">snapshot</a>)
+        <span class="prelude-val">Ok</span>(<a href="#624">snapshot</a>)
     }
 
     <span class="kw">fn </span>encode_snapshot_internal&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt;(
@@ -2602,16 +2599,16 @@
         ty: ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         predicate_type: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">Type</a>,
     ) -&gt; EncodingResult&lt;<a href="decls.rs.html#15">Snapshot</a>&gt; {
-        <span class="kw">let </span>tcx = <a href="#652">encoder</a>.<a href="../encoder.rs.html#219">env</a>().tcx();
+        <span class="kw">let </span>tcx = <a href="#643">encoder</a>.<a href="../encoder.rs.html#225">env</a>().tcx();
 
         <span class="kw">let </span>arg_self = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{<span class="self">self</span>: { predicate_type.clone() } };
-        <span class="kw">let </span>arg_expr = Expr::local(<a href="#658">arg_self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">let </span>arg_expr = Expr::local(<a href="#649">arg_self</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
-        <span class="kw">match </span><a href="#653">ty</a>.kind() {
+        <span class="kw">match </span><a href="#644">ty</a>.kind() {
             <span class="comment">// since all encoding goes through [encode_type] first, we should
             // never get a box or reference here
-            </span><span class="kw">_ if </span><a href="#653">ty</a>.is_box() =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
-            <span class="kw">_ if </span><a href="#654">predicate_type</a>.is_map() =&gt; <span class="prelude-val">Ok</span>(<a href="decls.rs.html#17">Snapshot::Primitive</a>(<a href="#654">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
+            </span><span class="kw">_ if </span><a href="#644">ty</a>.is_box() =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
+            <span class="kw">_ if </span><a href="#645">predicate_type</a>.is_map() =&gt; <span class="prelude-val">Ok</span>(<a href="decls.rs.html#17">Snapshot::Primitive</a>(<a href="#645">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())),
             ty::TyKind::Ref(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
 
             ty::TyKind::Int(<span class="kw">_</span>) | ty::TyKind::Uint(<span class="kw">_</span>) | ty::TyKind::Char =&gt; {
@@ -2643,18 +2640,18 @@
                         typ: <span class="self">self</span>.encode_type(encoder, field_ty)<span class="question-mark">?</span>,
                     });
                 }
-                <a class="self" href="#651">self</a>.<a href="#1633-1638">encode_complex</a>(
-                    <a href="#652">encoder</a>,
+                <a class="self" href="#642">self</a>.<a href="#1634-1639">encode_complex</a>(
+                    <a href="#643">encoder</a>,
                     <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[SnapshotVariant {
                         discriminant: -<span class="number">1</span>,
                         fields,
                         name: <span class="prelude-val">None</span>,
                     }],
-                    <a href="#654">predicate_type</a>,
+                    <a href="#645">predicate_type</a>,
                 )
             }
             ty::TyKind::Closure(_def_id, substs) =&gt; {
-                <span class="kw">let </span>cl_substs = <a href="#707">substs</a>.as_closure();
+                <span class="kw">let </span>cl_substs = <a href="#698">substs</a>.as_closure();
                 <span class="kw">let </span><span class="kw-2">mut </span>fields = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
                 <span class="kw">for </span>(field_num, field_ty) <span class="kw">in </span>cl_substs.upvar_tys().enumerate() {
                     <span class="kw">let </span>field_name = <span class="macro">format!</span>(<span class="string">&quot;closure_{}&quot;</span>, field_num);
@@ -2671,17 +2668,17 @@
                         typ: <span class="self">self</span>.encode_type(encoder, field_ty)<span class="question-mark">?</span>,
                     });
                 }
-                <a class="self" href="#651">self</a>.<a href="#1633-1638">encode_complex</a>(
-                    <a href="#652">encoder</a>,
+                <a class="self" href="#642">self</a>.<a href="#1634-1639">encode_complex</a>(
+                    <a href="#643">encoder</a>,
                     <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[SnapshotVariant {
                         discriminant: -<span class="number">1</span>,
                         fields,
                         name: <span class="prelude-val">None</span>,
                     }],
-                    <a href="#654">predicate_type</a>,
+                    <a href="#645">predicate_type</a>,
                 )
             }
-            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span><a href="#735">adt_def</a>.is_struct() =&gt; {
+            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span><a href="#726">adt_def</a>.is_struct() =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>fields = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
                 <span class="kw">for </span>field <span class="kw">in </span>adt_def.all_fields() {
                     <span class="comment">// or adt_def.variants[0].fields ?
@@ -2700,17 +2697,17 @@
                         typ: <span class="self">self</span>.encode_type(encoder, field_ty)<span class="question-mark">?</span>,
                     });
                 }
-                <a class="self" href="#651">self</a>.<a href="#1633-1638">encode_complex</a>(
-                    <a href="#652">encoder</a>,
+                <a class="self" href="#642">self</a>.<a href="#1634-1639">encode_complex</a>(
+                    <a href="#643">encoder</a>,
                     <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[SnapshotVariant {
                         discriminant: -<span class="number">1</span>,
                         fields,
                         name: <span class="prelude-val">None</span>,
                     }],
-                    <a href="#654">predicate_type</a>,
+                    <a href="#645">predicate_type</a>,
                 )
             }
-            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span><a href="#764">adt_def</a>.is_enum() =&gt; {
+            ty::TyKind::Adt(adt_def, substs) <span class="kw">if </span><a href="#755">adt_def</a>.is_enum() =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>variants = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
                 <span class="kw">let </span>predicate = encoder.encode_type_predicate_def(ty)<span class="question-mark">?</span>;
                 <span class="kw">for </span>(variant_idx, variant) <span class="kw">in </span>adt_def.variants().iter_enumerated() {
@@ -2726,10 +2723,7 @@
                         }
                         vir::Predicate::Struct(..) =&gt; (arg_expr.clone(), <span class="prelude-val">None</span>),
                         <span class="kw">_ </span>=&gt; {
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::internal(<span class="macro">format!</span>(
-                                <span class="string">&quot;invalid Predicate for ADT: {}&quot;</span>,
-                                predicate
-                            )))
+                            <span class="macro">error_internal!</span>(<span class="string">&quot;invalid Predicate for ADT: {}&quot;</span>, predicate);
                         }
                     };
                     <span class="kw">for </span>field <span class="kw">in </span><span class="kw-2">&amp;</span>variant.fields {
@@ -2769,7 +2763,7 @@
                         name: variant_name,
                     });
                 }
-                <a class="self" href="#651">self</a>.<a href="#1633-1638">encode_complex</a>(<a href="#652">encoder</a>, <a href="#765">variants</a>, <a href="#654">predicate_type</a>)
+                <a class="self" href="#642">self</a>.<a href="#1634-1639">encode_complex</a>(<a href="#643">encoder</a>, <a href="#756">variants</a>, <a href="#645">predicate_type</a>)
             }
 
             ty::TyKind::Array(elem_ty, ..) =&gt; {
@@ -2777,42 +2771,42 @@
                 <span class="kw">let </span>array_types = encoder.encode_sequence_types(ty)<span class="question-mark">?</span>;
 
                 <span class="kw">let </span>domain_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Snap${}&quot;</span>, <span class="kw-2">&amp;</span>array_types.sequence_pred_type.name());
-                <span class="kw">let </span>snap_type = <a href="#828">array_types</a>.sequence_pred_type.convert_to_snapshot();
+                <span class="kw">let </span>snap_type = <a href="#816">array_types</a>.sequence_pred_type.convert_to_snapshot();
                 <span class="kw">let </span>seq_type = Type::Seq(<a href="../../../../vir/gen/polymorphic/ast/common/struct.SeqType.html">vir::SeqType</a> {
-                    typ: <span class="kw">box </span><a href="#827">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    typ: <span class="kw">box </span><a href="#815">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 });
 
                 <span class="kw">let </span>cons = <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainFunc.html">vir::DomainFunc</a> {
                     name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;cons${}$&quot;</span>, domain_name),
                     type_arguments: Vec::new(), <span class="comment">// FIXME: This is most likely wrong.
                     </span>formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local! </span>{ data: {seq_type.clone()} }],
-                    return_type: <a href="#831">snap_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    return_type: <a href="#819">snap_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     unique: <span class="bool-val">false</span>,
-                    domain_name: <a href="#830">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    domain_name: <a href="#818">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 };
 
                 <span class="kw">let </span>uncons = <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainFunc.html">vir::DomainFunc</a> {
                     name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;uncons${}$&quot;</span>, domain_name),
                     type_arguments: Vec::new(), <span class="comment">// FIXME: This is most likely wrong.
                     </span>formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local! </span>{ array: {snap_type.clone()} }],
-                    return_type: <a href="#832">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    return_type: <a href="#820">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     unique: <span class="bool-val">false</span>,
-                    domain_name: <a href="#830">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    domain_name: <a href="#818">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 };
 
-                <span class="kw">let </span>array_collect_func = <a class="self" href="#651">self</a>.<a href="#1365-1375">encode_seq_collect_func</a>(
-                    <a href="#828">array_types</a>.sequence_pred_type.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <a href="#827">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    Expr::from(<a href="#828">array_types</a>.sequence_len.unwrap()),
+                <span class="kw">let </span>array_collect_func = <a class="self" href="#642">self</a>.<a href="#1366-1376">encode_seq_collect_func</a>(
+                    <a href="#816">array_types</a>.sequence_pred_type.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a href="#815">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    Expr::from(<a href="#816">array_types</a>.sequence_len.unwrap()),
                     |self_expr, idx, elem_snap_ty| {
-                        <a href="#828">array_types</a>.<a href="../mir/sequences/interface.rs.html#32-38">encode_lookup_pure_call</a>(<a href="#652">encoder</a>, <a href="#858">self_expr</a>, <a href="#858">idx</a>, <a href="#858">elem_snap_ty</a>)
+                        <a href="#816">array_types</a>.<a href="../mir/sequences/interface.rs.html#32-38">encode_lookup_pure_call</a>(<a href="#643">encoder</a>, <a href="#846">self_expr</a>, <a href="#846">idx</a>, <a href="#846">elem_snap_ty</a>)
                     },
                 );
 
                 <span class="kw">let </span>array_collect_func_app =
-                    <a href="#854">array_collect_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg_expr.clone(), <span class="number">0usize</span>.into()]);
+                    <a href="#842">array_collect_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg_expr.clone(), <span class="number">0usize</span>.into()]);
 
-                <span class="kw">let </span>snap_body = <a href="#836">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[array_collect_func_app]);
+                <span class="kw">let </span>snap_body = <a href="#824">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[array_collect_func_app]);
 
                 <span class="kw">let </span>read = <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainFunc.html">vir::DomainFunc</a> {
                     name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;read${}$&quot;</span>, domain_name),
@@ -2821,79 +2815,81 @@
                         <span class="macro">vir_local! </span>{ arr: {snap_type.clone()} },
                         <span class="macro">vir_local! </span>{ idx: Int },
                     ],
-                    return_type: <a href="#827">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    return_type: <a href="#815">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     unique: <span class="bool-val">false</span>,
-                    domain_name: <a href="#830">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    domain_name: <a href="#818">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 };
 
                 <span class="kw">let </span>read_eq_lookup = {
                     <span class="kw">let </span>i: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ i: Int }.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                    <span class="kw">let </span>lookup_call = <a href="#828">array_types</a>.<a href="../mir/sequences/interface.rs.html#32-38">encode_lookup_pure_call</a>(
-                        <a href="#652">encoder</a>,
-                        <a href="#659">arg_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        <a href="#881">i</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        <a href="#827">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <span class="kw">let </span>lookup_call = <a href="#816">array_types</a>.<a href="../mir/sequences/interface.rs.html#32-38">encode_lookup_pure_call</a>(
+                        <a href="#643">encoder</a>,
+                        <a href="#650">arg_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        <a href="#869">i</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        <a href="#815">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     );
-                    <span class="kw">let </span>read_call = <a href="#868">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
+                    <span class="kw">let </span>read_call = <a href="#856">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                         <span class="macro">vir_local! </span>{ __result: {snap_type.clone()} }.into(),
                         i.clone(),
                     ]);
 
                     <span class="kw">let </span>indices = <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ ([Expr::from(<span class="number">0usize</span>)] &lt;= [i]) &amp;&amp; ([i] &lt; [Expr::from(array_types.sequence_len.unwrap())]) };
 
-                    <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ forall i: Int :: { [read_call], [lookup_call] } ([indices] ==&gt; ([read_call] == [lookup_call])) }
+                    <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ forall i: Int :: { [read_call] } { [lookup_call] } :: ([indices] ==&gt; ([read_call] == [lookup_call])) }
                 };
 
                 <span class="kw">let </span>snap_func = <a href="../../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                    name: <a href="#41">SNAP_FUNC_NAME</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                    name: <a href="#44">SNAP_FUNC_NAME</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                     type_arguments: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[snap_type.clone()],
                     formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg_self],
-                    return_type: <a href="#831">snap_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    return_type: <a href="#819">snap_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     pres: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[Expr::predicate_access_predicate(
                         array_types.sequence_pred_type,
                         arg_expr,
                         PermAmount::Read,
                     )],
                     posts: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[read_eq_lookup],
-                    body: <span class="prelude-val">Some</span>(<a href="#866">snap_body</a>),
+                    body: <span class="prelude-val">Some</span>(<a href="#854">snap_body</a>),
                 };
 
-                <span class="kw">let </span>slice_helper = <a class="self" href="#651">self</a>.<a href="#1487-1493">encode_slice_helper</a>(
-                    <a href="#831">snap_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <a href="#827">elem_snap_ty</a>,
-                    <a href="#868">read</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <a href="#828">array_types</a>.sequence_len.unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                <span class="kw">let </span>slice_helper = <a class="self" href="#642">self</a>.<a href="#1488-1494">encode_slice_helper</a>(
+                    <a href="#819">snap_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a href="#815">elem_snap_ty</a>,
+                    <a href="#856">read</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a href="#816">array_types</a>.sequence_len.unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
                 );
 
                 <span class="kw">let </span>constructor_inj = {
                     <span class="kw">let </span>arg = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ data: {seq_type.clone()} };
-                    <span class="kw">let </span>cons_call = <a href="#836">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg.clone().into()]);
-                    <span class="kw">let </span>uncons_call = <a href="#845">uncons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[cons_call.clone()]);
+                    <span class="kw">let </span>cons_call = <a href="#824">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg.clone().into()]);
+                    <span class="kw">let </span>uncons_call = <a href="#833">uncons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[cons_call.clone()]);
 
                     <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainAxiom.html">vir::DomainAxiom</a> {
+                        comment: <span class="prelude-val">None</span>,
                         name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$injectivity&quot;</span>, domain_name),
                         expr: Expr::forall(
                             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg.clone()],
                             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[vir::Trigger::new(<span class="macro">vec!</span>[cons_call])],
                             <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ [uncons_call] == [Expr::from(arg)]},
                         ),
-                        domain_name: <a href="#830">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        domain_name: <a href="#818">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     }
                 };
 
                 <span class="kw">let </span>constructor_surj = {
                     <span class="kw">let </span>arg = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ data: {snap_type.clone()} };
-                    <span class="kw">let </span>uncons_call = <a href="#845">uncons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg.clone().into()]);
-                    <span class="kw">let </span>cons_call = <a href="#836">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[uncons_call.clone()]);
+                    <span class="kw">let </span>uncons_call = <a href="#833">uncons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg.clone().into()]);
+                    <span class="kw">let </span>cons_call = <a href="#824">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[uncons_call.clone()]);
 
                     <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainAxiom.html">vir::DomainAxiom</a> {
+                        comment: <span class="prelude-val">None</span>,
                         name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$surjectivity&quot;</span>, domain_name),
                         expr: Expr::forall(
                             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg.clone()],
                             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[vir::Trigger::new(<span class="macro">vec!</span>[uncons_call])],
                             <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ [cons_call] == [Expr::from(arg)]},
                         ),
-                        domain_name: <a href="#830">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        domain_name: <a href="#818">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     }
                 };
 
@@ -2901,10 +2897,11 @@
                     <span class="kw">let </span>lhs_arg = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ _l_data: {seq_type.clone()} };
                     <span class="kw">let </span>rhs_arg = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ _r_data: {seq_type.clone()} };
 
-                    <span class="kw">let </span>lhs_call = <a href="#836">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[lhs_arg.clone().into()]);
-                    <span class="kw">let </span>rhs_call = <a href="#836">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[rhs_arg.clone().into()]);
+                    <span class="kw">let </span>lhs_call = <a href="#824">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[lhs_arg.clone().into()]);
+                    <span class="kw">let </span>rhs_call = <a href="#824">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[rhs_arg.clone().into()]);
 
                     <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainAxiom.html">vir::DomainAxiom</a> {
+                        comment: <span class="prelude-val">None</span>,
                         name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$extensionality&quot;</span>, domain_name),
                         expr: Expr::forall(
                             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[lhs_arg.clone(), rhs_arg.clone()],
@@ -2914,7 +2911,7 @@
                                 <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ [lhs_call] == [rhs_call] },
                             ),
                         ),
-                        domain_name: <a href="#830">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        domain_name: <a href="#818">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     }
                 };
 
@@ -2922,16 +2919,17 @@
                     <span class="kw">let </span>data = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ data: {seq_type} };
                     <span class="kw">let </span>idx = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ idx: Int };
 
-                    <span class="kw">let </span>cons_call = <a href="#836">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[data.clone().into()]);
-                    <span class="kw">let </span>read_call = <a href="#868">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[cons_call, idx.clone().into()]);
+                    <span class="kw">let </span>cons_call = <a href="#824">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[data.clone().into()]);
+                    <span class="kw">let </span>read_call = <a href="#856">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[cons_call, idx.clone().into()]);
 
                     <span class="kw">let </span>seq_lookup = Expr::ContainerOp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.ContainerOp.html">vir::ContainerOp</a> {
                         op_kind: ContainerOpKind::SeqIndex,
-                        left: <span class="kw">box </span><a href="#973">data</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                        right: <span class="kw">box </span><a href="#974">idx</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                        left: <span class="kw">box </span><a href="#964">data</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                        right: <span class="kw">box </span><a href="#965">idx</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
                         position: vir::Position::default(),
                     });
                     <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainAxiom.html">vir::DomainAxiom</a> {
+                        comment: <span class="prelude-val">None</span>,
                         name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$read_indices&quot;</span>, predicate_type.name()),
                         expr: Expr::forall(
                             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[data, idx],
@@ -2941,12 +2939,12 @@
                             ],
                             <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ [read_call] == [seq_lookup] },
                         ),
-                        domain_name: <a href="#830">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        domain_name: <a href="#818">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     }
                 };
 
                 <span class="kw">let </span><span class="kw-2">mut </span>domain = <a href="../../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
-                    name: <a href="#830">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    name: <a href="#818">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     functions: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[cons.clone(), uncons.clone(), read.clone()],
                     axioms: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                         constructor_inj,
@@ -2959,27 +2957,28 @@
 
                 <span class="comment">// encode type validity axiom for array element
                 // TODO: encode type invariants rather than just integer bounds
-                </span><span class="kw">match </span><a href="#826">elem_ty</a>.kind() {
+                </span><span class="kw">match </span><a href="#814">elem_ty</a>.kind() {
                     ty::TyKind::Int(<span class="kw">_</span>)
                     | ty::TyKind::Uint(<span class="kw">_</span>)
                     | ty::TyKind::Float(<span class="kw">_</span>)
-                    | ty::TyKind::Char =&gt; <a href="#999">domain</a>.axioms.push({
-                        <span class="kw">let </span>self_local = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#831">snap_type</a>);
-                        <span class="kw">let </span>self_expr = Expr::local(<a href="#1018">self_local</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                    | ty::TyKind::Char =&gt; <a href="#991">domain</a>.axioms.push({
+                        <span class="kw">let </span>self_local = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#819">snap_type</a>);
+                        <span class="kw">let </span>self_expr = Expr::local(<a href="#1010">self_local</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                         <span class="kw">let </span>idx = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ idx: Int };
-                        <span class="kw">let </span>read_call = <a href="#868">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[self_expr, idx.clone().into()]);
+                        <span class="kw">let </span>read_call = <a href="#856">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[self_expr, idx.clone().into()]);
 
                         <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainAxiom.html">vir::DomainAxiom</a> {
+                            comment: <span class="prelude-val">None</span>,
                             name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$valid&quot;</span>, domain_name),
                             expr: Expr::forall(
                                 <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[self_local, idx],
                                 <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[vir::Trigger::new(<span class="macro">vec!</span>[read_call.clone()])],
-                                <a href="#652">encoder</a>
-                                    .<a href="../high/types/interface.rs.html#140">encode_type_bounds</a>(<span class="kw-2">&amp;</span><a href="#1021">read_call</a>, <span class="kw-2">*</span><a href="#826">elem_ty</a>)
+                                <a href="#643">encoder</a>
+                                    .<a href="../high/types/interface.rs.html#140">encode_type_bounds</a>(<span class="kw-2">&amp;</span><a href="#1013">read_call</a>, <span class="kw-2">*</span><a href="#814">elem_ty</a>)
                                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
                                     .<a href="../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>(),
                             ),
-                            <a href="#830">domain_name</a>,
+                            <a href="#818">domain_name</a>,
                         }
                     }),
 
@@ -2987,42 +2986,42 @@
                 }
 
                 <span class="prelude-val">Ok</span>(<a href="decls.rs.html#34">Snapshot::Array</a> {
-                    predicate_type: <a href="#654">predicate_type</a>.convert_to_snapshot(),
-                    _domain: <a class="self" href="#651">self</a>.<a href="#113">insert_domain</a>(<a href="#999">domain</a>),
-                    _snap_func: <a class="self" href="#651">self</a>.<a href="#127">insert_function</a>(<a href="#898">snap_func</a>),
-                    _array_collect_func: <a class="self" href="#651">self</a>.<a href="#127">insert_function</a>(<a href="#854">array_collect_func</a>),
-                    slice_helper: <a class="self" href="#651">self</a>.<a href="#127">insert_function</a>(<a href="#912">slice_helper</a>),
-                    <a href="#836">cons</a>,
-                    <a href="#845">uncons</a>,
-                    <a href="#868">read</a>,
+                    predicate_type: <a href="#645">predicate_type</a>.convert_to_snapshot(),
+                    _domain: <a class="self" href="#642">self</a>.<a href="#116">insert_domain</a>(<a href="#991">domain</a>),
+                    _snap_func: <a class="self" href="#642">self</a>.<a href="#130">insert_function</a>(<a href="#886">snap_func</a>),
+                    _array_collect_func: <a class="self" href="#642">self</a>.<a href="#130">insert_function</a>(<a href="#842">array_collect_func</a>),
+                    slice_helper: <a class="self" href="#642">self</a>.<a href="#130">insert_function</a>(<a href="#900">slice_helper</a>),
+                    <a href="#824">cons</a>,
+                    <a href="#833">uncons</a>,
+                    <a href="#856">read</a>,
                 })
             }
 
             ty::TyKind::Slice(elem_ty) =&gt; {
                 <span class="kw">let </span>slice_types = encoder.encode_sequence_types(ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>domain_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Snap${}&quot;</span>, <span class="kw-2">&amp;</span>slice_types.sequence_pred_type.name());
-                <span class="kw">let </span>slice_snap_ty = <a href="#1053">slice_types</a>.sequence_pred_type.convert_to_snapshot();
+                <span class="kw">let </span>slice_snap_ty = <a href="#1046">slice_types</a>.sequence_pred_type.convert_to_snapshot();
                 <span class="kw">let </span>elem_snap_ty = <span class="self">self</span>.encode_type(encoder, <span class="kw-2">*</span>elem_ty)<span class="question-mark">?</span>;
                 <span class="kw">let </span>seq_type = Type::Seq(<a href="../../../../vir/gen/polymorphic/ast/common/struct.SeqType.html">vir::SeqType</a> {
-                    typ: <span class="kw">box </span><a href="#1056">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    typ: <span class="kw">box </span><a href="#1049">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 });
 
                 <span class="kw">let </span>cons = <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainFunc.html">vir::DomainFunc</a> {
                     name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;cons${}$&quot;</span>, domain_name),
                     type_arguments: Vec::new(), <span class="comment">// FIXME: This is most likely wrong.
                     </span>formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local! </span>{ data: {seq_type.clone()} }],
-                    return_type: <a href="#1055">slice_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    return_type: <a href="#1048">slice_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     unique: <span class="bool-val">false</span>,
-                    domain_name: <a href="#1054">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    domain_name: <a href="#1047">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 };
 
                 <span class="kw">let </span>uncons = <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainFunc.html">vir::DomainFunc</a> {
                     name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;uncons${}$&quot;</span>, domain_name),
                     type_arguments: Vec::new(), <span class="comment">// FIXME: This is most likely wrong.
                     </span>formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local! </span>{ data: {slice_snap_ty.clone()} }],
-                    return_type: <a href="#1057">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    return_type: <a href="#1050">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     unique: <span class="bool-val">false</span>,
-                    domain_name: <a href="#1054">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    domain_name: <a href="#1047">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 };
 
                 <span class="kw">let </span>len = <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainFunc.html">vir::DomainFunc</a> {
@@ -3031,7 +3030,7 @@
                     </span>formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local! </span>{ <span class="self">self</span>: {slice_snap_ty.clone()} }],
                     return_type: Type::Int,
                     unique: <span class="bool-val">false</span>,
-                    domain_name: <a href="#1054">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    domain_name: <a href="#1047">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 };
 
                 <span class="kw">let </span>read = <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainFunc.html">vir::DomainFunc</a> {
@@ -3041,52 +3040,52 @@
                         <span class="macro">vir_local! </span>{ <span class="self">self</span>: {slice_snap_ty.clone()} },
                         <span class="macro">vir_local! </span>{ idx: Int },
                     ],
-                    return_type: <a href="#1056">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    return_type: <a href="#1049">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     unique: <span class="bool-val">false</span>,
-                    domain_name: <a href="#1054">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    domain_name: <a href="#1047">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 };
 
-                <span class="kw">let </span>slice_len = <a href="#1053">slice_types</a>.<a href="../mir/sequences/interface.rs.html#66">len</a>(<a href="#652">encoder</a>, <a href="#659">arg_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                <span class="kw">let </span>slice_collect_func = <a class="self" href="#651">self</a>.<a href="#1365-1375">encode_seq_collect_func</a>(
-                    <a href="#1053">slice_types</a>.sequence_pred_type.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <a href="#1056">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <a href="#1100">slice_len</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                <span class="kw">let </span>slice_len = <a href="#1046">slice_types</a>.<a href="../mir/sequences/interface.rs.html#66">len</a>(<a href="#643">encoder</a>, <a href="#650">arg_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <span class="kw">let </span>slice_collect_func = <a class="self" href="#642">self</a>.<a href="#1366-1376">encode_seq_collect_func</a>(
+                    <a href="#1046">slice_types</a>.sequence_pred_type.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a href="#1049">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a href="#1093">slice_len</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     |self_expr, idx, elem_snap_ty| {
-                        <a href="#1053">slice_types</a>.<a href="../mir/sequences/interface.rs.html#32-38">encode_lookup_pure_call</a>(<a href="#652">encoder</a>, <a href="#1105">self_expr</a>, <a href="#1105">idx</a>, <a href="#1105">elem_snap_ty</a>)
+                        <a href="#1046">slice_types</a>.<a href="../mir/sequences/interface.rs.html#32-38">encode_lookup_pure_call</a>(<a href="#643">encoder</a>, <a href="#1098">self_expr</a>, <a href="#1098">idx</a>, <a href="#1098">elem_snap_ty</a>)
                     },
                 );
 
                 <span class="kw">let </span>slice_collect_func_app =
-                    <a href="#1101">slice_collect_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg_expr.clone(), <span class="number">0</span>.into()]);
+                    <a href="#1094">slice_collect_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg_expr.clone(), <span class="number">0</span>.into()]);
 
-                <span class="kw">let </span>snap_body = <a href="#1061">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[slice_collect_func_app]);
+                <span class="kw">let </span>snap_body = <a href="#1054">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[slice_collect_func_app]);
 
                 <span class="kw">let </span>result_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ __result: {slice_snap_ty.clone()} }.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
 
                 <span class="comment">// TODO: de-duplicate with array case?
                 </span><span class="kw">let </span>read_eq_lookup = {
                     <span class="kw">let </span>i: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ i: Int }.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-                    <span class="kw">let </span>lookup_call = <a href="#1053">slice_types</a>.<a href="../mir/sequences/interface.rs.html#32-38">encode_lookup_pure_call</a>(
-                        <a href="#652">encoder</a>,
-                        <a href="#659">arg_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        <a href="#1119">i</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        <a href="#1056">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <span class="kw">let </span>lookup_call = <a href="#1046">slice_types</a>.<a href="../mir/sequences/interface.rs.html#32-38">encode_lookup_pure_call</a>(
+                        <a href="#643">encoder</a>,
+                        <a href="#650">arg_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        <a href="#1112">i</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        <a href="#1049">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     );
-                    <span class="kw">let </span>read_call = <a href="#1088">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[result_expr.clone(), i.clone()]);
+                    <span class="kw">let </span>read_call = <a href="#1081">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[result_expr.clone(), i.clone()]);
 
                     <span class="kw">let </span>indices = <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ ([Expr::from(<span class="number">0</span>)] &lt;= [i]) &amp;&amp; ([i] &lt; [slice_len]) };
 
-                    <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ forall i: Int :: { [read_call], [lookup_call] } ([indices] ==&gt; ([read_call] == [lookup_call])) }
+                    <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ forall i: Int :: { [read_call] } { [lookup_call] } :: ([indices] ==&gt; ([read_call] == [lookup_call])) }
                 };
 
-                <span class="kw">let </span>snap_len = <a href="#1079">len</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[result_expr]);
+                <span class="kw">let </span>snap_len = <a href="#1072">len</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[result_expr]);
                 <span class="kw">let </span>snap_len_eq_call_len = <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ [slice_len] == [snap_len] };
 
                 <span class="kw">let </span>snap_func = <a href="../../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                    name: <a href="#41">SNAP_FUNC_NAME</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                    name: <a href="#44">SNAP_FUNC_NAME</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                     type_arguments: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[slice_snap_ty.clone()],
                     formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg_self],
-                    return_type: <a href="#1055">slice_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    return_type: <a href="#1048">slice_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     pres: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[Expr::predicate_access_predicate(
                         slice_types.sequence_pred_type,
                         arg_expr,
@@ -3104,45 +3103,47 @@
                             position: vir::Position::default(),
                         }),
                     ],
-                    body: <span class="prelude-val">Some</span>(<a href="#1113">snap_body</a>),
+                    body: <span class="prelude-val">Some</span>(<a href="#1106">snap_body</a>),
                 };
 
-                <span class="kw">let </span>slice_helper = <a class="self" href="#651">self</a>.<a href="#1487-1493">encode_slice_helper</a>(
-                    <a href="#1055">slice_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <a href="#1056">elem_snap_ty</a>,
-                    <a href="#1088">read</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                    <a href="#1079">len</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local! </span>{ <span class="self">self</span>: {slice_snap_ty.clone()} }.into()]),
+                <span class="kw">let </span>slice_helper = <a class="self" href="#642">self</a>.<a href="#1488-1494">encode_slice_helper</a>(
+                    <a href="#1048">slice_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a href="#1049">elem_snap_ty</a>,
+                    <a href="#1081">read</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <a href="#1072">len</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local! </span>{ <span class="self">self</span>: {slice_snap_ty.clone()} }.into()]),
                 );
 
                 <span class="kw">let </span>cons_inj = {
                     <span class="kw">let </span>arg = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ data: {seq_type.clone()} };
-                    <span class="kw">let </span>cons_call = <a href="#1061">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg.clone().into()]);
-                    <span class="kw">let </span>uncons_call = <a href="#1070">uncons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[cons_call.clone()]);
+                    <span class="kw">let </span>cons_call = <a href="#1054">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg.clone().into()]);
+                    <span class="kw">let </span>uncons_call = <a href="#1063">uncons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[cons_call.clone()]);
 
                     <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainAxiom.html">vir::DomainAxiom</a> {
+                        comment: <span class="prelude-val">None</span>,
                         name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$injectivity&quot;</span>, domain_name),
                         expr: Expr::forall(
                             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg.clone()],
                             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[vir::Trigger::new(<span class="macro">vec!</span>[cons_call])],
                             <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ [uncons_call] == [Expr::from(arg)]},
                         ),
-                        domain_name: <a href="#1054">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        domain_name: <a href="#1047">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     }
                 };
 
                 <span class="kw">let </span>cons_surj = {
                     <span class="kw">let </span>arg = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ data: {slice_snap_ty.clone()} };
-                    <span class="kw">let </span>uncons_call = <a href="#1070">uncons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg.clone().into()]);
-                    <span class="kw">let </span>cons_call = <a href="#1061">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[uncons_call.clone()]);
+                    <span class="kw">let </span>uncons_call = <a href="#1063">uncons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg.clone().into()]);
+                    <span class="kw">let </span>cons_call = <a href="#1054">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[uncons_call.clone()]);
 
                     <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainAxiom.html">vir::DomainAxiom</a> {
+                        comment: <span class="prelude-val">None</span>,
                         name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$surjectivity&quot;</span>, domain_name),
                         expr: Expr::forall(
                             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg.clone()],
                             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[vir::Trigger::new(<span class="macro">vec!</span>[uncons_call])],
                             <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ [cons_call] == [Expr::from(arg)]},
                         ),
-                        domain_name: <a href="#1054">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        domain_name: <a href="#1047">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     }
                 };
 
@@ -3150,10 +3151,11 @@
                     <span class="kw">let </span>lhs_arg = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ _l_data: {seq_type.clone()} };
                     <span class="kw">let </span>rhs_arg = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ _r_data: {seq_type.clone()} };
 
-                    <span class="kw">let </span>lhs_call = <a href="#1061">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[lhs_arg.clone().into()]);
-                    <span class="kw">let </span>rhs_call = <a href="#1061">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[rhs_arg.clone().into()]);
+                    <span class="kw">let </span>lhs_call = <a href="#1054">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[lhs_arg.clone().into()]);
+                    <span class="kw">let </span>rhs_call = <a href="#1054">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[rhs_arg.clone().into()]);
 
                     <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainAxiom.html">vir::DomainAxiom</a> {
+                        comment: <span class="prelude-val">None</span>,
                         name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$extensionality&quot;</span>, domain_name),
                         expr: Expr::forall(
                             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[lhs_arg.clone(), rhs_arg.clone()],
@@ -3163,26 +3165,27 @@
                                 <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ [lhs_call] == [rhs_call] },
                             ),
                         ),
-                        domain_name: <a href="#1054">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        domain_name: <a href="#1047">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     }
                 };
 
                 <span class="kw">let </span>data = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ data: {seq_type.clone()} };
-                <span class="kw">let </span>cons_call = <a href="#1061">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[data.clone().into()]);
+                <span class="kw">let </span>cons_call = <a href="#1054">cons</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[data.clone().into()]);
 
                 <span class="kw">let </span>read_axiom = {
                     <span class="kw">let </span>idx = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ idx: Int };
 
-                    <span class="kw">let </span>read_call = <a href="#1088">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[cons_call.clone(), idx.clone().into()]);
+                    <span class="kw">let </span>read_call = <a href="#1081">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[cons_call.clone(), idx.clone().into()]);
 
                     <span class="kw">let </span>seq_lookup = Expr::ContainerOp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.ContainerOp.html">vir::ContainerOp</a> {
                         op_kind: ContainerOpKind::SeqIndex,
-                        left: <span class="kw">box </span><a href="#1221">data</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                        right: <span class="kw">box </span><a href="#1225">idx</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                        left: <span class="kw">box </span><a href="#1217">data</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                        right: <span class="kw">box </span><a href="#1221">idx</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
                         position: vir::Position::default(),
                     });
 
                     <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainAxiom.html">vir::DomainAxiom</a> {
+                        comment: <span class="prelude-val">None</span>,
                         name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$read_indices&quot;</span>, predicate_type.name()),
                         expr: Expr::forall(
                             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[data.clone(), idx],
@@ -3192,45 +3195,47 @@
                             ],
                             <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ [read_call] == [seq_lookup] },
                         ),
-                        domain_name: <a href="#1054">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        domain_name: <a href="#1047">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     }
                 };
 
                 <span class="kw">let </span>len_of_seq = {
-                    <span class="kw">let </span>len_call = <a href="#1079">len</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[cons_call]);
+                    <span class="kw">let </span>len_call = <a href="#1072">len</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[cons_call]);
                     <span class="kw">let </span>seq_len = Expr::ContainerOp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.ContainerOp.html">vir::ContainerOp</a> {
                         op_kind: ContainerOpKind::SeqLen,
-                        left: <span class="kw">box </span><a href="#1221">data</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+                        left: <span class="kw">box </span><a href="#1217">data</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
                         right: <span class="kw">box </span><span class="bool-val">true</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="comment">// unused
                         </span>position: vir::Position::default(),
                     });
 
                     <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainAxiom.html">vir::DomainAxiom</a> {
+                        comment: <span class="prelude-val">None</span>,
                         name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$len_of_seq&quot;</span>, predicate_type.name()),
-                        expr: <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ forall data: {seq_type} :: { [len_call], [seq_len] } ([len_call] == [seq_len]) },
-                        domain_name: <a href="#1054">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        expr: <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ forall data: {seq_type} :: { [len_call] } { [seq_len] } :: ([len_call] == [seq_len]) },
+                        domain_name: <a href="#1047">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     }
                 };
 
                 <span class="kw">let </span>len_positive = {
                     <span class="kw">let </span>len_call =
-                        <a href="#1079">len</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local! </span>{ slice: {slice_snap_ty.clone()} }.into()]);
+                        <a href="#1072">len</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local! </span>{ slice: {slice_snap_ty.clone()} }.into()]);
 
                     <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainAxiom.html">vir::DomainAxiom</a> {
+                        comment: <span class="prelude-val">None</span>,
                         name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$len_positive&quot;</span>, predicate_type.name()),
-                        expr: <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ forall slice: {slice_snap_ty.clone()} :: { [len_call] } ([len_call] &gt;= [Expr::from(<span class="number">0</span>)]) },
-                        domain_name: <a href="#1054">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        expr: <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ forall slice: {slice_snap_ty.clone()} :: { [len_call] } :: ([len_call] &gt;= [Expr::from(<span class="number">0</span>)]) },
+                        domain_name: <a href="#1047">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     }
                 };
 
                 <span class="comment">// TODO: ParamEnv::empty() should probably be tyctxt.param_env(def_id_of_method)
-                </span><span class="kw">let </span>ty_size_bytes = <a href="#656">tcx</a>
-                    .layout_of(ParamEnv::empty().and(<span class="kw-2">*</span><a href="#1052">elem_ty</a>))
-                    .map(|layout| <a href="#1280">layout</a>.layout.size().bytes())
+                </span><span class="kw">let </span>ty_size_bytes = <a href="#647">tcx</a>
+                    .layout_of(ParamEnv::empty().and(<span class="kw-2">*</span><a href="#1045">elem_ty</a>))
+                    .map(|layout| <a href="#1279">layout</a>.layout.size().bytes())
                     .unwrap_or(<span class="number">0</span>);
                 <span class="kw">let </span>len_usize = {
                     <span class="kw">let </span>len_call =
-                        <a href="#1079">len</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local! </span>{ slice: {slice_snap_ty.clone()} }.into()]);
+                        <a href="#1072">len</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local! </span>{ slice: {slice_snap_ty.clone()} }.into()]);
                     <span class="kw">let </span>upper_bound = <span class="kw">if </span>ty_size_bytes != <span class="number">0 </span>{
                         <span class="comment">// See https://github.com/viperproject/prusti-dev/issues/733
                         </span><a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ (([len_call] * [Expr::from(ty_size_bytes)]) &lt;= [Expr::from(isize::MAX)]) }
@@ -3240,14 +3245,15 @@
                     };
 
                     <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainAxiom.html">vir::DomainAxiom</a> {
+                        comment: <span class="prelude-val">None</span>,
                         name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$len_upper_bound&quot;</span>, predicate_type.name()),
-                        expr: <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ forall slice: {slice_snap_ty.clone()} :: { [len_call] } [upper_bound] },
-                        domain_name: <a href="#1054">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        expr: <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ forall slice: {slice_snap_ty.clone()} :: { [len_call] } :: [upper_bound] },
+                        domain_name: <a href="#1047">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     }
                 };
 
                 <span class="kw">let </span><span class="kw-2">mut </span>domain = <a href="../../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
-                    name: <a href="#1054">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    name: <a href="#1047">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     functions: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[cons.clone(), uncons.clone(), read.clone(), len.clone()],
                     axioms: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                         cons_inj,
@@ -3263,27 +3269,28 @@
 
                 <span class="comment">// encode type validity axiom for slice element
                 // TODO: encode type invariants rather than just integer bounds
-                </span><span class="kw">match </span><a href="#1052">elem_ty</a>.kind() {
+                </span><span class="kw">match </span><a href="#1045">elem_ty</a>.kind() {
                     ty::TyKind::Int(<span class="kw">_</span>)
                     | ty::TyKind::Uint(<span class="kw">_</span>)
                     | ty::TyKind::Float(<span class="kw">_</span>)
                     | ty::TyKind::Char =&gt; <a href="#1300">domain</a>.axioms.push({
-                        <span class="kw">let </span>self_local = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#1055">slice_snap_ty</a>);
+                        <span class="kw">let </span>self_local = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#1048">slice_snap_ty</a>);
                         <span class="kw">let </span>self_expr = Expr::local(<a href="#1322">self_local</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                         <span class="kw">let </span>idx = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ idx: Int };
-                        <span class="kw">let </span>read_call = <a href="#1088">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[self_expr, idx.clone().into()]);
+                        <span class="kw">let </span>read_call = <a href="#1081">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[self_expr, idx.clone().into()]);
 
                         <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainAxiom.html">vir::DomainAxiom</a> {
+                            comment: <span class="prelude-val">None</span>,
                             name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$valid&quot;</span>, domain_name),
                             expr: Expr::forall(
                                 <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[self_local, idx],
                                 <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[vir::Trigger::new(<span class="macro">vec!</span>[read_call.clone()])],
-                                <a href="#652">encoder</a>
-                                    .<a href="../high/types/interface.rs.html#140">encode_type_bounds</a>(<span class="kw-2">&amp;</span><a href="#1325">read_call</a>, <span class="kw-2">*</span><a href="#1052">elem_ty</a>)
+                                <a href="#643">encoder</a>
+                                    .<a href="../high/types/interface.rs.html#140">encode_type_bounds</a>(<span class="kw-2">&amp;</span><a href="#1325">read_call</a>, <span class="kw-2">*</span><a href="#1045">elem_ty</a>)
                                     .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
                                     .<a href="../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>(),
                             ),
-                            <a href="#1054">domain_name</a>,
+                            <a href="#1047">domain_name</a>,
                         }
                     }),
 
@@ -3291,20 +3298,20 @@
                 }
 
                 <span class="prelude-val">Ok</span>(<a href="decls.rs.html#45">Snapshot::Slice</a> {
-                    predicate_type: <a href="#654">predicate_type</a>.convert_to_snapshot(),
-                    _domain: <a class="self" href="#651">self</a>.<a href="#113">insert_domain</a>(<a href="#1300">domain</a>),
-                    _snap_func: <a class="self" href="#651">self</a>.<a href="#127">insert_function</a>(<a href="#1136">snap_func</a>),
-                    _slice_collect_func: <a class="self" href="#651">self</a>.<a href="#127">insert_function</a>(<a href="#1101">slice_collect_func</a>),
-                    slice_helper: <a class="self" href="#651">self</a>.<a href="#127">insert_function</a>(<a href="#1161">slice_helper</a>),
-                    <a href="#1061">cons</a>,
-                    _uncons: <a href="#1070">uncons</a>,
-                    <a href="#1088">read</a>,
-                    <a href="#1079">len</a>,
+                    predicate_type: <a href="#645">predicate_type</a>.convert_to_snapshot(),
+                    _domain: <a class="self" href="#642">self</a>.<a href="#116">insert_domain</a>(<a href="#1300">domain</a>),
+                    _snap_func: <a class="self" href="#642">self</a>.<a href="#130">insert_function</a>(<a href="#1129">snap_func</a>),
+                    _slice_collect_func: <a class="self" href="#642">self</a>.<a href="#130">insert_function</a>(<a href="#1094">slice_collect_func</a>),
+                    slice_helper: <a class="self" href="#642">self</a>.<a href="#130">insert_function</a>(<a href="#1154">slice_helper</a>),
+                    <a href="#1054">cons</a>,
+                    _uncons: <a href="#1063">uncons</a>,
+                    <a href="#1081">read</a>,
+                    <a href="#1072">len</a>,
                 })
             }
 
             <span class="comment">// Param(_) and unsupported types
-            </span><span class="kw">_ </span>=&gt; <a class="self" href="#651">self</a>.<a href="#1597">encode_abstract</a>(<a href="#654">predicate_type</a>),
+            </span><span class="kw">_ </span>=&gt; <a class="self" href="#642">self</a>.<a href="#1598">encode_abstract</a>(<a href="#645">predicate_type</a>),
         }
     }
 
@@ -3328,43 +3335,43 @@
 
         <span class="kw">let </span>self_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ <span class="self">self</span>: {seq_pred_ty.clone()} }.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <span class="kw">let </span>seq_type = Type::Seq(<a href="../../../../vir/gen/polymorphic/ast/common/struct.SeqType.html">vir::SeqType</a> {
-            typ: <span class="kw">box </span><a href="#1370">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            typ: <span class="kw">box </span><a href="#1371">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         });
         <span class="kw">let </span>start = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ start: Int };
-        <span class="kw">let </span>start_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a href="#1384">start</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>start_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a href="#1385">start</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <span class="kw">let </span>result_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ __result: {seq_type.clone()} }.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <span class="kw">let </span>i = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ i: Int };
-        <span class="kw">let </span>i_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a href="#1387">i</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>i_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a href="#1388">i</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <span class="kw">let </span>j = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ j: Int };
-        <span class="kw">let </span>j_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a href="#1389">j</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>j_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a href="#1390">j</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
 
         <span class="kw">let </span>empty_seq = Expr::Seq(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.Seq.html">vir::Seq</a> {
-            typ: <a href="#1381">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            typ: <a href="#1382">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             elements: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             position: vir::Position::default(),
         });
         <span class="kw">let </span>start_lt_len = <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ [start_expr] &lt; [seq_len] };
         <span class="kw">let </span>result_len = Expr::ContainerOp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.ContainerOp.html">vir::ContainerOp</a> {
             op_kind: ContainerOpKind::SeqLen,
-            left: <span class="kw">box </span><a href="#1386">result_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            left: <span class="kw">box </span><a href="#1387">result_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             right: <span class="kw">box </span>Expr::from(<span class="number">0</span>),
             position: vir::Position::default(),
         });
         <span class="kw">let </span>result_0 = Expr::ContainerOp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.ContainerOp.html">vir::ContainerOp</a> {
             op_kind: ContainerOpKind::SeqIndex,
-            left: <span class="kw">box </span><a href="#1386">result_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            left: <span class="kw">box </span><a href="#1387">result_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             right: <span class="kw">box </span>Expr::from(<span class="number">0</span>),
             position: vir::Position::default(),
         });
         <span class="kw">let </span>result_j = Expr::ContainerOp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.ContainerOp.html">vir::ContainerOp</a> {
             op_kind: ContainerOpKind::SeqIndex,
-            left: <span class="kw">box </span><a href="#1386">result_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            right: <span class="kw">box </span><a href="#1390">j_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            left: <span class="kw">box </span><a href="#1387">result_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            right: <span class="kw">box </span><a href="#1391">j_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             position: vir::Position::default(),
         });
-        <span class="kw">let </span>slice_lookup_i = <a href="#1374">lookup_pure</a>(<a href="#1380">self_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1388">i_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1370">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">let </span>slice_lookup_i = <a href="#1375">lookup_pure</a>(<a href="#1381">self_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1389">i_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1371">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
         <span class="kw">let </span>slice_lookup_start =
-            <a href="#1374">lookup_pure</a>(<a href="#1380">self_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1385">start_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1370">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a href="#1375">lookup_pure</a>(<a href="#1381">self_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1386">start_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1371">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
         <span class="comment">// forall i: Int, j: Int :: { slice$lookup_pure(slice, i), result[j] } idx &lt;= i &amp;&amp; i &lt; slice$len(slice) &amp;&amp; 0 &lt;= j &amp;&amp; j &lt; slice$len(slice)-idx &amp;&amp; i == j + idx ==&gt; slice$lookup_pure(slice, i) == result[j]
         </span><span class="kw">let </span>rest_eq_lookup = {
@@ -3383,10 +3390,10 @@
         };
 
         <a href="../../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-            name: <a href="#1378">seq_collect_funcname</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            name: <a href="#1379">seq_collect_funcname</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             type_arguments: Vec::new(), <span class="comment">// FIXME: This is most likely wrong.
             </span>formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local! </span>{ <span class="self">self</span>: {seq_pred_ty.clone()} }, start.clone()],
-            return_type: <a href="#1381">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            return_type: <a href="#1382">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             pres: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                 Expr::predicate_access_predicate(
                     seq_pred_ty.clone(),
@@ -3404,14 +3411,14 @@
             body: <span class="prelude-val">Some</span>(Expr::ite(
                 <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ [start_expr] &gt;= [seq_len] },
                 Expr::Seq(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.Seq.html">vir::Seq</a> {
-                    typ: <a href="#1381">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    typ: <a href="#1382">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     elements: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
                     position: vir::Position::default(),
                 }),
                 Expr::ContainerOp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.ContainerOp.html">vir::ContainerOp</a> {
                     op_kind: ContainerOpKind::SeqConcat,
                     left: <span class="kw">box </span>Expr::Seq(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.Seq.html">vir::Seq</a> {
-                        typ: <a href="#1381">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        typ: <a href="#1382">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                         elements: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[lookup_pure(
                             self_expr.clone(),
                             start_expr.clone(),
@@ -3420,11 +3427,11 @@
                         position: vir::Position::default(),
                     }),
                     right: <span class="kw">box </span>Expr::func_app(
-                        <a href="#1378">seq_collect_funcname</a>,
+                        <a href="#1379">seq_collect_funcname</a>,
                         Vec::new(), <span class="comment">// FIXME: This is most likely wrong.
                         </span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[self_expr, <span class="macro">vir_expr! </span>{ [start_expr] + [Expr::from(<span class="number">1</span>)] }],
                         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local! </span>{ slice: {seq_pred_ty} }, start],
-                        <a href="#1381">seq_type</a>,
+                        <a href="#1382">seq_type</a>,
                         vir::Position::default(),
                     ),
                     position: vir::Position::default(),
@@ -3444,41 +3451,41 @@
 
         <span class="kw">let </span>self_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ <span class="self">self</span>: {self_snap_ty.clone()} }.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <span class="kw">let </span>seq_type = Type::Seq(<a href="../../../../vir/gen/polymorphic/ast/common/struct.SeqType.html">vir::SeqType</a> {
-            typ: <span class="kw">box </span><a href="#1490">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            typ: <span class="kw">box </span><a href="#1491">elem_snap_ty</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         });
 
         <span class="kw">let </span>lo = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ lo: Int };
-        <span class="kw">let </span>lo_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a href="#1501">lo</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>lo_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a href="#1502">lo</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <span class="kw">let </span>hi = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ hi: Int };
-        <span class="kw">let </span>hi_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a href="#1503">hi</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>hi_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a href="#1504">hi</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
 
         <span class="kw">let </span>result_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ __result: {seq_type.clone()} }.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <span class="kw">let </span>i = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ i: Int };
-        <span class="kw">let </span>i_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a href="#1507">i</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>i_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a href="#1508">i</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <span class="kw">let </span>j = <a class="macro" href="../../../../prusti_common/macro.vir_local.html">vir_local! </a>{ j: Int };
-        <span class="kw">let </span>j_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a href="#1509">j</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let </span>j_expr: <a href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">Expr</a> = <a href="#1510">j</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
 
         <span class="kw">let </span>result_len = Expr::ContainerOp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.ContainerOp.html">vir::ContainerOp</a> {
             op_kind: ContainerOpKind::SeqLen,
-            left: <span class="kw">box </span><a href="#1506">result_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            left: <span class="kw">box </span><a href="#1507">result_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             right: <span class="kw">box </span>Expr::from(<span class="number">0</span>),
             position: vir::Position::default(),
         });
         <span class="kw">let </span>result_0 = Expr::ContainerOp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.ContainerOp.html">vir::ContainerOp</a> {
             op_kind: ContainerOpKind::SeqIndex,
-            left: <span class="kw">box </span><a href="#1506">result_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            left: <span class="kw">box </span><a href="#1507">result_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             right: <span class="kw">box </span>Expr::from(<span class="number">0</span>),
             position: vir::Position::default(),
         });
         <span class="kw">let </span>result_j = Expr::ContainerOp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.ContainerOp.html">vir::ContainerOp</a> {
             op_kind: ContainerOpKind::SeqIndex,
-            left: <span class="kw">box </span><a href="#1506">result_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            right: <span class="kw">box </span><a href="#1510">j_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            left: <span class="kw">box </span><a href="#1507">result_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            right: <span class="kw">box </span><a href="#1511">j_expr</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             position: vir::Position::default(),
         });
 
-        <span class="kw">let </span>read_i = <a href="#1491">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[self_expr.clone(), i_expr.clone()]);
-        <span class="kw">let </span>read_lo = <a href="#1491">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[self_expr.clone(), lo_expr.clone()]);
+        <span class="kw">let </span>read_i = <a href="#1492">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[self_expr.clone(), i_expr.clone()]);
+        <span class="kw">let </span>read_lo = <a href="#1492">read</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[self_expr.clone(), lo_expr.clone()]);
 
         <span class="kw">let </span>read_eq_seq_lookup = {
             <span class="kw">let </span>indices = <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ (([lo_expr] &lt;= [i_expr]) &amp;&amp; ([i_expr] &lt; [hi_expr]))
@@ -3493,14 +3500,14 @@
         };
 
         <a href="../../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-            name: <a href="#1494">slice_helper_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            name: <a href="#1495">slice_helper_name</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             type_arguments: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[self_snap_ty.clone()],
             formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                 <span class="macro">vir_local! </span>{ <span class="self">self</span>: {self_snap_ty.clone()} },
                 lo.clone(),
                 hi.clone(),
             ],
-            return_type: <a href="#1497">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            return_type: <a href="#1498">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             pres: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                 <span class="macro">vir_expr! </span>{ [Expr::from(<span class="number">0</span>)] &lt;= [lo_expr] },
                 <span class="macro">vir_expr! </span>{ [lo_expr] &lt;= [hi_expr] },
@@ -3514,19 +3521,19 @@
             body: <span class="prelude-val">Some</span>(Expr::ite(
                 <a class="macro" href="../../../../prusti_common/macro.vir_expr.html">vir_expr! </a>{ [lo_expr] &gt;= [hi_expr] },
                 Expr::Seq(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.Seq.html">vir::Seq</a> {
-                    typ: <a href="#1497">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    typ: <a href="#1498">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     elements: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
                     position: vir::Position::default(),
                 }),
                 Expr::ContainerOp(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.ContainerOp.html">vir::ContainerOp</a> {
                     op_kind: ContainerOpKind::SeqConcat,
                     left: <span class="kw">box </span>Expr::Seq(<a href="../../../../vir/gen/polymorphic/ast/expr/struct.Seq.html">vir::Seq</a> {
-                        typ: <a href="#1497">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                        typ: <a href="#1498">seq_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                         elements: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[read_lo],
                         position: vir::Position::default(),
                     }),
                     right: <span class="kw">box </span>Expr::func_app(
-                        <a href="#1494">slice_helper_name</a>,
+                        <a href="#1495">slice_helper_name</a>,
                         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[self_snap_ty.clone()],
                         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                             self_expr,
@@ -3534,7 +3541,7 @@
                             hi_expr,
                         ],
                         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local! </span>{ slice: {self_snap_ty} }, lo, hi],
-                        <a href="#1497">seq_type</a>,
+                        <a href="#1498">seq_type</a>,
                         vir::Position::default(),
                     ),
                     position: vir::Position::default(),
@@ -3545,17 +3552,17 @@
 
     <span class="kw">fn </span>encode_abstract(<span class="kw-2">&amp;mut </span><span class="self">self</span>, predicate_type: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">Type</a>) -&gt; EncodingResult&lt;<a href="decls.rs.html#15">Snapshot</a>&gt; {
         <span class="kw">let </span>domain_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Snap${}&quot;</span>, predicate_type.name());
-        <span class="kw">let </span>snapshot_type = <a href="#1597">predicate_type</a>.convert_to_snapshot();
+        <span class="kw">let </span>snapshot_type = <a href="#1598">predicate_type</a>.convert_to_snapshot();
 
-        <span class="kw">let </span>arg_ref_local = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#1597">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <span class="kw">let </span>arg_ref_expr = Expr::local(<a href="#1601">arg_ref_local</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">let </span>arg_ref_local = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#1598">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">let </span>arg_ref_expr = Expr::local(<a href="#1602">arg_ref_local</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
         <span class="comment">// encode snap function
         </span><span class="kw">let </span>snap_func = <a href="../../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-            name: <a href="#41">SNAP_FUNC_NAME</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            name: <a href="#44">SNAP_FUNC_NAME</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
             type_arguments: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[snapshot_type.clone()],
             formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg_ref_local],
-            return_type: <a href="#1599">snapshot_type</a>,
+            return_type: <a href="#1600">snapshot_type</a>,
             pres: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[Expr::predicate_access_predicate(
                 predicate_type.clone(),
                 arg_ref_expr,
@@ -3566,14 +3573,14 @@
         };
 
         <span class="prelude-val">Ok</span>(<a href="decls.rs.html#61">Snapshot::Abstract</a> {
-            predicate_type: <a href="#1597">predicate_type</a>.convert_to_snapshot(),
-            _domain: <a class="self" href="#1597">self</a>.<a href="#113">insert_domain</a>(<a href="../../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
-                name: <a href="#1598">domain_name</a>,
+            predicate_type: <a href="#1598">predicate_type</a>.convert_to_snapshot(),
+            _domain: <a class="self" href="#1598">self</a>.<a href="#116">insert_domain</a>(<a href="../../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
+                name: <a href="#1599">domain_name</a>,
                 functions: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
                 axioms: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
                 type_vars: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             }),
-            _snap_func: <a class="self" href="#1597">self</a>.<a href="#127">insert_function</a>(<a href="#1605">snap_func</a>),
+            _snap_func: <a class="self" href="#1598">self</a>.<a href="#130">insert_function</a>(<a href="#1606">snap_func</a>),
         })
     }
 
@@ -3586,8 +3593,8 @@
         predicate_type: <span class="kw-2">&amp;</span><a href="../../../../vir/gen/polymorphic/ast/common/enum.Type.html">Type</a>,
     ) -&gt; EncodingResult&lt;<a href="decls.rs.html#15">Snapshot</a>&gt; {
         <span class="kw">let </span>domain_name = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Snap${}&quot;</span>, predicate_type.name());
-        <span class="kw">let </span>snapshot_type = <a href="#1637">predicate_type</a>.convert_to_snapshot();
-        <span class="kw">let </span>has_multiple_variants = <a href="#1636">variants</a>.len() &gt; <span class="number">1</span>;
+        <span class="kw">let </span>snapshot_type = <a href="#1638">predicate_type</a>.convert_to_snapshot();
+        <span class="kw">let </span>has_multiple_variants = <a href="#1637">variants</a>.len() &gt; <span class="number">1</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>domain_funcs = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
         <span class="kw">let </span><span class="kw-2">mut </span>domain_axioms = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
         <span class="kw">let </span><span class="kw-2">mut </span>variant_domain_funcs = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
@@ -3595,10 +3602,10 @@
         <span class="kw">let </span><span class="kw-2">mut </span>variant_names = FxHashMap::default();
 
         <span class="comment">// a local called &quot;self&quot;, both as a Ref and as a Snapshot
-        </span><span class="kw">let </span>arg_ref_local = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#1637">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <span class="kw">let </span>arg_dom_local = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#1640">snapshot_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <span class="kw">let </span>arg_ref_expr = Expr::local(<a href="#1649">arg_ref_local</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <span class="kw">let </span>arg_dom_expr = Expr::local(<a href="#1650">arg_dom_local</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        </span><span class="kw">let </span>arg_ref_local = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#1638">predicate_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">let </span>arg_dom_local = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#1641">snapshot_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">let </span>arg_ref_expr = Expr::local(<a href="#1650">arg_ref_local</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">let </span>arg_dom_expr = Expr::local(<a href="#1651">arg_dom_local</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
         <span class="comment">// encode discriminant function
         </span><span class="kw">let </span>discriminant_func = <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainFunc.html">vir::DomainFunc</a> {
@@ -3607,35 +3614,36 @@
             formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg_dom_local.clone()],
             return_type: Type::Int,
             unique: <span class="bool-val">false</span>,
-            domain_name: <a href="#1639">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            domain_name: <a href="#1640">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
         };
 
         <span class="kw">if </span>has_multiple_variants {
-            <a href="#1642">domain_funcs</a>.push(<a href="#1655">discriminant_func</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a href="#1643">domain_funcs</a>.push(<a href="#1656">discriminant_func</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
             <span class="comment">// encode discriminant range axiom
-            </span><a href="#1643">domain_axioms</a>.push({
-                <span class="kw">let </span>disc_call = <a href="#1655">discriminant_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg_dom_expr]);
+            </span><a href="#1644">domain_axioms</a>.push({
+                <span class="kw">let </span>disc_call = <a href="#1656">discriminant_func</a>.apply(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg_dom_expr]);
                 <a href="../../../../vir/gen/polymorphic/ast/domain/struct.DomainAxiom.html">vir::DomainAxiom</a> {
+                    comment: <span class="prelude-val">None</span>,
                     name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$discriminant_range&quot;</span>, domain_name),
                     expr: Expr::forall(
                         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg_dom_local],
                         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[vir::Trigger::new(<span class="macro">vec!</span>[disc_call.clone()])],
-                        <a href="../utils.rs.html#7">range_extract</a>(<a href="#1636">variants</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|v| <a href="#1675">v</a>.discriminant).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
+                        <a href="../utils.rs.html#7">range_extract</a>(<a href="#1637">variants</a>.iter().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|v| <a href="#1677">v</a>.discriminant).<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
                             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
                             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|(from, to)| {
                                 <span class="kw">if </span>from == to {
-                                    Expr::eq_cmp(<a href="#1669">disc_call</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1677">from</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+                                    Expr::eq_cmp(<a href="#1670">disc_call</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1679">from</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
                                 } <span class="kw">else </span>{
                                     Expr::and(
-                                        Expr::le_cmp(<a href="#1677">from</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#1669">disc_call</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-                                        Expr::le_cmp(<a href="#1669">disc_call</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1677">to</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                                        Expr::le_cmp(<a href="#1679">from</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a href="#1670">disc_call</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+                                        Expr::le_cmp(<a href="#1670">disc_call</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#1679">to</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                                     )
                                 }
                             })
                             .<a href="../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">disjoin</a>(),
                     ),
-                    domain_name: <a href="#1639">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                    domain_name: <a href="#1640">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                 }
             });
         }
@@ -3718,6 +3726,7 @@
                     .conjoin();
 
                 domain_axioms.push(vir::DomainAxiom {
+                    comment: <span class="prelude-val">None</span>,
                     name: <span class="macro">format!</span>(<span class="string">&quot;{}${}$injectivity&quot;</span>, domain_name, variant_idx),
                     expr: forall_or_body(
                         forall_vars,
@@ -3734,6 +3743,7 @@
                     <span class="kw">let </span>args = encode_prefixed_args(<span class="string">&quot;&quot;</span>);
                     <span class="kw">let </span>call = encode_constructor_call(<span class="kw-2">&amp;</span>args);
                     vir::DomainAxiom {
+                        comment: <span class="prelude-val">None</span>,
                         name: <span class="macro">format!</span>(<span class="string">&quot;{}${}$discriminant_axiom&quot;</span>, domain_name, variant_idx),
                         expr: forall_or_body(
                             args.to_vec(),
@@ -3770,6 +3780,7 @@
                     <span class="kw">let </span>field_of_cons = field_access_func.apply(<span class="macro">vec!</span>[call.clone()]);
 
                     vir::DomainAxiom {
+                        comment: <span class="prelude-val">None</span>,
                         name: <span class="macro">format!</span>(<span class="string">&quot;{}${}$field${}$axiom&quot;</span>, domain_name, variant_idx, field.name),
                         expr: forall_or_body(
                             args.clone(),
@@ -3795,6 +3806,7 @@
                         <span class="kw">let </span>field_of_self = field_access_func.apply(<span class="macro">vec!</span>[self_expr.clone()]);
 
                         vir::DomainAxiom {
+                            comment: <span class="prelude-val">None</span>,
                             name: <span class="macro">format!</span>(
                                 <span class="string">&quot;{}${}$field${}$valid&quot;</span>,
                                 domain_name, variant_idx, field.name
@@ -3829,7 +3841,7 @@
             //   : ...
 
             // TODO: avoid clone somehow?
-            </span><span class="kw">let </span>body = <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>body) = <a href="#1645">variant_snap_bodies</a>.get(<span class="number">0</span>).cloned() {
+            </span><span class="kw">let </span>body = <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>body) = <a href="#1646">variant_snap_bodies</a>.get(<span class="number">0</span>).cloned() {
                 <span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..variants.len() {
                     body = Expr::ite(
                         Expr::eq_cmp(
@@ -3840,46 +3852,46 @@
                         body,
                     );
                 }
-                <span class="prelude-val">Some</span>(<a href="#1883">body</a>)
+                <span class="prelude-val">Some</span>(<a href="#1889">body</a>)
             } <span class="kw">else </span>{
                 <span class="prelude-val">None
             </span>};
 
             <a href="../../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
-                name: <a href="#41">SNAP_FUNC_NAME</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+                name: <a href="#44">SNAP_FUNC_NAME</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                 type_arguments: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[snapshot_type.clone()],
                 formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[arg_ref_local],
-                return_type: <a href="#1640">snapshot_type</a>,
+                return_type: <a href="#1641">snapshot_type</a>,
                 pres: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[Expr::predicate_access_predicate(
                     predicate_type.clone(),
                     arg_ref_expr,
                     PermAmount::Read,
                 )],
                 posts: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-                <a href="#1883">body</a>,
+                <a href="#1889">body</a>,
             }
         };
         <span class="kw">let </span>snap_func = <a href="../foldunfold/mod.rs.html#145-148">foldunfold::add_folding_unfolding_to_function</a>(
-            <a href="#1877">snap_func</a>,
+            <a href="#1883">snap_func</a>,
             encoder.get_used_viper_predicates_map()<span class="question-mark">?</span>,
         )
         .unwrap();
 
         <span class="comment">// create domain
         </span><span class="kw">let </span>domain = <a href="../../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
-            name: <a href="#1639">domain_name</a>,
-            functions: <a href="#1642">domain_funcs</a>,
-            axioms: <a href="#1643">domain_axioms</a>,
+            name: <a href="#1640">domain_name</a>,
+            functions: <a href="#1643">domain_funcs</a>,
+            axioms: <a href="#1644">domain_axioms</a>,
             type_vars: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         };
 
         <span class="prelude-val">Ok</span>(<a href="decls.rs.html#19">Snapshot::Complex</a> {
-            predicate_type: <a href="#1637">predicate_type</a>.convert_to_snapshot(),
-            _domain: <a class="self" href="#1634">self</a>.<a href="#113">insert_domain</a>(<a href="#1920">domain</a>),
-            <a href="#1655">discriminant_func</a>,
-            _snap_func: <a class="self" href="#1634">self</a>.<a href="#127">insert_function</a>(<a href="#1913">snap_func</a>),
-            variants: <a href="#1644">variant_domain_funcs</a>,
-            <a href="#1646">variant_names</a>,
+            predicate_type: <a href="#1638">predicate_type</a>.convert_to_snapshot(),
+            _domain: <a class="self" href="#1635">self</a>.<a href="#116">insert_domain</a>(<a href="#1926">domain</a>),
+            <a href="#1656">discriminant_func</a>,
+            _snap_func: <a class="self" href="#1635">self</a>.<a href="#130">insert_function</a>(<a href="#1919">snap_func</a>),
+            variants: <a href="#1645">variant_domain_funcs</a>,
+            <a href="#1647">variant_names</a>,
         })
     }
 }

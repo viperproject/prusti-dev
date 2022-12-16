@@ -319,6 +319,13 @@
 <a href="#319" id="319">319</a>
 <a href="#320" id="320">320</a>
 <a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -328,6 +335,7 @@
 </span><span class="kw">use </span>prusti_common::{<a href="../../../prusti_common/macro.vir_local.html">vir_local</a>, <a href="../../../prusti_common/macro.vir_expr.html">vir_expr</a>};
 <span class="kw">use </span>vir_crate::polymorphic::{<span class="self"><a href="../../../vir/polymorphic/index.html">self</a> </span><span class="kw">as </span>vir};
 <span class="kw">use </span><a href="../../../vir/common/identifier/trait.WithIdentifier.html">vir_crate::common::identifier::WithIdentifier</a>;
+<span class="kw">use </span><a href="errors/encoding_error.rs.html#20"><span class="kw">super</span>::errors::EncodingResult</a>;
 <span class="kw">use </span><a href="high/builtin_functions/interface.rs.html#160"><span class="kw">super</span>::high::builtin_functions::HighBuiltinFunctionEncoderInterface</a>;
 <span class="kw">use </span><a href="mod.rs.html#33"><span class="kw">super</span>::versioning</a>;
 
@@ -371,9 +379,7 @@
     },
 }
 
-<span class="comment">// This code is currently dead, but we should start using it soon.
-</span><span class="attr">#[allow(dead_code)]
-#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+<span class="attr">#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 </span><span class="kw">pub enum </span>BuiltinDomainKind {
     Nat,
     Primitive,
@@ -386,47 +392,48 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; BuiltinEncoder&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">pub fn </span>new(encoder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span><span class="kw">super</span>::Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            <a href="#66">encoder</a>
+            <a href="#65">encoder</a>
         }
     }
 
-    <span class="kw">pub fn </span>encode_builtin_method_name(<span class="kw-2">&amp;</span><span class="self">self</span>, method: <a href="#17">BuiltinMethodKind</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">match </span><a href="#72">method</a> {
-            <a href="#18">BuiltinMethodKind::HavocBool</a> =&gt; <span class="string">&quot;builtin$havoc_bool&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a href="#19">BuiltinMethodKind::HavocInt</a> =&gt; <span class="string">&quot;builtin$havoc_int&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a href="#22">BuiltinMethodKind::HavocBV</a>(variant)  =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;builtin$havoc_{}&quot;</span>, variant),
-            <a href="#20">BuiltinMethodKind::HavocF32</a> =&gt; <span class="string">&quot;builtin$havoc_f32&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a href="#21">BuiltinMethodKind::HavocF64</a> =&gt; <span class="string">&quot;builtin$havoc_f64&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a href="#23">BuiltinMethodKind::HavocRef</a> =&gt; <span class="string">&quot;builtin$havoc_ref&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a href="#24">BuiltinMethodKind::BumpMemVersion</a> =&gt; <a href="versioning/mod.rs.html#12">versioning::bump_mem_version_name</a>().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+    <span class="kw">pub fn </span>encode_builtin_method_name(<span class="kw-2">&amp;</span><span class="self">self</span>, method: <a href="#18">BuiltinMethodKind</a>) -&gt; <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+        <span class="kw">match </span><a href="#71">method</a> {
+            <a href="#19">BuiltinMethodKind::HavocBool</a> =&gt; <span class="string">&quot;builtin$havoc_bool&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a href="#20">BuiltinMethodKind::HavocInt</a> =&gt; <span class="string">&quot;builtin$havoc_int&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a href="#23">BuiltinMethodKind::HavocBV</a>(variant)  =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;builtin$havoc_{}&quot;</span>, variant),
+            <a href="#21">BuiltinMethodKind::HavocF32</a> =&gt; <span class="string">&quot;builtin$havoc_f32&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a href="#22">BuiltinMethodKind::HavocF64</a> =&gt; <span class="string">&quot;builtin$havoc_f64&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a href="#24">BuiltinMethodKind::HavocRef</a> =&gt; <span class="string">&quot;builtin$havoc_ref&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+            <a href="#25">BuiltinMethodKind::BumpMemVersion</a> =&gt; <a href="versioning/mod.rs.html#12">versioning::bump_mem_version_name</a>().<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
         }
     }
 
-    <span class="kw">pub fn </span>encode_builtin_method_def(<span class="kw-2">&amp;</span><span class="self">self</span>, method: <a href="#17">BuiltinMethodKind</a>) -&gt; <a href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a> {
-        <span class="kw">let </span>return_type = <span class="kw">match </span><a href="#84">method</a> {
-            <a href="#18">BuiltinMethodKind::HavocBool</a> =&gt; vir::Type::Bool,
-            <a href="#19">BuiltinMethodKind::HavocInt</a> =&gt; vir::Type::Int,
-            <a href="#22">BuiltinMethodKind::HavocBV</a>(variant) =&gt; vir::Type::BitVector(<a href="#88">variant</a>),
-            <a href="#20">BuiltinMethodKind::HavocF32</a> =&gt; vir::Type::Float(vir::Float::F32),
-            <a href="#21">BuiltinMethodKind::HavocF64</a> =&gt; vir::Type::Float(vir::Float::F64),
-            <a href="#23">BuiltinMethodKind::HavocRef</a> =&gt; vir::Type::typed_ref(<span class="string">&quot;&quot;</span>),
-            <a href="#24">BuiltinMethodKind::BumpMemVersion</a> =&gt; {
-                <span class="kw">return </span><a href="versioning/mod.rs.html#16">versioning::bump_mem_version_definition</a>();
+    <span class="kw">pub fn </span>encode_builtin_method_def(<span class="kw-2">&amp;</span><span class="self">self</span>, method: <a href="#18">BuiltinMethodKind</a>) -&gt; EncodingResult&lt;<a href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a>&gt; {
+        <span class="kw">let </span>method_name = <a class="self" href="#83">self</a>.<a href="#71">encode_builtin_method_name</a>(<a href="#83">method</a>);
+        <span class="kw">let </span>return_type = <span class="kw">match </span><a href="#83">method</a> {
+            <a href="#19">BuiltinMethodKind::HavocBool</a> =&gt; vir::Type::Bool,
+            <a href="#20">BuiltinMethodKind::HavocInt</a> =&gt; vir::Type::Int,
+            <a href="#23">BuiltinMethodKind::HavocBV</a>(variant) =&gt; vir::Type::BitVector(<a href="#88">variant</a>),
+            <a href="#21">BuiltinMethodKind::HavocF32</a> =&gt; vir::Type::Float(vir::Float::F32),
+            <a href="#22">BuiltinMethodKind::HavocF64</a> =&gt; vir::Type::Float(vir::Float::F64),
+            <a href="#24">BuiltinMethodKind::HavocRef</a> =&gt; vir::Type::typed_ref(<span class="string">&quot;&quot;</span>),
+            <a href="#25">BuiltinMethodKind::BumpMemVersion</a> =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="versioning/mod.rs.html#16">versioning::bump_mem_version_definition</a>());
             }
         };
-        <a href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a> {
-            name: <a class="self" href="#84">self</a>.<a href="#72">encode_builtin_method_name</a>(<a href="#84">method</a>),
+        <span class="prelude-val">Ok</span>(<a href="../../../vir/gen/polymorphic/ast/bodyless_method/struct.BodylessMethod.html">vir::BodylessMethod</a> {
+            name: <a href="#84">method_name</a>,
             formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             formal_returns: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="macro">vir_local!</span>{ ret: {return_type} }],
             pres: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             posts: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-        }
+        })
     }
 
-    <span class="kw">pub fn </span>encode_builtin_function_def(<span class="kw-2">&amp;</span><span class="self">self</span>, function: <a href="#28">BuiltinFunctionKind</a>) -&gt; <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
+    <span class="kw">pub fn </span>encode_builtin_function_def(<span class="kw-2">&amp;</span><span class="self">self</span>, function: <a href="#29">BuiltinFunctionKind</a>) -&gt; <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
         <span class="kw">let </span>(fn_name, type_arguments) = <a class="self" href="#105">self</a>.encoder.<a href="high/builtin_functions/interface.rs.html#170-173">encode_builtin_function_name_with_type_args</a>(<span class="kw-2">&amp;</span><a href="#105">function</a>);
         <span class="kw">match </span><a href="#105">function</a> {
-            <a href="#30">BuiltinFunctionKind::Unreachable</a>(typ) =&gt; <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
+            <a href="#31">BuiltinFunctionKind::Unreachable</a>(typ) =&gt; <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
                 name: <a href="#106">fn_name</a>,
                 <a href="#106">type_arguments</a>,
                 formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
@@ -436,7 +443,7 @@
                 posts: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
                 body: <span class="prelude-val">None</span>,
             },
-            <a href="#32">BuiltinFunctionKind::Undefined</a>(typ) =&gt; <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
+            <a href="#33">BuiltinFunctionKind::Undefined</a>(typ) =&gt; <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
                 name: <a href="#106">fn_name</a>,
                 <a href="#106">type_arguments</a>,
                 formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
@@ -445,7 +452,7 @@
                 posts: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
                 body: <span class="prelude-val">None</span>,
             },
-            <a href="#34">BuiltinFunctionKind::ArrayLookupPure</a> { array_pred_type, array_len, return_ty, .. } =&gt; {
+            <a href="#35">BuiltinFunctionKind::ArrayLookupPure</a> { array_pred_type, array_len, return_ty, .. } =&gt; {
                 <span class="kw">let </span>self_var = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#127">array_pred_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                 <span class="kw">let </span>idx_var = <a class="macro" href="../../../prusti_common/macro.vir_local.html">vir_local!</a>{ idx: Int };
 
@@ -474,9 +481,9 @@
                     body: <span class="prelude-val">None</span>,
                 }
             },
-            <a href="#41">BuiltinFunctionKind::SliceLookupPure</a> { slice_pred_type, elem_pred_type, return_ty} =&gt; {
+            <a href="#42">BuiltinFunctionKind::SliceLookupPure</a> { slice_pred_type, elem_pred_type, return_ty} =&gt; {
                 <span class="kw">let </span>(slice_len, slice_len_type_arguments) = <a class="self" href="#105">self</a>.encoder.<a href="high/builtin_functions/interface.rs.html#170-173">encode_builtin_function_name_with_type_args</a>(
-                    <span class="kw-2">&amp;</span><a href="#47">BuiltinFunctionKind::SliceLen</a> { slice_pred_type: <a href="#156">slice_pred_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#156">elem_pred_type</a> }
+                    <span class="kw-2">&amp;</span><a href="#48">BuiltinFunctionKind::SliceLen</a> { slice_pred_type: <a href="#156">slice_pred_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#156">elem_pred_type</a> }
                 );
                 <span class="kw">let </span>self_var = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#156">slice_pred_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                 <span class="kw">let </span>idx_var = <a class="macro" href="../../../prusti_common/macro.vir_local.html">vir_local!</a>{ idx: Int };
@@ -517,7 +524,7 @@
                     body: <span class="prelude-val">None</span>,
                 }
             },
-            <a href="#47">BuiltinFunctionKind::SliceLen</a> { slice_pred_type, .. } =&gt; {
+            <a href="#48">BuiltinFunctionKind::SliceLen</a> { slice_pred_type, .. } =&gt; {
                 <span class="kw">let </span>self_var = vir::LocalVar::new(<span class="string">&quot;self&quot;</span>, <a href="#199">slice_pred_type</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
 
                 <a href="../../../vir/gen/polymorphic/ast/function/struct.Function.html">vir::Function</a> {
@@ -545,13 +552,19 @@
         }
     }
 
-    <span class="comment">// This code is currently dead, but we should start using it soon.
-    </span><span class="attr">#[allow(dead_code)]
-    </span><span class="kw">pub fn </span>encode_builtin_domain(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: <a href="#56">BuiltinDomainKind</a>) -&gt; <a href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
-        <span class="kw">match </span><a href="#229">kind</a> {
-            <a href="#57">BuiltinDomainKind::Nat</a> =&gt; <a class="self" href="#229">self</a>.<a href="#236">encode_nat_builtin_domain</a>(),
-            <a href="#58">BuiltinDomainKind::Primitive</a> =&gt; <a class="self" href="#229">self</a>.<a href="#258">encode_primitive_builtin_domain</a>(),
-        }
+    <span class="kw">pub fn </span>encode_builtin_domain(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: <a href="#55">BuiltinDomainKind</a>) -&gt; EncodingResult&lt;<a href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#227">kind</a> {
+            <a href="#56">BuiltinDomainKind::Nat</a> =&gt; <a class="self" href="#227">self</a>.<a href="#242">encode_nat_builtin_domain</a>(),
+            <a href="#57">BuiltinDomainKind::Primitive</a> =&gt; <a class="self" href="#227">self</a>.<a href="#264">encode_primitive_builtin_domain</a>(),
+        })
+    }
+
+    <span class="kw">pub fn </span>encode_builtin_domain_type(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: <a href="#55">BuiltinDomainKind</a>) -&gt; EncodingResult&lt;<a href="../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir::Type</a>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#234">kind</a> {
+            <a href="#56">BuiltinDomainKind::Nat</a> | <a href="#57">BuiltinDomainKind::Primitive</a> =&gt; {
+                vir::Type::domain(<span class="self">self</span>.encode_builtin_domain(kind)<span class="question-mark">?</span>.name)
+            }
+        })
     }
 
     <span class="kw">fn </span>encode_nat_builtin_domain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
@@ -561,16 +574,16 @@
             name: <span class="string">&quot;zero&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
             type_arguments: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             formal_args: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
-            return_type: vir::Type::domain(<a href="#237">nat_domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()),
+            return_type: vir::Type::domain(<a href="#243">nat_domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>()),
             unique: <span class="bool-val">false</span>,
-            domain_name: <a href="#237">nat_domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
+            domain_name: <a href="#243">nat_domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
         };
 
         <span class="kw">let </span>functions = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[zero]; <span class="comment">// , snapshot::get_succ_func()];
 
         </span><a href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
-            name: <a href="#237">nat_domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
-            <a href="#248">functions</a>,
+            name: <a href="#243">nat_domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
+            <a href="#254">functions</a>,
             axioms: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             type_vars: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         }
@@ -578,7 +591,7 @@
 
     <span class="kw">fn </span>encode_primitive_builtin_domain(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
         <span class="comment">//FIXME this does not check or handle the different sizes of primitve types
-        </span><span class="kw">let </span>domain_name = <a href="#13">PRIMITIVE_VALID_DOMAIN_NAME</a>;
+        </span><span class="kw">let </span>domain_name = <a href="#14">PRIMITIVE_VALID_DOMAIN_NAME</a>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>functions = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
         <span class="kw">let </span><span class="kw-2">mut </span>axioms = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
@@ -625,6 +638,7 @@
                 <span class="macro">vec!</span>[vir::Trigger::new(<span class="macro">vec!</span>[function_app.clone()])],
                 function_app);
             <span class="kw">let </span>axiom = vir::DomainAxiom {
+                comment: <span class="prelude-val">None</span>,
                 name: <span class="macro">format!</span>(<span class="string">&quot;{}$axiom&quot;</span>, f.get_identifier()),
                 expr: body,
                 domain_name: domain_name.to_string(),
@@ -633,9 +647,9 @@
         }
 
         <a href="../../../vir/gen/polymorphic/ast/domain/struct.Domain.html">vir::Domain</a> {
-            name: <a href="#260">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
-            <a href="#262">functions</a>,
-            <a href="#263">axioms</a>,
+            name: <a href="#266">domain_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
+            <a href="#268">functions</a>,
+            <a href="#269">axioms</a>,
             type_vars: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         }
     }

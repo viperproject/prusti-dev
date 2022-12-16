@@ -234,6 +234,7 @@
 <a href="#234" id="234">234</a>
 <a href="#235" id="235">235</a>
 <a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
     <a href="../../../../errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>,
     <a href="../../../../high/pure_functions/interface.rs.html#11">high::pure_functions::HighPureFunctionEncoderInterface</a>,
@@ -243,7 +244,7 @@
         snapshots::{
             <a href="../../snapshots/into_snapshot/pure/traits.rs.html#17">IntoPureBoolExpression</a>, <a href="../../snapshots/into_snapshot/pure/traits.rs.html#46">IntoPureSnapshot</a>, <a href="../../snapshots/into_snapshot/context_independent/traits.rs.html#13">IntoSnapshot</a>, <a href="../../snapshots/validity/interface.rs.html#36">SnapshotValidityInterface</a>,
         },
-        <a href="../../types/interface.rs.html#286">types::TypesInterface</a>,
+        <a href="../../types/interface.rs.html#288">types::TypesInterface</a>,
     },
 };
 <span class="kw">use </span><a href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">std::collections::BTreeMap</a>;
@@ -375,6 +376,7 @@
                     },
                 );
                 <span class="kw">let </span>axiom = <a href="../../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
+                    comment: <span class="prelude-val">None</span>,
                     name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$definitional_axiom&quot;</span>, function_name),
                     body: <a href="#132">axiom_body</a>,
                 };
@@ -387,7 +389,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         function_decl: <span class="kw-2">&amp;</span><a href="../../../../../../../vir/gen/middle/ast/function/struct.FunctionDecl.html">vir_mid::FunctionDecl</a>,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <a href="#152">function_decl</a>.walk_types(|ty| <a class="self" href="#151">self</a>.<a href="../../types/interface.rs.html#289">ensure_type_definition</a>(<a href="#154">ty</a>))
+        <a href="#153">function_decl</a>.walk_types(|ty| <a class="self" href="#152">self</a>.<a href="../../types/interface.rs.html#291">ensure_type_definition</a>(<a href="#155">ty</a>))
     }
 }
 
@@ -411,7 +413,7 @@
     <span class="kw">fn </span>declare_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: <a href="../../../../../../../vir/gen/low/ast/function/struct.FunctionDecl.html">vir_low::FunctionDecl</a>) -&gt; SpannedEncodingResult&lt;()&gt;;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <a href="#158">FunctionsLowererInterface</a> <span class="kw">for </span>Lowerer&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <a href="#159">FunctionsLowererInterface</a> <span class="kw">for </span>Lowerer&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>call_pure_function_in_procedure_context(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         function_name: <span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">ToString</a>,
@@ -423,16 +425,16 @@
             !return_type.is_ref(),
             <span class="string">&quot;return_type of a pure function cannot be Ref&quot;
         </span>);
-        <span class="kw">let </span>function_name = <a href="#181">function_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <span class="kw">let </span>caller_function_name = <a class="self" href="#180">self</a>.<a href="#32">caller_function_name</a>(<span class="kw-2">&amp;</span><a href="#190">function_name</a>);
-        <span class="kw">let </span>parameters = <a class="self" href="#180">self</a>.<a href="../mod.rs.html#236">create_parameters</a>(<span class="kw-2">&amp;</span><a href="#182">arguments</a>);
+        <span class="kw">let </span>function_name = <a href="#182">function_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">let </span>caller_function_name = <a class="self" href="#181">self</a>.<a href="#32">caller_function_name</a>(<span class="kw-2">&amp;</span><a href="#191">function_name</a>);
+        <span class="kw">let </span>parameters = <a class="self" href="#181">self</a>.<a href="../mod.rs.html#236">create_parameters</a>(<span class="kw-2">&amp;</span><a href="#183">arguments</a>);
         <span class="self">self</span>.ensure_pure_function_lowered(function_name)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<a href="../../../../../../../vir/gen/low/ast/expression/struct.FuncApp.html">vir_low::expression::FuncApp</a> {
-            function_name: <a href="#191">caller_function_name</a>,
-            <a href="#182">arguments</a>,
-            <a href="#192">parameters</a>,
-            <a href="#183">return_type</a>,
-            <a href="#184">position</a>,
+            function_name: <a href="#192">caller_function_name</a>,
+            <a href="#183">arguments</a>,
+            <a href="#193">parameters</a>,
+            <a href="#184">return_type</a>,
+            <a href="#185">position</a>,
         })
     }
     <span class="kw">fn </span>call_pure_function_in_pure_context(
@@ -446,27 +448,27 @@
             !return_type.is_ref(),
             <span class="string">&quot;return_type of a pure function cannot be Ref&quot;
         </span>);
-        <span class="kw">let </span>function_name = <a href="#204">function_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
-        <span class="kw">let </span><span class="kw-2">mut </span>parameters = <a class="self" href="#203">self</a>.<a href="../mod.rs.html#236">create_parameters</a>(<span class="kw-2">&amp;</span><a href="#205">arguments</a>);
+        <span class="kw">let </span>function_name = <a href="#205">function_name</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">let </span><span class="kw-2">mut </span>parameters = <a class="self" href="#204">self</a>.<a href="../mod.rs.html#236">create_parameters</a>(<span class="kw-2">&amp;</span><a href="#206">arguments</a>);
         <span class="kw">let </span>gas = <span class="self">self</span>.function_gas_parameter()<span class="question-mark">?</span>;
-        <a href="#214">parameters</a>.push(<a href="#215">gas</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a href="#205">arguments</a>.push(<a href="#215">gas</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <a href="#215">parameters</a>.push(<a href="#216">gas</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a href="#206">arguments</a>.push(<a href="#216">gas</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
         <span class="self">self</span>.ensure_pure_function_lowered(function_name.clone())<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<a href="../../../../../../../vir/gen/low/ast/expression/struct.DomainFuncApp.html">vir_low::expression::DomainFuncApp</a> {
             domain_name: <span class="string">&quot;Functions&quot;</span>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-            <a href="#213">function_name</a>,
-            <a href="#205">arguments</a>,
-            <a href="#214">parameters</a>,
-            <a href="#206">return_type</a>,
-            <a href="#207">position</a>,
+            <a href="#214">function_name</a>,
+            <a href="#206">arguments</a>,
+            <a href="#215">parameters</a>,
+            <a href="#207">return_type</a>,
+            <a href="#208">position</a>,
         })
     }
     <span class="doccomment">/// The function must not be already declared.
     </span><span class="kw">fn </span>declare_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: <a href="../../../../../../../vir/gen/low/ast/function/struct.FunctionDecl.html">vir_low::FunctionDecl</a>) -&gt; SpannedEncodingResult&lt;()&gt; {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(!<span class="self">self</span>.functions_state.functions.contains_key(<span class="kw-2">&amp;</span>function.name));
-        <a class="self" href="#229">self</a>.functions_state
+        <a class="self" href="#230">self</a>.functions_state
             .functions
-            .insert(<a href="#229">function</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#229">function</a>);
+            .insert(<a href="#230">function</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#230">function</a>);
         <span class="prelude-val">Ok</span>(())
     }
 }

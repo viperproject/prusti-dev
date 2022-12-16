@@ -79,16 +79,13 @@
 <a href="#79" id="79">79</a>
 <a href="#80" id="80">80</a>
 <a href="#81" id="81">81</a>
-<a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a>
 </pre><pre class="rust"><code><span class="kw">use </span><a href="../../../../../log/macro.debug.html">log::debug</a>;
 <span class="kw">use </span>prusti_rustc_interface::middle::{<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">ty</a>};
 <span class="kw">use </span>vir_crate::high::{<span class="self"><a href="../../../../../vir/high/index.html">self</a> </span><span class="kw">as </span>vir_high};
 
-<span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    errors::{<a href="../../errors/encoding_error.rs.html#15">EncodingError</a>, <a href="../../errors/encoding_error.rs.html#20">EncodingResult</a>},
-    <a href="../types/interface.rs.html#23">mir::types::MirTypeEncoderInterface</a>,
+<span class="kw">use crate</span>::{
+    encoder::{<a href="../../errors/encoding_error.rs.html#20">errors::EncodingResult</a>, <a href="../types/interface.rs.html#23">mir::types::MirTypeEncoderInterface</a>},
+    <a href="../../errors/encoding_error.rs.html#96">error_unsupported</a>,
 };
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>ConstantsEncoderInterface&lt;<span class="lifetime">&#39;tcx</span>&gt; {
@@ -108,7 +105,7 @@
         <span class="kw">let </span>mir_type = <a href="#22">constant</a>.ty();
         <span class="kw">let _ </span>= <span class="self">self</span>.encode_type_high(mir_type)<span class="question-mark">?</span>; <span class="comment">// Trigger encoding of the type.
                                                   // FIXME: encode_snapshot_constant also handled non literal constants
-        </span><span class="kw">let </span>scalar_value = || <a class="self" href="#21">self</a>.<a href="../../encoder.rs.html#306-309">const_eval_intlike</a>(<a href="#22">constant</a>.literal);
+        </span><span class="kw">let </span>scalar_value = || <a class="self" href="#21">self</a>.<a href="../../encoder.rs.html#316-319">const_eval_intlike</a>(<a href="#22">constant</a>.literal);
 
         <span class="kw">let </span>expr = <span class="kw">match </span><a href="#24">mir_type</a>.kind() {
             ty::TyKind::Bool =&gt; scalar_value()<span class="question-mark">?</span>.to_bool().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
@@ -120,7 +117,7 @@
             ty::TyKind::Int(ty::IntTy::I128) =&gt; scalar_value()<span class="question-mark">?</span>.to_i128().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             ty::TyKind::Int(ty::IntTy::Isize) =&gt; {
                 <span class="kw">let </span>number: <a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a> = scalar_value()<span class="question-mark">?
-                    </span>.to_machine_isize(<span class="kw-2">&amp;</span><a class="self" href="#21">self</a>.<a href="../../encoder.rs.html#219">env</a>().tcx())
+                    </span>.to_machine_isize(<span class="kw-2">&amp;</span><a class="self" href="#21">self</a>.<a href="../../encoder.rs.html#225">env</a>().tcx())
                     .unwrap()
                     .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>()
                     .unwrap();
@@ -133,7 +130,7 @@
             ty::TyKind::Uint(ty::UintTy::U128) =&gt; scalar_value()<span class="question-mark">?</span>.to_u128().unwrap().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             ty::TyKind::Uint(ty::UintTy::Usize) =&gt; {
                 <span class="kw">let </span>number: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> = scalar_value()<span class="question-mark">?
-                    </span>.to_machine_usize(<span class="kw-2">&amp;</span><a class="self" href="#21">self</a>.<a href="../../encoder.rs.html#219">env</a>().tcx())
+                    </span>.to_machine_usize(<span class="kw-2">&amp;</span><a class="self" href="#21">self</a>.<a href="../../encoder.rs.html#225">env</a>().tcx())
                     .unwrap()
                     .<a href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>()
                     .unwrap();
@@ -151,10 +148,7 @@
                 vir_high::Expression::constructor_no_pos(<a href="#66">ty</a>, Vec::new())
             }
             <span class="kw">_ </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::unsupported(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-                    <span class="string">&quot;unsupported constant type {:?}&quot;</span>,
-                    mir_type.kind()
-                )));
+                <a class="macro" href="../../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(<span class="string">&quot;unsupported constant type {:?}&quot;</span>, mir_type.kind());
             }
         };
         <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;encode_const_expr {:?} --&gt; {:?}&quot;</span>, constant.literal, expr);
@@ -162,8 +156,8 @@
     }
 
     <span class="kw">fn </span>compute_array_len(<span class="kw-2">&amp;</span><span class="self">self</span>, size: ty::Const&lt;<span class="lifetime">&#39;tcx</span>&gt;) -&gt; EncodingResult&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt; {
-        <a class="self" href="#80">self</a>.<a href="../../encoder.rs.html#306-309">const_eval_intlike</a>(mir::ConstantKind::Ty(<a href="#80">size</a>))
-            .map(|s| <a href="#82">s</a>.to_u64().unwrap())
+        <a class="self" href="#77">self</a>.<a href="../../encoder.rs.html#316-319">const_eval_intlike</a>(mir::ConstantKind::Ty(<a href="#77">size</a>))
+            .map(|s| <a href="#79">s</a>.to_u64().unwrap())
     }
 }
 </code></pre></div>

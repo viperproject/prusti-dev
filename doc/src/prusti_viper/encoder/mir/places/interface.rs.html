@@ -539,24 +539,15 @@
 <a href="#539" id="539">539</a>
 <a href="#540" id="540">540</a>
 <a href="#541" id="541">541</a>
-<a href="#542" id="542">542</a>
-<a href="#543" id="543">543</a>
-<a href="#544" id="544">544</a>
-<a href="#545" id="545">545</a>
-<a href="#546" id="546">546</a>
-<a href="#547" id="547">547</a>
-<a href="#548" id="548">548</a>
-<a href="#549" id="549">549</a>
-<a href="#550" id="550">550</a>
-<a href="#551" id="551">551</a>
-<a href="#552" id="552">552</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
-    errors::{
-        <a href="../../errors/encoding_error.rs.html#15">EncodingError</a>, <a href="../../errors/encoding_error.rs.html#20">EncodingResult</a>, <a href="../../errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../../errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>,
-        <a href="../../errors/with_span.rs.html#13">WithSpan</a>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    encoder::{
+        errors::{
+            <a href="../../errors/encoding_error.rs.html#20">EncodingResult</a>, <a href="../../errors/error_manager.rs.html#52">ErrorCtxt</a>, <a href="../../errors/spanned_encoding_error.rs.html#16">SpannedEncodingError</a>, <a href="../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>, <a href="../../errors/with_span.rs.html#13">WithSpan</a>,
+        },
+        <a href="../../high/pure_functions/interface.rs.html#11">high::pure_functions::HighPureFunctionEncoderInterface</a>,
+        mir::{<a href="../constants/interface.rs.html#10">constants::ConstantsEncoderInterface</a>, <a href="../types/interface.rs.html#23">types::MirTypeEncoderInterface</a>},
     },
-    <a href="../../high/pure_functions/interface.rs.html#11">high::pure_functions::HighPureFunctionEncoderInterface</a>,
-    mir::{<a href="../constants/interface.rs.html#10">constants::ConstantsEncoderInterface</a>, <a href="../types/interface.rs.html#23">types::MirTypeEncoderInterface</a>},
+    <a href="../../errors/encoding_error.rs.html#76">error_internal</a>, <a href="../../errors/encoding_error.rs.html#96">error_unsupported</a>,
 };
 <span class="kw">use </span><a href="../../../../../log/macro.debug.html">log::debug</a>;
 <span class="kw">use </span><a href="../../../../../prusti_utils/config/index.html">prusti_common::config</a>;
@@ -664,7 +655,7 @@
         mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>,
     ) -&gt; SpannedEncodingResult&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>&gt; {
-        <span class="prelude-val">Ok</span>(<a href="#112">mir</a>.local_decls[<a href="#113">local</a>].source_info.span)
+        <span class="prelude-val">Ok</span>(<a href="#114">mir</a>.local_decls[<a href="#115">local</a>].source_info.span)
     }
 
     <span class="kw">fn </span>get_local_type(
@@ -672,7 +663,7 @@
         mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         local: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>,
     ) -&gt; SpannedEncodingResult&lt;ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="prelude-val">Ok</span>(<a href="#120">mir</a>.local_decls[<a href="#121">local</a>].ty)
+        <span class="prelude-val">Ok</span>(<a href="#122">mir</a>.local_decls[<a href="#123">local</a>].ty)
     }
 
     <span class="kw">fn </span>get_operand_type(
@@ -680,7 +671,7 @@
         mir: <span class="kw-2">&amp;</span>mir::Body&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; SpannedEncodingResult&lt;ty::Ty&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
-        <span class="prelude-val">Ok</span>(<a href="#129">operand</a>.ty(<a href="#128">mir</a>, <a class="self" href="#127">self</a>.<a href="../../encoder.rs.html#219">env</a>().tcx()))
+        <span class="prelude-val">Ok</span>(<a href="#131">operand</a>.ty(<a href="#130">mir</a>, <a class="self" href="#129">self</a>.<a href="../../encoder.rs.html#225">env</a>().tcx()))
     }
 
     <span class="kw">fn </span>encode_local_name(
@@ -699,8 +690,8 @@
         <span class="kw">let </span>name = <span class="self">self</span>.encode_local_name(mir, local)<span class="question-mark">?</span>;
         <span class="kw">let </span>mir_type = <span class="self">self</span>.get_local_type(mir, local)<span class="question-mark">?</span>;
         <span class="kw">let </span>ty = <span class="self">self</span>.encode_type_high(mir_type)<span class="question-mark">?</span>;
-        <span class="kw">let </span>variable_decl = <a href="../../../../../vir/gen/high/ast/variable/struct.VariableDecl.html">vir_high::VariableDecl</a> { <a href="#147">name</a>, <a href="#149">ty</a> };
-        <span class="prelude-val">Ok</span>(<a href="#150">variable_decl</a>)
+        <span class="kw">let </span>variable_decl = <a href="../../../../../vir/gen/high/ast/variable/struct.VariableDecl.html">vir_high::VariableDecl</a> { <a href="#149">name</a>, <a href="#151">ty</a> };
+        <span class="prelude-val">Ok</span>(<a href="#152">variable_decl</a>)
     }
 
     <span class="kw">fn </span>encode_place_high(
@@ -711,7 +702,7 @@
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>&gt; {
         <span class="kw">let </span>root = <span class="self">self</span>.encode_local_high(mir, place.local)<span class="question-mark">?</span>;
         <span class="kw">let </span>declaration_span = <span class="self">self</span>.get_local_span(mir, place.local)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>expr = vir_high::Expression::local_no_pos(<a href="#160">root</a>);
+        <span class="kw">let </span><span class="kw-2">mut </span>expr = vir_high::Expression::local_no_pos(<a href="#162">root</a>);
         <span class="kw">for </span>(i, element) <span class="kw">in </span>place.projection.iter().enumerate() {
             <span class="kw">let </span>mir_type = {
                 <span class="kw">let </span>place_ref = mir::PlaceRef {
@@ -793,7 +784,7 @@
                 <span class="kw">_ </span>=&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;element: {:?}&quot;</span>, element),
             }
         }
-        <span class="prelude-val">Ok</span>(<a href="#162">expr</a>)
+        <span class="prelude-val">Ok</span>(<a href="#164">expr</a>)
     }
 
     <span class="kw">fn </span>encode_type_of_place_high(
@@ -802,8 +793,8 @@
         place: mir::Place&lt;<span class="lifetime">&#39;tcx</span>&gt;,
     ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir_high::Type</a>&gt; {
         <span class="kw">let </span>span = <span class="self">self</span>.get_local_span(mir, place.local)<span class="question-mark">?</span>;
-        <span class="kw">let </span>mir_type = <a href="#250">place</a>.ty(<a href="#249">mir</a>, <a class="self" href="#248">self</a>.<a href="../../encoder.rs.html#219">env</a>().tcx());
-        <a class="self" href="#248">self</a>.<a href="../types/interface.rs.html#63-64">encode_place_type_high</a>(<a href="#253">mir_type</a>).<a href="../../errors/with_span.rs.html#14">with_span</a>(<a href="#252">span</a>)
+        <span class="kw">let </span>mir_type = <a href="#252">place</a>.ty(<a href="#251">mir</a>, <a class="self" href="#250">self</a>.<a href="../../encoder.rs.html#225">env</a>().tcx());
+        <a class="self" href="#250">self</a>.<a href="../types/interface.rs.html#63-64">encode_place_type_high</a>(<a href="#255">mir_type</a>).<a href="../../errors/with_span.rs.html#14">with_span</a>(<a href="#254">span</a>)
     }
 
     <span class="kw">fn </span>encode_operand_high(
@@ -812,13 +803,13 @@
         operand: <span class="kw-2">&amp;</span>mir::Operand&lt;<span class="lifetime">&#39;tcx</span>&gt;,
         use_span: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>,
     ) -&gt; EncodingResult&lt;<a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>&gt; {
-        <span class="kw">let </span>expr = <span class="kw">match </span><a href="#260">operand</a> {
+        <span class="kw">let </span>expr = <span class="kw">match </span><a href="#262">operand</a> {
             mir::Operand::Move(place) | mir::Operand::Copy(place) =&gt; {
                 <span class="self">self</span>.encode_place_high(mir, <span class="kw-2">*</span>place, <span class="prelude-val">Some</span>(use_span))<span class="question-mark">?
             </span>}
             mir::Operand::Constant(constant) =&gt; <span class="self">self</span>.encode_constant_high(constant)<span class="question-mark">?</span>,
         };
-        <span class="prelude-val">Ok</span>(<a href="#263">expr</a>)
+        <span class="prelude-val">Ok</span>(<a href="#265">expr</a>)
     }
 
     <span class="kw">fn </span>encode_unary_op_high(
@@ -827,11 +818,11 @@
         operand: <a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
         _ty: <span class="kw-2">&amp;</span><a href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir_high::Type</a>,
     ) -&gt; EncodingResult&lt;<a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>&gt; {
-        <span class="kw">let </span>result = <span class="kw">match </span><a href="#274">op</a> {
-            mir::UnOp::Not =&gt; vir_high::Expression::not(<a href="#275">operand</a>),
-            mir::UnOp::Neg =&gt; vir_high::Expression::minus(<a href="#275">operand</a>),
+        <span class="kw">let </span>result = <span class="kw">match </span><a href="#276">op</a> {
+            mir::UnOp::Not =&gt; vir_high::Expression::not(<a href="#277">operand</a>),
+            mir::UnOp::Neg =&gt; vir_high::Expression::minus(<a href="#277">operand</a>),
         };
-        <span class="prelude-val">Ok</span>(<a href="#278">result</a>)
+        <span class="prelude-val">Ok</span>(<a href="#280">result</a>)
     }
 
     <span class="kw">fn </span>encode_binary_op_high(
@@ -841,32 +832,27 @@
         right: <a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
         ty: <span class="kw-2">&amp;</span><a href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir_high::Type</a>,
     ) -&gt; EncodingResult&lt;<a href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>&gt; {
-        <span class="kw">let </span>is_bool = <a href="#290">ty</a> == <span class="kw-2">&amp;</span>vir_high::Type::Bool;
-        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#287">op</a> {
-            mir::BinOp::Eq =&gt; vir_high::Expression::equals(<a href="#288">left</a>, <a href="#289">right</a>),
-            mir::BinOp::Ne =&gt; vir_high::Expression::not_equals(<a href="#288">left</a>, <a href="#289">right</a>),
-            mir::BinOp::Gt =&gt; vir_high::Expression::greater_than(<a href="#288">left</a>, <a href="#289">right</a>),
-            mir::BinOp::Ge =&gt; vir_high::Expression::greater_equals(<a href="#288">left</a>, <a href="#289">right</a>),
-            mir::BinOp::Lt =&gt; vir_high::Expression::less_than(<a href="#288">left</a>, <a href="#289">right</a>),
-            mir::BinOp::Le =&gt; vir_high::Expression::less_equals(<a href="#288">left</a>, <a href="#289">right</a>),
-            mir::BinOp::Add =&gt; vir_high::Expression::add(<a href="#288">left</a>, <a href="#289">right</a>),
-            mir::BinOp::Sub =&gt; vir_high::Expression::subtract(<a href="#288">left</a>, <a href="#289">right</a>),
-            mir::BinOp::Rem =&gt; vir_high::Expression::module(<a href="#288">left</a>, <a href="#289">right</a>),
-            mir::BinOp::Div =&gt; vir_high::Expression::divide(<a href="#288">left</a>, <a href="#289">right</a>),
-            mir::BinOp::Mul =&gt; vir_high::Expression::multiply(<a href="#288">left</a>, <a href="#289">right</a>),
-            mir::BinOp::BitAnd <span class="kw">if </span><a href="#292">is_bool</a> =&gt; vir_high::Expression::and(<a href="#288">left</a>, <a href="#289">right</a>),
-            mir::BinOp::BitOr <span class="kw">if </span><a href="#292">is_bool</a> =&gt; vir_high::Expression::or(<a href="#288">left</a>, <a href="#289">right</a>),
-            mir::BinOp::BitXor <span class="kw">if </span><a href="#292">is_bool</a> =&gt; vir_high::Expression::xor(<a href="#288">left</a>, <a href="#289">right</a>),
+        <span class="kw">let </span>is_bool = <a href="#292">ty</a> == <span class="kw-2">&amp;</span>vir_high::Type::Bool;
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#289">op</a> {
+            mir::BinOp::Eq =&gt; vir_high::Expression::equals(<a href="#290">left</a>, <a href="#291">right</a>),
+            mir::BinOp::Ne =&gt; vir_high::Expression::not_equals(<a href="#290">left</a>, <a href="#291">right</a>),
+            mir::BinOp::Gt =&gt; vir_high::Expression::greater_than(<a href="#290">left</a>, <a href="#291">right</a>),
+            mir::BinOp::Ge =&gt; vir_high::Expression::greater_equals(<a href="#290">left</a>, <a href="#291">right</a>),
+            mir::BinOp::Lt =&gt; vir_high::Expression::less_than(<a href="#290">left</a>, <a href="#291">right</a>),
+            mir::BinOp::Le =&gt; vir_high::Expression::less_equals(<a href="#290">left</a>, <a href="#291">right</a>),
+            mir::BinOp::Add =&gt; vir_high::Expression::add(<a href="#290">left</a>, <a href="#291">right</a>),
+            mir::BinOp::Sub =&gt; vir_high::Expression::subtract(<a href="#290">left</a>, <a href="#291">right</a>),
+            mir::BinOp::Rem =&gt; vir_high::Expression::module(<a href="#290">left</a>, <a href="#291">right</a>),
+            mir::BinOp::Div =&gt; vir_high::Expression::divide(<a href="#290">left</a>, <a href="#291">right</a>),
+            mir::BinOp::Mul =&gt; vir_high::Expression::multiply(<a href="#290">left</a>, <a href="#291">right</a>),
+            mir::BinOp::BitAnd <span class="kw">if </span><a href="#294">is_bool</a> =&gt; vir_high::Expression::and(<a href="#290">left</a>, <a href="#291">right</a>),
+            mir::BinOp::BitOr <span class="kw">if </span><a href="#294">is_bool</a> =&gt; vir_high::Expression::or(<a href="#290">left</a>, <a href="#291">right</a>),
+            mir::BinOp::BitXor <span class="kw">if </span><a href="#294">is_bool</a> =&gt; vir_high::Expression::xor(<a href="#290">left</a>, <a href="#291">right</a>),
             mir::BinOp::BitAnd | mir::BinOp::BitOr | mir::BinOp::BitXor =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::unsupported(
-                    <span class="string">&quot;bitwise operations on non-boolean types are not supported&quot;</span>,
-                ))
+                <a class="macro" href="../../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(<span class="string">&quot;bitwise operations on non-boolean types are not supported&quot;</span>);
             }
             unsupported_op =&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::unsupported(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-                    <span class="string">&quot;operation &#39;{:?}&#39; is not supported&quot;</span>,
-                    unsupported_op
-                )))
+                <a class="macro" href="../../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(<span class="string">&quot;operation &#39;{:?}&#39; is not supported&quot;</span>, unsupported_op);
             }
         })
     }
@@ -882,83 +868,80 @@
             <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
         } <span class="kw">else </span>{
             <span class="kw">let </span>result = <span class="self">self</span>.encode_binary_op_high(op, left, right.clone(), ty)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#324">op</a> {
-                mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub =&gt; <span class="kw">match </span><a href="#327">ty</a> {
+            <span class="prelude-val">Ok</span>(<span class="kw">match </span><a href="#321">op</a> {
+                mir::BinOp::Add | mir::BinOp::Mul | mir::BinOp::Sub =&gt; <span class="kw">match </span><a href="#324">ty</a> {
                     <span class="comment">// Unsigned
                     </span>vir_high::Type::Int(vir_high::ty::Int::U8) =&gt; vir_high::Expression::or(
-                        vir_high::Expression::less_than(<a href="#332">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::u8::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir_high::Expression::greater_than(<a href="#332">result</a>, std::u8::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::less_than(<a href="#329">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::u8::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::greater_than(<a href="#329">result</a>, std::u8::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                     ),
                     vir_high::Type::Int(vir_high::ty::Int::U16) =&gt; vir_high::Expression::or(
-                        vir_high::Expression::less_than(<a href="#332">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::u16::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir_high::Expression::greater_than(<a href="#332">result</a>, std::u16::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::less_than(<a href="#329">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::u16::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::greater_than(<a href="#329">result</a>, std::u16::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                     ),
                     vir_high::Type::Int(vir_high::ty::Int::U32) =&gt; vir_high::Expression::or(
-                        vir_high::Expression::less_than(<a href="#332">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::u32::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir_high::Expression::greater_than(<a href="#332">result</a>, std::u32::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::less_than(<a href="#329">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::u32::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::greater_than(<a href="#329">result</a>, std::u32::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                     ),
                     vir_high::Type::Int(vir_high::ty::Int::U64) =&gt; vir_high::Expression::or(
-                        vir_high::Expression::less_than(<a href="#332">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::u64::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir_high::Expression::greater_than(<a href="#332">result</a>, std::u64::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::less_than(<a href="#329">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::u64::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::greater_than(<a href="#329">result</a>, std::u64::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                     ),
                     vir_high::Type::Int(vir_high::ty::Int::U128) =&gt; vir_high::Expression::or(
-                        vir_high::Expression::less_than(<a href="#332">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::u128::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir_high::Expression::greater_than(<a href="#332">result</a>, std::u128::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::less_than(<a href="#329">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::u128::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::greater_than(<a href="#329">result</a>, std::u128::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                     ),
                     vir_high::Type::Int(vir_high::ty::Int::Usize) =&gt; vir_high::Expression::or(
-                        vir_high::Expression::less_than(<a href="#332">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::usize::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir_high::Expression::greater_than(<a href="#332">result</a>, std::usize::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::less_than(<a href="#329">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::usize::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::greater_than(<a href="#329">result</a>, std::usize::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                     ),
                     <span class="comment">// Signed
                     </span>vir_high::Type::Int(vir_high::ty::Int::I8) =&gt; vir_high::Expression::or(
-                        vir_high::Expression::less_than(<a href="#332">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::i8::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir_high::Expression::greater_than(<a href="#332">result</a>, std::i8::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::less_than(<a href="#329">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::i8::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::greater_than(<a href="#329">result</a>, std::i8::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                     ),
                     vir_high::Type::Int(vir_high::ty::Int::I16) =&gt; vir_high::Expression::or(
-                        vir_high::Expression::less_than(<a href="#332">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::i16::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir_high::Expression::greater_than(<a href="#332">result</a>, std::i16::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::less_than(<a href="#329">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::i16::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::greater_than(<a href="#329">result</a>, std::i16::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                     ),
                     vir_high::Type::Int(vir_high::ty::Int::I32) =&gt; vir_high::Expression::or(
-                        vir_high::Expression::less_than(<a href="#332">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::i32::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir_high::Expression::greater_than(<a href="#332">result</a>, std::i32::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::less_than(<a href="#329">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::i32::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::greater_than(<a href="#329">result</a>, std::i32::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                     ),
                     vir_high::Type::Int(vir_high::ty::Int::I64) =&gt; vir_high::Expression::or(
-                        vir_high::Expression::less_than(<a href="#332">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::i64::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir_high::Expression::greater_than(<a href="#332">result</a>, std::i64::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::less_than(<a href="#329">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::i64::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::greater_than(<a href="#329">result</a>, std::i64::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                     ),
                     vir_high::Type::Int(vir_high::ty::Int::I128) =&gt; vir_high::Expression::or(
-                        vir_high::Expression::less_than(<a href="#332">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::i128::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir_high::Expression::greater_than(<a href="#332">result</a>, std::i128::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::less_than(<a href="#329">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::i128::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::greater_than(<a href="#329">result</a>, std::i128::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                     ),
                     vir_high::Type::Int(vir_high::ty::Int::Isize) =&gt; vir_high::Expression::or(
-                        vir_high::Expression::less_than(<a href="#332">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::isize::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir_high::Expression::greater_than(<a href="#332">result</a>, std::isize::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::less_than(<a href="#329">result</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), std::isize::MIN.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::greater_than(<a href="#329">result</a>, std::isize::MAX.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                     ),
 
                     <span class="kw">_ </span>=&gt; {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::unsupported(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                        <a class="macro" href="../../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(
                             <span class="string">&quot;overflow checks are unsupported for operation &#39;{:?}&#39; on type &#39;{:?}&#39;&quot;</span>,
-                            op, ty,
-                        )));
+                            op,
+                            ty,
+                        );
                     }
                 },
 
                 mir::BinOp::Shl | mir::BinOp::Shr =&gt; {
                     <span class="kw">if </span>!config::encode_bitvectors() {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::unsupported(
-                            <span class="string">&quot;overflow checks on a shift operation are unsupported&quot;</span>,
-                        ));
+                        <a class="macro" href="../../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(<span class="string">&quot;overflow checks on a shift operation are unsupported&quot;</span>);
                     }
-                    <span class="kw">let </span>size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="kw">match </span><a href="#327">ty</a> {
+                    <span class="kw">let </span>size: <a href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> = <span class="kw">match </span><a href="#324">ty</a> {
                         vir_high::Type::Int(vir_high::ty::Int::U8) =&gt; <span class="number">8</span>,
                         vir_high::Type::Int(vir_high::ty::Int::U16) =&gt; <span class="number">16</span>,
                         vir_high::Type::Int(vir_high::ty::Int::U32) =&gt; <span class="number">32</span>,
                         vir_high::Type::Int(vir_high::ty::Int::U64) =&gt; <span class="number">64</span>,
                         vir_high::Type::Int(vir_high::ty::Int::U128) =&gt; <span class="number">128</span>,
                         vir_high::Type::Int(vir_high::ty::Int::Usize) =&gt; {
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::unsupported(
-                                <span class="string">&quot;unknown size of usize for the overflow check&quot;</span>,
-                            ));
+                            <a class="macro" href="../../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(<span class="string">&quot;unknown size of usize for the overflow check&quot;</span>);
                         }
                         vir_high::Type::Int(vir_high::ty::Int::I8) =&gt; <span class="number">8</span>,
                         vir_high::Type::Int(vir_high::ty::Int::I16) =&gt; <span class="number">16</span>,
@@ -966,28 +949,23 @@
                         vir_high::Type::Int(vir_high::ty::Int::I64) =&gt; <span class="number">64</span>,
                         vir_high::Type::Int(vir_high::ty::Int::I128) =&gt; <span class="number">128</span>,
                         vir_high::Type::Int(vir_high::ty::Int::Isize) =&gt; {
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::unsupported(
-                                <span class="string">&quot;unknown size of isize for the overflow check&quot;</span>,
-                            ));
+                            <a class="macro" href="../../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(<span class="string">&quot;unknown size of isize for the overflow check&quot;</span>);
                         }
                         <span class="kw">_ </span>=&gt; {
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::unsupported(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                            <a class="macro" href="../../errors/encoding_error.rs.html#96-103">error_unsupported!</a>(
                                 <span class="string">&quot;overflow checks are unsupported for operation &#39;{:?}&#39; on type &#39;{:?}&#39;&quot;</span>,
                                 op, ty,
-                            )));
+                            );
                         }
                     };
                     vir_high::Expression::or(
-                        vir_high::Expression::less_than(<a href="#326">right</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
-                        vir_high::Expression::greater_equals(<a href="#326">right</a>, <a href="#400">size</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::less_than(<a href="#323">right</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="number">0</span>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                        vir_high::Expression::greater_equals(<a href="#323">right</a>, <a href="#396">size</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
                     )
                 }
 
                 <span class="kw">_ </span>=&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(EncodingError::internal(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
-                        <span class="string">&quot;unexpected overflow check on {:?}&quot;</span>,
-                        op
-                    )))
+                    <a class="macro" href="../../errors/encoding_error.rs.html#76-83">error_internal!</a>(<span class="string">&quot;unexpected overflow check on {:?}&quot;</span>, op);
                 }
             })
         }
@@ -1004,7 +982,7 @@
         <span class="kw">let </span>src_ty = <span class="self">self</span>.get_operand_type(mir, operand)<span class="question-mark">?</span>;
         <span class="kw">let </span>destination_type = <span class="self">self</span>.encode_type_high(dst_ty)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>encoded_val = <span class="kw">match </span>(<a href="#452">src_ty</a>.kind(), <a href="#449">dst_ty</a>.kind()) {
+        <span class="kw">let </span>encoded_val = <span class="kw">match </span>(<a href="#441">src_ty</a>.kind(), <a href="#438">dst_ty</a>.kind()) {
             <span class="comment">// Numeric casts that cannot fail
             </span>(ty::TyKind::Char, ty::TyKind::Char)
             | (ty::TyKind::Char, ty::TyKind::Uint(ty::UintTy::U8))
@@ -1048,8 +1026,8 @@
                 <span class="kw">let </span><span class="kw-2">mut </span>value = <span class="self">self
                     </span>.encode_operand_high(mir, operand, span)
                     .with_span(span)<span class="question-mark">?</span>;
-                <a href="#496">value</a>.<a href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">set_type</a>(<a href="#453">destination_type</a>);
-                <a href="#496">value</a>
+                <a href="#485">value</a>.<a href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">set_type</a>(<a href="#442">destination_type</a>);
+                <a href="#485">value</a>
             }
 
             <span class="comment">// Numeric casts where the source value might not fit into the target type
@@ -1071,20 +1049,20 @@
                         </span>.encode_cast_function_use(src_ty, dst_ty)
                         .with_span(span)<span class="question-mark">?</span>;
                     <span class="kw">let </span>position =
-                        <a class="self" href="#445">self</a>.<a href="../../encoder.rs.html#223">error_manager</a>()
-                            .<a href="../../errors/error_manager.rs.html#247">register_error</a>(<a href="#450">span</a>, <a href="../../errors/error_manager.rs.html#147">ErrorCtxt::TypeCast</a>, <a href="#447">def_id</a>);
+                        <a class="self" href="#434">self</a>.<a href="../../encoder.rs.html#229">error_manager</a>()
+                            .<a href="../../errors/error_manager.rs.html#247">register_error</a>(<a href="#439">span</a>, <a href="../../errors/error_manager.rs.html#147">ErrorCtxt::TypeCast</a>, <a href="#436">def_id</a>);
                     <span class="kw">let </span>call = vir_high::Expression::function_call(
-                        <a href="#518">function_name</a>,
+                        <a href="#507">function_name</a>,
                         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], <span class="comment">// FIXME: This is probably wrong.
                         </span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[encoded_operand],
-                        <a href="#453">destination_type</a>,
+                        <a href="#442">destination_type</a>,
                     )
-                    .set_default_position(<a href="#521">position</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#524">call</a>);
+                    .set_default_position(<a href="#510">position</a>.<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<a href="#513">call</a>);
                 } <span class="kw">else </span>{
                     <span class="comment">// Don&#39;t check the cast
-                    </span><a href="#512">encoded_operand</a>.<a href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">set_type</a>(<a href="#453">destination_type</a>);
-                    <a href="#512">encoded_operand</a>
+                    </span><a href="#501">encoded_operand</a>.<a href="../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">set_type</a>(<a href="#442">destination_type</a>);
+                    <a href="#501">encoded_operand</a>
                 }
             }
 
@@ -1094,12 +1072,12 @@
                         <span class="string">&quot;unsupported cast from type &#39;{:?}&#39; to type &#39;{:?}&#39;&quot;</span>,
                         src_ty, dst_ty
                     ),
-                    <a href="#450">span</a>,
+                    <a href="#439">span</a>,
                 ));
             }
         };
 
-        <span class="prelude-val">Ok</span>(<a href="#455">encoded_val</a>)
+        <span class="prelude-val">Ok</span>(<a href="#444">encoded_val</a>)
     }
 }
 </code></pre></div>

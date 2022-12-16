@@ -245,6 +245,10 @@
 <a href="#245" id="245">245</a>
 <a href="#246" id="246">246</a>
 <a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::{
     <a href="../../../errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>,
     <a href="../../../high/types/interface.rs.html#127">high::types::HighTypeEncoderInterface</a>,
@@ -324,6 +328,7 @@
             )
         };
         <span class="prelude-val">Ok</span>(<a href="../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
+            comment: <span class="prelude-val">None</span>,
             name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;{}${}$compute_address_axiom&quot;</span>,
                 ty.get_identifier(),
@@ -342,20 +347,20 @@
     ) -&gt; SpannedEncodingResult&lt;()&gt;;
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <a href="#90">ComputeAddressInterface</a> <span class="kw">for </span>Lowerer&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>&gt; <a href="#91">ComputeAddressInterface</a> <span class="kw">for </span>Lowerer&lt;<span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt; {
     <span class="kw">fn </span>encode_compute_address(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span>ty_without_lifetime = <a href="#99">ty</a>.normalize_type();
+        <span class="kw">let </span>ty_without_lifetime = <a href="#100">ty</a>.normalize_type();
         <span class="kw">if </span>!<span class="self">self
             </span>.compute_address_state
             .encoded_types
             .contains(<span class="kw-2">&amp;</span>ty_without_lifetime)
         {
-            <a class="self" href="#99">self</a>.compute_address_state
+            <a class="self" href="#100">self</a>.compute_address_state
                 .encoded_types
-                .insert(<a href="#100">ty_without_lifetime</a>);
+                .insert(<a href="#101">ty_without_lifetime</a>);
 
             <span class="kw">let </span>type_decl = <span class="self">self</span>.encoder.get_type_decl_mid(ty)<span class="question-mark">?</span>;
-            <span class="kw">match </span><a href="#110">type_decl</a> {
+            <span class="kw">match </span><a href="#111">type_decl</a> {
                 vir_mid::TypeDecl::Bool
                 | vir_mid::TypeDecl::Int(<span class="kw">_</span>)
                 | vir_mid::TypeDecl::Float(<span class="kw">_</span>)
@@ -375,10 +380,10 @@
                 }
                 vir_mid::TypeDecl::Enum(decl) =&gt; {
                     <span class="kw">if </span>decl.safety.is_enum() {
-                        <span class="kw">let </span>discriminant_field = <a href="#129">decl</a>.discriminant_field();
+                        <span class="kw">let </span>discriminant_field = <a href="#130">decl</a>.discriminant_field();
                         <span class="kw">let </span>axiom =
                             <span class="self">self</span>.encode_compute_address_axiom_for_field(ty, <span class="kw-2">&amp;</span>discriminant_field)<span class="question-mark">?</span>;
-                        <a class="self" href="#99">self</a>.compute_address_state.axioms.push(<a href="#132">axiom</a>);
+                        <a class="self" href="#100">self</a>.compute_address_state.axioms.push(<a href="#133">axiom</a>);
                     }
                     <span class="self">self</span>.encode_compute_address(<span class="kw-2">&amp;</span>decl.discriminant_type)<span class="question-mark">?</span>;
                     <span class="kw">for </span>variant <span class="kw">in </span><span class="kw-2">&amp;</span>decl.variants {
@@ -407,6 +412,7 @@
                             )
                         };
                         <span class="kw">let </span>axiom = vir_low::DomainAxiomDecl {
+                            comment: <span class="prelude-val">None</span>,
                             name: <span class="macro">format!</span>(
                                 <span class="string">&quot;{}${}$compute_address_axiom&quot;</span>,
                                 ty.get_identifier(),
@@ -445,10 +451,11 @@
                         )
                     };
                     <span class="kw">let </span>axiom = <a href="../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
+                        comment: <span class="prelude-val">None</span>,
                         name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}$compute_address_axiom&quot;</span>, ty.get_identifier(),),
-                        <a href="#181">body</a>,
+                        <a href="#183">body</a>,
                     };
-                    <a class="self" href="#99">self</a>.compute_address_state.axioms.push(<a href="#200">axiom</a>);
+                    <a class="self" href="#100">self</a>.compute_address_state.axioms.push(<a href="#202">axiom</a>);
                 }
                 <span class="comment">// vir_mid::TypeDecl::Never =&gt; {},
                 // vir_mid::TypeDecl::Closure(Closure) =&gt; {},
@@ -469,9 +476,9 @@
         {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
-        <a class="self" href="#215">self</a>.compute_address_state
+        <a class="self" href="#218">self</a>.compute_address_state
             .encoded_roots
-            .insert(<a href="#216">place_root</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            .insert(<a href="#219">place_root</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
         <span class="kw">use </span>vir_low::macros::<span class="kw-2">*</span>;
         <span class="kw">let </span>compute_address = <a class="macro" href="../../../../../../vir/vir/low/macros/macro.ty.html">ty! </a>{ Address };
         <span class="kw">let </span>body = <a class="macro" href="../../../../../../vir/vir/low/macros/macro.expr.html">expr! </a>{
@@ -482,13 +489,14 @@
             )
         };
         <span class="kw">let </span>axiom = <a href="../../../../../../vir/gen/low/domain/struct.DomainAxiomDecl.html">vir_low::DomainAxiomDecl</a> {
+            comment: <span class="prelude-val">None</span>,
             name: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;root${}$compute_address_axiom&quot;</span>,
                 <span class="self">self</span>.compute_address_state.encoded_roots.len()
             ),
-            <a href="#230">body</a>,
+            <a href="#233">body</a>,
         };
-        <a class="self" href="#215">self</a>.compute_address_state.axioms.push(<a href="#237">axiom</a>);
+        <a class="self" href="#218">self</a>.compute_address_state.axioms.push(<a href="#240">axiom</a>);
         <span class="prelude-val">Ok</span>(())
     }
 }
