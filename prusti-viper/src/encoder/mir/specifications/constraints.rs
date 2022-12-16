@@ -129,7 +129,7 @@ fn constraint_fulfilled<'spec, 'env: 'spec, 'tcx: 'env>(
 
 mod trait_bounds {
     use super::*;
-    use prusti_interface::{utils::has_trait_bounds_ghost_constraint, PrustiError};
+    use prusti_interface::{utils::has_trait_bounds_type_cond_spec, PrustiError};
     use rustc_hash::FxHashMap;
 
     pub(super) fn resolve<'spec, 'env: 'spec, 'tcx: 'env>(
@@ -236,7 +236,7 @@ mod trait_bounds {
             let param_env = env.tcx().param_env(spec_id);
             let spec_span = env.query.get_def_span(spec_id);
             let attrs = env.query.get_attributes(*spec_id);
-            if has_trait_bounds_ghost_constraint(attrs) {
+            if has_trait_bounds_type_cond_spec(attrs) {
                 param_envs.entry(param_env).or_default().push(spec_span);
             }
         }

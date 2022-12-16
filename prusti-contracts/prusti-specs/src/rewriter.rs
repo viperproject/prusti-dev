@@ -170,7 +170,7 @@ impl AstRewriter {
         )
     }
 
-    pub fn process_pure_ghost_constraint(
+    pub fn process_pure_refinement(
         &mut self,
         spec_id: SpecificationId,
         item: &untyped::AnyFnItem,

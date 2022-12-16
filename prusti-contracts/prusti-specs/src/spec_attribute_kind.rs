@@ -14,7 +14,7 @@ pub enum SpecAttributeKind {
     Trusted = 6,
     Predicate = 7,
     Invariant = 8,
-    GhostConstraint = 9,
+    RefineSpec = 9,
     Terminates = 10,
     PrintCounterexample = 11,
 }
@@ -32,7 +32,7 @@ impl TryFrom<String> for SpecAttributeKind {
             "trusted" => Ok(SpecAttributeKind::Trusted),
             "predicate" => Ok(SpecAttributeKind::Predicate),
             "invariant" => Ok(SpecAttributeKind::Invariant),
-            "refine_spec" => Ok(SpecAttributeKind::GhostConstraint),
+            "refine_spec" => Ok(SpecAttributeKind::RefineSpec),
             "model" => Ok(SpecAttributeKind::Model),
             "print_counterexample" => Ok(SpecAttributeKind::PrintCounterexample),
             _ => Err(name),

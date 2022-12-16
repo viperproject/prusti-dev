@@ -1,4 +1,4 @@
-use crate::{environment::Environment, utils::has_trait_bounds_ghost_constraint, PrustiError};
+use crate::{environment::Environment, utils::has_trait_bounds_type_cond_spec, PrustiError};
 pub use common::{SpecIdRef, SpecType, SpecificationId};
 use log::trace;
 use prusti_rustc_interface::{
@@ -355,7 +355,7 @@ impl<T> SpecGraph<T> {
 /// trait SomeTrait {
 ///     #[requires(x > 0)]
 ///     #[ensures(x > 0)]
-///     #[ghost_constraint(T: MarkerTrait, [
+///     #[refine_spec(where T: MarkerTrait, [
 ///         requires(x > 10),
 ///         ensures(x > 10),
 ///     ])]
@@ -367,7 +367,7 @@ impl<T> SpecGraph<T> {
 /// impl SomeTrait for SomeStruct {
 ///     #[requires(x >= 0)]
 ///     #[ensures(x > 10)]
-///     #[ghost_constraint(T: MarkerTrait, [
+///     #[refine_spec(where T: MarkerTrait, [
 ///         requires(x >= -5),
 ///         ensures(x > 20),
 ///     ])]
@@ -441,7 +441,9 @@ impl SpecGraph<ProcedureSpecification> {
     pub fn add_purity<'tcx>(&mut self, purity: LocalDefId, env: &Environment<'tcx>) {
         match self.get_constraint(purity, env) {
             None => {
-                unreachable!("separate purity defs are only used for type-conditional spec refinements")
+                unreachable!(
+                    "separate purity defs are only used for type-conditional spec refinements"
+                )
             }
             Some(constraint) => {
                 let constrained_spec = self.get_constrained_spec_mut(constraint);
@@ -506,7 +508,7 @@ impl SpecGraph<ProcedureSpecification> {
         env: &Environment<'tcx>,
     ) -> Option<SpecConstraintKind> {
         let attrs = env.query.get_local_attributes(spec);
-        if has_trait_bounds_ghost_constraint(attrs) {
+        if has_trait_bounds_type_cond_spec(attrs) {
             return Some(SpecConstraintKind::ResolveGenericParamTraitBounds);
         }
         None

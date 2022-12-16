@@ -57,7 +57,7 @@ pub fn parse_prusti_assert_pledge(tokens: TokenStream) -> syn::Result<(TokenStre
     Ok((lhs, rhs))
 }
 
-pub fn parse_ghost_constraint(tokens: TokenStream) -> syn::Result<GhostConstraint> {
+pub fn parse_type_cond_spec(tokens: TokenStream) -> syn::Result<TypeCondSpecRefinement> {
     syn::parse2(tokens)
 }
 
@@ -519,17 +519,17 @@ impl PrustiTokenStream {
 }
 
 #[derive(Debug)]
-pub struct GhostConstraint {
+pub struct TypeCondSpecRefinement {
     pub trait_bounds: Vec<syn::PredicateType>,
     pub specs: Vec<NestedSpec<TokenStream>>,
 }
 
-impl Parse for GhostConstraint {
+impl Parse for TypeCondSpecRefinement {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let where_clause = input
             .parse::<syn::WhereClause>()
-            .map_err(with_ghost_constraint_example)?;
-        Ok(GhostConstraint {
+            .map_err(with_type_cond_spec_example)?;
+        Ok(TypeCondSpecRefinement {
             trait_bounds: where_clause
                 .predicates
                 .into_iter()
@@ -584,7 +584,7 @@ fn validate_trait_bounds(trait_bounds: &syn::PredicateType) -> syn::Result<()> {
     Ok(())
 }
 
-fn with_ghost_constraint_example(mut err: syn::Error) -> syn::Error {
+fn with_type_cond_spec_example(mut err: syn::Error) -> syn::Error {
     err.combine(error(err.span(), "expected where constraint and specifications in brackets, e.g.: `refine_spec(where T: A + B, U: C [requires(...), ...])`"));
     err
 }
@@ -998,7 +998,7 @@ mod tests {
         );
     }
 
-    mod ghost_constraints {
+    mod type_cond_specs {
         use std::assert_matches::assert_matches;
 
         use super::*;
@@ -1007,35 +1007,32 @@ mod tests {
         fn invalid_args() {
             let err_invalid_bounds = "expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime";
             assert_error!(
-                parse_ghost_constraint(quote! { [requires(false)] }),
+                parse_type_cond_spec(quote! { [requires(false)] }),
                 err_invalid_bounds
             );
             assert_error!(
-                parse_ghost_constraint(quote! {}),
+                parse_type_cond_spec(quote! {}),
                 format!("unexpected end of input, {}", err_invalid_bounds)
             );
-            assert_error!(parse_ghost_constraint(quote! {T: A }), "expected `,`");
+            assert_error!(parse_type_cond_spec(quote! {T: A }), "expected `,`");
             assert_error!(
-                parse_ghost_constraint(quote! {T: A, [requires(false)], "nope" }),
+                parse_type_cond_spec(quote! {T: A, [requires(false)], "nope" }),
                 "unexpected extra tokens"
             );
             assert_error!(
-                parse_ghost_constraint(quote! {[requires(false)], T: A }),
+                parse_type_cond_spec(quote! {[requires(false)], T: A }),
                 err_invalid_bounds
             );
             assert_error!(
-                parse_ghost_constraint(quote! {T: A,  }),
+                parse_type_cond_spec(quote! {T: A,  }),
                 "expected nested specification in brackets"
             );
-            assert_error!(
-                parse_ghost_constraint(quote! {T: A, {} }),
-                err_invalid_bounds
-            );
+            assert_error!(parse_type_cond_spec(quote! {T: A, {} }), err_invalid_bounds);
         }
 
         #[test]
         fn multiple_bounds_multiple_specs() {
-            let constraint = parse_ghost_constraint(
+            let constraint = parse_type_cond_spec(
                 quote! { T: A+B+Foo<i32>, U: C, [requires(true), ensures(false), pure]},
             )
             .unwrap();
@@ -1058,7 +1055,7 @@ mod tests {
 
         #[test]
         fn no_specs() {
-            let constraint = parse_ghost_constraint(quote! { T: A, []}).unwrap();
+            let constraint = parse_type_cond_spec(quote! { T: A, []}).unwrap();
             assert_bounds_eq(&constraint.trait_bounds, &[quote! { T : A }]);
             assert!(constraint.specs.is_empty());
         }
@@ -1066,17 +1063,17 @@ mod tests {
         #[test]
         fn fully_qualified_trait_path() {
             let constraint =
-                parse_ghost_constraint(quote! { T: path::to::A, [requires(true)]}).unwrap();
+                parse_type_cond_spec(quote! { T: path::to::A, [requires(true)]}).unwrap();
             assert_bounds_eq(&constraint.trait_bounds, &[quote! { T : path :: to :: A }]);
         }
 
         #[test]
         fn tuple_generics() {
             // just check that parsing succeeds
-            assert!(parse_ghost_constraint(quote! { T: Fn<(i32,), Output = i32>, []}).is_ok());
-            assert!(parse_ghost_constraint(quote! { T: Fn<(i32,)>, []}).is_ok());
-            assert!(parse_ghost_constraint(quote! { T: Fn<(i32, bool)>, []}).is_ok());
-            assert!(parse_ghost_constraint(quote! { T: Fn<(i32, bool,)>, []}).is_ok());
+            assert!(parse_type_cond_spec(quote! { T: Fn<(i32,), Output = i32>, []}).is_ok());
+            assert!(parse_type_cond_spec(quote! { T: Fn<(i32,)>, []}).is_ok());
+            assert!(parse_type_cond_spec(quote! { T: Fn<(i32, bool)>, []}).is_ok());
+            assert!(parse_type_cond_spec(quote! { T: Fn<(i32, bool,)>, []}).is_ok());
         }
 
         fn assert_bounds_eq(parsed: &[syn::PredicateType], quotes: &[TokenStream]) {

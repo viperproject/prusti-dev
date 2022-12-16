@@ -245,8 +245,8 @@ pub fn has_to_model_impl_attr(attrs: &[ast::Attribute]) -> bool {
     has_prusti_attr(attrs, "type_models_to_model_impl")
 }
 
-pub fn has_trait_bounds_ghost_constraint(attrs: &[ast::Attribute]) -> bool {
-    has_prusti_attr(attrs, "ghost_constraint_trait_bounds_in_where_clause")
+pub fn has_trait_bounds_type_cond_spec(attrs: &[ast::Attribute]) -> bool {
+    has_prusti_attr(attrs, "type_cond_spec_trait_bounds_in_where_clause")
 }
 
 pub fn has_abstract_predicate_attr(attrs: &[ast::Attribute]) -> bool {

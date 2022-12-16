@@ -11,7 +11,7 @@
 #[macro_use]
 mod common;
 mod extern_spec_rewriter;
-mod ghost_constraints;
+mod type_cond_specs;
 mod parse_closure_macro;
 mod parse_quote_spanned;
 mod predicate;
@@ -32,7 +32,7 @@ use syn::{spanned::Spanned, visit::Visit};
 use crate::{
     common::{merge_generics, RewritableReceiver, SelfTypeRewriter},
     predicate::{is_predicate_macro, ParsedPredicate},
-    specifications::preparser::{parse_ghost_constraint, parse_prusti, NestedSpec},
+    specifications::preparser::{parse_prusti, parse_type_cond_spec, NestedSpec},
 };
 pub use extern_spec_rewriter::ExternSpecKind;
 use parse_closure_macro::ClosureWithSpec;
@@ -66,7 +66,7 @@ fn extract_prusti_attributes(
                     | SpecAttributeKind::Ensures
                     | SpecAttributeKind::AfterExpiry
                     | SpecAttributeKind::AssertOnExpiry
-                    | SpecAttributeKind::GhostConstraint => {
+                    | SpecAttributeKind::RefineSpec => {
                         // We need to drop the surrounding parenthesis to make the
                         // tokens identical to the ones passed by the native procedural
                         // macro call.
@@ -165,7 +165,7 @@ fn generate_spec_and_assertions(
             // `check_incompatible_attrs`; so we'll never reach here.
             SpecAttributeKind::Predicate => unreachable!(),
             SpecAttributeKind::Invariant => unreachable!(),
-            SpecAttributeKind::GhostConstraint => ghost_constraints::generate(attr_tokens, item),
+            SpecAttributeKind::RefineSpec => type_cond_specs::generate(attr_tokens, item),
             SpecAttributeKind::Model => unreachable!(),
             SpecAttributeKind::PrintCounterexample => unreachable!(),
         };
@@ -289,11 +289,11 @@ fn generate_for_pure(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedR
 }
 
 /// Generate spec items and attributes to typecheck and later retrieve "pure" annotations, but encoded as a referenced separate function that type-conditional spec refinements can apply trait bounds to.
-fn generate_for_pure_ghost_constraint(item: &untyped::AnyFnItem) -> GeneratedResult {
+fn generate_for_pure_refinements(item: &untyped::AnyFnItem) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
-    let spec_item = rewriter.process_pure_ghost_constraint(spec_id, item)?;
+    let spec_item = rewriter.process_pure_refinement(spec_id, item)?;
 
     Ok((
         vec![spec_item],
@@ -534,7 +534,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
 
                 let illegal_attribute_span = prusti_attributes
                     .iter()
-                    .filter(|(kind, _)| kind == &SpecAttributeKind::GhostConstraint)
+                    .filter(|(kind, _)| kind == &SpecAttributeKind::RefineSpec)
                     .map(|(_, tokens)| tokens.span())
                     .next();
                 if let Some(span) = illegal_attribute_span {
@@ -803,7 +803,7 @@ fn extract_prusti_attributes_for_types(
                     SpecAttributeKind::Ensures => unreachable!("ensures on type"),
                     SpecAttributeKind::AfterExpiry => unreachable!("after_expiry on type"),
                     SpecAttributeKind::AssertOnExpiry => unreachable!("assert_on_expiry on type"),
-                    SpecAttributeKind::GhostConstraint => unreachable!("ghost_constraint on type"),
+                    SpecAttributeKind::RefineSpec => unreachable!("refine_spec on type"),
                     SpecAttributeKind::Pure => unreachable!("pure on type"),
                     SpecAttributeKind::Invariant => unreachable!("invariant on type"),
                     SpecAttributeKind::Predicate => unreachable!("predicate on type"),
@@ -850,7 +850,7 @@ fn generate_spec_and_assertions_for_types(
             SpecAttributeKind::Pure => unreachable!(),
             SpecAttributeKind::Predicate => unreachable!(),
             SpecAttributeKind::Invariant => unreachable!(),
-            SpecAttributeKind::GhostConstraint => unreachable!(),
+            SpecAttributeKind::RefineSpec => unreachable!(),
             SpecAttributeKind::Terminates => unreachable!(),
             SpecAttributeKind::Trusted => generate_for_trusted_for_types(attr_tokens, item),
             SpecAttributeKind::Model => generate_for_model(attr_tokens, item),

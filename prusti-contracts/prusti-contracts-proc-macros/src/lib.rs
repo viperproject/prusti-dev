@@ -222,12 +222,7 @@ pub fn model(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
 #[cfg(feature = "prusti")]
 #[proc_macro_attribute]
 pub fn refine_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    rewrite_prusti_attributes(
-        SpecAttributeKind::GhostConstraint,
-        attr.into(),
-        tokens.into(),
-    )
-    .into()
+    rewrite_prusti_attributes(SpecAttributeKind::RefineSpec, attr.into(), tokens.into()).into()
 }
 
 #[cfg(feature = "prusti")]

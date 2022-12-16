@@ -1,6 +1,6 @@
 use crate::{
-    generate_for_ensures, generate_for_pure_ghost_constraint, generate_for_requires,
-    parse_ghost_constraint, untyped, GeneratedResult, NestedSpec,
+    generate_for_ensures, generate_for_pure_refinements, generate_for_requires,
+    parse_type_cond_spec, untyped, GeneratedResult, NestedSpec,
 };
 use proc_macro2::TokenStream;
 use syn::{parse_quote_spanned, spanned::Spanned};
@@ -9,7 +9,7 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
     let tokens_span = attr.span();
 
     // Parse type-conditional spec refinements information
-    let ghost_constraint = parse_ghost_constraint(attr)?;
+    let ghost_constraint = parse_type_cond_spec(attr)?;
 
     let mut new_items = vec![];
     let mut new_attrs = vec![];
@@ -18,7 +18,7 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
         let (mut generated_items, generated_attrs) = match nested_spec {
             NestedSpec::Ensures(tokens) => generate_for_ensures(tokens, item)?,
             NestedSpec::Requires(tokens) => generate_for_requires(tokens, item)?,
-            NestedSpec::Pure => generate_for_pure_ghost_constraint(item)?,
+            NestedSpec::Pure => generate_for_pure_refinements(item)?,
         };
 
         for generated_item in generated_items.iter_mut() {
