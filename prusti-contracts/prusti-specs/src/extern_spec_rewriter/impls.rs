@@ -329,16 +329,28 @@ mod tests {
         }
 
         #[test]
-        fn generics_not_supported() {
+        fn generics_supported() {
             let mut inp_impl: syn::ItemImpl = parse_quote!(
-                impl MyTrait<I> for MyStruct {
+                impl<X> MyTrait<I> for MyStruct {
                     fn foo(&mut self, arg1: I);
                 }
             );
 
-            let rewritten = rewrite_extern_spec_internal(&mut inp_impl);
+            let rewritten = rewrite_extern_spec_internal(&mut inp_impl).unwrap();
 
-            assert!(rewritten.is_err());
+            let newtype_ident = &rewritten.generated_struct.ident;
+            let expected_impl: syn::ItemImpl = parse_quote! {
+                impl #newtype_ident <> {
+                    #[prusti::extern_spec = "trait_impl"]
+                    #[allow(unused, dead_code)]
+                    #[prusti::trusted]
+                    fn foo(_self: &mut MyStruct, arg1: I) {
+                        <MyStruct as MyTrait<I>> :: foo :: <>(_self, arg1)
+                    }
+                }
+            };
+
+            assert_eq_tokenizable(rewritten.generated_impl.clone(), expected_impl);
         }
     }
 }
