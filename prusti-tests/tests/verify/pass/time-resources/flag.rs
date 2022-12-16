@@ -3,8 +3,6 @@
 use prusti_contracts::*;
 
 // This test checks that setting the time reasoning option to false ignores timing constrains
-#[requires(time_credits(1))]
-#[ensures(time_receipts(1))]
 fn sum(n: u32) -> u32 {
     let mut i = 0;
     let mut res = 0;
@@ -16,5 +14,5 @@ fn sum(n: u32) -> u32 {
 }
 
 fn main() {
-    // sum(4);
+    sum(4);
 }

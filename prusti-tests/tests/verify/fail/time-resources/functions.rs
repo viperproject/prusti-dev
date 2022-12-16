@@ -7,7 +7,7 @@ use prusti_contracts::*;
 #[requires(time_credits(2))]
 #[ensures(time_receipts(2))]
 fn main() {
-    constant();
+    constant(); //~ ERROR
 }
 
 fn constant() -> u32 {
