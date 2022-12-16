@@ -552,7 +552,7 @@ fn validate_predicate(predicate: syn::WherePredicate) -> syn::Result<syn::Predic
         Lifetime(lifetime_bound) => disallowed_lifetime_error(lifetime_bound.span()),
         Eq(eq_bound) => err(
             eq_bound.span(),
-            "equality constraints are not allowed in conditional spec refinements",
+            "equality constraints are not allowed in type-conditional spec refinements",
         ),
     }
 }
@@ -560,7 +560,7 @@ fn validate_predicate(predicate: syn::WherePredicate) -> syn::Result<syn::Predic
 fn disallowed_lifetime_error<T>(span: Span) -> syn::Result<T> {
     err(
         span,
-        "lifetimes are not allowed in conditional spec refinement trait bounds",
+        "lifetimes are not allowed in type-conditional spec refinement trait bounds",
     )
 }
 
@@ -589,7 +589,7 @@ fn with_ghost_constraint_example(mut err: syn::Error) -> syn::Error {
     err
 }
 
-/// A specification enclosed in another specification (e.g. in spec entailments or conditional spec refinements)
+/// A specification enclosed in another specification (e.g. in spec entailments or type-conditional spec refinements)
 #[derive(Debug)]
 pub enum NestedSpec<T> {
     Requires(T),

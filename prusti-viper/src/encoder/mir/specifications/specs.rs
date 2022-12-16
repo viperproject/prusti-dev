@@ -57,8 +57,8 @@ pub(super) struct Specifications<'tcx> {
     user_typed_specs: DefSpecificationMap,
 
     /// A refinement can be different based on the query.
-    /// The query can resolve to different [ProcedureSpecification]s due to conditional spec refinements.
-    /// Since Prusti does currently not support refinements of conditional spec refinements, we
+    /// The query can resolve to different [ProcedureSpecification]s due to type-conditional spec refinements.
+    /// Since Prusti does currently not support refinements of type-conditional spec refinements, we
     /// store different refined versions for different queries.
     refined_specs: FxHashMap<SpecQuery<'tcx>, ProcedureSpecification>,
 }

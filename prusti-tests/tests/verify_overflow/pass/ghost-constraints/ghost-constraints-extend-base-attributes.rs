@@ -1,4 +1,4 @@
-// This test demonstrates that conditional spec refinements inherit the specs from the function.
+// This test demonstrates that type-conditional spec refinements inherit the specs from the function.
 
 use prusti_contracts::*;
 

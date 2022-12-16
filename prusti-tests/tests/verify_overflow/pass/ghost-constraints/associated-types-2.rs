@@ -32,5 +32,5 @@ trait SomeTrait {
 fn main() {
     let f = Foo;
     let res = f.foo();
-    assert!(res > 0); // Conditional spec refinement satisfied!
+    assert!(res > 0); // Type-conditional spec refinement satisfied!
 }

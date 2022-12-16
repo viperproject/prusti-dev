@@ -67,7 +67,7 @@ impl<'spec, 'env: 'spec, 'tcx: 'env> ConstraintResolver<'spec, 'env, 'tcx>
                 substs: call_substs,
             },
             // Obligations are resolved for function definition encodings to account
-            // for conditional spec refinements on traits (behavioral subtyping rules will be checked
+            // for type-conditional spec refinements on traits (behavioral subtyping rules will be checked
             // against the resolved spec).
             SpecQuery::FunctionDefEncoding(proc_def_id, substs)
             | SpecQuery::GetProcKind(proc_def_id, substs) => ConstraintSolvingContext {
@@ -159,7 +159,7 @@ mod trait_bounds {
             .iter()
             .all(|predicate| {
                 // Normalize any associated type projections.
-                // This needs to be done because conditional spec refinements might contain "deeply nested"
+                // This needs to be done because type-conditional spec refinements might contain "deeply nested"
                 // associated types, e.g. `T: A<SomeAssocType = <Self as B>::OtherAssocType`
                 // where `<Self as B>::OtherAssocType` can be normalized to some concrete type.
                 let normalized_predicate =
@@ -249,7 +249,7 @@ mod trait_bounds {
         if param_envs.len() > 1 {
             let spans = param_envs.values().flatten().cloned().collect();
             PrustiError::unsupported(
-                "Multiple conditional spec refinements with different bounds defined",
+                "Multiple type-conditional spec refinements with different bounds defined",
                 MultiSpan::from_spans(spans),
             )
             .add_note("This is currently not supported.", None)

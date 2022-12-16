@@ -1,4 +1,4 @@
-// Note: For now, it is completely fine to _declare_ two conditional spec refinements with different bounds
+// Note: For now, it is completely fine to _declare_ two type-conditional spec refinements with different bounds
 // since resolving happens for specific callsites. That is, without the call in main, this
 // file verifies.
 use prusti_contracts::*;
@@ -7,7 +7,7 @@ trait A {}
 trait B {}
 
 #[trusted]
-#[refine_spec(where T: A [ //~ ERROR: [Prusti: unsupported feature] Multiple conditional spec refinements with different bounds defined
+#[refine_spec(where T: A [ //~ ERROR: [Prusti: unsupported feature] Multiple type-conditional spec refinements with different bounds defined
     requires(true),
     ensures(true),
 ])]

@@ -8,7 +8,7 @@ use syn::{parse_quote_spanned, spanned::Spanned};
 pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult {
     let tokens_span = attr.span();
 
-    // Parse conditional spec refinements information
+    // Parse type-conditional spec refinements information
     let ghost_constraint = parse_ghost_constraint(attr)?;
 
     let mut new_items = vec![];

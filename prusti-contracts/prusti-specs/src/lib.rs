@@ -288,7 +288,7 @@ fn generate_for_pure(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedR
     ))
 }
 
-/// Generate spec items and attributes to typecheck and later retrieve "pure" annotations, but encoded as a referenced separate function that conditional spec refinements can apply trait bounds to.
+/// Generate spec items and attributes to typecheck and later retrieve "pure" annotations, but encoded as a referenced separate function that type-conditional spec refinements can apply trait bounds to.
 fn generate_for_pure_ghost_constraint(item: &untyped::AnyFnItem) -> GeneratedResult {
     let mut rewriter = rewriter::AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
@@ -540,7 +540,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                 if let Some(span) = illegal_attribute_span {
                     let err = Err(syn::Error::new(
                         span,
-                        "Conditional spec refinements in trait spec refinements not supported",
+                        "Type-onditional spec refinements in trait spec refinements not supported",
                     ));
                     handle_result!(err);
                 }

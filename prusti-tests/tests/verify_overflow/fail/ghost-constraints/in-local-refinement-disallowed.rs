@@ -15,7 +15,7 @@ struct MyStruct;
 impl MyTrait for MyStruct {
 
     #[ensures(result > 10)]
-    #[refine_spec(where Self: A [ //~ ERROR: Conditional spec refinements in trait spec refinements not supported
+    #[refine_spec(where Self: A [ //~ ERROR: Type-conditional spec refinements in trait spec refinements not supported
         ensures(result % 6 == 0)
     ])]
     fn foo(&self) -> i32 {
