@@ -540,7 +540,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
                 if let Some(span) = illegal_attribute_span {
                     let err = Err(syn::Error::new(
                         span,
-                        "Type-onditional spec refinements in trait spec refinements not supported",
+                        "Type-conditional spec refinements in trait spec refinements not supported",
                     ));
                     handle_result!(err);
                 }
