@@ -1,4 +1,3 @@
-use super::interface::PureFunctionEncoderInterface;
 use crate::encoder::{
     builtin_encoder::BuiltinFunctionKind,
     errors::{EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
@@ -7,13 +6,17 @@ use crate::encoder::{
         generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
     },
     mir::{
-        pure::{specifications::SpecificationEncoderInterface, PureEncodingContext},
+        pure::{
+            interpreter::{state_poly::ExprBackwardInterpreterState, BackwardMirInterpreter},
+            pure_functions::PureFunctionEncoderInterface,
+            specifications::SpecificationEncoderInterface,
+            PureEncodingContext,
+        },
         sequences::MirSequencesEncoderInterface,
         specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
     },
     mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
-    mir_interpreter::{BackwardMirInterpreter, ExprBackwardInterpreterState},
     snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
@@ -822,7 +825,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             }
 
             mir::StatementKind::Assign(box (lhs, ref rhs)) => {
-                let (encoded_lhs, ty, _) = self.encode_place(lhs).unwrap();
+                let (encoded_lhs, ty, _) = self.encode_place(lhs).with_span(span)?;
                 trace!("Encoding assignment to LHS {:?}", encoded_lhs);
 
                 if !state.uses_place(&encoded_lhs) {

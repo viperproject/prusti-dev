@@ -14,8 +14,8 @@ use crate::{
         Program,
     },
 };
+use fxhash::FxHashMap;
 use log::{info, trace};
-use std::collections::HashMap;
 use viper::{self, AstFactory};
 use vir::common::identifier::WithIdentifier;
 
@@ -885,11 +885,20 @@ impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a DomainFunc {
 
 impl<'a, 'v> ToViper<'v, viper::NamedDomainAxiom<'v>> for &'a DomainAxiom {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::NamedDomainAxiom<'v> {
-        ast.named_domain_axiom(
-            &self.name,
-            self.expr.to_viper(context, ast),
-            &self.domain_name,
-        )
+        if let Some(comment) = &self.comment {
+            ast.named_domain_axiom_with_comment(
+                &self.name,
+                self.expr.to_viper(context, ast),
+                &self.domain_name,
+                comment,
+            )
+        } else {
+            ast.named_domain_axiom(
+                &self.name,
+                self.expr.to_viper(context, ast),
+                &self.domain_name,
+            )
+        }
     }
 }
 
@@ -1045,7 +1054,7 @@ fn cfg_method_convert_basic_block_path<'v>(
     declarations: &mut Vec<viper::Declaration<'v>>,
 ) {
     path.reverse();
-    let mut remaining_blocks: HashMap<_, _> = cfg_method
+    let mut remaining_blocks: FxHashMap<_, _> = cfg_method
         .basic_blocks
         .iter()
         .enumerate()
@@ -1176,7 +1185,11 @@ fn block_to_viper<'a>(
     index: usize,
 ) -> viper::Stmt<'a> {
     let label = &basic_block_labels[index];
-    let mut stmts: Vec<viper::Stmt> = vec![ast.label(label, &[])];
+    let mut stmts: Vec<viper::Stmt> = vec![
+        // To put a bit of white space between blocks.
+        ast.comment(""),
+        ast.label(label, &[]),
+    ];
     stmts.extend(block.stmts.to_viper(context, ast));
     stmts.push(successor_to_viper(
         context,
