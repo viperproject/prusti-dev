@@ -9,12 +9,12 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
     let tokens_span = attr.span();
 
     // Parse type-conditional spec refinements information
-    let ghost_constraint = parse_type_cond_spec(attr)?;
+    let type_cond_spec = parse_type_cond_spec(attr)?;
 
     let mut new_items = vec![];
     let mut new_attrs = vec![];
 
-    for nested_spec in ghost_constraint.specs {
+    for nested_spec in type_cond_spec.specs {
         let (mut generated_items, generated_attrs) = match nested_spec {
             NestedSpec::Ensures(tokens) => generate_for_ensures(tokens, item)?,
             NestedSpec::Requires(tokens) => generate_for_requires(tokens, item)?,
@@ -29,13 +29,13 @@ pub fn generate(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedResult
 
             // Add bounds as a where clause
             item_fn.sig.generics.where_clause = Some(generate_where_clause_for_spec(
-                &ghost_constraint.trait_bounds,
+                &type_cond_spec.trait_bounds,
                 item_fn.sig.generics.where_clause.as_ref(),
             ));
 
             // Add attribute to mark this as a "specification with constraint" (used for processing the contract in `SpecCollector`)
             item_fn.attrs.push(parse_quote_spanned! {tokens_span=>
-                #[prusti::ghost_constraint_trait_bounds_in_where_clause]
+                #[prusti::type_cond_spec_trait_bounds_in_where_clause]
             });
         }
 
