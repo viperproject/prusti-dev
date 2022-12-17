@@ -3,7 +3,7 @@ use prusti_contracts::*;
 trait A {}
 
 trait MyTrait {
-    #[refine_spec(where Self: A [ensures(result > 0)])]
+    #[refine_spec(where Self: A, [ensures(result > 0)])]
     #[trusted]
     fn foo(&self) -> i32;
 }

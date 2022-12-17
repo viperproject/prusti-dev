@@ -10,7 +10,7 @@ impl A<i32> for Foo {
 }
 
 #[trusted]
-#[refine_spec(where T: A<i32, AssocType = u32> [
+#[refine_spec(where T: A<i32, AssocType = u32>, [
     ensures(result > 0)
 ])]
 fn foo<T>(x: T) -> i32 {

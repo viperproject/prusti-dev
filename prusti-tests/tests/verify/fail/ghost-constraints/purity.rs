@@ -1,6 +1,6 @@
 use prusti_contracts::*;
 
-#[refine_spec(where T: Copy [pure])]
+#[refine_spec(where T: Copy, [pure])]
 #[trusted]
 fn test<T>(_t: T) -> bool { true }
 

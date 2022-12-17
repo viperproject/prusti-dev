@@ -5,10 +5,10 @@ trait A {}
 impl A for i32 {}
 
 #[trusted]
-#[refine_spec(where T: A [
+#[refine_spec(where T: A, [
     ensures(result % 2 == 0)
 ])]
-#[refine_spec(where T: A [
+#[refine_spec(where T: A, [
     ensures(result > 0)
 ])]
 fn foo<T>(_x: T) -> i32 {

@@ -9,7 +9,7 @@ impl B<i32> for i32 {}
 impl B<u32> for i32 {}
 
 #[trusted]
-#[refine_spec(where T: A + B<i32> + B<u32> [
+#[refine_spec(where T: A + B<i32> + B<u32>, [
     ensures(result > 0)
 ])]
 fn foo<T>(_x: T) -> i32 {

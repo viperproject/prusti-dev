@@ -5,7 +5,7 @@ struct MyStruct<T> {
 }
 
 impl<T> MyStruct<T> {
-    #[refine_spec(where elf: MyStruct<i32> [ //~ ERROR: expected trait, found struct `MyStruct`
+    #[refine_spec(where elf: MyStruct<i32>, [ //~ ERROR: expected trait, found struct `MyStruct`
         requires(x > 0)
     ])]
     //~| ERROR: cannot find type `elf` in this scope [E0412]

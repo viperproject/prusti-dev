@@ -13,7 +13,7 @@ trait MyTrait {
 
 #[extern_spec]
 trait MyTrait {
-    #[refine_spec(where Self: HasContract [
+    #[refine_spec(where Self: HasContract, [
         requires(self.pre()), ensures(self.post())
     ])]
     fn foo(&mut self);

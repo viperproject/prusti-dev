@@ -25,7 +25,7 @@ impl<T> SomeTrait for Foo<T> {
 
 #[extern_spec]
 trait SomeTrait {
-    #[refine_spec(where Self: A<AssocType = <Self as SomeTrait>::AssocType> [
+    #[refine_spec(where Self: A<AssocType = <Self as SomeTrait>::AssocType>, [
         ensures(result > 0)
     ])]
     fn foo(&self) -> i32;

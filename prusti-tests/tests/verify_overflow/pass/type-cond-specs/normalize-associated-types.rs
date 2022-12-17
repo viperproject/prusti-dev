@@ -10,7 +10,7 @@ trait A {
 trait B {
     type BType;
 
-    #[refine_spec(where Self: A<AType = <Self as B>::BType> [
+    #[refine_spec(where Self: A<AType = <Self as B>::BType>, [
         requires(self.foo(&arg)),
         ensures(self.foo(&arg))
     ])]

@@ -7,11 +7,11 @@ trait A {}
 trait B {}
 
 #[trusted]
-#[refine_spec(where T: A [ //~ ERROR: [Prusti: unsupported feature] Multiple type-conditional spec refinements with different bounds defined
+#[refine_spec(where T: A, [ //~ ERROR: [Prusti: unsupported feature] Multiple type-conditional spec refinements with different bounds defined
     requires(true),
     ensures(true),
 ])]
-#[refine_spec(where T: B [
+#[refine_spec(where T: B, [
     requires(true),
     ensures(true),
 ])]
