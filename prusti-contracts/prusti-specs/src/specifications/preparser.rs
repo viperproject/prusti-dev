@@ -931,17 +931,16 @@ impl RustOp {
 }
 
 fn join_spans(s1: Span, s2: Span) -> Span {
-    // Tests don't run in the proc macro context
-    let is_proc_macro = std::panic::catch_unwind(|| s1.unwrap()).is_ok();
-    if is_proc_macro {
-        // This works even when compiled with stable
+    // Tests don't run in the proc macro context, so this gets a little funky for them
+    if cfg!(test) {
+        // During tests we don't care so much about returning a default
+        s1.join(s2).unwrap_or(s1)
+    } else {
+        // This works even when compiled with stable, unlike `s1.join(s2)`
         s1.unwrap()
             .join(s2.unwrap())
             .expect("Failed to join spans!")
             .into()
-    } else {
-        // During tests we don't care so much about returning a default
-        s1.join(s2).unwrap_or(s1)
     }
 }
 
