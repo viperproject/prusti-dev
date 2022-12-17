@@ -981,6 +981,12 @@ mod tests {
             "(! (a) || (b))",
         );
         assert_eq!(
+            parse_prusti("a === b + c".parse().unwrap())
+                .unwrap()
+                .to_string(),
+            "snapshot_equality (& (a) , & (b + c))",
+        );
+        assert_eq!(
             parse_prusti("a ==> b ==> c".parse().unwrap())
                 .unwrap()
                 .to_string(),
@@ -990,7 +996,7 @@ mod tests {
             parse_prusti("(a ==> b && c) ==> d || e".parse().unwrap())
                 .unwrap()
                 .to_string(),
-            "(! (((! (a) || (b && c)))) || (d || e))",
+            "(! (((! (a) || ((b) && (c))))) || ((d) || (e)))",
         );
         assert_eq!(
             parse_prusti("forall(|x: i32| a ==> b)".parse().unwrap()).unwrap().to_string(),
@@ -998,7 +1004,7 @@ mod tests {
         );
         assert_eq!(
             parse_prusti("exists(|x: i32| a === b)".parse().unwrap()).unwrap().to_string(),
-            "exists (() , # [prusti :: spec_only] | x : i32 | -> bool { ((snapshot_equality (& a , & b)) : bool) })",
+            "exists (() , # [prusti :: spec_only] | x : i32 | -> bool { ((snapshot_equality (& (a) , & (b))) : bool) })",
         );
         assert_eq!(
             parse_prusti("forall(|x: i32| a ==> b, triggers = [(c,), (d, e)])".parse().unwrap()).unwrap().to_string(),
@@ -1008,7 +1014,7 @@ mod tests {
             parse_prusti("assert!(a === b ==> b)".parse().unwrap())
                 .unwrap()
                 .to_string(),
-            "assert ! ((! (snapshot_equality (& a , & b)) || (b)))",
+            "assert ! ((! (snapshot_equality (& (a) , & (b))) || (b)))",
         );
     }
 
