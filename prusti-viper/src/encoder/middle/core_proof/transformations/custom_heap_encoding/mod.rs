@@ -1,13 +1,12 @@
-use std::collections::BTreeMap;
-
+use std::collections::{BTreeMap, BTreeSet};
 use crate::encoder::{
-    errors::SpannedEncodingResult,
+    errors::{SpannedEncodingResult, ErrorCtxt},
     middle::core_proof::{
         lowerer::LoweringResult,
         snapshots::{AllVariablesMap, VariableVersionMap},
-    },
+    }, Encoder, mir::errors::ErrorInterface,
 };
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 use vir_crate::{
     common::{
         cfg::Cfg,
@@ -21,38 +20,87 @@ use vir_crate::{
     middle as vir_mid,
 };
 
-pub(in super::super) fn custom_heap_encoding(
+pub(in super::super) fn custom_heap_encoding<'p, 'v: 'p, 'tcx: 'v>(
+    encoder: &'p mut Encoder<'v, 'tcx>,
     result: &mut LoweringResult,
 ) -> SpannedEncodingResult<()> {
-    // let mut procedures = Vec::new();
-    // let mut heap_encoder = HeapEncoder::new(std::mem::take(&mut result.predicates));
-    // for mut procedure in std::mem::take(&mut result.procedures) {
-    //     let traversal_order = procedure.get_topological_sort();
-    //     for label in &traversal_order {
-    //         let mut statements = Vec::new();
-    //         let block = procedure.basic_blocks.get_mut(label).unwrap();
-    //         for statement in std::mem::take(&mut block.statements) {
-    //             heap_encoder.encode_statement(&mut statements, statement)?;
-    //         }
-    //     }
-    //     procedure
-    //         .locals
-    //         .extend(heap_encoder.new_variables.drain(..));
-    //     procedures.push(procedure);
-    // }
+    let mut procedures = Vec::new();
+    let mut heap_encoder = HeapEncoder::new(encoder, std::mem::take(&mut result.predicates));
+    for mut procedure in std::mem::take(&mut result.procedures) {
+        let predecessors = procedure.predecessors_owned();
+        let traversal_order = procedure.get_topological_sort();
+        let mut basic_block_edges = BTreeMap::new();
+        for label in &traversal_order {
+            heap_encoder.prepare_new_current_block(&label, &predecessors, &mut basic_block_edges)?;
+            let mut statements = Vec::new();
+            let block = procedure.basic_blocks.get_mut(label).unwrap();
+            for statement in std::mem::take(&mut block.statements) {
+                heap_encoder.encode_statement(&mut statements, statement)?;
+            }
+            heap_encoder.finish_current_block(label.clone())?;
+        }
+        for label in traversal_order {
+            if let Some(intermediate_blocks) = basic_block_edges.remove(&label) {
+                let mut block = procedure.basic_blocks.remove(&label).unwrap();
+                for (successor_label, equalities) in intermediate_blocks {
+                    let intermediate_block_label = vir_low::Label::new(format!(
+                        "label__from__{}__to__{}",
+                        label.name, successor_label.name
+                    ));
+                    block.successor.replace_label(&successor_label, intermediate_block_label.clone());
+                    let mut successor_statements = Vec::new();
+                    for (variable_name, ty, position, old_version, new_version) in equalities {
+                        let new_variable = heap_encoder.create_variable(
+                            &variable_name,
+                            ty.clone(),
+                            new_version,
+                        )?;
+                        let old_variable = heap_encoder.create_variable(
+                            &variable_name,
+                            ty.clone(),
+                            old_version,
+                        )?;
+                        let position = heap_encoder.encoder.change_error_context(
+                            // FIXME: Get a more precise span.
+                            position,
+                            ErrorCtxt::Unexpected,
+                        );
+                        let statement = vir_low::macros::stmtp! {
+                            position => assume (new_variable == old_variable)
+                        };
+                        successor_statements.push(statement);
+                    }
+                    procedure.basic_blocks.insert(
+                        intermediate_block_label,
+                        vir_low::BasicBlock {
+                            statements: successor_statements,
+                            successor: vir_low::Successor::Goto(successor_label),
+                        },
+                    );
+                }
+                procedure.basic_blocks.insert(label, block);
+            }
+        }
+        procedure
+            .locals
+            .extend(std::mem::take(&mut heap_encoder.new_variables));
+        procedures.push(procedure);
+    }
     Ok(())
 }
 
-struct HeapEncoder {
-    new_variables: Vec<vir_low::VariableDecl>,
+struct HeapEncoder<'p, 'v: 'p, 'tcx: 'v> {
+    encoder: &'p mut Encoder<'v, 'tcx>,
+    new_variables: FxHashSet<vir_low::VariableDecl>,
     predicates: FxHashMap<String, vir_low::PredicateDecl>,
-    ssa_state: vir_low::ssa::SSAState<usize>,
+    ssa_state: vir_low::ssa::SSAState<vir_low::Label>,
 }
 
-impl HeapEncoder {
-    fn new(predicates: Vec<vir_low::PredicateDecl>) -> Self {
+impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
+    fn new(encoder: &'p mut Encoder<'v, 'tcx>, predicates: Vec<vir_low::PredicateDecl>) -> Self {
         Self {
-            new_variables: Vec::new(),
+            encoder,
+            new_variables: Default::default(),
             predicates: predicates
                 .into_iter()
                 .map(|predicate| (predicate.name.clone(), predicate))
@@ -121,92 +169,92 @@ impl HeapEncoder {
         expression: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
-        // if expression.is_pure() {
-        //     statements.push(vir_low::Statement::assume(self.encode_pure_expression(expression)?, position));
-        // } else {
-        //     match expression {
-        //         vir_low::Expression::PredicateAccessPredicate(expression) => {
-        //             let old_permission_mask = self.get_current_permission_mask_for(&expression.name);
-        //             let new_permission_mask = self.get_new_permission_mask_for(&expression.name);
-        //             let perm_function_name = self.get_perm_function_name_for(&expression.name);
-        //             let predicate_parameters = self.get_predicate_parameters_for(&expression.name);
-        //             // assume perm<P>(r1, r2, v_new) == perm<P>(r1, r2, v_old) + p
-        //             let mut arguments = Vec::new();
-        //             for argument in expression.arguments {
-        //                 arguments.push(self.encode_pure_expression(argument)?);
-        //             }
-        //             let mut old_permission_arguments = arguments.clone();
-        //             let mut new_permission_arguments = arguments;
-        //             old_permission_arguments.push(old_permission_mask);
-        //             new_permission_arguments.push(new_permission_mask);
-        //             statements.push(vir_low::Statement::assume(
-        //                 vir_low::Expression::equals(
-        //                     vir_low::Expression::domain_function_call(
-        //                         "Perm",
-        //                         perm_function_name.clone(),
-        //                         new_permission_arguments,
-        //                         vir_low::Type::Perm,
-        //                     ),
-        //                     vir_low::Expression::add(
-        //                         vir_low::Expression::domain_function_call(
-        //                             "Perm",
-        //                             perm_function_name,
-        //                             old_permission_arguments,
-        //                             vir_low::Type::Perm,
-        //                         ),
-        //                         *expression.permission,
-        //                     ),
-        //                 ),
-        //                 expression.position,
-        //             ));
-        //             // assume forall arg1: Ref, arg2: Ref ::
-        //             //     {perm<P>(arg1, arg2, v_new)}
-        //             //     r1 != arg1 && r2 != arg2 ==>
-        //             //     perm<P>(arg1, arg2, v_new) == perm<P>(arg1, arg2, v_old)
-        //             let predicate_arguments: Vec<vir_low::Expression> = predicate_parameters
-        //                 .iter()
-        //                 .map(|parameter| parameter.clone().into())
-        //                 .collect();
-        //             let old_permission_arguments = predicate_arguments.clone();
-        //             let new_permission_arguments = predicate_arguments;
-        //             old_permission_arguments.push(old_permission_mask);
-        //             new_permission_arguments.push(new_permission_mask);
-        //             let perm_new = vir_low::Expression::domain_function_call(
-        //                 "Perm",
-        //                 perm_function_name.clone(),
-        //                 new_permission_arguments,
-        //                 vir_low::Type::Perm,
-        //             );
-        //             let perm_old = vir_low::Expression::domain_function_call(
-        //                 "Perm",
-        //                 perm_function_name.clone(),
-        //                 old_permission_arguments,
-        //                 vir_low::Type::Perm,
-        //             );
-        //             let triggers = vec![vir_low::Trigger::new(vec![perm_new.clone()])];
-        //             let guard = predicate_arguments.into_iter().zip(arguments).map(|(parameter, argument)|
-        //                 vir_low::Expression::not(vir_low::Expression::equals(parameter, argument))
-        //             ).conjoin();
-        //             let body = vir_low::Expression::implies(
-        //                 guard,
-        //                 vir_low::Expression::equals(perm_new, perm_old),
-        //             );
-        //             statements.push(vir_low::Statement::assume(
-        //                 vir_low::Expression::forall(predicate_parameters, triggers, body),
-        //                 position,
-        //             ));
-        //         },
-        //         vir_low::Expression::Unfolding(_) => todo!(),
-        //         vir_low::Expression::LabelledOld(_) => todo!(),
-        //         vir_low::Expression::BinaryOp(_) => todo!(),
-        //         vir_low::Expression::Conditional(_) => todo!(),
-        //         vir_low::Expression::FuncApp(_) => todo!(),
-        //         vir_low::Expression::DomainFuncApp(_) => todo!(),
-        //         _ => {
-        //             unimplemented!("expression: {:?}", expression);
-        //         }
-        //     }
-        // }
+        if expression.is_pure() {
+            statements.push(vir_low::Statement::assume(self.encode_pure_expression(expression)?, position));
+        } else {
+            match expression {
+                vir_low::Expression::PredicateAccessPredicate(expression) => {
+                    let old_permission_mask = self.get_current_permission_mask_for(&expression.name);
+                    let new_permission_mask = self.get_new_permission_mask_for(&expression.name);
+                    let perm_function_name = self.get_perm_function_name_for(&expression.name);
+                    let predicate_parameters = self.get_predicate_parameters_for(&expression.name);
+                    // assume perm<P>(r1, r2, v_new) == perm<P>(r1, r2, v_old) + p
+                    let mut arguments = Vec::new();
+                    for argument in expression.arguments {
+                        arguments.push(self.encode_pure_expression(argument)?);
+                    }
+                    let mut old_permission_arguments = arguments.clone();
+                    let mut new_permission_arguments = arguments;
+                    old_permission_arguments.push(old_permission_mask);
+                    new_permission_arguments.push(new_permission_mask);
+                    statements.push(vir_low::Statement::assume(
+                        vir_low::Expression::equals(
+                            vir_low::Expression::domain_function_call(
+                                "Perm",
+                                perm_function_name.clone(),
+                                new_permission_arguments,
+                                vir_low::Type::Perm,
+                            ),
+                            vir_low::Expression::add(
+                                vir_low::Expression::domain_function_call(
+                                    "Perm",
+                                    perm_function_name,
+                                    old_permission_arguments,
+                                    vir_low::Type::Perm,
+                                ),
+                                *expression.permission,
+                            ),
+                        ),
+                        expression.position,
+                    ));
+                    // assume forall arg1: Ref, arg2: Ref ::
+                    //     {perm<P>(arg1, arg2, v_new)}
+                    //     r1 != arg1 && r2 != arg2 ==>
+                    //     perm<P>(arg1, arg2, v_new) == perm<P>(arg1, arg2, v_old)
+                    let predicate_arguments: Vec<vir_low::Expression> = predicate_parameters
+                        .iter()
+                        .map(|parameter| parameter.clone().into())
+                        .collect();
+                    let old_permission_arguments = predicate_arguments.clone();
+                    let new_permission_arguments = predicate_arguments;
+                    old_permission_arguments.push(old_permission_mask);
+                    new_permission_arguments.push(new_permission_mask);
+                    let perm_new = vir_low::Expression::domain_function_call(
+                        "Perm",
+                        perm_function_name.clone(),
+                        new_permission_arguments,
+                        vir_low::Type::Perm,
+                    );
+                    let perm_old = vir_low::Expression::domain_function_call(
+                        "Perm",
+                        perm_function_name.clone(),
+                        old_permission_arguments,
+                        vir_low::Type::Perm,
+                    );
+                    let triggers = vec![vir_low::Trigger::new(vec![perm_new.clone()])];
+                    let guard = predicate_arguments.into_iter().zip(arguments).map(|(parameter, argument)|
+                        vir_low::Expression::not(vir_low::Expression::equals(parameter, argument))
+                    ).conjoin();
+                    let body = vir_low::Expression::implies(
+                        guard,
+                        vir_low::Expression::equals(perm_new, perm_old),
+                    );
+                    statements.push(vir_low::Statement::assume(
+                        vir_low::Expression::forall(predicate_parameters, triggers, body),
+                        position,
+                    ));
+                },
+                vir_low::Expression::Unfolding(_) => todo!(),
+                vir_low::Expression::LabelledOld(_) => todo!(),
+                vir_low::Expression::BinaryOp(_) => todo!(),
+                vir_low::Expression::Conditional(_) => todo!(),
+                vir_low::Expression::FuncApp(_) => todo!(),
+                vir_low::Expression::DomainFuncApp(_) => todo!(),
+                _ => {
+                    unimplemented!("expression: {:?}", expression);
+                }
+            }
+        }
         Ok(())
     }
 
@@ -224,5 +272,34 @@ impl HeapEncoder {
 
     fn get_predicate_parameters_for(&self, predicate_name: &str) -> &[vir_low::VariableDecl] {
         todo!()
+    }
+
+    fn prepare_new_current_block(&mut self, label: &vir_low::Label, predecessors: &BTreeMap<vir_low::Label, Vec<vir_low::Label>>, basic_block_edges: &mut BTreeMap<
+        vir_low::Label,
+        BTreeMap<
+            vir_low::Label,
+            Vec<(String, vir_low::Type, vir_low::Position, u64, u64)>,
+        >,
+    >) -> SpannedEncodingResult<()> {
+        self.ssa_state.prepare_new_current_block(
+            label,
+            predecessors,
+            basic_block_edges,
+        );
+        Ok(())
+    }
+
+    fn finish_current_block(&mut self, label: vir_low::Label) -> SpannedEncodingResult<()> {
+        self.ssa_state.finish_current_block(label);
+        Ok(())
+    }
+
+    fn create_variable(&mut self, variable_name: &str, ty: vir_low::Type, version: u64) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        let variable = vir_low::VariableDecl::new(
+            format!("{}_{}", variable_name, version),
+            ty,
+        );
+        self.new_variables.insert(variable.clone());
+        Ok(variable)
     }
 }

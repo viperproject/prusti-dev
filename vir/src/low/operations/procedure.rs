@@ -1,4 +1,6 @@
-use super::super::cfg::{Label, ProcedureDecl};
+use crate::common::cfg::Cfg;
+use super::super::cfg::{Label, ProcedureDecl, BasicBlock};
+use super::super::ast::statement::Statement;
 use std::collections::BTreeMap;
 
 impl ProcedureDecl {
@@ -41,5 +43,33 @@ impl ProcedureDecl {
             }
         }
         topo_sorted.push(current_label.clone())
+    }
+}
+
+impl Cfg for ProcedureDecl {
+    type BasicBlockId = Label;
+    type BasicBlock = BasicBlock;
+    type Statement = Statement;
+    type BasicBlockIdIterator<'a> =
+        std::collections::btree_map::Keys<'a, Self::BasicBlockId, Self::BasicBlock>;
+
+    fn get_basic_block(&self, bb: &Self::BasicBlockId) -> Option<&Self::BasicBlock> {
+        self.basic_blocks.get(bb)
+    }
+
+    fn get_basic_block_statement<'a>(
+        &'a self,
+        block: &'a Self::BasicBlock,
+        statement_index: usize,
+    ) -> Option<&'a Self::Statement> {
+        block.statements.get(statement_index)
+    }
+
+    fn iter_basic_block_ids(&self) -> Self::BasicBlockIdIterator<'_> {
+        self.basic_blocks.keys()
+    }
+
+    fn successors(&self, bb: &Self::BasicBlockId) -> Vec<&Self::BasicBlockId> {
+        self.basic_blocks[bb].successor.get_following()
     }
 }

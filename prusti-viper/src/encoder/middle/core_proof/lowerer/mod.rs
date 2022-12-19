@@ -288,7 +288,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             methods,
         };
         if prusti_common::config::custom_heap_encoding() {
-            super::transformations::custom_heap_encoding::custom_heap_encoding(&mut result)?;
+            super::transformations::custom_heap_encoding::custom_heap_encoding(self.encoder, &mut result)?;
         }
         Ok(result)
     }
