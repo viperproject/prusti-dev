@@ -10,8 +10,8 @@ pub(in super::super) fn remove_unvisited_blocks(
     label_markers: &FxHashMap<String, bool>,
 ) -> SpannedEncodingResult<()> {
     for procedure in procedures {
-        for block in &mut procedure.basic_blocks {
-            if !label_markers.get(&block.label.name).unwrap_or(&true) {
+        for (label, block) in &mut procedure.basic_blocks {
+            if !label_markers.get(&label.name).unwrap_or(&true) {
                 // The block was not visited. Replace with assume false.
                 let mut position = None;
                 for statement in &block.statements {

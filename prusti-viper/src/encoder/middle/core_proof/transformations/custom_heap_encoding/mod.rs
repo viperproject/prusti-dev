@@ -27,13 +27,17 @@ pub(in super::super) fn custom_heap_encoding(
     // let mut procedures = Vec::new();
     // let mut heap_encoder = HeapEncoder::new(std::mem::take(&mut result.predicates));
     // for mut procedure in std::mem::take(&mut result.procedures) {
-    //     for block in &mut procedure.basic_blocks {
+    //     let traversal_order = procedure.get_topological_sort();
+    //     for label in &traversal_order {
     //         let mut statements = Vec::new();
+    //         let block = procedure.basic_blocks.get_mut(label).unwrap();
     //         for statement in std::mem::take(&mut block.statements) {
     //             heap_encoder.encode_statement(&mut statements, statement)?;
     //         }
     //     }
-    //     procedure.locals.extend(heap_encoder.new_variables.drain(..));
+    //     procedure
+    //         .locals
+    //         .extend(heap_encoder.new_variables.drain(..));
     //     procedures.push(procedure);
     // }
     Ok(())
@@ -42,9 +46,7 @@ pub(in super::super) fn custom_heap_encoding(
 struct HeapEncoder {
     new_variables: Vec<vir_low::VariableDecl>,
     predicates: FxHashMap<String, vir_low::PredicateDecl>,
-    variables: AllVariablesMap,
-    variables_at_label: BTreeMap<String, VariableVersionMap>,
-    current_variables: Option<VariableVersionMap>,
+    ssa_state: vir_low::ssa::SSAState<usize>,
 }
 
 impl HeapEncoder {
@@ -55,9 +57,7 @@ impl HeapEncoder {
                 .into_iter()
                 .map(|predicate| (predicate.name.clone(), predicate))
                 .collect(),
-            variables: AllVariablesMap::default(),
-            variables_at_label: BTreeMap::new(),
-            current_variables: None,
+            ssa_state: Default::default(),
         }
     }
 

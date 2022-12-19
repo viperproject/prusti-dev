@@ -8,3 +8,4 @@ pub mod special_variables;
 pub mod statements;
 pub mod successor;
 pub mod ty;
+pub mod procedure;

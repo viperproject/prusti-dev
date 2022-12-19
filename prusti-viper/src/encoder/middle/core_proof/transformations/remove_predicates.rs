@@ -22,7 +22,7 @@ fn from_procedure(
     removed_functions: &FxHashSet<String>,
     predicates: &FxHashMap<String, vir_low::PredicateDecl>,
 ) {
-    for block in &mut procedure.basic_blocks {
+    for block in procedure.basic_blocks.values_mut() {
         from_statements(
             &mut block.statements,
             removed_methods,

@@ -24,7 +24,7 @@ impl MirProcedureMapping {
         procedure
             .basic_blocks
             .iter()
-            .map(|basic_block| {
+            .map(|(label, basic_block)| {
                 let mut stmts = Vec::new();
 
                 for statement in &basic_block.statements {
@@ -51,7 +51,7 @@ impl MirProcedureMapping {
                     }
                 };
                 BasicBlock {
-                    label: basic_block.label.name.clone(),
+                    label: label.name.clone(),
                     successor,
                     stmts,
                 }
