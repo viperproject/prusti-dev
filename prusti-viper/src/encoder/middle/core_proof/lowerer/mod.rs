@@ -181,7 +181,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         std::mem::swap(entry_block_statements, &mut marker_initialisation);
         entry_block_statements.extend(marker_initialisation);
 
-        let mut basic_blocks = Vec::new();
+        let mut basic_blocks = BTreeMap::new();
         for basic_block_id in traversal_order {
             let (statements, mut successor) = basic_blocks_map.remove(&basic_block_id).unwrap();
             let label = basic_block_id.clone().into_low(&mut self)?;
@@ -215,26 +215,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                         };
                         successor_statements.push(statement);
                     }
-                    basic_blocks.push(vir_low::BasicBlock {
-                        label: intermediate_block_label,
-                        statements: successor_statements,
-                        successor: vir_low::Successor::Goto(successor_label),
-                    });
+                    basic_blocks.insert(
+                        intermediate_block_label,
+                        vir_low::BasicBlock {
+                            statements: successor_statements,
+                            successor: vir_low::Successor::Goto(successor_label),
+                        },
+                    );
                 }
             }
 
-            basic_blocks.push(vir_low::BasicBlock {
+            basic_blocks.insert(
                 label,
-                statements,
-                successor,
-            });
+                vir_low::BasicBlock {
+                    statements,
+                    successor,
+                },
+            );
         }
+        let entry = procedure.entry.clone().into_low(&mut self)?;
+        let exit = procedure.exit.clone().into_low(&mut self)?;
         let mut removed_functions = FxHashSet::default();
         if procedure.check_mode == CheckMode::PurificationFunctional {
             removed_functions.insert(self.encode_memory_block_bytes_function_name()?);
         }
         let mut predicates = self.collect_owned_predicate_decls()?;
-        basic_blocks[0].statements.splice(
+        basic_blocks.get_mut(&entry).unwrap().statements.splice(
             0..0,
             self.lifetimes_state.lifetime_is_alive_initialization(),
         );
@@ -254,6 +260,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             locals: self.variables_state.destruct(),
             custom_labels: self.labels_state.destruct(),
             basic_blocks,
+            entry,
+            exit,
         };
         let mut methods = self.methods_state.destruct();
         let mut functions = self.functions_state.destruct();
