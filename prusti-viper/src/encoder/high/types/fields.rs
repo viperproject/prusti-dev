@@ -1,6 +1,6 @@
 //! Helper functions for creating fields.
 
-use crate::encoder::errors::{EncodingError, EncodingResult};
+use crate::{encoder::errors::EncodingResult, error_internal, error_unsupported};
 use log::trace;
 
 use vir_crate::high as vir;
@@ -40,10 +40,7 @@ pub(crate) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl
         }
 
         vir::Type::Array(_) | vir::Type::Slice(_) => {
-            return Err(EncodingError::internal(format!(
-                "create_value_field should not be called for {}",
-                ty
-            )));
+            error_internal!("create_value_field should not be called for {}", ty);
         }
 
         vir::Type::Union(_)
@@ -51,10 +48,7 @@ pub(crate) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl
         | vir::Type::Never
         | vir::Type::Str
         | vir::Type::Unsupported(_) => {
-            return Err(EncodingError::unsupported(format!(
-                "{} type is not supported",
-                ty
-            )));
+            error_unsupported!("{} type is not supported", ty);
         }
 
         vir::Type::MBool

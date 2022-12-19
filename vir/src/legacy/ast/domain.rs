@@ -91,6 +91,7 @@ impl WithIdentifier for DomainFunc {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct DomainAxiom {
+    pub comment: Option<String>,
     pub name: String,
     pub expr: Expr,
     pub domain_name: String,
@@ -98,6 +99,14 @@ pub struct DomainAxiom {
 
 impl fmt::Display for DomainAxiom {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "axiom {} {{ {} }}", self.name, self.expr)
+        if let Some(comment) = &self.comment {
+            writeln!(
+                f,
+                "/* {} */ axiom {} {{ {} }}",
+                comment, self.name, self.expr
+            )
+        } else {
+            writeln!(f, "axiom {} {{ {} }}", self.name, self.expr)
+        }
     }
 }

@@ -139,6 +139,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     },
                 );
                 let axiom = vir_low::DomainAxiomDecl {
+                    comment: None,
                     name: format!("{}$definitional_axiom", function_name),
                     body: axiom_body,
                 };

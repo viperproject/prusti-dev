@@ -88,6 +88,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 },
             );
             let axiom = vir_low::DomainAxiomDecl {
+                comment: None,
                 name: format!("{}$sequence_repeat_constructor_definition", domain_name),
                 body,
             };

@@ -1,17 +1,18 @@
-use super::{encoder::FunctionCallInfoHigh, PureEncodingContext};
+use super::{encoder_poly::FunctionCallInfoHigh, PureEncodingContext};
 use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
         contracts::{ContractsEncoderInterface, ProcedureContractMirDef},
         generics::MirGenericsEncoderInterface,
         pure::{
-            interpreter::ExpressionBackwardInterpreter,
+            interpreter::{
+                interpreter_high::ExpressionBackwardInterpreter, run_backward_interpretation,
+            },
             specifications::SpecificationEncoderInterface,
         },
         specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
     },
-    mir_interpreter::run_backward_interpretation,
     Encoder,
 };
 use log::{debug, trace};

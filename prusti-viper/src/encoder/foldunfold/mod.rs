@@ -20,8 +20,8 @@ use std::{self, fmt, ops::Deref};
 use vir_crate::{
     polymorphic as vir,
     polymorphic::{
-        borrows::Borrow, CfgBlockIndex, CfgReplacer, CheckNoOpAction, ExprWalker,
-        FallibleExprFolder, PermAmount, PermAmountError,
+        borrows::Borrow, CfgBlockIndex, CfgReplacer, CheckNoOpAction, FallibleExprFolder,
+        PermAmount, PermAmountError,
     },
 };
 
@@ -225,10 +225,23 @@ pub fn add_fold_unfold<'p, 'v: 'p, 'tcx: 'v>(
                 self.walk(base);
             }
         }
+        impl vir::StmtWalker for OldExprCollector {
+            fn walk_expr(&mut self, expr: &vir::Expr) {
+                vir::ExprWalker::walk(self, expr);
+            }
+            // We also need to collect old expressions inside ReborrowingDAGs
+            fn walk_expire_borrows(&mut self, expire_borrows: &vir::ExpireBorrows) {
+                for node in expire_borrows.dag.iter() {
+                    for stmt in &node.stmts {
+                        vir::StmtWalker::walk(self, stmt);
+                    }
+                }
+            }
+        }
         let mut old_expr_collector = OldExprCollector {
             old_exprs: FxHashMap::default(),
         };
-        cfg.walk_expressions(|expr| old_expr_collector.walk(expr));
+        cfg.walk_statements(|stmt| vir::StmtWalker::walk(&mut old_expr_collector, stmt));
         old_expr_collector.old_exprs
     };
     let initial_pctxt = PathCtxt::new(cfg_vars, &predicates, &old_exprs);

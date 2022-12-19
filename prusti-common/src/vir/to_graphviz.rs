@@ -4,10 +4,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use crate::{
+    config,
+    vir::polymorphic_vir::{
+        self as vir,
+        cfg::{CfgBlock, CfgMethod, Successor},
+    },
+};
 use ::vir::common::graphviz::escape_html;
-use crate::config;
 use std::io::Write;
-use crate::vir::polymorphic_vir::{self as vir, cfg::{CfgMethod, CfgBlock, Successor}};
 
 pub trait ToGraphViz {
     fn to_graphviz(&self, graph: &mut dyn Write);
@@ -167,12 +172,15 @@ impl ToGraphViz for CfgMethod {
             }
             first_row = false;
             match stmt {
-                vir::Stmt::ExpireBorrows( vir::ExpireBorrows {ref dag} ) => {
+                vir::Stmt::ExpireBorrows(vir::ExpireBorrows { ref dag }) => {
                     reborrowing_dags.push(dag);
                 }
-                vir::Stmt::PackageMagicWand( vir::PackageMagicWand {package_stmts: ref stmts, ..} ) => {
+                vir::Stmt::PackageMagicWand(vir::PackageMagicWand {
+                    package_stmts: ref stmts,
+                    ..
+                }) => {
                     for stmt in stmts {
-                        if let vir::Stmt::ExpireBorrows( vir::ExpireBorrows {ref dag} ) = stmt {
+                        if let vir::Stmt::ExpireBorrows(vir::ExpireBorrows { ref dag }) = stmt {
                             reborrowing_dags.push(dag);
                         }
                     }
