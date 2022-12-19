@@ -214,6 +214,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             0..0,
             self.lifetimes_state.lifetime_is_alive_initialization(),
         );
+        if prusti_common::config::dump_debug_info() {
+            let source_filename = self.encoder.env().name.source_file_name();
+            prusti_common::report::log::report_with_writer(
+                "graphviz_method_vir_low_before_perm_desugaring",
+                format!("{}.{}.dot", source_filename, procedure.name),
+                |writer| basic_blocks.to_graphviz(writer).unwrap(),
+            );
+        }
         let mut domains = self.domains_state.destruct();
         domains.extend(self.compute_address_state.destruct());
         predicates.extend(self.predicates_state.destruct());
