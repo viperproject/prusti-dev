@@ -82,6 +82,10 @@ fn generate_new_struct(
     // Add a where clause which restricts this self type parameter to the trait
     let self_where_clause: syn::WhereClause =
         if let Some(where_clause) = &item_trait.generics.where_clause {
+            let mut where_clause = where_clause.clone();
+            // remove trailing comma
+            let p = where_clause.predicates.pop().unwrap();
+            where_clause.predicates.push(p.into_value());
             // merge into existing where clause
             parse_quote! {
                 #where_clause, #self_type_ident: #self_type_trait
