@@ -3,6 +3,7 @@
 pub mod impls;
 pub mod mods;
 pub mod traits;
+pub mod functions;
 mod common;
 
 #[derive(Debug, Clone, Copy)]

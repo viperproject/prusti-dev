@@ -50,6 +50,13 @@ macro_rules! handle_result {
     };
 }
 
+macro_rules! result_to_tokens {
+    ($body:block) => {{
+        let body = || $body;
+        handle_result!(body())
+    }};
+}
+
 fn extract_prusti_attributes(
     item: &mut untyped::AnyFnItem,
 ) -> Vec<(SpecAttributeKind, TokenStream)> {
@@ -726,24 +733,43 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 }
 
 pub fn extern_spec(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    let item: syn::Item = handle_result!(syn::parse2(tokens));
-    match item {
-        syn::Item::Impl(item_impl) => {
-            handle_result!(extern_spec_rewriter::impls::rewrite_extern_spec(&item_impl))
+    result_to_tokens!({
+        let item: syn::Item = syn::parse2(tokens)?;
+        let mod_path: syn::Path = Some(attr)
+            .filter(|attr| !attr.is_empty())
+            .map(syn::parse2)
+            .transpose()?
+            .unwrap_or_else(|| syn::Path {
+                leading_colon: None,
+                segments: syn::punctuated::Punctuated::new(),
+            });
+        match item {
+            syn::Item::Impl(item_impl) => {
+                if !mod_path.segments.is_empty() {
+                    return Err(syn::Error::new(
+                        mod_path.span(),
+                        "extern_spec does not take a path argument for impls--you can qualify the involved types directly",
+                    ));
+                }
+                extern_spec_rewriter::impls::rewrite_extern_spec(&item_impl)
+            }
+            syn::Item::Trait(item_trait) => {
+                extern_spec_rewriter::traits::rewrite_extern_spec(&item_trait, mod_path)
+            }
+            syn::Item::Mod(mut item_mod) => {
+                extern_spec_rewriter::mods::rewrite_extern_spec(&mut item_mod, mod_path)
+            }
+            // we're expecting function stubs, so they aren't represented as Item::Fn
+            syn::Item::Verbatim(mut stub_tokens) => {
+                extern_spec_rewriter::functions::rewrite_stub(&mut stub_tokens, &mod_path)?;
+                Ok(stub_tokens)
+            }
+            _ => Err(syn::Error::new(
+                Span::call_site(), // this covers the entire macro invocation, unlike attr.span() which changes to only cover arguments if possible
+                "Extern specs cannot be attached to this item",
+            )),
         }
-        syn::Item::Trait(item_trait) => {
-            handle_result!(extern_spec_rewriter::traits::rewrite_extern_spec(
-                &item_trait
-            ))
-        }
-        syn::Item::Mod(mut item_mod) => {
-            handle_result!(extern_spec_rewriter::mods::rewrite_extern_spec(
-                &mut item_mod
-            ))
-        }
-        _ => syn::Error::new(attr.span(), "Extern specs cannot be attached to this item")
-            .to_compile_error(),
-    }
+    })
 }
 
 pub fn predicate(tokens: TokenStream) -> TokenStream {

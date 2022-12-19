@@ -26,8 +26,16 @@ use syn::{parse_quote, spanned::Spanned};
 /// ```
 /// and a corresponding impl block with methods of `SomeTrait`.
 ///
-pub fn rewrite_extern_spec(item_trait: &syn::ItemTrait) -> syn::Result<TokenStream> {
-    let generated_struct = generate_new_struct(item_trait)?;
+pub fn rewrite_extern_spec(
+    item_trait: &syn::ItemTrait,
+    mod_path: syn::Path,
+) -> syn::Result<TokenStream> {
+    let mut trait_path = mod_path;
+    trait_path.segments.push(syn::PathSegment {
+        ident: item_trait.ident.clone(),
+        arguments: syn::PathArguments::None,
+    });
+    let generated_struct = generate_new_struct(item_trait, trait_path)?;
 
     let trait_impl = generated_struct.generate_impl()?;
     let new_struct = generated_struct.generated_struct;
@@ -38,9 +46,10 @@ pub fn rewrite_extern_spec(item_trait: &syn::ItemTrait) -> syn::Result<TokenStre
 }
 
 /// Responsible for generating a struct
-fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStruct> {
-    let trait_ident = &item_trait.ident;
-
+fn generate_new_struct(
+    item_trait: &syn::ItemTrait,
+    trait_path: syn::Path,
+) -> syn::Result<GeneratedStruct> {
     let struct_name = generate_struct_name_for_trait(item_trait);
     let struct_ident = syn::Ident::new(&struct_name, item_trait.span());
 
@@ -67,7 +76,7 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
     }
 
     let self_type_trait: syn::TypePath = parse_quote_spanned! {item_trait.span()=>
-        #trait_ident :: <#(#parsed_generics),*>
+        #trait_path :: <#(#parsed_generics),*>
     };
 
     // Add a where clause which restricts this self type parameter to the trait
