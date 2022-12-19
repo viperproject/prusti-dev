@@ -71,15 +71,17 @@ fn generate_new_struct(item_trait: &syn::ItemTrait) -> syn::Result<GeneratedStru
     };
 
     // Add a where clause which restricts this self type parameter to the trait
-    if let Some(where_clause) = &item_trait.generics.where_clause {
-        return Err(syn::Error::new(
-            where_clause.span(),
-            "Where clauses for extern traits specs are not supported",
-        ));
-    }
-    let self_where_clause: syn::WhereClause = parse_quote! {
-        where #self_type_ident: #self_type_trait
-    };
+    let self_where_clause: syn::WhereClause =
+        if let Some(where_clause) = &item_trait.generics.where_clause {
+            // merge into existing where clause
+            parse_quote! {
+                #where_clause, #self_type_ident: #self_type_trait
+            }
+        } else {
+            parse_quote! {
+                where #self_type_ident: #self_type_trait
+            }
+        };
     new_struct.generics.where_clause = Some(self_where_clause);
 
     add_phantom_data_for_generic_params(&mut new_struct);
