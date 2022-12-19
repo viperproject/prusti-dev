@@ -114,6 +114,7 @@ lazy_static::lazy_static! {
         settings.set_default("enable_purification_optimization", false).unwrap();
         // settings.set_default("enable_manual_axiomatization", false).unwrap();
         settings.set_default("unsafe_core_proof", false).unwrap();
+        settings.set_default("custom_heap_encoding", true).unwrap();
         settings.set_default("verify_core_proof", true).unwrap();
         settings.set_default("verify_specifications", true).unwrap();
         settings.set_default("verify_types", false).unwrap();
@@ -864,6 +865,14 @@ pub fn log_smt_wrapper_interaction() -> bool {
 /// **Note:** This option is currently very incomplete.
 pub fn unsafe_core_proof() -> bool {
     read_setting("unsafe_core_proof")
+}
+
+/// Use custom heap encoding.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn custom_heap_encoding() -> bool {
+    read_setting("custom_heap_encoding")
 }
 
 /// Whether the core proof (memory safety) should be verified.
