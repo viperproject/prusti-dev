@@ -17,7 +17,9 @@ use super::{
     types::TypesState,
 };
 use crate::encoder::{
-    errors::SpannedEncodingResult, middle::core_proof::builtin_methods::BuiltinMethodsInterface,
+    errors::{ErrorCtxt, SpannedEncodingResult},
+    middle::core_proof::builtin_methods::BuiltinMethodsInterface,
+    mir::errors::ErrorInterface,
     Encoder,
 };
 use prusti_rustc_interface::hir::def_id::DefId;
@@ -184,13 +186,35 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             let (statements, mut successor) = basic_blocks_map.remove(&basic_block_id).unwrap();
             let label = basic_block_id.clone().into_low(&mut self)?;
             if let Some(intermediate_blocks) = basic_block_edges.remove(&basic_block_id) {
-                for (successor_label, successor_statements) in intermediate_blocks {
+                for (successor_label, equalities) in intermediate_blocks {
                     let successor_label = successor_label.into_low(&mut self)?;
                     let intermediate_block_label = vir_low::Label::new(format!(
                         "label__from__{}__to__{}",
                         label.name, successor_label.name
                     ));
                     successor.replace_label(&successor_label, intermediate_block_label.clone());
+                    let mut successor_statements = Vec::new();
+                    for (variable_name, ty, position, old_version, new_version) in equalities {
+                        let new_variable = self.create_snapshot_variable_low(
+                            &variable_name,
+                            ty.clone(),
+                            new_version,
+                        )?;
+                        let old_variable = self.create_snapshot_variable_low(
+                            &variable_name,
+                            ty.clone(),
+                            old_version,
+                        )?;
+                        let position = self.encoder.change_error_context(
+                            // FIXME: Get a more precise span.
+                            position,
+                            ErrorCtxt::Unexpected,
+                        );
+                        let statement = vir_low::macros::stmtp! {
+                            position => assume (new_variable == old_variable)
+                        };
+                        successor_statements.push(statement);
+                    }
                     basic_blocks.push(vir_low::BasicBlock {
                         label: intermediate_block_label,
                         statements: successor_statements,

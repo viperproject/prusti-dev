@@ -32,12 +32,6 @@ trait Private {
         ty: &vir_mid::Type,
         version: u64,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
-    fn create_snapshot_variable_low(
-        &mut self,
-        name: &str,
-        ty: vir_low::Type,
-        version: u64,
-    ) -> SpannedEncodingResult<vir_low::VariableDecl>;
     #[allow(clippy::ptr_arg)] // Clippy false positive.
     /// Note: if `new_snapshot_root` is `Some`, the current encoding assumes
     /// that the `place` is not behind a raw pointer.
@@ -63,15 +57,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         let ty = ty.to_snapshot(self)?;
         // self.create_variable(name, ty)
         self.create_snapshot_variable_low(name, ty, version)
-    }
-    fn create_snapshot_variable_low(
-        &mut self,
-        name: &str,
-        ty: vir_low::Type,
-        version: u64,
-    ) -> SpannedEncodingResult<vir_low::VariableDecl> {
-        let name = format!("{}$snapshot${}", name, version);
-        self.create_variable(name, ty)
     }
     /// Copy all values of the old snapshot into the new snapshot, except the
     /// ones that belong to `place`.
@@ -347,6 +332,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
 }
 
 pub(in super::super::super) trait SnapshotVariablesInterface {
+    fn create_snapshot_variable_low(
+        &mut self,
+        name: &str,
+        ty: vir_low::Type,
+        version: u64,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl>;
     fn new_snapshot_variable_version(
         &mut self,
         variable: &vir_mid::VariableDecl,
@@ -413,8 +404,15 @@ pub(in super::super::super) trait SnapshotVariablesInterface {
         predecessors: &BTreeMap<vir_mid::BasicBlockId, Vec<vir_mid::BasicBlockId>>,
         basic_block_edges: &mut BTreeMap<
             vir_mid::BasicBlockId,
-            BTreeMap<vir_mid::BasicBlockId, Vec<vir_low::Statement>>,
+            BTreeMap<
+                vir_mid::BasicBlockId,
+                Vec<(String, vir_low::Type, vir_low::Position, u64, u64)>,
+            >,
         >,
+        // basic_block_edges: &mut BTreeMap<
+        //     vir_mid::BasicBlockId,
+        //     BTreeMap<vir_mid::BasicBlockId, Vec<vir_low::Statement>>,
+        // >,
     ) -> SpannedEncodingResult<()>;
     fn unset_current_block_for_snapshots(
         &mut self,
@@ -424,34 +422,51 @@ pub(in super::super::super) trait SnapshotVariablesInterface {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> {
+    fn create_snapshot_variable_low(
+        &mut self,
+        name: &str,
+        ty: vir_low::Type,
+        version: u64,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        let name = format!("{}$snapshot${}", name, version);
+        self.create_variable(name, ty)
+    }
     fn new_snapshot_variable_version(
         &mut self,
         variable: &vir_mid::VariableDecl,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         let ty = variable.ty.to_snapshot(self)?;
-        let new_version = self.snapshots_state.all_variables.new_version_or_default(
-            &variable.name,
-            &ty,
-            position,
-        );
-        self.snapshots_state
-            .current_variables
-            .as_mut()
-            .unwrap()
-            .set(variable.name.clone(), new_version);
-        self.create_snapshot_variable(&variable.name, &variable.ty, new_version)
+        // let new_version = self.snapshots_state.all_variables.new_version_or_default(
+        //     &variable.name,
+        //     &ty,
+        //     position,
+        // );
+        // self.snapshots_state
+        //     .current_variables
+        //     .as_mut()
+        //     .unwrap()
+        //     .set(variable.name.clone(), new_version);
+        let new_version =
+            self.snapshots_state
+                .ssa_state
+                .new_variable_version(&variable.name, &ty, position);
+        self.create_snapshot_variable_low(&variable.name, ty, new_version)
     }
     fn current_snapshot_variable_version(
         &mut self,
         variable: &vir_mid::VariableDecl,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        // let version = self
+        //     .snapshots_state
+        //     .current_variables
+        //     .as_ref()
+        //     .unwrap()
+        //     .get_or_default(&variable.name);
         let version = self
             .snapshots_state
-            .current_variables
-            .as_ref()
-            .unwrap()
-            .get_or_default(&variable.name);
+            .ssa_state
+            .current_variable_version(&variable.name);
         self.create_snapshot_variable(&variable.name, &variable.ty, version)
     }
     fn initial_snapshot_variable_version(
@@ -465,12 +480,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
         variable: &vir_mid::VariableDecl,
         label: &str,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        // let version = self
+        //     .snapshots_state
+        //     .variables_at_label
+        //     .get(label)
+        //     .unwrap_or_else(|| panic!("not found label {}", label))
+        //     .get_or_default(&variable.name);
         let version = self
             .snapshots_state
-            .variables_at_label
-            .get(label)
-            .unwrap_or_else(|| panic!("not found label {}", label))
-            .get_or_default(&variable.name);
+            .ssa_state
+            .variable_version_at_label(&variable.name, label);
         self.create_snapshot_variable(&variable.name, &variable.ty, version)
     }
     fn use_heap_variable(&self) -> SpannedEncodingResult<bool> {
@@ -492,13 +511,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
         let ty = self.heap_type()?;
         let new_version = self
             .snapshots_state
-            .all_variables
-            .new_version_or_default(name, &ty, position);
-        self.snapshots_state
-            .current_variables
-            .as_mut()
-            .unwrap()
-            .set(name.to_string(), new_version);
+            .ssa_state
+            .new_variable_version(name, &ty, position);
+        // let new_version = self
+        //     .snapshots_state
+        //     .all_variables
+        //     .new_version_or_default(name, &ty, position);
+        // self.snapshots_state
+        //     .current_variables
+        //     .as_mut()
+        //     .unwrap()
+        //     .set(name.to_string(), new_version);
         self.create_snapshot_variable_low(name, ty, new_version)
     }
     fn heap_variable_version_at_label(
@@ -507,19 +530,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         // let name = "heap$";
         let name = self.heap_variable_name()?;
-        let version = if let Some(label) = old_label {
-            self.snapshots_state
-                .variables_at_label
-                .get(label)
-                .unwrap_or_else(|| panic!("not found label {}", label))
-                .get_or_default(name)
-        } else {
-            self.snapshots_state
-                .current_variables
-                .as_ref()
-                .unwrap()
-                .get_or_default(name)
-        };
+        let version = self
+            .snapshots_state
+            .ssa_state
+            .variable_version_at_maybe_label(name, old_label);
+        // let version = if let Some(label) = old_label {
+        //     self.snapshots_state
+        //         .variables_at_label
+        //         .get(label)
+        //         .unwrap_or_else(|| panic!("not found label {}", label))
+        //         .get_or_default(name)
+        // } else {
+        //     self.snapshots_state
+        //         .current_variables
+        //         .as_ref()
+        //         .unwrap()
+        //         .get_or_default(name)
+        // };
         let ty = self.heap_type()?;
         // let name = format!("{}${}", name, version);
         // self.create_variable(name, ty)
@@ -531,19 +558,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
         old_label: &Option<String>,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         let name = format!("{}$address", variable_name);
-        let version = if let Some(label) = old_label {
-            self.snapshots_state
-                .variables_at_label
-                .get(label)
-                .unwrap_or_else(|| panic!("not found label {}", label))
-                .get_or_default(&name)
-        } else {
-            self.snapshots_state
-                .current_variables
-                .as_ref()
-                .unwrap()
-                .get_or_default(&name)
-        };
+        let version = self
+            .snapshots_state
+            .ssa_state
+            .variable_version_at_maybe_label(&name, old_label);
+        // let version = if let Some(label) = old_label {
+        //     self.snapshots_state
+        //         .variables_at_label
+        //         .get(label)
+        //         .unwrap_or_else(|| panic!("not found label {}", label))
+        //         .get_or_default(&name)
+        // } else {
+        //     self.snapshots_state
+        //         .current_variables
+        //         .as_ref()
+        //         .unwrap()
+        //         .get_or_default(&name)
+        // };
         let ty = self.address_type()?;
         self.create_snapshot_variable_low(&name, ty, version)
     }
@@ -555,13 +586,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
         let ty = self.heap_chunk_type()?;
         let new_version = self
             .snapshots_state
-            .all_variables
-            .new_version_or_default(name, &ty, position);
-        self.snapshots_state
-            .current_variables
-            .as_mut()
-            .unwrap()
-            .set(name.to_string(), new_version);
+            .ssa_state
+            .new_variable_version(name, &ty, position);
+        // let new_version = self
+        //     .snapshots_state
+        //     .all_variables
+        //     .new_version_or_default(name, &ty, position);
+        // self.snapshots_state
+        //     .current_variables
+        //     .as_mut()
+        //     .unwrap()
+        //     .set(name.to_string(), new_version);
         // let name = format!("{}${}", name, new_version);
         // self.create_variable(name, ty)
         self.create_snapshot_variable_low(name, ty, new_version)
@@ -659,74 +694,88 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
         predecessors: &BTreeMap<vir_mid::BasicBlockId, Vec<vir_mid::BasicBlockId>>,
         basic_block_edges: &mut BTreeMap<
             vir_mid::BasicBlockId,
-            BTreeMap<vir_mid::BasicBlockId, Vec<vir_low::Statement>>,
+            BTreeMap<
+                vir_mid::BasicBlockId,
+                Vec<(String, vir_low::Type, vir_low::Position, u64, u64)>,
+            >,
         >,
+        // basic_block_edges: &mut BTreeMap<
+        //     vir_mid::BasicBlockId,
+        //     BTreeMap<vir_mid::BasicBlockId, Vec<vir_low::Statement>>,
+        // >,
     ) -> SpannedEncodingResult<()> {
-        let predecessor_labels = &predecessors[label];
-        let mut new_map = VariableVersionMap::default();
-        for variable in self.snapshots_state.all_variables.names_clone() {
-            let predecessor_maps = predecessor_labels
-                .iter()
-                .map(|label| &self.snapshots_state.variables[label])
-                .collect::<Vec<_>>();
-            let first_version = predecessor_maps[0].get_or_default(&variable);
-            let different = predecessor_maps
-                .iter()
-                .any(|map| map.get_or_default(&variable) != first_version);
-            if different {
-                let new_version = self.snapshots_state.all_variables.new_version(&variable);
-                let ty = self
-                    .snapshots_state
-                    .all_variables
-                    .get_type(&variable)
-                    .clone();
-                let new_variable =
-                    self.create_snapshot_variable_low(&variable, ty.clone(), new_version)?;
-                for predecessor_label in predecessor_labels {
-                    let old_version =
-                        self.snapshots_state.variables[predecessor_label].get_or_default(&variable);
-                    let statements = basic_block_edges
-                        .entry(predecessor_label.clone())
-                        .or_default()
-                        .entry(label.clone())
-                        .or_default();
-                    let old_variable =
-                        self.create_snapshot_variable_low(&variable, ty.clone(), old_version)?;
-                    let position = self.encoder.change_error_context(
-                        // FIXME: Get a more precise span.
-                        self.snapshots_state.all_variables.get_position(&variable),
-                        ErrorCtxt::Unexpected,
-                    );
-                    let statement = vir_low::macros::stmtp! { position => assume (new_variable == old_variable) };
-                    statements.push(statement);
-                }
-                new_map.set(variable, new_version);
-            } else {
-                new_map.set(variable, first_version);
-            }
-        }
-        self.snapshots_state.current_variables = Some(new_map);
+        self.snapshots_state.ssa_state.prepare_new_current_block(
+            label,
+            predecessors,
+            basic_block_edges,
+        );
+        // let predecessor_labels = &predecessors[label];
+        // let mut new_map = VariableVersionMap::default();
+        // for variable in self.snapshots_state.all_variables.names_clone() {
+        //     let predecessor_maps = predecessor_labels
+        //         .iter()
+        //         .map(|label| &self.snapshots_state.variables[label])
+        //         .collect::<Vec<_>>();
+        //     let first_version = predecessor_maps[0].get_or_default(&variable);
+        //     let different = predecessor_maps
+        //         .iter()
+        //         .any(|map| map.get_or_default(&variable) != first_version);
+        //     if different {
+        //         let new_version = self.snapshots_state.all_variables.new_version(&variable);
+        //         let ty = self
+        //             .snapshots_state
+        //             .all_variables
+        //             .get_type(&variable)
+        //             .clone();
+        //         let new_variable =
+        //             self.create_snapshot_variable_low(&variable, ty.clone(), new_version)?;
+        //         for predecessor_label in predecessor_labels {
+        //             let old_version =
+        //                 self.snapshots_state.variables[predecessor_label].get_or_default(&variable);
+        //             let statements = basic_block_edges
+        //                 .entry(predecessor_label.clone())
+        //                 .or_default()
+        //                 .entry(label.clone())
+        //                 .or_default();
+        //             let old_variable =
+        //                 self.create_snapshot_variable_low(&variable, ty.clone(), old_version)?;
+        //             let position = self.encoder.change_error_context(
+        //                 // FIXME: Get a more precise span.
+        //                 self.snapshots_state.all_variables.get_position(&variable),
+        //                 ErrorCtxt::Unexpected,
+        //             );
+        //             let statement = vir_low::macros::stmtp! { position => assume (new_variable == old_variable) };
+        //             statements.push(statement);
+        //         }
+        //         new_map.set(variable, new_version);
+        //     } else {
+        //         new_map.set(variable, first_version);
+        //     }
+        // }
+        // self.snapshots_state.current_variables = Some(new_map);
         Ok(())
     }
     fn unset_current_block_for_snapshots(
         &mut self,
         label: vir_mid::BasicBlockId,
     ) -> SpannedEncodingResult<()> {
-        let current_variables = self.snapshots_state.current_variables.take().unwrap();
-        assert!(self
-            .snapshots_state
-            .variables
-            .insert(label, current_variables)
-            .is_none());
+        self.snapshots_state.ssa_state.finish_current_block(label);
+        // let current_variables = self.snapshots_state.current_variables.take().unwrap();
+        // assert!(self
+        //     .snapshots_state
+        //     .variables
+        //     .insert(label, current_variables)
+        //     .is_none());
         Ok(())
     }
     fn save_old_label(&mut self, label: String) -> SpannedEncodingResult<()> {
-        let current_variables = self.snapshots_state.current_variables.clone().unwrap();
-        assert!(self
-            .snapshots_state
-            .variables_at_label
-            .insert(label, current_variables)
-            .is_none());
+        self.snapshots_state.ssa_state.save_state_at_label(label);
+        // let current_variables = self.snapshots_state.current_variables.clone().unwrap();
+        // assert!(self
+        //     .snapshots_state
+        //     .variables_at_label
+        //     .insert(label, current_variables)
+        //     .is_none());
         Ok(())
     }
 }

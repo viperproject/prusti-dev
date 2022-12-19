@@ -24,5 +24,5 @@ pub(super) use self::{
     state::SnapshotsState,
     validity::{valid_call, valid_call2, SnapshotValidityInterface},
     values::SnapshotValuesInterface,
-    variables::SnapshotVariablesInterface,
+    variables::{AllVariablesMap, SnapshotVariablesInterface, VariableVersionMap},
 };

@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use vir_crate::low::{self as vir_low};
 
 #[derive(Default, Clone)]
-pub(in super::super) struct VariableVersionMap {
+pub(in super::super::super) struct VariableVersionMap {
     /// Mapping from variable names to their versions.
     variable_versions: BTreeMap<String, u64>,
 }
@@ -28,7 +28,7 @@ impl VariableVersionMap {
 }
 
 #[derive(Default)]
-pub(in super::super) struct AllVariablesMap {
+pub(in super::super::super) struct AllVariablesMap {
     versions: BTreeMap<String, u64>,
     types: BTreeMap<String, vir_low::Type>,
     positions: BTreeMap<String, vir_low::Position>,

@@ -1,6 +1,6 @@
 use super::ty::Typed;
 use crate::low::ast::expression::{
-    visitors::{default_fold_expression, ExpressionFolder},
+    visitors::{default_fold_expression, ExpressionFolder, ExpressionWalker},
     *,
 };
 use rustc_hash::FxHashMap;
@@ -204,5 +204,21 @@ impl Expression {
         // Self::unfolding(predicate.name, predicate.arguments, *predicate.permission, base, predicate.position)
         let position = predicate.position;
         Self::unfolding(predicate, base, position)
+    }
+    pub fn is_pure(&self) -> bool {
+        struct Checker {
+            is_pure: bool,
+        }
+        impl ExpressionWalker for Checker {
+            fn walk_predicate_access_predicate(&mut self, _: &PredicateAccessPredicate) {
+                self.is_pure = false;
+            }
+            fn walk_field_access_predicate(&mut self, _: &FieldAccessPredicate) {
+                self.is_pure = false;
+            }
+        }
+        let mut checker = Checker { is_pure: true };
+        checker.walk_expression(self);
+        checker.is_pure
     }
 }
