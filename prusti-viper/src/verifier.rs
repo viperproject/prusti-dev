@@ -28,6 +28,8 @@ use ::log::{info, debug, error};
 use prusti_server::{VerificationRequest, PrustiClient, process_verification_request, spawn_server_thread, ViperBackendConfig};
 use prusti_rustc_interface::span::DUMMY_SP;
 use prusti_server::tokio::runtime::Builder;
+use std::sync::Arc;
+use std::collections::HashMap;
 
 // /// A verifier builder is an object that lives entire program's
 // /// lifetime, has no mutable state, and is responsible for constructing
@@ -270,6 +272,8 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         programs.extend(self.encoder.get_core_proof_programs());
 
         stopwatch.start_next("verifying Viper program");
+        // TODO: make this not wait for all programs and after that make the quantifier
+        // instantiations more asynchronous also on the client/server communication
         let verification_results = verify_programs(self.env, programs);
         stopwatch.finish();
 
@@ -277,6 +281,9 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         let mut verification_errors : Vec<_> = vec![];
         let mut consistency_errors : Vec<_> = vec![];
         let mut java_exceptions : Vec<_> = vec![];
+        // the quantifier instantiations among different programs are independent and thus are
+        // aggregated
+        let mut quantifier_instantiations: HashMap::<(u64, String), u64> = HashMap::new();
         for (method_name, result) in verification_results.into_iter() {
             match result {
                 viper::VerificationResult::Success => {}
@@ -293,11 +300,52 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                 viper::VerificationResult::JavaException(exception) => {
                     java_exceptions.push((method_name, exception));
                 }
+                viper::VerificationResult::EnrichedSuccess(q_insts) => {
+                    for (key, n) in q_insts {
+                        match quantifier_instantiations.get(&key) {
+                            Some(before) => {
+                                quantifier_instantiations.insert(key, n+before);
+                                ()
+                            },
+                            None => {
+                                quantifier_instantiations.insert(key, n);
+                                ()
+                            },
+                        }
+                    }
+                }
+                viper::VerificationResult::EnrichedFailure(errors, q_insts) => {
+                    for (key, n) in q_insts {
+                        match quantifier_instantiations.get(&key) {
+                            Some(before) => {
+                                quantifier_instantiations.insert(key, n+before);
+                                ()
+                            },
+                            None => {
+                                quantifier_instantiations.insert(key, n);
+                                ()
+                            },
+                        }
+                    }
+                    for error in errors.into_iter() {
+                        verification_errors.push((method_name.clone(), error));
+                    }
+                }
+            }
+        }
+
+        let error_manager = self.encoder.error_manager();
+
+        // report the quantifier instantiations
+        info!("Reporting qi_profile");
+        if config::report_qi_profile() {
+            for ((pos_id, q_name), n) in quantifier_instantiations {
+                let span = error_manager.position_manager().get_span_from_id(pos_id);
+                info!("{} {} {} {:?}", q_name, n, pos_id, span);
             }
         }
 
         // Convert verification results to Prusti errors
-        let error_manager = self.encoder.error_manager();
         let mut result = VerificationResult::Success;
 
         for (method, error) in consistency_errors.into_iter() {
@@ -446,14 +494,12 @@ fn verify_programs(env: &Environment, programs: Vec<Program>)
             (program_name, result)
         }).collect()
     } else {
-        let mut stopwatch = Stopwatch::start("prusti-viper", "JVM startup");
-        let viper = Viper::new_with_args(&config::viper_home(), config::extra_jvm_args());
-        stopwatch.start_next("attach current thread to the JVM");
-        let viper_thread = viper.attach_current_thread();
-        stopwatch.finish();
+        let stopwatch = Stopwatch::start("prusti-viper", "JVM startup");
+        let viper_arc = Arc::new(Viper::new_with_args(&config::viper_home(), config::extra_jvm_args()));
         let mut cache = PersistentCache::load_cache(config::cache_path());
+        stopwatch.finish();
         verification_requests.map(|(program_name, request)| {
-            let result = process_verification_request(&viper_thread, request, &mut cache);
+            let result = process_verification_request(&viper_arc, request, &mut cache);
             (program_name, result)
         }).collect()
     }

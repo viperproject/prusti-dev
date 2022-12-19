@@ -24,6 +24,7 @@ use prusti_rustc_interface::{
 };
 use rustc_hash::FxHashSet;
 use vir_crate::polymorphic::ExprIterator;
+use log::info;
 
 // TODO: this variant (poly) should not need to exist, eventually should be
 //       replaced by the high variant + lowering
@@ -126,7 +127,7 @@ pub(super) fn inline_spec_item<'tcx>(
 
 pub(super) fn encode_quantifier<'tcx>(
     encoder: &Encoder<'_, 'tcx>,
-    _span: Span,
+    span: Span,
     encoded_args: Vec<vir_crate::polymorphic::Expr>,
     is_exists: bool,
     parent_def_id: DefId,
@@ -232,6 +233,9 @@ pub(super) fn encode_quantifier<'tcx>(
         body_substs,
     )?;
 
+    let pos = encoder.error_manager().register_span(parent_def_id, span);
+    info!("Encoding quantifier with span '{:?}' and pos '{:?}, parent_def_id '{:?}'", span, pos, parent_def_id);
+
     // replace qvars with a nicer name based on quantifier depth to ensure that
     // quantifiers remain stable for caching
     let quantifier_depth = find_quantifier_depth(&encoded_body);
@@ -265,6 +269,7 @@ pub(super) fn encode_quantifier<'tcx>(
     } else {
         vir_crate::polymorphic::Expr::implies(bounds.into_iter().conjoin(), encoded_body)
     };
+
     if is_exists {
         Ok(vir_crate::polymorphic::Expr::exists(
             fixed_qvars,
@@ -272,10 +277,11 @@ pub(super) fn encode_quantifier<'tcx>(
             final_body,
         ))
     } else {
-        Ok(vir_crate::polymorphic::Expr::forall(
+        Ok(vir_crate::polymorphic::Expr::forall_with_pos(
             fixed_qvars,
             encoded_trigger_sets,
             final_body,
+            pos,
         ))
     }
 }

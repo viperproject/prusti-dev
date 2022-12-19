@@ -659,12 +659,15 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 right.to_viper(context, ast),
                 pos.to_viper(context, ast),
             ),
-            Expr::ForAll(ref vars, ref triggers, ref body, ref pos) => ast.forall_with_pos(
+            Expr::ForAll(ref vars, ref triggers, ref body, ref pos) => {
+                info!("FORALL pos: {:?}", pos);
+                ast.forall_with_pos(
                 &vars.to_viper_decl(context, ast)[..],
                 &(triggers, pos).to_viper(context, ast),
                 body.to_viper(context, ast),
                 pos.to_viper(context, ast),
-            ),
+            )
+            },
             Expr::Exists(ref vars, ref triggers, ref body, ref pos) => ast.exists_with_pos(
                 &vars.to_viper_decl(context, ast)[..],
                 &(triggers, pos).to_viper(context, ast),

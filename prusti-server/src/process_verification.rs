@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{VerificationRequest, ViperBackendConfig};
+use crate::{VerificationRequest, ViperBackendConfig, jni_utils::JniUtils};
 use log::info;
 use prusti_common::{
     config,
@@ -12,16 +12,22 @@ use prusti_common::{
     vir::{program_normalization::NormalizationInfo, ToViper},
     Stopwatch,
 };
-use std::{fs::create_dir_all, path::PathBuf};
+use std::{fs::create_dir_all, path::PathBuf, thread, sync::Arc, collections::HashMap};
 use viper::{
-    smt_manager::SmtManager, Cache, VerificationBackend, VerificationContext, VerificationResult,
+    smt_manager::SmtManager, Cache, VerificationBackend, VerificationResult, Viper,
 };
+use viper_sys::wrappers::viper::*;
+use std::time;
+use std::sync::mpsc;
 
 pub fn process_verification_request<'v, 't: 'v>(
-    verification_context: &'v VerificationContext<'t>,
+    viper_arc: &Arc<Viper>,
     mut request: VerificationRequest,
     cache: impl Cache,
 ) -> viper::VerificationResult {
+    let stopwatch = Stopwatch::start("prusti-server", "attach thread to JVM");
+    let verification_context = viper_arc.attach_current_thread();
+    stopwatch.finish();
     let ast_utils = verification_context.new_ast_utils();
 
     // Only for testing: Check that the normalization is reversible.
@@ -105,10 +111,125 @@ pub fn process_verification_request<'v, 't: 'v>(
         // Workaround for https://github.com/viperproject/prusti-dev/issues/744
         let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
         let mut verifier =
-            new_viper_verifier(program_name, verification_context, request.backend_config);
+            new_viper_verifier(program_name, &verification_context, request.backend_config);
 
+        // get the reporter
+        let env = &verification_context.env();
+        let jni = JniUtils::new(env);
+        let verifier_wrapper = silver::verifier::Verifier::with(env);
+        let reporter = jni.unwrap_result(verifier_wrapper.call_reporter(verifier.verifier_instance().clone()));
+        let rep_glob_ref = env.new_global_ref(reporter).unwrap();
+
+        let viper_arc_clone = Arc::clone(&viper_arc);
+        //let program_clone = request.program.clone();
+        let normalization_info_clone = normalization_info.clone();
+        let (main_tx, thread_rx) = mpsc::channel();
+        let (thread_tx, main_rx) = mpsc::channel();
+
+        // start thread for polling messages and print on receive
+        // TODO: maybe change to scope thread?
+        let polling_thread = thread::spawn(move || {
+            /*let functions = match program_clone {
+                program::Program::Legacy(p) => p.functions,
+                program::Program::Low(_) => panic!("Program::Low not yet supported!"),
+            };*/
+            let verification_context = viper_arc_clone.attach_current_thread();
+            let env = verification_context.env();
+            let jni = JniUtils::new(env);
+            let reporter_instance = rep_glob_ref.as_obj();
+            let reporter_wrapper = silver::reporter::PollingReporter::with(env);
+            let mut done = false;
+            let mut q_insts = HashMap::<(u64, String), u64>::new();
+            while !done {
+                while reporter_wrapper.call_hasNewMessage(reporter_instance).unwrap() {
+                    let msg = reporter_wrapper.call_getNewMessage(reporter_instance).unwrap();
+                    //println!("{}", jni.class_name(msg).as_str());
+                    match jni.class_name(msg).as_str() {
+                        /*
+                        "viper.silver.reporter.EntitySuccessMessage" => {
+                            let msg_wrapper = silver::reporter::EntitySuccessMessage::with(env);
+                            let verification_time = jni.unwrap_result(msg_wrapper.call_verificationTime(msg));
+                            //let cached = jni.unwrap_result(msg_wrapper.call_cached(msg));
+                            //println!("Received EntitySuccessMessage with time: {}", verification_time);
+                            let concerning = jni.unwrap_result(msg_wrapper.call_concerning(msg));
+                            let member_wrapper = silver::ast::Member::with(env);
+                            //println!("Concerning: {}", jni.get_string(jni.unwrap_result(member_wrapper.call_name(concerning))));
+                            match jni.class_name(concerning).as_str() {
+                                "viper.silver.ast.Function" => {
+                                    let name = jni.get_string(jni.unwrap_result(member_wrapper.call_name(concerning)));
+                                    for f in &functions {
+                                        if let Some(expr) = &f.body {
+                                            if f.name == name {
+                                                println!("SUCCESS: Function: {}, time: {}, body_pos: {:?}", name, verification_time, expr.pos());
+                                            }
+                                        }
+                                    }
+                                }
+                                _ => ()
+                            }
+                        }
+                        "viper.silver.reporter.EntityFailureMessage" => {
+                            let msg_wrapper = silver::reporter::EntityFailureMessage::with(env);
+                            let verification_time = jni.unwrap_result(msg_wrapper.call_verificationTime(msg));
+                            //let cached = jni.unwrap_result(msg_wrapper.call_cached(msg));
+                            //println!("Received EntityFailureMessage with time: {}", verification_time);
+                            let concerning = jni.unwrap_result(msg_wrapper.call_concerning(msg));
+                            let member_wrapper = silver::ast::Member::with(env);
+                            //println!("Concerning: {}", jni.get_string(jni.unwrap_result(member_wrapper.call_name(concerning))));
+                            match jni.class_name(concerning).as_str() {
+                                "viper.silver.ast.Function" => {
+                                    let name = jni.get_string(jni.unwrap_result(member_wrapper.call_name(concerning)));
+                                    for f in &functions {
+                                        if let Some(expr) = &f.body {
+                                            if f.name == name {
+                                                println!("FAILURE: Function: {}, time: {}, body_pos: {:?}", name, verification_time, expr.pos());
+                                            }
+                                        }
+                                    }
+                                }
+                                _ => ()
+                            }
+                        }*/
+                        "viper.silver.reporter.QuantifierInstantiationsMessage" => {
+                            let msg_wrapper = silver::reporter::QuantifierInstantiationsMessage::with(env);
+                            let q_name = jni.get_string(jni.unwrap_result(msg_wrapper.call_quantifier(msg)));
+                            // also matches the "-aux" quantifiers generated
+                            // problem: we want to keep the aux and non-aux version apart
+                            if q_name.starts_with("quant_with_posID") {
+                                let no_pref = q_name.strip_prefix("quant_with_posID").unwrap();
+                                let stripped = no_pref.strip_suffix("-aux").or(Some(no_pref)).unwrap();
+                                let parsed = stripped.parse::<u64>();
+                                match parsed {
+                                    Ok(pos_id) => {
+                                        let norm_pos_id = normalization_info_clone.denormalize_position_id(pos_id);
+                                        let q_inst = jni.unwrap_result(msg_wrapper.call_instantiations(msg));
+                                        info!("QuantifierInstantiationsMessage: {} {} {} {}", q_name, q_inst, pos_id, norm_pos_id);
+                                        // insert also updates the entry
+                                        q_insts.insert((norm_pos_id, q_name), q_inst.try_into().unwrap());
+                                        ()
+                                    }
+                                    _ => info!("Unexpected quantifier name {}", q_name)
+                                }
+                            }
+                        }
+                        _ => ()
+                    }
+                }
+                if !thread_rx.try_recv().is_err() {
+                    info!("Received termination signal!");
+                    done = true;
+                } else {
+                    thread::sleep(time::Duration::from_millis(10));
+                }
+            }
+            thread_tx.send(q_insts).unwrap();
+        });
         stopwatch.start_next("verification");
         let mut result = verifier.verify(viper_program);
+
+        main_tx.send(true).unwrap();
+        let q_insts: HashMap<(u64, String), u64> = main_rx.recv().unwrap();
+        polling_thread.join().unwrap();
 
         // Don't cache Java exceptions, which might be due to misconfigured paths.
         if config::enable_cache() && !matches!(result, VerificationResult::JavaException(_)) {
@@ -121,7 +242,24 @@ pub fn process_verification_request<'v, 't: 'v>(
         }
 
         normalization_info.denormalize_result(&mut result);
-        result
+        let enriched_result = match result {
+            VerificationResult::Success => {
+                info!("Enriching result");
+                for ((pos_id, q_name), n) in q_insts.iter() {
+                    info!("({} {}) {}", pos_id, q_name, n);
+                }
+                VerificationResult::EnrichedSuccess(q_insts)
+            },
+            VerificationResult::Failure(errors)=> {
+                info!("Enriching result");
+                for ((pos_id, q_name), n) in q_insts.iter() {
+                    info!("({} {}) {}", pos_id, q_name, n);
+                }
+                VerificationResult::EnrichedFailure(errors, q_insts)
+            },
+            _ => result,
+        };
+        enriched_result
     })
 }
 

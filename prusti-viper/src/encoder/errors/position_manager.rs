@@ -86,4 +86,8 @@ impl<'tcx> PositionManager<'tcx>
     pub fn get_span(&self, pos: Position) -> Option<&MultiSpan> {
         self.source_span.get(&pos.id())
     }
+
+    pub fn get_span_from_id(&self, pos_id: u64) -> Option<&MultiSpan> {
+        self.source_span.get(&pos_id)
+    }
 }

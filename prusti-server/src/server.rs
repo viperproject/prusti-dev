@@ -61,10 +61,7 @@ where
     let cache = Arc::new(Mutex::new(cache_data));
     let build_verification_request_handler = |viper_arc: Arc<Viper>, cache| {
         move |request: VerificationRequest| {
-            let stopwatch = Stopwatch::start("prusti-server", "attach thread to JVM");
-            let viper_thread = viper_arc.attach_current_thread();
-            stopwatch.finish();
-            process_verification_request(&viper_thread, request, &cache)
+            process_verification_request(&viper_arc, request, &cache)
         }
     };
 
@@ -84,7 +81,7 @@ where
                 warp::reject::custom(BincodeReject(err))
             })
         })
-        .map(build_verification_request_handler(viper, cache.clone()))
+        .map(build_verification_request_handler(viper.clone(), cache.clone()))
         .map(|result| {
             warp::http::Response::new(
                 bincode::serialize(&result).expect("could not encode verification result"),

@@ -9,6 +9,7 @@ use viper::VerificationResult;
 use fxhash::{FxHashSet, FxHashMap};
 use log::{debug, trace};
 
+#[derive(Clone)]
 pub enum NormalizationInfo {
     LegacyProgram { original_position_ids: Vec<u64> },
     LowProgram,
@@ -77,7 +78,7 @@ impl NormalizationInfo {
         )
     }
 
-    /// Denormalize the verification result.
+    /// Denormalize the program
     pub fn denormalize_program(&self, program: &mut Program) {
         match program {
             Program::Low(_) => debug!("No denormalization is done for vir::low programs."),

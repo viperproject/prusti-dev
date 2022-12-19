@@ -5,18 +5,23 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{silicon_counterexample::SiliconCounterexample, JavaException};
+use std::collections::HashMap;
 
 /// The result of a verification request on a Viper program.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum VerificationResult {
     /// The program verified.
     Success,
-    /// The program did not verify.
+    /// The program did not verify. Again with quantifier statistics.
     Failure(Vec<VerificationError>),
     /// The program has consistency errors.
     ConsistencyErrors(Vec<String>),
     /// The verification raised a Java exception.
     JavaException(JavaException),
+    /// Ships with quantifier statistics (currently only provided by Z3) that
+    /// map from position ID and name to the number of instantiations.
+    EnrichedSuccess(HashMap<(u64, String), u64>),
+    EnrichedFailure(Vec<VerificationError>, HashMap<(u64, String), u64>),
 }
 
 impl VerificationResult {
