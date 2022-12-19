@@ -7,8 +7,14 @@ use std::io::Write;
 
 impl ToGraphviz for ProcedureDecl {
     fn to_graph(&self) -> Graph {
+        self.basic_blocks.to_graph()
+    }
+}
+
+impl ToGraphviz for Vec<BasicBlock> {
+    fn to_graph(&self) -> Graph {
         let mut graph = Graph::with_columns(&["statement"]);
-        for block in &self.basic_blocks {
+        for block in self {
             let label = &block.label;
             let mut node_builder = graph.create_node(label.name.to_string());
             block_to_graph_node(block, &mut node_builder);
