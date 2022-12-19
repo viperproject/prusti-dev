@@ -248,13 +248,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             );
             functions.retain(|function| !removed_functions.contains(&function.name));
         };
-        Ok(LoweringResult {
+        let mut result = LoweringResult {
             procedures: vec![lowered_procedure],
             domains,
             functions,
             predicates,
             methods,
-        })
+        };
+        if prusti_common::config::custom_heap_encoding() {
+            super::transformations::custom_heap_encoding::custom_heap_encoding(&mut result)?;
+        }
+        Ok(result)
     }
 
     fn create_parameters(&self, arguments: &[vir_low::Expression]) -> Vec<vir_low::VariableDecl> {

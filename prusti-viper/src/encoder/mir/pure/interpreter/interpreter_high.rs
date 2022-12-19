@@ -17,12 +17,13 @@ use crate::encoder::{
         casts::CastsEncoderInterface,
         generics::MirGenericsEncoderInterface,
         places::PlacesEncoderInterface,
+        procedures::encoder::specification_blocks::SpecificationBlocks,
         pure::{
             interpreter::BackwardMirInterpreter, PureEncodingContext, PureFunctionEncoderInterface,
             SpecificationEncoderInterface,
         },
         specifications::SpecificationsInterface,
-        types::MirTypeEncoderInterface, procedures::encoder::specification_blocks::SpecificationBlocks,
+        types::MirTypeEncoderInterface,
     },
     mir_encoder::{MirEncoder, PRECONDITION_LABEL},
     Encoder,
@@ -924,7 +925,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         state.substitute_value(&lhs, encoded_rhs);
         Ok(state)
     }
-
 
     fn unreachable_expr(
         &self,
