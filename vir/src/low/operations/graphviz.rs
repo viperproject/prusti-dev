@@ -45,19 +45,21 @@ impl ToGraphviz for BTreeMap<Label, BasicBlock> {
     fn to_graph(&self) -> Graph {
         let mut graph = Graph::with_columns(&["statement"]);
         for (label, block) in self {
-            let mut node_builder = graph.create_node(label.to_string());
+            let mut node_builder = graph.create_node(label.name.to_string());
             block_to_graph_node(block, &mut node_builder);
             node_builder.build();
             match &block.successor {
-                Successor::Return => graph.add_exit_edge(label.to_string(), "return".to_string()),
+                Successor::Return => {
+                    graph.add_exit_edge(label.name.to_string(), "return".to_string())
+                }
                 Successor::Goto(target) => {
-                    graph.add_regular_edge(label.to_string(), target.to_string())
+                    graph.add_regular_edge(label.name.to_string(), target.name.to_string())
                 }
                 Successor::GotoSwitch(targets) => {
                     for (condition, target) in targets {
                         graph.add_regular_annotated_edge(
-                            label.to_string(),
-                            target.to_string(),
+                            label.name.to_string(),
+                            target.name.to_string(),
                             escape_html(condition.to_string()),
                         );
                     }

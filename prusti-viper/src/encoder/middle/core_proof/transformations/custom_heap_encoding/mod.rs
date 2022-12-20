@@ -212,14 +212,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         match statement {
             vir_low::Statement::Comment(_)
             | vir_low::Statement::LogEvent(_)
-            | vir_low::Statement::Assume(_)
-            | vir_low::Statement::Assert(_)
             | vir_low::Statement::Assign(_) => {
                 statements.push(statement);
             }
             vir_low::Statement::Label(statement) => {
                 self.ssa_state.save_state_at_label(statement.label.clone());
                 statements.push(vir_low::Statement::Label(statement));
+            }
+            vir_low::Statement::Assume(statement) => {
+                assert!(statement.expression.is_pure());
+                statements.push(vir_low::Statement::assume(
+                    self.encode_pure_expression(statement.expression, None, &None)?,
+                    statement.position,
+                ));
+            }
+            vir_low::Statement::Assert(statement) => {
+                unimplemented!("statement: {}", statement);
             }
             vir_low::Statement::Inhale(statement) => {
                 statements.push(vir_low::Statement::comment(format!("{}", statement)));
