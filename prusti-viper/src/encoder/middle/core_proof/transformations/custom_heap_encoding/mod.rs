@@ -437,12 +437,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         let guard = predicate_arguments
             .into_iter()
             .zip(arguments)
-            .map(|(parameter, argument)| {
-                vir_low::Expression::not(vir_low::Expression::equals(parameter, argument))
-            })
+            .map(|(parameter, argument)| vir_low::Expression::equals(parameter, argument))
             .conjoin();
-        let body =
-            vir_low::Expression::implies(guard, vir_low::Expression::equals(perm_new, perm_old));
+        let body = vir_low::Expression::implies(
+            vir_low::Expression::not(guard),
+            vir_low::Expression::equals(perm_new, perm_old),
+        );
         statements.push(vir_low::Statement::assume(
             vir_low::Expression::forall(predicate_parameters, triggers, body),
             position,
@@ -558,7 +558,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     ));
                     // assume forall arg1: Ref, arg2: Ref ::
                     //     {perm<P>(arg1, arg2, v_new)}
-                    //     r1 != arg1 && r2 != arg2 ==>
+                    //     !(r1 == arg1 && r2 == arg2) ==>
                     //     perm<P>(arg1, arg2, v_new) == perm<P>(arg1, arg2, v_old)
                     self.encode_perm_unchanged_quantifier(
                         statements,
@@ -673,7 +673,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     ));
                     // assume forall arg1: Ref, arg2: Ref ::
                     //     {perm<P>(arg1, arg2, v_new)}
-                    //     r1 != arg1 && r2 != arg2 ==>
+                    //     !(r1 == arg1 && r2 == arg2) ==>
                     //     perm<P>(arg1, arg2, v_new) == perm<P>(arg1, arg2, v_old)
                     self.encode_perm_unchanged_quantifier(
                         statements,
