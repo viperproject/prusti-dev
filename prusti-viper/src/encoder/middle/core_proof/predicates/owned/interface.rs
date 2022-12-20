@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use super::{
     builders::{
         FracRefSnapCallBuilder, OwnedAliasedRangeUseBuilder, OwnedAliasedUseBuilder,
@@ -45,7 +47,10 @@ pub(in super::super::super) trait PredicatesOwnedInterface {
     fn mark_unique_ref_as_used(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
     fn collect_owned_predicate_decls(
         &mut self,
-    ) -> SpannedEncodingResult<Vec<vir_low::PredicateDecl>>;
+    ) -> SpannedEncodingResult<(
+        Vec<vir_low::PredicateDecl>,
+        BTreeMap<String, (String, vir_low::Type)>,
+    )>;
     /// A version of `owned_non_aliased` for the most common case.
     #[allow(clippy::too_many_arguments)]
     fn owned_non_aliased_full_vars<G>(
@@ -344,7 +349,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesOwnedInterface for Lowerer<'p, 'v, 'tcx> {
 
     fn collect_owned_predicate_decls(
         &mut self,
-    ) -> SpannedEncodingResult<Vec<vir_low::PredicateDecl>> {
+    ) -> SpannedEncodingResult<(
+        Vec<vir_low::PredicateDecl>,
+        BTreeMap<String, (String, vir_low::Type)>,
+    )> {
         let unfolded_owned_non_aliased_predicates = std::mem::take(
             &mut self
                 .predicates_encoding_state
@@ -373,7 +381,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesOwnedInterface for Lowerer<'p, 'v, 'tcx> {
         for ty in &used_unique_ref_predicates {
             predicate_encoder.encode_unique_ref(ty)?;
         }
-        Ok(predicate_encoder.into_predicates())
+        let predicate_info = predicate_encoder.take_predicate_info();
+        Ok((predicate_encoder.into_predicates(), predicate_info))
     }
 
     fn owned_non_aliased_full_vars<G>(

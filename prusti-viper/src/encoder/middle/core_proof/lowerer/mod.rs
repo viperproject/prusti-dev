@@ -239,7 +239,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         if procedure.check_mode == CheckMode::PurificationFunctional {
             removed_functions.insert(self.encode_memory_block_bytes_function_name()?);
         }
-        let mut predicates = self.collect_owned_predicate_decls()?;
+        let (mut predicates, predicates_info) = self.collect_owned_predicate_decls()?;
         basic_blocks.get_mut(&entry).unwrap().statements.splice(
             0..0,
             self.lifetimes_state.lifetime_is_alive_initialization(),
@@ -292,6 +292,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             super::transformations::custom_heap_encoding::custom_heap_encoding(
                 self.encoder,
                 &mut result,
+                predicates_info,
             )?;
         }
         Ok(result)
@@ -327,7 +328,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         if check_copy {
             self.encode_copy_place_method(&ty)?;
         }
-        let mut predicates = self.collect_owned_predicate_decls()?;
+        let (mut predicates, _) = self.collect_owned_predicate_decls()?;
         let mut domains = self.domains_state.destruct();
         domains.extend(self.compute_address_state.destruct());
         predicates.extend(self.predicates_state.destruct());

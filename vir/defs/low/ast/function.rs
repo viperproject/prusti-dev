@@ -14,7 +14,7 @@ pub enum FunctionKind {
     "display::cjoin(parameters)",
     return_type,
     "display::foreach!(\"  requires {}\n\", pres)",
-    "display::foreach!(\"  ensures {}\n\", pres)",
+    "display::foreach!(\"  ensures {}\n\", posts)",
     "display::option!(body, \"{{ {} }}\n\", \"\")"
 )]
 pub struct FunctionDecl {

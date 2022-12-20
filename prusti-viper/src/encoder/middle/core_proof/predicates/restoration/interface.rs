@@ -43,6 +43,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> RestorationInterface for Lowerer<'p, 'v, 'tcx> {
             use vir_low::macros::*;
             let predicate = vir_low::PredicateDecl::new(
                 predicate_name! { RestoreRawBorrowed<ty> },
+                vir_low::PredicateKind::WithoutSnapshot,
                 vars!(place: Place, address: Address),
                 None,
             );
