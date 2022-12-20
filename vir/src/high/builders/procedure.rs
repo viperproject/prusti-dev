@@ -7,6 +7,7 @@ use std::collections::BTreeMap;
 pub struct ProcedureBuilder {
     name: String,
     check_mode: CheckMode,
+    position: vir_high::Position,
     pre_statements: Vec<vir_high::Statement>,
     post_statements: Vec<vir_high::Statement>,
     start_label: vir_high::BasicBlockId,
@@ -45,12 +46,14 @@ impl ProcedureBuilder {
     pub fn new(
         name: String,
         check_mode: CheckMode,
+        position: vir_high::Position,
         pre_statements: Vec<vir_high::Statement>,
         post_statements: Vec<vir_high::Statement>,
     ) -> Self {
         Self {
             name,
             check_mode,
+            position,
             pre_statements,
             post_statements,
             start_label: vir_high::BasicBlockId::new("start_label".to_string()),
@@ -96,6 +99,7 @@ impl ProcedureBuilder {
         vir_high::ProcedureDecl {
             name: self.name,
             check_mode: self.check_mode,
+            position: self.position,
             entry: self.start_label,
             exit: self.end_label,
             basic_blocks,

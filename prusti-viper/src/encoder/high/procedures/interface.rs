@@ -85,6 +85,7 @@ impl<'v, 'tcx: 'v> Private for super::super::super::Encoder<'v, 'tcx> {
         let procedure_typed = vir_typed::ProcedureDecl {
             name: procedure_high.name,
             check_mode: procedure_high.check_mode,
+            position: procedure_high.position,
             entry: procedure_high.entry.high_to_typed_statement(self)?,
             exit: procedure_high.exit.high_to_typed_statement(self)?,
             basic_blocks,

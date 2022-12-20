@@ -23,6 +23,10 @@ impl<BBI> Default for SSAState<BBI> {
 }
 
 impl<BBI: Ord + Clone> SSAState<BBI> {
+    pub fn initial_variable_version(&self, _variable_name: &str) -> u64 {
+        0
+    }
+
     pub fn new_variable_version(
         &mut self,
         variable_name: &str,
