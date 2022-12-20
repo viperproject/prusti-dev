@@ -22,6 +22,7 @@ use crate::encoder::places::{Local, LocalVariableManager, Place};
 use crate::encoder::Encoder;
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
 use crate::encoder::mir::procedures::encoder::specification_blocks::SpecificationBlocks;
+use crate::error_unsupported;
 use prusti_common::{
     config,
     utils::to_string::ToString,
@@ -830,6 +831,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .unwrap_or(0);
         let after_guard_block = loop_body[after_guard_block_pos];
         let after_inv_block = loop_body[after_inv_block_pos];
+        let loop_head_span = self.mir_encoder.get_span_of_basic_block(loop_head);
 
         debug!("loop_head: {:?}", loop_head);
         debug!("loop_body: {:?}", loop_body);
@@ -1180,7 +1182,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 )),
             };
             let stmt = vir::Stmt::MethodCall( vir::MethodCall {
-                method_name: self.encoder.encode_builtin_method_use(builtin_method),
+                method_name: self.encoder.encode_builtin_method_use(builtin_method).with_span(loop_head_span)?,
                 arguments: vec![],
                 targets: vec![var],
             });
@@ -1596,24 +1598,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
             mir::Rvalue::Cast(mir::CastKind::Pointer(_), _, _) |
             mir::Rvalue::Cast(mir::CastKind::DynStar, _, _) => {
-                return Err(EncodingError::unsupported(
-                    "raw pointers are not supported"
-                )).with_span(span);
+                return Err(SpannedEncodingError::unsupported(
+                    "raw pointers are not supported", span
+                ));
             }
             mir::Rvalue::Cast(cast_kind, _, _) => {
-                return Err(EncodingError::unsupported(
-                    format!("casts {:?} are not supported", cast_kind)
-                )).with_span(span);
+                return Err(SpannedEncodingError::unsupported(
+                    format!("casts {:?} are not supported", cast_kind), span
+                ));
             }
             mir::Rvalue::AddressOf(_, _) => {
-                return Err(EncodingError::unsupported(
-                    "raw addresses of expressions or casting a reference to a raw pointer are not supported"
-                )).with_span(span);
+                return Err(SpannedEncodingError::unsupported(
+                    "raw addresses of expressions or casting a reference to a raw pointer are not supported", span
+                ));
             }
             mir::Rvalue::ThreadLocalRef(_) => {
-                return Err(EncodingError::unsupported(
-                    "references to thread-local storage are not supported"
-                )).with_span(span);
+                return Err(SpannedEncodingError::unsupported(
+                    "references to thread-local storage are not supported", span
+                ));
             }
             mir::Rvalue::ShallowInitBox(_, op_ty) => {
                 self.encode_assign_box(
@@ -2295,7 +2297,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
                 let mut cfg_targets: Vec<(vir::Expr, BasicBlockIndex)> = vec![];
 
-                // Use a local variable for the discriminant (see issue #57)
+                // Use a local variable for the discriminant.
+                // See Silicon issue https://github.com/viperproject/silicon/issues/356
                 let discr_var = match switch_ty.kind() {
                     ty::TyKind::Bool => {
                         self.cfg_method.add_fresh_local_var(vir::Type::Bool)
@@ -2525,7 +2528,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             );
 
                             // Allocate `box_content`
-                            stmts.extend(self.encode_havoc_and_initialization(&box_content));
+                            stmts.extend(self.encode_havoc_and_initialization(&box_content).with_span(span)?);
 
                             // Initialize `box_content`
                             stmts.extend(
@@ -2668,10 +2671,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                                     .with_default_span(term.source_info.span)?;
                                 debug!("Encoding pure function call '{}'", function_name);
                                 assert!(target.is_some());
-                                let mut arg_exprs = vec![];
                                 for operand in args.iter() {
-                                    let arg_expr = self.mir_encoder.encode_operand_expr(operand);
-                                    arg_exprs.push(arg_expr);
+                                    // Check that the operand's type is Copy
+                                    let _ = self.mir_encoder.encode_operand_expr(operand);
                                 }
 
                                 stmts.extend(
@@ -2730,7 +2732,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             } => {
                 trace!("Assert cond '{:?}', expected '{:?}'", cond, expected);
 
-                // Use local variables in the switch/if (see GitLab issue #57)
+                // Use local variables in the switch/if.
+                // See Silicon issue https://github.com/viperproject/silicon/issues/356
                 let cond_var = self.cfg_method.add_fresh_local_var(vir::Type::Bool);
                 stmts.push(vir::Stmt::Assign( vir::Assign {
                     target: cond_var.clone().into(),
@@ -2862,9 +2865,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         )?;
         stmts.extend(encode_stmts);
         if !lhs_ty.is_slice_or_ref() && !lhs_ty.is_array_or_ref() {
-            return Err(EncodingError::unsupported(
-                format!("Non-slice LHS type '{:?}' not supported yet", lhs_ty)
-            ));
+            error_unsupported!("Non-slice LHS type '{:?}' not supported yet", lhs_ty);
         }
         let mutability = if let ty::TyKind::Ref(_, _, mutability) = lhs_ty.kind() { mutability } else { unreachable!() };
         let perm_amount = match mutability {
@@ -2872,7 +2873,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             Mutability::Not => vir::PermAmount::Read,
         };
 
-        stmts.extend(self.encode_havoc(&encoded_lhs));
+        stmts.extend(self.encode_havoc(&encoded_lhs)?);
         stmts.push(vir_stmt!{ inhale [vir::Expr::pred_permission(encoded_lhs.clone(), perm_amount).unwrap()] });
 
         let lhs_slice_ty = lhs_ty.peel_refs();
@@ -2882,9 +2883,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let base_seq_ty = self.mir_encoder.get_operand_ty(&args[0]);
 
         if !base_seq_ty.is_slice_or_ref() && !base_seq_ty.is_array_or_ref() {
-            return Err(EncodingError::unsupported(
-                format!("Slicing is only supported for arrays/slices currently, not '{:?}'", base_seq_ty)
-            ));
+            error_unsupported!("Slicing is only supported for arrays/slices currently, not '{:?}'", base_seq_ty);
         }
 
         // base_seq is expected to be ref$Array$.. or ref$Slice$.., but lookup_pure wants the
@@ -3409,7 +3408,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Havoc and inhale variables that store constants
         for constant_arg in &constant_args {
-            stmts.extend(self.encode_havoc_and_initialization(constant_arg));
+            stmts.extend(self.encode_havoc_and_initialization(constant_arg).with_span(call_site_span)?);
         }
 
         // Encode precondition.
@@ -3459,7 +3458,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // Havoc the content of the lhs, if there is one
         if let Some(ref target_place) = encoded_target {
-            stmts.extend(self.encode_havoc(target_place));
+            stmts.extend(self.encode_havoc(target_place).with_span(call_site_span)?);
         }
 
         // Store a label for permissions got back from the call
@@ -3674,6 +3673,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         call_result: vir::Expr,
     ) -> SpannedEncodingResult<(Vec<vir::Stmt>, String)> {
         let mut stmts = vec![];
+        let span = self.mir_encoder.get_span_of_location(location);
 
         let label = self.cfg_method.get_fresh_label_name();
         stmts.push(vir::Stmt::label(label.clone()));
@@ -3681,7 +3681,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // Havoc the content of the lhs
         let (target_place, pre_stmts) = self.encode_pure_function_call_lhs_place(destination, target, location)?;
         stmts.extend(pre_stmts);
-        stmts.extend(self.encode_havoc(&target_place));
+        stmts.extend(self.encode_havoc(&target_place).with_span(span)?);
         let type_predicate = self
             .mir_encoder
             .encode_place_predicate_permission(target_place.clone(), vir::PermAmount::Write)
@@ -5675,7 +5675,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let lookup_array_i_old = sequence_types.encode_lookup_pure_call(self.encoder, old(encoded_array.clone()), i_var, lookup_ret_ty.clone());
         let lookup_same_as_old = vir_expr!{ [lookup_array_i] == [old(lookup_array_i)] };
         let forall_body = vir_expr!{ [idx_conditions] ==> [lookup_same_as_old] };
-        let all_others_unchanged = vir_expr!{ forall i: Int :: { [lookup_array_i_old] } [ forall_body ] };
+        let all_others_unchanged = vir_expr!{ forall i: Int :: { [lookup_array_i_old] } :: [ forall_body ] };
 
         stmts.push(vir_stmt!{ inhale [ all_others_unchanged ]});
 
@@ -5944,7 +5944,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .init_info
             .is_vir_place_accessible(&encoded_lhs, location)
         {
-            let mut alloc_stmts = self.encode_havoc(&encoded_lhs);
+            let mut alloc_stmts = self.encode_havoc(&encoded_lhs).with_span(span)?;
             let mut inhale_acc = |place| {
                 alloc_stmts.push(vir::Stmt::Inhale( vir::Inhale {
                     expr: vir::Expr::acc_permission(place, vir::PermAmount::Write),
@@ -6053,6 +6053,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         assert_eq!(op_ty, ty.boxed_ty());
+        let span = self.mir_encoder.get_span_of_location(location);
         let ref_field = self.encoder.encode_dereference_field(op_ty)
             .with_span(
                 self.mir_encoder.get_span_of_location(location)
@@ -6071,7 +6072,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // TODO: This is also encoding initialization, which should be avoided because both
         //   `Rvalue::NullaryOp(NullOp::Box)` and `Rvalue::ShallowInitBox` don't initialize the
         //   content of the box.
-        stmts.extend(self.encode_havoc_and_initialization(&box_content));
+        stmts.extend(self.encode_havoc_and_initialization(&box_content).with_span(span)?);
 
         // Leave `box_content` uninitialized
         Ok(stmts)
@@ -6239,7 +6240,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         };
         let slice_types = self.encoder.encode_sequence_types(*slice_ty).with_span(span)?;
 
-        stmts.extend(self.encode_havoc(&encoded_lhs));
+        stmts.extend(self.encode_havoc(&encoded_lhs).with_span(span)?);
         let val_ref_field = self.encoder.encode_value_field(ty).with_span(span)?;
         let slice_expr = encoded_lhs.field(val_ref_field);
         stmts.push(vir_stmt!{ inhale [vir::Expr::FieldAccessPredicate( vir::FieldAccessPredicate {
@@ -6302,7 +6303,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: vir_expr! {
                 forall i: Int ::
-                { [array_lookup_call], [slice_lookup_call] }
+                { [array_lookup_call] } { [slice_lookup_call] } ::
                 ([indices] ==> ([array_lookup_call] == [slice_lookup_call])) }
         }));
 
@@ -6393,7 +6394,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             encoded_operand
         };
 
-        let mut stmts = self.encode_havoc_and_initialization(&encoded_lhs);
+        let mut stmts = self.encode_havoc_and_initialization(&encoded_lhs).with_span(span)?;
         let idx: vir::Expr = vir_local! { i: Int }.into();
         let indices = vir_expr! { ([vir::Expr::from(0usize)] <= [idx]) && ([idx] < [vir::Expr::from(len)]) };
         let lookup_pure_call = sequence_types.encode_lookup_pure_call(
@@ -6405,7 +6406,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: vir_expr! {
                 forall i: Int ::
-                { [lookup_pure_call] }
+                { [lookup_pure_call] } ::
                 ([indices] ==> ([lookup_pure_call] == [inhaled_operand])) }
         }));
 
@@ -6424,20 +6425,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         vir::LocalVar::new(name, vir_type)
     }
 
-    fn encode_havoc(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
+    fn encode_havoc(&mut self, dst: &vir::Expr) -> EncodingResult<Vec<vir::Stmt>> {
         debug!("Encode havoc {:?}", dst);
         let havoc_ref_method_name = self
             .encoder
-            .encode_builtin_method_use(BuiltinMethodKind::HavocRef);
+            .encode_builtin_method_use(BuiltinMethodKind::HavocRef)?;
         if let vir::Expr::Local( vir::Local {variable: ref dst_local_var, ..} ) = dst {
-            vec![vir::Stmt::MethodCall( vir::MethodCall {
+            Ok(vec![vir::Stmt::MethodCall( vir::MethodCall {
                 method_name: havoc_ref_method_name,
                 arguments: vec![],
                 targets: vec![dst_local_var.clone()],
-            })]
+            })])
         } else {
             let tmp_var = self.get_auxiliary_local_var("havoc", dst.get_type().clone());
-            vec![
+            Ok(vec![
                 vir::Stmt::MethodCall( vir::MethodCall {
                     method_name: havoc_ref_method_name,
                     arguments: vec![],
@@ -6448,24 +6449,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     source: tmp_var.into(),
                     kind: vir::AssignKind::Move,
                 }),
-            ]
+            ])
         }
     }
 
     /// Havoc and assume permission on fields
-    fn encode_havoc_and_initialization(&mut self, dst: &vir::Expr) -> Vec<vir::Stmt> {
+    fn encode_havoc_and_initialization(&mut self, dst: &vir::Expr) -> EncodingResult<Vec<vir::Stmt>> {
         debug!("Encode havoc and allocation {:?}", dst);
 
         let mut stmts = vec![];
         // Havoc `dst`
-        stmts.extend(self.encode_havoc(dst));
+        stmts.extend(self.encode_havoc(dst)?);
         // Initialize `dst`
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: self.mir_encoder
                     .encode_place_predicate_permission(dst.clone(), vir::PermAmount::Write)
                     .unwrap(),
         }));
-        stmts
+        Ok(stmts)
     }
 
     /// Prepare the ``dst`` to be copy target:
@@ -6485,8 +6486,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             field,
             location
         );
+        let span = self.mir_encoder.get_span_of_location(location);
         if !self.init_info.is_vir_place_accessible(&dst, location) {
-            let mut alloc_stmts = self.encode_havoc(&dst);
+            let mut alloc_stmts = self.encode_havoc(&dst).with_span(span)?;
             let dst_field = dst.clone().field(field.clone());
             let acc = vir::Expr::acc_permission(dst_field.clone(), vir::PermAmount::Write);
             alloc_stmts.push(vir::Stmt::Inhale( vir::Inhale {
@@ -6573,8 +6575,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         src: vir::Expr,
         dst: vir::Expr,
-    ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
-        let mut stmts = self.encode_havoc_and_initialization(&dst);
+    ) -> EncodingResult<Vec<vir::Stmt>> {
+        let mut stmts = self.encode_havoc_and_initialization(&dst)?;
         stmts.push(vir::Stmt::Inhale( vir::Inhale {
             expr: vir::Expr::eq_cmp(
                 vir::Expr::snap_app(src),
@@ -6606,7 +6608,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::Tuple(_)
             | ty::TyKind::Param(_)
             | ty::TyKind::Array(_, _) => {
-                self.encode_copy_snapshot_value(src, dst)?
+                self.encode_copy_snapshot_value(src, dst).with_span(span)?
             }
 
             _ => {
@@ -6636,7 +6638,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             aggregate, operands
         );
         let span = self.mir_encoder.get_span_of_location(location);
-        let mut stmts = self.encode_havoc_and_initialization(dst);
+        let mut stmts = self.encode_havoc_and_initialization(dst).with_span(span)?;
         // Initialize values
         match *aggregate {
             mir::AggregateKind::Tuple => {
@@ -6850,7 +6852,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let lookup_ret_ty = self.encoder.encode_snapshot_type(sequence_types.elem_ty_rs)?;
 
         let (encoded_base_expr, mut stmts) = self.postprocess_place_encoding(base, ArrayAccessKind::Shared)?;
-        stmts.extend(self.encode_havoc_and_initialization(&lookup_res));
+        stmts.extend(self.encode_havoc_and_initialization(&lookup_res)?);
 
         let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
 
@@ -6891,7 +6893,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let idx_val_int = self.encoder.patch_snapshots(vir::Expr::snap_app(index))?;
 
         // var res: Ref := havoc_ref()
-        stmts.extend(self.encode_havoc_and_initialization(&res));
+        stmts.extend(self.encode_havoc_and_initialization(&res)?);
 
         // label before for old[label](..) stuff
         let before_label = self.cfg_method.get_fresh_label_name();
@@ -6954,7 +6956,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         );
         let lookup_same_as_old = vir_expr!{ [lookup_array_i] == [old(lookup_array_i.clone())] };
         let forall_body = vir_expr!{ [idx_conditions] ==> [lookup_same_as_old] };
-        let all_others_unchanged = vir_expr!{ forall i: Int :: { [lookup_array_i] } [ forall_body ] };
+        let all_others_unchanged = vir_expr!{ forall i: Int :: { [lookup_array_i] } :: [ forall_body ] };
         let indexed_lookup_pure = sequence_types.encode_lookup_pure_call(
             self.encoder,
             encoded_base_expr.clone(),
