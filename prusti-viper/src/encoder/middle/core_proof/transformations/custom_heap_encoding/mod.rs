@@ -29,7 +29,7 @@ pub(in super::super) fn custom_heap_encoding<'p, 'v: 'p, 'tcx: 'v>(
     let mut procedures = Vec::new();
     let mut heap_encoder = HeapEncoder::new(
         encoder,
-        std::mem::take(&mut result.predicates),
+        &result.predicates,
         &result.methods,
     );
     for mut procedure in std::mem::take(&mut result.procedures) {
@@ -47,6 +47,7 @@ pub(in super::super) fn custom_heap_encoding<'p, 'v: 'p, 'tcx: 'v>(
             for statement in std::mem::take(&mut block.statements) {
                 heap_encoder.encode_statement(&mut statements, statement)?;
             }
+            block.statements = statements;
             heap_encoder.finish_current_block(label.clone())?;
         }
         for label in traversal_order {
@@ -98,6 +99,8 @@ pub(in super::super) fn custom_heap_encoding<'p, 'v: 'p, 'tcx: 'v>(
             .extend(std::mem::take(&mut heap_encoder.new_variables.variables));
         procedures.push(procedure);
     }
+    result.procedures = procedures;
+    result.domains.extend(heap_encoder.generate_necessary_domains()?);
     Ok(())
 }
 
@@ -122,7 +125,7 @@ impl VariableDeclarations {
 struct HeapEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p mut Encoder<'v, 'tcx>,
     new_variables: VariableDeclarations,
-    predicates: FxHashMap<String, vir_low::PredicateDecl>,
+    predicates: FxHashMap<String, &'p vir_low::PredicateDecl>,
     methods: FxHashMap<String, &'p vir_low::MethodDecl>,
     ssa_state: vir_low::ssa::SSAState<vir_low::Label>,
     permission_mask_names: FxHashMap<String, String>,
@@ -134,7 +137,7 @@ struct HeapEncoder<'p, 'v: 'p, 'tcx: 'v> {
 impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     fn new(
         encoder: &'p mut Encoder<'v, 'tcx>,
-        predicates: Vec<vir_low::PredicateDecl>,
+        predicates: &'p Vec<vir_low::PredicateDecl>,
         methods: &'p [vir_low::MethodDecl],
     ) -> Self {
         Self {
@@ -155,7 +158,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 })
                 .collect(),
             predicates: predicates
-                .into_iter()
+                .iter()
                 .map(|predicate| (predicate.name.clone(), predicate))
                 .collect(),
             methods: methods
@@ -303,7 +306,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         let perm_function_name = self.get_perm_function_name_for(&predicate.name);
         arguments.push(permission_mask);
         Ok(vir_low::Expression::domain_function_call(
-            "Perm",
+            "PermFunctions",
             perm_function_name.clone(),
             arguments,
             vir_low::Type::Perm,
@@ -362,6 +365,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    fn heap_call(
+        &mut self,
+        predicate: &vir_low::ast::expression::PredicateAccessPredicate,
+        mut arguments: Vec<vir_low::Expression>,
+        heap_version: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let heap_function_name = self.get_heap_function_name_for(&predicate.name);
+        arguments.push(heap_version);
+        Ok(vir_low::Expression::domain_function_call(
+            "HeapFunctions",
+            heap_function_name,
+            arguments,
+            vir_low::Type::Perm,
+        ))
+    }
+
+    fn heap_call_for_predicate_def(
+        &mut self,
+        predicate: &vir_low::ast::expression::PredicateAccessPredicate,
+        heap_version: vir_low::Expression,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let arguments = self.predicate_parameters(predicate)?;
+        self.heap_call(predicate, arguments, heap_version)
+    }
+
     fn encode_heap_unchanged_quantifier(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
@@ -372,14 +400,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         let perm_new = self.perm_call_for_predicate_def(&predicate, new_permission_mask.clone())?;
         let heap_version_old = self.get_current_heap_version_for(&predicate.name)?;
         let heap_version_new = self.get_new_heap_version_for(&predicate.name, position)?;
+        let heap_old = self.heap_call_for_predicate_def(&predicate, heap_version_old.clone())?;
+        let heap_new = self.heap_call_for_predicate_def(&predicate, heap_version_new.clone())?;
         let predicate_parameters = self
             .get_predicate_parameters_for(&predicate.name)
             .to_owned();
-        let triggers = vec![vir_low::Trigger::new(vec![heap_version_new.clone()])];
-        let guard = vir_low::Expression::greater_than(perm_new, 0.into());
+        let triggers = vec![vir_low::Trigger::new(vec![heap_new.clone()])];
+        let guard = vir_low::Expression::greater_than(perm_new, vir_low::Expression::no_permission());
         let body = vir_low::Expression::implies(
             guard,
-            vir_low::Expression::equals(heap_version_old, heap_version_new),
+            vir_low::Expression::equals(heap_old, heap_new),
         );
         statements.push(vir_low::Statement::assume(
             vir_low::Expression::forall(predicate_parameters, triggers, body),
@@ -435,7 +465,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         vir_low::Expression::equals(
                             perm_new.clone(),
                             // vir_low::Expression::domain_function_call(
-                            //     "Perm",
+                            //     "PermFunctions",
                             //     perm_function_name.clone(),
                             //     new_permission_arguments,
                             //     vir_low::Type::Perm,
@@ -443,7 +473,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                             vir_low::Expression::add(
                                 perm_old.clone(),
                                 // vir_low::Expression::domain_function_call(
-                                //     "Perm",
+                                //     "PermFunctions",
                                 //     perm_function_name.clone(),
                                 //     old_permission_arguments,
                                 //     vir_low::Type::Perm,
@@ -451,7 +481,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                                 (*expression.permission).clone(),
                             ),
                         ),
-                        expression.position,
+                        position,   // FIXME: use position of expression.permission with proper ErrorCtxt.
                     ));
                     // assume forall arg1: Ref, arg2: Ref ::
                     //     {perm<P>(arg1, arg2, v_new)}
@@ -474,7 +504,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     // old_permission_arguments.push(old_permission_mask.clone());
                     // new_permission_arguments.push(new_permission_mask.clone());
                     // let perm_new = vir_low::Expression::domain_function_call(
-                    //     "Perm",
+                    //     "PermFunctions",
                     //     perm_function_name.clone(),
                     //     new_permission_arguments,
                     //     vir_low::Type::Perm,
@@ -484,7 +514,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     //     new_permission_mask.clone(),
                     // )?;
                     // // let perm_old = vir_low::Expression::domain_function_call(
-                    // //     "Perm",
+                    // //     "PermFunctions",
                     // //     perm_function_name.clone(),
                     // //     old_permission_arguments,
                     // //     vir_low::Type::Perm,
@@ -567,6 +597,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         expression_evaluation_state_label: &str,
         old_label: &Option<String>,
     ) -> SpannedEncodingResult<()> {
+        assert!(!position.is_default(), "expression: {}", expression);
         if expression.is_pure() {
             statements.push(vir_low::Statement::assert(
                 self.encode_pure_expression(
@@ -599,7 +630,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                             perm_old.clone(),
                             (*expression.permission).clone(),
                         ),
-                        expression.position,
+                        position,   // FIXME: use position of expression.permission with proper ErrorCtxt.
                     ));
                     // assume perm<P>(r1, r2, v_new) == perm<P>(r1, r2, v_old) - p
                     statements.push(vir_low::Statement::assume(
@@ -610,7 +641,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                                 (*expression.permission).clone(),
                             ),
                         ),
-                        expression.position,
+                        position,   // FIXME: use position of expression.permission with proper ErrorCtxt.
                     ));
                     // assume forall arg1: Ref, arg2: Ref ::
                     //     {perm<P>(arg1, arg2, v_new)}
@@ -693,7 +724,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let variable_name = self.permission_mask_names.get(predicate_name).unwrap();
         let version = self.ssa_state.current_variable_version(variable_name);
-        let ty = vir_low::Type::Perm;
+        let ty = self.perm_version_type();
         Ok(self
             .new_variables
             .create_variable(variable_name, ty, version)?
@@ -706,7 +737,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let variable_name = self.permission_mask_names.get(predicate_name).unwrap();
-        let ty = vir_low::Type::Perm;
+        let ty = self.perm_version_type();
         let version = self
             .ssa_state
             .new_variable_version(variable_name, &ty, position);
@@ -726,7 +757,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let variable_name = self.heap_names.get(predicate_name).unwrap();
         let version = self.ssa_state.current_variable_version(variable_name);
-        let ty = vir_low::Type::Perm;
+        let ty = self.heap_version_type();
         Ok(self
             .new_variables
             .create_variable(variable_name, ty, version)?
@@ -739,7 +770,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let variable_name = self.heap_names.get(predicate_name).unwrap();
-        let ty = vir_low::Type::Perm;
+        let ty = self.heap_version_type();
         let version = self
             .ssa_state
             .new_variable_version(variable_name, &ty, position);
@@ -747,6 +778,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             .new_variables
             .create_variable(variable_name, ty, version)?
             .into())
+    }
+
+    fn get_heap_function_name_for(&self, predicate_name: &str) -> String {
+        format!("heap${}", predicate_name)
     }
 
     fn get_predicate_parameters_for(&self, predicate_name: &str) -> &[vir_low::VariableDecl] {
@@ -779,5 +814,56 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     fn fresh_label(&mut self) -> String {
         self.fresh_label_counter += 1;
         format!("heap_label${}", self.fresh_label_counter)
+    }
+
+    fn perm_version_type(&self) -> vir_low::Type {
+        vir_low::Type::domain("PermVersion".to_string())
+    }
+
+    fn heap_version_type(&self) -> vir_low::Type {
+        vir_low::Type::domain("HeapVersion".to_string())
+    }
+
+    fn generate_necessary_domains(&self) -> SpannedEncodingResult<Vec<vir_low::DomainDecl>> {
+        let perm_version_domain = vir_low::DomainDecl::new(
+            "PermVersion",
+            Vec::new(),
+            Vec::new(),
+        );
+        let heap_version_domain = vir_low::DomainDecl::new(
+            "HeapVersion",
+            Vec::new(),
+            Vec::new(),
+        );
+        let mut perm_functions = Vec::new();
+        let mut heap_functions = Vec::new();
+        for predicate in self.predicates.values() {
+            let mut parameters = predicate.parameters.clone();
+            parameters.push(vir_low::VariableDecl::new(
+                "version",
+                self.perm_version_type(),
+            ));
+            perm_functions.push(vir_low::DomainFunctionDecl::new(
+                self.get_perm_function_name_for(&predicate.name),
+                false,
+                parameters,
+                vir_low::Type::Perm,
+            ));
+            let mut parameters = predicate.parameters.clone();
+            parameters.push(vir_low::VariableDecl::new(
+                "version",
+                self.heap_version_type(),
+            ));
+            heap_functions.push(vir_low::DomainFunctionDecl::new(
+                self.get_heap_function_name_for(&predicate.name),
+                false,
+                parameters,
+                vir_low::Type::Perm,
+            ));
+        }
+        let perm_domain = vir_low::DomainDecl::new("PermFunctions", perm_functions, Vec::new());
+        let heap_domain = vir_low::DomainDecl::new("HeapFunctions", heap_functions, Vec::new());
+        let domains = vec![perm_domain, perm_version_domain, heap_domain, heap_version_domain];
+        Ok(domains)
     }
 }
