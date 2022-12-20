@@ -1,5 +1,5 @@
 use crate::encoder::{
-    errors::{ErrorCtxt, SpannedEncodingResult},
+    errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult},
     middle::core_proof::{
         lowerer::LoweringResult,
         snapshots::{AllVariablesMap, VariableVersionMap},
@@ -18,16 +18,27 @@ use vir_crate::{
         },
         graphviz::ToGraphviz,
     },
-    low::{self as vir_low, operations::ty::Typed},
+    low::{
+        self as vir_low,
+        expression::visitors::{ExpressionFallibleFolder, ExpressionFolder},
+        operations::ty::Typed,
+    },
     middle as vir_mid,
 };
 
 pub(in super::super) fn custom_heap_encoding<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p mut Encoder<'v, 'tcx>,
     result: &mut LoweringResult,
+    predicate_info: BTreeMap<String, (String, vir_low::Type)>,
 ) -> SpannedEncodingResult<()> {
     let mut procedures = Vec::new();
-    let mut heap_encoder = HeapEncoder::new(encoder, &result.predicates, &result.methods);
+    let mut heap_encoder = HeapEncoder::new(
+        encoder,
+        &result.predicates,
+        predicate_info,
+        &result.functions,
+        &result.methods,
+    );
     for mut procedure in std::mem::take(&mut result.procedures) {
         let predecessors = procedure.predecessors_owned();
         let traversal_order = procedure.get_topological_sort();
@@ -132,6 +143,9 @@ struct HeapEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p mut Encoder<'v, 'tcx>,
     new_variables: VariableDeclarations,
     predicates: FxHashMap<String, &'p vir_low::PredicateDecl>,
+    snapshot_functions_to_predicates: BTreeMap<String, String>,
+    predicates_to_snapshot_types: BTreeMap<String, vir_low::Type>,
+    functions: FxHashMap<String, &'p vir_low::FunctionDecl>,
     methods: FxHashMap<String, &'p vir_low::MethodDecl>,
     ssa_state: vir_low::ssa::SSAState<vir_low::Label>,
     permission_mask_names: FxHashMap<String, String>,
@@ -143,9 +157,17 @@ struct HeapEncoder<'p, 'v: 'p, 'tcx: 'v> {
 impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     fn new(
         encoder: &'p mut Encoder<'v, 'tcx>,
-        predicates: &'p Vec<vir_low::PredicateDecl>,
+        predicates: &'p [vir_low::PredicateDecl],
+        predicate_info: BTreeMap<String, (String, vir_low::Type)>,
+        functions: &'p [vir_low::FunctionDecl],
         methods: &'p [vir_low::MethodDecl],
     ) -> Self {
+        let mut snapshot_functions_to_predicates = BTreeMap::new();
+        let mut predicates_to_snapshot_types = BTreeMap::new();
+        for (predicate_name, (snapshot_function_name, snapshot_type)) in predicate_info {
+            snapshot_functions_to_predicates.insert(snapshot_function_name, predicate_name.clone());
+            predicates_to_snapshot_types.insert(predicate_name, snapshot_type);
+        }
         Self {
             encoder,
             new_variables: Default::default(),
@@ -159,13 +181,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             heap_names: predicates
                 .iter()
                 .map(|predicate| {
-                    let mask_name = format!("heap${}", predicate.name);
-                    (predicate.name.clone(), mask_name)
+                    let heap_name = format!("heap${}", predicate.name);
+                    (predicate.name.clone(), heap_name)
                 })
                 .collect(),
             predicates: predicates
                 .iter()
                 .map(|predicate| (predicate.name.clone(), predicate))
+                .collect(),
+            snapshot_functions_to_predicates,
+            predicates_to_snapshot_types,
+            functions: functions
+                .iter()
+                .map(|function| (function.name.clone(), function))
                 .collect(),
             methods: methods
                 .iter()
@@ -278,7 +306,55 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         current_state_label: Option<&str>,
         old_state_label: &Option<String>,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        Ok(expression)
+        struct Purifier<'e, 'p, 'v: 'p, 'tcx: 'v> {
+            current_state_label: Option<&'e str>,
+            old_state_label: &'e Option<String>,
+            heap_encoder: &'e mut HeapEncoder<'p, 'v, 'tcx>,
+        }
+        impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v, 'tcx> {
+            type Error = SpannedEncodingError;
+
+            fn fallible_fold_func_app_enum(
+                &mut self,
+                func_app: vir_low::expression::FuncApp,
+            ) -> Result<vir_low::Expression, Self::Error> {
+                let mut arguments = func_app
+                    .arguments
+                    .into_iter()
+                    .map(|argument| self.fallible_fold_expression(argument))
+                    .collect::<Result<Vec<_>, _>>()?;
+                let predicate_name = self
+                    .heap_encoder
+                    .get_predicate_name_for_function(&func_app.function_name)?;
+                let heap_version = if let Some(current_state_label) = self.current_state_label {
+                    self.heap_encoder
+                        .get_heap_version_at_label(&predicate_name, current_state_label)?
+                } else {
+                    self.heap_encoder
+                        .get_current_heap_version_for(&predicate_name)?
+                };
+                arguments.push(heap_version);
+                let heap_function_name = self
+                    .heap_encoder
+                    .get_heap_function_name_for(&predicate_name);
+                let return_type = self
+                    .heap_encoder
+                    .get_snapshot_type_for_predicate(&predicate_name)
+                    .unwrap();
+                Ok(vir_low::Expression::domain_function_call(
+                    "HeapFunctions",
+                    heap_function_name,
+                    arguments,
+                    return_type,
+                ))
+            }
+        }
+        let mut purifier = Purifier {
+            current_state_label,
+            old_state_label,
+            heap_encoder: self,
+        };
+        purifier.fallible_fold_expression(expression)
     }
 
     fn predicate_arguments(
@@ -379,22 +455,28 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         predicate: &vir_low::ast::expression::PredicateAccessPredicate,
         mut arguments: Vec<vir_low::Expression>,
         heap_version: vir_low::Expression,
-    ) -> SpannedEncodingResult<vir_low::Expression> {
-        let heap_function_name = self.get_heap_function_name_for(&predicate.name);
-        arguments.push(heap_version);
-        Ok(vir_low::Expression::domain_function_call(
-            "HeapFunctions",
-            heap_function_name,
-            arguments,
-            vir_low::Type::Perm,
-        ))
+    ) -> SpannedEncodingResult<Option<vir_low::Expression>> {
+        let call =
+            if let Some(snapshot_type) = self.get_snapshot_type_for_predicate(&predicate.name) {
+                let heap_function_name = self.get_heap_function_name_for(&predicate.name);
+                arguments.push(heap_version);
+                Some(vir_low::Expression::domain_function_call(
+                    "HeapFunctions",
+                    heap_function_name,
+                    arguments,
+                    snapshot_type,
+                ))
+            } else {
+                None
+            };
+        Ok(call)
     }
 
     fn heap_call_for_predicate_def(
         &mut self,
         predicate: &vir_low::ast::expression::PredicateAccessPredicate,
         heap_version: vir_low::Expression,
-    ) -> SpannedEncodingResult<vir_low::Expression> {
+    ) -> SpannedEncodingResult<Option<vir_low::Expression>> {
         let arguments = self.predicate_parameters(predicate)?;
         self.heap_call(predicate, arguments, heap_version)
     }
@@ -406,23 +488,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         new_permission_mask: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
-        let perm_new = self.perm_call_for_predicate_def(&predicate, new_permission_mask.clone())?;
         let heap_version_old = self.get_current_heap_version_for(&predicate.name)?;
-        let heap_version_new = self.get_new_heap_version_for(&predicate.name, position)?;
-        let heap_old = self.heap_call_for_predicate_def(&predicate, heap_version_old.clone())?;
-        let heap_new = self.heap_call_for_predicate_def(&predicate, heap_version_new.clone())?;
-        let predicate_parameters = self
-            .get_predicate_parameters_for(&predicate.name)
-            .to_owned();
-        let triggers = vec![vir_low::Trigger::new(vec![heap_new.clone()])];
-        let guard =
-            vir_low::Expression::greater_than(perm_new, vir_low::Expression::no_permission());
-        let body =
-            vir_low::Expression::implies(guard, vir_low::Expression::equals(heap_old, heap_new));
-        statements.push(vir_low::Statement::assume(
-            vir_low::Expression::forall(predicate_parameters, triggers, body),
-            position,
-        ));
+        if let Some(heap_old) =
+            self.heap_call_for_predicate_def(&predicate, heap_version_old.clone())?
+        {
+            let heap_version_new = self.get_new_heap_version_for(&predicate.name, position)?;
+            let heap_new = self
+                .heap_call_for_predicate_def(&predicate, heap_version_new.clone())?
+                .unwrap();
+            let perm_new =
+                self.perm_call_for_predicate_def(&predicate, new_permission_mask.clone())?;
+            let predicate_parameters = self
+                .get_predicate_parameters_for(&predicate.name)
+                .to_owned();
+            let triggers = vec![vir_low::Trigger::new(vec![heap_new.clone()])];
+            let guard =
+                vir_low::Expression::greater_than(perm_new, vir_low::Expression::no_permission());
+            let body = vir_low::Expression::implies(
+                guard,
+                vir_low::Expression::equals(heap_old, heap_new),
+            );
+            statements.push(vir_low::Statement::assume(
+                vir_low::Expression::forall(predicate_parameters, triggers, body),
+                position,
+            ));
+        }
         Ok(())
     }
 
@@ -729,6 +819,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             .into())
     }
 
+    fn get_heap_version_at_label(
+        &mut self,
+        predicate_name: &str,
+        label: &str,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let variable_name = self.heap_names.get(predicate_name).unwrap();
+        let version = self
+            .ssa_state
+            .variable_version_at_label(variable_name, label);
+        let ty = self.heap_version_type();
+        Ok(self
+            .new_variables
+            .create_variable(variable_name, ty, version)?
+            .into())
+    }
+
     fn get_heap_function_name_for(&self, predicate_name: &str) -> String {
         format!("heap${}", predicate_name)
     }
@@ -792,7 +898,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     vir_low::Type::Perm,
                 ));
             }
-            {
+            if let Some(snapshot_type) = self.get_snapshot_type_for_predicate(&predicate.name) {
                 let mut parameters = predicate.parameters.clone();
                 parameters.push(vir_low::VariableDecl::new(
                     "version",
@@ -802,7 +908,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     self.get_heap_function_name_for(&predicate.name),
                     false,
                     parameters,
-                    vir_low::Type::Perm,
+                    snapshot_type,
                 ));
             }
         }
@@ -858,5 +964,37 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             ));
         }
         Ok(statements)
+    }
+
+    fn get_predicate_name_for_function<'a>(
+        &'a self,
+        function_name: &str,
+    ) -> SpannedEncodingResult<String> {
+        let function = self.functions[function_name];
+        let predicate_name = match function.kind {
+            vir_low::FunctionKind::MemoryBlockBytes => todo!(),
+            vir_low::FunctionKind::CallerFor => todo!(),
+            vir_low::FunctionKind::Snap => {
+                self.snapshot_functions_to_predicates[function_name].clone()
+            }
+        };
+        Ok(predicate_name)
+    }
+
+    fn get_snapshot_type_for_predicate(&self, predicate_name: &str) -> Option<vir_low::Type> {
+        let predicate = self.predicates[predicate_name];
+        match predicate.kind {
+            vir_low::PredicateKind::MemoryBlock => {
+                use vir_low::macros::*;
+                Some(ty!(Bytes))
+            }
+            vir_low::PredicateKind::Owned => Some(
+                self.predicates_to_snapshot_types
+                    .get(predicate_name)
+                    .unwrap_or_else(|| unreachable!("predicate not found: {}", predicate_name))
+                    .clone(),
+            ),
+            vir_low::PredicateKind::WithoutSnapshot => None,
+        }
     }
 }

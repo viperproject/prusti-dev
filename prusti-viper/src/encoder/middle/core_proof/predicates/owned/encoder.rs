@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use crate::encoder::{
     errors::SpannedEncodingResult,
     high::types::HighTypeEncoderInterface,
@@ -39,6 +41,8 @@ pub(super) struct PredicateEncoder<'l, 'p, 'v, 'tcx> {
     encoded_mut_borrow_predicates: FxHashSet<String>,
     encoded_frac_borrow_predicates: FxHashSet<String>,
     predicates: Vec<vir_low::PredicateDecl>,
+    /// A map from predicate names to snapshot function names and snapshot types.
+    predicate_info: BTreeMap<String, (String, vir_low::Type)>,
 }
 
 impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
@@ -50,6 +54,7 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             encoded_mut_borrow_predicates: Default::default(),
             encoded_frac_borrow_predicates: Default::default(),
             predicates: Default::default(),
+            predicate_info: Default::default(),
         }
     }
 
@@ -57,11 +62,15 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
         self.predicates
     }
 
+    pub(super) fn take_predicate_info(&mut self) -> BTreeMap<String, (String, vir_low::Type)> {
+        std::mem::take(&mut self.predicate_info)
+    }
+
     pub(super) fn encode_owned_non_aliased_snapshot(
         &mut self,
         normalized_type: &vir_mid::Type,
         type_decl: &vir_mid::TypeDecl,
-    ) -> SpannedEncodingResult<()> {
+    ) -> SpannedEncodingResult<(String, vir_low::Type)> {
         let mut builder =
             OwnedNonAliasedSnapFunctionBuilder::new(self.lowerer, normalized_type, type_decl)?;
         builder.create_parameters()?;
@@ -118,8 +127,10 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             }
         }
         let function = builder.build()?;
+        let function_name = function.name.clone();
+        let snapshot_type = function.return_type.clone();
         self.lowerer.declare_function(function)?;
-        Ok(())
+        Ok((function_name, snapshot_type))
     }
 
     pub(super) fn encode_owned_aliased_snapshot(
@@ -325,9 +336,10 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
         let normalized_type = ty.normalize_type();
         self.lowerer
             .encode_snapshot_to_bytes_function(&normalized_type)?;
-        if !config::use_snapshot_parameters_in_predicates() {
+        // if !config::use_snapshot_parameters_in_predicates() {
+        let (snap_function_name, snap_type) =
             self.encode_owned_non_aliased_snapshot(&normalized_type, &type_decl)?;
-        }
+        // }
         let mut owned_predicates_to_encode = Vec::new();
         let mut unique_ref_predicates_to_encode = Vec::new();
         let mut frac_ref_predicates_to_encode = Vec::new();
@@ -446,7 +458,10 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                 unimplemented!("{}", type_decl);
             }
         }
-        self.predicates.push(builder.build());
+        let predicate = builder.build();
+        self.predicate_info
+            .insert(predicate.name.clone(), (snap_function_name, snap_type));
+        self.predicates.push(predicate);
         for ty in owned_predicates_to_encode {
             // TODO: Optimization: This variant is never unfolded,
             // encode it as abstract predicate.

@@ -22,10 +22,12 @@ trait Private {
     fn encode_generic_memory_block_predicate(
         &mut self,
         predicate_name: &str,
+        predicate_kind: vir_low::PredicateKind,
     ) -> SpannedEncodingResult<()>;
     fn encode_generic_memory_block_acc(
         &mut self,
         predicate_name: &str,
+        predicate_kind: vir_low::PredicateKind,
         place: vir_low::Expression,
         size: vir_low::Expression,
         position: vir_low::Position,
@@ -36,6 +38,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
     fn encode_generic_memory_block_predicate(
         &mut self,
         predicate_name: &str,
+        predicate_kind: vir_low::PredicateKind,
     ) -> SpannedEncodingResult<()> {
         if !self
             .predicates_encoding_state
@@ -49,6 +52,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 .insert(predicate_name.to_string());
             let predicate = vir_low::PredicateDecl::new(
                 predicate_name,
+                predicate_kind,
                 vec![
                     vir_low::VariableDecl::new("address", self.address_type()?),
                     vir_low::VariableDecl::new("size", self.size_type()?),
@@ -62,11 +66,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
     fn encode_generic_memory_block_acc(
         &mut self,
         predicate_name: &str,
+        predicate_kind: vir_low::PredicateKind,
         place: vir_low::Expression,
         size: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        self.encode_generic_memory_block_predicate(predicate_name)?;
+        self.encode_generic_memory_block_predicate(predicate_name, predicate_kind)?;
         let expression = vir_low::Expression::predicate_access_predicate(
             predicate_name.to_string(),
             vec![place, size],
@@ -144,7 +149,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
         )
     }
     fn encode_memory_block_predicate(&mut self) -> SpannedEncodingResult<()> {
-        self.encode_generic_memory_block_predicate("MemoryBlock")
+        self.encode_generic_memory_block_predicate(
+            "MemoryBlock",
+            vir_low::PredicateKind::MemoryBlock,
+        )
     }
     fn encode_memory_block_stack_acc(
         &mut self,
@@ -152,7 +160,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
         size: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        self.encode_generic_memory_block_acc("MemoryBlock", place, size, position)
+        self.encode_generic_memory_block_acc(
+            "MemoryBlock",
+            vir_low::PredicateKind::MemoryBlock,
+            place,
+            size,
+            position,
+        )
     }
     fn encode_memory_block_range_acc(
         &mut self,
@@ -189,7 +203,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
         size: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        self.encode_generic_memory_block_acc("MemoryBlockStackDrop", place, size, position)
+        self.encode_generic_memory_block_acc(
+            "MemoryBlockStackDrop",
+            vir_low::PredicateKind::WithoutSnapshot,
+            place,
+            size,
+            position,
+        )
     }
     fn encode_memory_block_heap_drop_acc(
         &mut self,
@@ -197,7 +217,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesMemoryBlockInterface for Lowerer<'p, 'v, 't
         size: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        self.encode_generic_memory_block_acc("MemoryBlockHeapDrop", place, size, position)
+        self.encode_generic_memory_block_acc(
+            "MemoryBlockHeapDrop",
+            vir_low::PredicateKind::WithoutSnapshot,
+            place,
+            size,
+            position,
+        )
     }
     fn encode_memory_block_bytes_function_name(&mut self) -> SpannedEncodingResult<String> {
         Ok("MemoryBlock$bytes".to_string())

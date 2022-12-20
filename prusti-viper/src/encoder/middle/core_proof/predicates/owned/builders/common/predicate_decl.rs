@@ -69,6 +69,7 @@ impl<'l, 'p, 'v, 'tcx> PredicateDeclBuilder<'l, 'p, 'v, 'tcx> {
     pub(in super::super) fn build(self) -> vir_low::PredicateDecl {
         vir_low::PredicateDecl {
             name: format!("{}${}", self.predicate_name, self.ty.get_identifier()),
+            kind: vir_low::PredicateKind::Owned,
             parameters: self.parameters,
             body: self
                 .conjuncts

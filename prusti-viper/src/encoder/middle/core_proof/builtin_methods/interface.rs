@@ -3172,6 +3172,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             {
                 let close_mut_ref_predicate = vir_low::PredicateDecl::new(
                     predicate_name! { CloseMutRef<ty> },
+                    vir_low::PredicateKind::WithoutSnapshot,
                     vec![
                         lifetime.clone(),
                         lifetime_perm.clone(),
@@ -3361,6 +3362,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 .insert(ty_identifier);
             let predicate = vir_low::PredicateDecl::new(
                 predicate_name! { StashedOwnedAliased<target_type> },
+                vir_low::PredicateKind::WithoutSnapshot,
                 vec![
                     var! { index: Int },
                     var! { bytes: Bytes },
