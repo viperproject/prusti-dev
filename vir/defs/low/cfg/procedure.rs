@@ -1,6 +1,8 @@
 use crate::{
     common::display,
-    low::ast::{expression::Expression, statement::Statement, variable::VariableDecl},
+    low::ast::{
+        expression::Expression, position::Position, statement::Statement, variable::VariableDecl,
+    },
 };
 use std::collections::BTreeMap;
 
@@ -17,6 +19,7 @@ pub struct ProcedureDecl {
     pub entry: Label,
     pub exit: Label,
     pub basic_blocks: BTreeMap<Label, BasicBlock>,
+    pub position: Position,
 }
 
 #[display(

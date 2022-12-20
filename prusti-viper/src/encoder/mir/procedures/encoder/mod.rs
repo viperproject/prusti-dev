@@ -245,8 +245,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         post_statements.extend(deallocate_parameters);
         post_statements.extend(deallocate_returns);
         post_statements.extend(assert_lifetime_postconditions);
-        let mut procedure_builder =
-            ProcedureBuilder::new(name, self.check_mode, pre_statements, post_statements);
+        let procedure_position =
+            self.encoder
+                .register_error(self.mir.span, ErrorCtxt::Unexpected, self.def_id);
+        let mut procedure_builder = ProcedureBuilder::new(
+            name,
+            self.check_mode,
+            procedure_position,
+            pre_statements,
+            post_statements,
+        );
         match self.encoding_kind {
             ProcedureEncodingKind::Regular => self.encode_body(&mut procedure_builder)?,
             ProcedureEncodingKind::PostconditionFrameCheck => {

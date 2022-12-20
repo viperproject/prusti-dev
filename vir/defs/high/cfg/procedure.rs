@@ -1,5 +1,6 @@
 use super::super::ast::{
     expression::{Expression, Local},
+    position::Position,
     statement::Statement,
 };
 use crate::common::{check_mode::CheckMode, display};
@@ -17,6 +18,7 @@ pub struct ProcedureDecl {
     pub entry: BasicBlockId,
     pub exit: BasicBlockId,
     pub basic_blocks: BTreeMap<BasicBlockId, BasicBlock>,
+    pub position: Position,
 }
 
 #[derive(PartialOrd, Ord, derive_more::Constructor, derive_more::AsRef)]

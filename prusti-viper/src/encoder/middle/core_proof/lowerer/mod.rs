@@ -257,6 +257,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         predicates.extend(self.predicates_state.destruct());
         let mut lowered_procedure = vir_low::ProcedureDecl {
             name: procedure.name,
+            position: procedure.position,
             locals: self.variables_state.destruct(),
             custom_labels: self.labels_state.destruct(),
             basic_blocks,
