@@ -324,6 +324,8 @@ impl<'tcx> EnvQuery<'tcx> {
         use prusti_rustc_interface::middle::ty::TypeVisitable;
         let called_def_id = called_def_id.into_param();
 
+        let call_substs = self.tcx.erase_regions(call_substs);
+
         // avoids a compiler-internal panic
         if call_substs.needs_infer() {
             return (called_def_id, call_substs);
