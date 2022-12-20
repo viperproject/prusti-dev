@@ -1,6 +1,8 @@
+use super::super::{
+    ast::statement::Statement,
+    cfg::{BasicBlock, Label, ProcedureDecl},
+};
 use crate::common::cfg::Cfg;
-use super::super::cfg::{Label, ProcedureDecl, BasicBlock};
-use super::super::ast::statement::Statement;
 use std::collections::BTreeMap;
 
 impl ProcedureDecl {
