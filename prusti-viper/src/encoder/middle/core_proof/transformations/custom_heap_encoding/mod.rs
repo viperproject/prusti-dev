@@ -202,7 +202,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     &evaluation_state,
                     &None,
                 )?;
-            },
+            }
             vir_low::Statement::Fold(_) => todo!(),
             vir_low::Statement::Unfold(_) => todo!(),
             vir_low::Statement::ApplyMagicWand(_) => {
@@ -514,7 +514,40 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 }
                 vir_low::Expression::Unfolding(_) => todo!(),
                 vir_low::Expression::LabelledOld(_) => todo!(),
-                vir_low::Expression::BinaryOp(_) => todo!(),
+                vir_low::Expression::BinaryOp(expression) => match expression.op_kind {
+                    vir_low::BinaryOpKind::And => {
+                        self.encode_expression_inhale(
+                            statements,
+                            *expression.left,
+                            position,
+                            old_label,
+                        )?;
+                        self.encode_expression_inhale(
+                            statements,
+                            *expression.right,
+                            position,
+                            old_label,
+                        )?;
+                    }
+                    vir_low::BinaryOpKind::Implies => {
+                        let guard =
+                            self.encode_pure_expression(*expression.left, None, old_label)?;
+                        let mut body = Vec::new();
+                        self.encode_expression_inhale(
+                            &mut body,
+                            *expression.right,
+                            position,
+                            old_label,
+                        )?;
+                        statements.push(vir_low::Statement::conditional(
+                            guard,
+                            body,
+                            Vec::new(),
+                            position,
+                        ))
+                    }
+                    _ => unreachable!("expression: {}", expression),
+                },
                 vir_low::Expression::Conditional(_) => todo!(),
                 vir_low::Expression::FuncApp(_) => todo!(),
                 vir_low::Expression::DomainFuncApp(_) => todo!(),
@@ -604,7 +637,45 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 }
                 vir_low::Expression::Unfolding(_) => todo!(),
                 vir_low::Expression::LabelledOld(_) => todo!(),
-                vir_low::Expression::BinaryOp(_) => todo!(),
+                vir_low::Expression::BinaryOp(expression) => {
+                    match expression.op_kind {
+                        vir_low::BinaryOpKind::And => {
+                            self.encode_expression_exhale(
+                                statements,
+                                *expression.left,
+                                position,
+                                expression_evaluation_state_label,
+                                old_label,
+                            )?;
+                            self.encode_expression_exhale(
+                                statements,
+                                *expression.right,
+                                position,
+                                expression_evaluation_state_label,
+                                old_label,
+                            )?;
+                        }
+                        vir_low::BinaryOpKind::Implies => {
+                            let guard =
+                                self.encode_pure_expression(*expression.left, None, old_label)?;
+                            let mut body = Vec::new();
+                            self.encode_expression_exhale(
+                                &mut body,
+                                *expression.right,
+                                position,
+                                expression_evaluation_state_label,
+                                old_label,
+                            )?;
+                            statements.push(vir_low::Statement::conditional(
+                                guard,
+                                body,
+                                Vec::new(),
+                                position,
+                            ))
+                        }
+                        _ => unreachable!("expression: {}", expression),
+                    }
+                },
                 vir_low::Expression::Conditional(_) => todo!(),
                 vir_low::Expression::FuncApp(_) => todo!(),
                 vir_low::Expression::DomainFuncApp(_) => todo!(),
