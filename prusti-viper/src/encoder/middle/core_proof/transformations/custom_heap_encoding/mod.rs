@@ -139,6 +139,34 @@ impl VariableDeclarations {
     }
 }
 
+#[derive(Default)]
+struct Quantifiers {
+    quantifiers: BTreeMap<String, vir_low::expression::Quantifier>,
+    quantifier_instantiations: BTreeMap<String, Vec<vir_low::Statement>>,
+}
+
+impl Quantifiers {
+    fn register_quantifier(
+        &mut self,
+        quantifier: vir_low::expression::Quantifier,
+    ) -> SpannedEncodingResult<String> {
+        let quantifier_id = format!("quantifier${}", self.quantifiers.len());
+        self.quantifiers.insert(quantifier_id.clone(), quantifier);
+        self.quantifier_instantiations
+            .insert(quantifier_id.clone(), Vec::new());
+        Ok(quantifier_id)
+    }
+
+    fn trigger_quantifiers(
+        &mut self,
+        expression: &vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        unimplemented!();
+        Ok(())
+    }
+}
+
 struct HeapEncoder<'p, 'v: 'p, 'tcx: 'v> {
     encoder: &'p mut Encoder<'v, 'tcx>,
     new_variables: VariableDeclarations,
@@ -150,6 +178,7 @@ struct HeapEncoder<'p, 'v: 'p, 'tcx: 'v> {
     ssa_state: vir_low::ssa::SSAState<vir_low::Label>,
     permission_mask_names: FxHashMap<String, String>,
     heap_names: FxHashMap<String, String>,
+    quantifiers: Quantifiers,
     /// A counter used for generating fresh labels.
     fresh_label_counter: u64,
 }
@@ -200,6 +229,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 .map(|method| (method.name.clone(), method))
                 .collect(),
             ssa_state: Default::default(),
+            quantifiers: Default::default(),
             fresh_label_counter: 0,
         }
     }
@@ -221,10 +251,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             }
             vir_low::Statement::Assume(statement) => {
                 assert!(statement.expression.is_pure());
-                statements.push(vir_low::Statement::assume(
-                    self.encode_pure_expression(statement.expression, None, &None)?,
+                let expression = self.encode_pure_expression(
+                    statements,
+                    statement.expression,
+                    None,
+                    &None,
                     statement.position,
-                ));
+                )?;
+                statements.push(vir_low::Statement::assume(expression, statement.position));
             }
             vir_low::Statement::Assert(statement) => {
                 unimplemented!("statement: {}", statement);
@@ -310,14 +344,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
 
     fn encode_pure_expression(
         &mut self,
+        statements: &mut Vec<vir_low::Statement>,
         expression: vir_low::Expression,
         current_state_label: Option<&str>,
         old_state_label: &Option<String>,
+        position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         struct Purifier<'e, 'p, 'v: 'p, 'tcx: 'v> {
             current_state_label: Option<&'e str>,
             old_state_label: &'e Option<String>,
             heap_encoder: &'e mut HeapEncoder<'p, 'v, 'tcx>,
+            statements: &'e mut Vec<vir_low::Statement>,
+            path_condition: Vec<vir_low::Expression>,
+            position: vir_low::Position,
         }
         impl<'e, 'p, 'v: 'p, 'tcx: 'v> ExpressionFallibleFolder for Purifier<'e, 'p, 'v, 'tcx> {
             type Error = SpannedEncodingError;
@@ -326,53 +365,119 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 &mut self,
                 func_app: vir_low::expression::FuncApp,
             ) -> Result<vir_low::Expression, Self::Error> {
+                let function = self.heap_encoder.functions[&func_app.function_name];
+                assert_eq!(function.parameters.len(), func_app.arguments.len());
                 let mut arguments = func_app
                     .arguments
                     .into_iter()
                     .map(|argument| self.fallible_fold_expression(argument))
                     .collect::<Result<Vec<_>, _>>()?;
-                let predicate_name = self
-                    .heap_encoder
-                    .get_predicate_name_for_function(&func_app.function_name)?;
-                let heap_version = if let Some(current_state_label) = self.current_state_label {
-                    self.heap_encoder
-                        .get_heap_version_at_label(&predicate_name, current_state_label)?
-                } else {
-                    self.heap_encoder
-                        .get_current_heap_version_for(&predicate_name)?
-                };
-                arguments.push(heap_version);
-                let heap_function_name = self
-                    .heap_encoder
-                    .get_heap_function_name_for(&predicate_name);
-                let return_type = self
-                    .heap_encoder
-                    .get_snapshot_type_for_predicate(&predicate_name)
-                    .unwrap();
-                Ok(vir_low::Expression::domain_function_call(
-                    "HeapFunctions",
-                    heap_function_name,
-                    arguments,
-                    return_type,
-                ))
+                let path_condition = self.path_condition.iter().cloned().conjoin();
+                let replacements = function.parameters.iter().zip(arguments.iter()).collect();
+                let pres = function
+                    .pres
+                    .iter()
+                    .cloned()
+                    .conjoin()
+                    .substitute_variables(&replacements);
+                let pres = self.fallible_fold_expression(pres)?;
+                self.statements.push(vir_low::Statement::assert(
+                    vir_low::Expression::implies(path_condition, pres),
+                    self.position,
+                ));
+                match function.kind {
+                    vir_low::FunctionKind::MemoryBlockBytes => todo!(),
+                    vir_low::FunctionKind::CallerFor => todo!(),
+                    vir_low::FunctionKind::Snap => {
+                        let predicate_name = self
+                            .heap_encoder
+                            .get_predicate_name_for_function(&func_app.function_name)?;
+                        let heap_version = if let Some(current_state_label) =
+                            self.current_state_label
+                        {
+                            self.heap_encoder
+                                .get_heap_version_at_label(&predicate_name, current_state_label)?
+                        } else {
+                            self.heap_encoder
+                                .get_current_heap_version_for(&predicate_name)?
+                        };
+                        arguments.push(heap_version);
+                        let heap_function_name = self
+                            .heap_encoder
+                            .get_heap_function_name_for(&predicate_name);
+                        let return_type = self
+                            .heap_encoder
+                            .get_snapshot_type_for_predicate(&predicate_name)
+                            .unwrap();
+                        Ok(vir_low::Expression::domain_function_call(
+                            "HeapFunctions",
+                            heap_function_name,
+                            arguments,
+                            return_type,
+                        ))
+                    }
+                }
+            }
+
+            fn fallible_fold_binary_op(
+                &mut self,
+                mut binary_op: vir_low::expression::BinaryOp,
+            ) -> Result<vir_low::expression::BinaryOp, Self::Error> {
+                binary_op.left = self.fallible_fold_expression_boxed(binary_op.left)?;
+                if binary_op.op_kind == vir_low::BinaryOpKind::Implies {
+                    self.path_condition.push((*binary_op.left).clone());
+                }
+                binary_op.right = self.fallible_fold_expression_boxed(binary_op.right)?;
+                if binary_op.op_kind == vir_low::BinaryOpKind::Implies {
+                    self.path_condition.pop();
+                }
+                Ok(binary_op)
+            }
+
+            fn fallible_fold_conditional(
+                &mut self,
+                mut conditional: vir_low::expression::Conditional,
+            ) -> Result<vir_low::expression::Conditional, Self::Error> {
+                conditional.guard = self.fallible_fold_expression_boxed(conditional.guard)?;
+                self.path_condition.push((*conditional.guard).clone());
+                conditional.then_expr =
+                    self.fallible_fold_expression_boxed(conditional.then_expr)?;
+                self.path_condition.pop();
+                self.path_condition
+                    .push(vir_low::Expression::not((*conditional.guard).clone()));
+                conditional.else_expr =
+                    self.fallible_fold_expression_boxed(conditional.else_expr)?;
+                self.path_condition.pop();
+                Ok(conditional)
             }
         }
         let mut purifier = Purifier {
             current_state_label,
             old_state_label,
             heap_encoder: self,
+            statements,
+            path_condition: Vec::new(),
+            position,
         };
         purifier.fallible_fold_expression(expression)
     }
 
     fn predicate_arguments(
         &mut self,
+        statements: &mut Vec<vir_low::Statement>,
         predicate: &vir_low::ast::expression::PredicateAccessPredicate,
         old_label: &Option<String>,
+        position: vir_low::Position,
     ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
         let mut arguments = Vec::new();
         for argument in &predicate.arguments {
-            arguments.push(self.encode_pure_expression(argument.clone(), None, old_label)?);
+            arguments.push(self.encode_pure_expression(
+                statements,
+                argument.clone(),
+                None,
+                old_label,
+                position,
+            )?);
         }
         Ok(arguments)
     }
@@ -408,11 +513,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
 
     fn perm_call_for_predicate_use(
         &mut self,
+        statements: &mut Vec<vir_low::Statement>,
         predicate: &vir_low::ast::expression::PredicateAccessPredicate,
         permission_mask: vir_low::Expression,
         old_label: &Option<String>,
+        position: vir_low::Position,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        let arguments = self.predicate_arguments(predicate, old_label)?;
+        let arguments = self.predicate_arguments(statements, predicate, old_label, position)?;
         self.perm_call(predicate, arguments, permission_mask)
     }
 
@@ -440,7 +547,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             .get_predicate_parameters_for(&predicate.name)
             .to_owned();
         let predicate_arguments = self.predicate_parameters(predicate)?;
-        let arguments = self.predicate_arguments(predicate, old_label)?;
+        let arguments = self.predicate_arguments(statements, predicate, old_label, position)?;
         let triggers = vec![vir_low::Trigger::new(vec![perm_new.clone()])];
         let guard = predicate_arguments
             .into_iter()
@@ -451,10 +558,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             vir_low::Expression::not(guard),
             vir_low::Expression::equals(perm_new, perm_old),
         );
+        let quantifier = vir_low::expression::Quantifier {
+            kind: vir_low::expression::QuantifierKind::ForAll,
+            variables: predicate_parameters,
+            triggers,
+            body: box body,
+            position,
+        };
+        let quantifier_id = self.quantifiers.register_quantifier(quantifier)?;
         statements.push(vir_low::Statement::assume(
-            vir_low::Expression::forall(predicate_parameters, triggers, body),
+            vir_low::VariableDecl::new(quantifier_id, vir_low::Type::Bool).into(),
             position,
         ));
+        // statements.push(vir_low::Statement::assume(
+        //     vir_low::Expression::forall(predicate_parameters, triggers, body),
+        //     position,
+        // ));
         Ok(())
     }
 
@@ -532,10 +651,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         old_label: &Option<String>,
     ) -> SpannedEncodingResult<()> {
         if expression.is_pure() {
-            statements.push(vir_low::Statement::assume(
-                self.encode_pure_expression(expression, None, old_label)?,
-                position,
-            ));
+            let expression =
+                self.encode_pure_expression(statements, expression, None, old_label, position)?;
+            statements.push(vir_low::Statement::assume(expression, position));
         } else {
             match expression {
                 vir_low::Expression::PredicateAccessPredicate(expression) => {
@@ -544,14 +662,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     let new_permission_mask =
                         self.get_new_permission_mask_for(&expression.name, position)?;
                     let perm_old = self.perm_call_for_predicate_use(
+                        statements,
                         &expression,
                         old_permission_mask.clone(),
                         old_label,
+                        position,
                     )?;
                     let perm_new = self.perm_call_for_predicate_use(
+                        statements,
                         &expression,
                         new_permission_mask.clone(),
                         old_label,
+                        position,
                     )?;
                     statements.push(vir_low::Statement::assume(
                         vir_low::Expression::equals(
@@ -595,8 +717,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         )?;
                     }
                     vir_low::BinaryOpKind::Implies => {
-                        let guard =
-                            self.encode_pure_expression(*expression.left, None, old_label)?;
+                        let guard = self.encode_pure_expression(
+                            statements,
+                            *expression.left,
+                            None,
+                            old_label,
+                            position,
+                        )?;
                         let mut body = Vec::new();
                         self.encode_expression_inhale(
                             &mut body,
@@ -634,14 +761,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         assert!(!position.is_default(), "expression: {}", expression);
         if expression.is_pure() {
-            statements.push(vir_low::Statement::assert(
-                self.encode_pure_expression(
-                    expression,
-                    Some(expression_evaluation_state_label),
-                    old_label,
-                )?,
+            let expression = self.encode_pure_expression(
+                statements,
+                expression,
+                Some(expression_evaluation_state_label),
+                old_label,
                 position,
-            ));
+            )?;
+            statements.push(vir_low::Statement::assert(expression, position));
         } else {
             match expression {
                 vir_low::Expression::PredicateAccessPredicate(expression) => {
@@ -650,15 +777,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     let new_permission_mask =
                         self.get_new_permission_mask_for(&expression.name, position)?;
                     let perm_old = self.perm_call_for_predicate_use(
+                        statements,
                         &expression,
                         old_permission_mask.clone(),
                         old_label,
+                        position,
                     )?;
                     let perm_new = self.perm_call_for_predicate_use(
+                        statements,
                         &expression,
                         new_permission_mask.clone(),
                         old_label,
+                        position,
                     )?;
+                    {
+                        // Trigger `encode_perm_unchanged_quantifier` with `perm_old`.
+                        self.quantifiers.trigger_quantifiers(&perm_old, position)?;
+                    }
                     // assert perm<P>(r1, r2, v_old) >= p
                     statements.push(vir_low::Statement::assert(
                         vir_low::Expression::greater_equals(
@@ -695,6 +830,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     //     {heap<P>(arg1, arg2, vh_new)}
                     //     perm<P>(arg1, arg2, v_new) > 0 ==>
                     //     heap<P>(arg1, arg2, vh_new) == heap<P>(arg1, arg2, vh_old)
+                    // FIXME: Uncomment.
                     self.encode_heap_unchanged_quantifier(
                         statements,
                         &expression,
@@ -722,8 +858,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         )?;
                     }
                     vir_low::BinaryOpKind::Implies => {
-                        let guard =
-                            self.encode_pure_expression(*expression.left, None, old_label)?;
+                        let guard = self.encode_pure_expression(
+                            statements,
+                            *expression.left,
+                            None,
+                            old_label,
+                            position,
+                        )?;
                         let mut body = Vec::new();
                         self.encode_expression_exhale(
                             &mut body,
