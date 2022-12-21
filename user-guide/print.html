@@ -2748,6 +2748,7 @@ enum X {
 <div class="table-wrapper"><table><thead><tr><th>Syntax</th><th>Meaning</th></tr></thead><tbody>
 <tr><td><a href="syntax.html#old-expressions"><code>old(...)</code></a></td><td>Value of expression in a previous state</td></tr>
 <tr><td><a href="syntax.html#implications"><code>... ==&gt; ...</code></a></td><td>Implication</td></tr>
+<tr><td><a href="syntax.html#snapshot-equality"><code>... === ...</code></a></td><td>Snapshot equality</td></tr>
 <tr><td><a href="syntax.html#quantifiers"><code>forall(...)</code></a></td><td>Universal quantifier</td></tr>
 <tr><td><a href="syntax.html#quantifiers"><code>exists(...)</code></a></td><td>Existential quantifier</td></tr>
 <tr><td><a href="syntax.html#specification-entailments"><code>... |= ...</code></a></td><td>Specification entailment</td></tr>
@@ -2755,36 +2756,44 @@ enum X {
 </div>
 <h2 id="old-expressions"><a class="header" href="#old-expressions">Old expressions</a></h2>
 <p>Old expressions are used to refer to the value that a memory location pointed at by a mutable reference had at the beginning of the function:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>use prusti_contracts::*;
+<pre><code class="language-rust noplaypen">use prusti_contracts::*;
 
 #[ensures(*x == old(*x) + 1)]
 pub fn inc(x: &amp;mut u32) {
     *x += 1;
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h2 id="implications"><a class="header" href="#implications">Implications</a></h2>
 <p>Implications express a <a href="https://en.wikipedia.org/wiki/Material_conditional">relationship</a> between two boolean expressions:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>#[pure]
+<pre><code class="language-rust noplaypen">#[pure]
 #[ensures(result ==&gt; self.len() == 0)]
 #[ensures(!result ==&gt; self.len() &gt; 0)]
-pub fn is_empty(&amp;self) -&gt; bool;
-<span class="boring">}</span></code></pre></pre>
+pub fn is_empty(&amp;self) -&gt; bool;</code></pre>
 <p>There is no syntax for logical equivalences (&quot;if and only if&quot;), because this coincides with <code>==</code>:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>#[pure]
+<pre><code class="language-rust noplaypen">#[pure]
 #[ensures(result == (self.len() == 0))]
-pub fn is_empty(&amp;self) -&gt; bool;
-<span class="boring">}</span></code></pre></pre>
+pub fn is_empty(&amp;self) -&gt; bool;</code></pre>
+<h2 id="snapshot-equality"><a class="header" href="#snapshot-equality">Snapshot Equality</a></h2>
+<p>Snapshot equality (<code>===</code>) compares the
+<a href="https://viperproject.github.io/prusti-dev/dev-guide/encoding/types-snap.html">snapshots</a>
+of two values; essentially checking if the two values are structurally equal. In
+contrast, the standard equality (<code>==</code>) between values is determined by the
+implementation of
+<a href="https://doc.rust-lang.org/std/cmp/trait.PartialEq.html"><code>PartialEq</code></a>. These two
+equalities do not necessarily coincide. For example, some types do not implement
+<code>PartialEq</code>, or their implementation cannot be encoded as a pure function.
+Nonetheless, snapshot equality could be used to compare values of such types, as
+in the following code:</p>
+<pre><code class="language-rust noplaypen">#[requires(a === b)]
+fn foo&lt;T&gt;(a: T, b: T) {}
+
+struct X { a: i32 }
+
+fn main() {
+    foo(X { a: 1 }, X { a: 1 });
+}</code></pre>
 <h2 id="quantifiers"><a class="header" href="#quantifiers">Quantifiers</a></h2>
 <p>Quantifiers are typically used for describing how a method call changes a container such as a vector:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>#[requires(0 &lt;= index &amp;&amp; index &lt; self.len())]
+<pre><code class="language-rust noplaypen">#[requires(0 &lt;= index &amp;&amp; index &lt; self.len())]
 #[ensures(self.len() == old(self.len()))]
 #[ensures(self.lookup(index) == value)]
 #[ensures(
@@ -2795,8 +2804,7 @@ pub fn is_empty(&amp;self) -&gt; bool;
 )]
 pub fn store(&amp;mut self, index: usize, value: i32) {
     ...
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <p>There may be multiple bound variables:</p>
 <pre><code class="language-plain">forall(|x: isize, y: isize| ...)
 </code></pre>
