@@ -173,7 +173,8 @@ When enabled, reborrowing DAGs will be output in debug files.
 
 ## `DUMP_VIPER_PROGRAM`
 
-When enabled, the encoded Viper program will be output.
+When enabled, the encoded Viper programs will be output.
+You can find them either in `log/viper_program` or `target/verify/log/viper_program`.
 
 ## `ENABLE_CACHE`
 
@@ -264,6 +265,9 @@ When enabled, communication with the server will be encoded as JSON instead of t
 ## `LOG`
 
 Log level and filters. See [`env_logger` documentation](https://docs.rs/env_logger/0.7.1/env_logger/index.html#enabling-logging).
+
+For example, `PRUSTI_LOG=prusti_viper=trace` enables trace logging for the prusti-viper crate.
+Debug and trace logs are not available in release builds.
 
 ## `LOG_DIR`
 
