@@ -152,7 +152,7 @@
 <li><a href="../config/flags.html#log"><code>PRUSTI_LOG</code></a></li>
 </ul>
 <h2 id="debugging-tests"><a class="header" href="#debugging-tests">Debugging tests</a></h2>
-<p>A proposed way of fixing Prusti limitations is to add a regression test and then use the following command to get Prusti output:</p>
+<p>A proposed way of fixing Prusti limitations is to add a regression test by creating a new file in <code>prusti-tests/tests</code> and then use the following command to get Prusti output:</p>
 <pre><code class="language-bash">./x.py build --all &amp;&amp; \
 RUST_BACKTRACE=1 PRUSTI_DUMP_VIPER_PROGRAM=true PRUSTI_DUMP_DEBUG_INFO=true \
 ./x.py ++verbose verify-test &lt;path-to-the-test-file&gt;
@@ -168,6 +168,13 @@ RUST_BACKTRACE=1 PRUSTI_DUMP_VIPER_PROGRAM=true PRUSTI_DUMP_DEBUG_INFO=true \
 </span><span class="boring">fn main() {
 </span>// compile-flags: -Zunpretty=expanded
 <span class="boring">}</span></code></pre></pre>
+<h3 id="running-prusti-in-a-debugger"><a class="header" href="#running-prusti-in-a-debugger">Running Prusti in a debugger</a></h3>
+<p>The <code>verify-test</code> command also generates a VS Code launch config, which allows you to run Prusti in a debugger.</p>
+<ul>
+<li>In the <code>Cargo.toml</code>, section <code>[profile.dev]</code>, set <code>debug = 2</code>. This enables debug symbols.</li>
+<li>Install the CodeLLDB VS Code extension.</li>
+</ul>
+<p>Now you can set breakpoints and launch the debugger.</p>
 <h3 id="debugging-performance-problems"><a class="header" href="#debugging-performance-problems">Debugging performance problems</a></h3>
 <p>In case you are debugging a performance problem and suspect that it is caused by quantifiers, append <code>--analyze-quantifiers</code> to the command after the <code>&lt;path-to-the-test-file&gt;</code>. This will run Z3 in tracing mode and produce CSV files with various statistics in <code>log/smt</code> directory. In case you want to see all terms that were used to trigger a specific quantifier, you can produce the list of them with the following command:</p>
 <pre><code class="language-bash">PRUSTI_SMT_TRACE_QUANTIFIER_TRIGGERS=&lt;quantifier-id&gt; \

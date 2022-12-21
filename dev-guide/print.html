@@ -331,7 +331,8 @@ For more information see <a href="https://github.com/viperproject/silicon/blob/4
 <h2 id="dump_reborrowing_dag_in_debug_info"><a class="header" href="#dump_reborrowing_dag_in_debug_info"><code>DUMP_REBORROWING_DAG_IN_DEBUG_INFO</code></a></h2>
 <p>When enabled, reborrowing DAGs will be output in debug files.</p>
 <h2 id="dump_viper_program"><a class="header" href="#dump_viper_program"><code>DUMP_VIPER_PROGRAM</code></a></h2>
-<p>When enabled, the encoded Viper program will be output.</p>
+<p>When enabled, the encoded Viper programs will be output.
+You can find them either in <code>log/viper_program</code> or <code>target/verify/log/viper_program</code>.</p>
 <h2 id="enable_cache"><a class="header" href="#enable_cache"><code>ENABLE_CACHE</code></a></h2>
 <p>When enabled, verification requests (to verify individual <code>fn</code>s) are cached to improve future verification. By default the cache is only saved in memory (of the <code>prusti-server</code> if enabled). For long-running verification projects use <a href="config/flags.html#cache_path"><code>CACHE_PATH</code></a> to save to disk.</p>
 <h2 id="enable_ghost_constraints"><a class="header" href="#enable_ghost_constraints"><code>ENABLE_GHOST_CONSTRAINTS</code></a></h2>
@@ -388,6 +389,8 @@ hide actual verification errors.</p>
 <p>When enabled, communication with the server will be encoded as JSON instead of the default bincode.</p>
 <h2 id="log"><a class="header" href="#log"><code>LOG</code></a></h2>
 <p>Log level and filters. See <a href="https://docs.rs/env_logger/0.7.1/env_logger/index.html#enabling-logging"><code>env_logger</code> documentation</a>.</p>
+<p>For example, <code>PRUSTI_LOG=prusti_viper=trace</code> enables trace logging for the prusti-viper crate.
+Debug and trace logs are not available in release builds.</p>
 <h2 id="log_dir"><a class="header" href="#log_dir"><code>LOG_DIR</code></a></h2>
 <p>Path to directory in which log files and dumped output will be stored.</p>
 <blockquote>
@@ -1358,7 +1361,7 @@ fn hello(a: i32) -&gt; i32 {
 <li><a href="development/../config/flags.html#log"><code>PRUSTI_LOG</code></a></li>
 </ul>
 <h2 id="debugging-tests-1"><a class="header" href="#debugging-tests-1">Debugging tests</a></h2>
-<p>A proposed way of fixing Prusti limitations is to add a regression test and then use the following command to get Prusti output:</p>
+<p>A proposed way of fixing Prusti limitations is to add a regression test by creating a new file in <code>prusti-tests/tests</code> and then use the following command to get Prusti output:</p>
 <pre><code class="language-bash">./x.py build --all &amp;&amp; \
 RUST_BACKTRACE=1 PRUSTI_DUMP_VIPER_PROGRAM=true PRUSTI_DUMP_DEBUG_INFO=true \
 ./x.py ++verbose verify-test &lt;path-to-the-test-file&gt;
@@ -1374,6 +1377,13 @@ RUST_BACKTRACE=1 PRUSTI_DUMP_VIPER_PROGRAM=true PRUSTI_DUMP_DEBUG_INFO=true \
 </span><span class="boring">fn main() {
 </span>// compile-flags: -Zunpretty=expanded
 <span class="boring">}</span></code></pre></pre>
+<h3 id="running-prusti-in-a-debugger"><a class="header" href="#running-prusti-in-a-debugger">Running Prusti in a debugger</a></h3>
+<p>The <code>verify-test</code> command also generates a VS Code launch config, which allows you to run Prusti in a debugger.</p>
+<ul>
+<li>In the <code>Cargo.toml</code>, section <code>[profile.dev]</code>, set <code>debug = 2</code>. This enables debug symbols.</li>
+<li>Install the CodeLLDB VS Code extension.</li>
+</ul>
+<p>Now you can set breakpoints and launch the debugger.</p>
 <h3 id="debugging-performance-problems"><a class="header" href="#debugging-performance-problems">Debugging performance problems</a></h3>
 <p>In case you are debugging a performance problem and suspect that it is caused by quantifiers, append <code>--analyze-quantifiers</code> to the command after the <code>&lt;path-to-the-test-file&gt;</code>. This will run Z3 in tracing mode and produce CSV files with various statistics in <code>log/smt</code> directory. In case you want to see all terms that were used to trigger a specific quantifier, you can produce the list of them with the following command:</p>
 <pre><code class="language-bash">PRUSTI_SMT_TRACE_QUANTIFIER_TRIGGERS=&lt;quantifier-id&gt; \
