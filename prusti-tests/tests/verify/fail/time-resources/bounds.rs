@@ -12,5 +12,5 @@ fn constant() -> u32 {
 #[requires(time_credits(2))]
 #[ensures(time_receipts(2))]
 fn main() {
-    foo(); //~ ERROR
+    constant(); //~ ERROR
 }
