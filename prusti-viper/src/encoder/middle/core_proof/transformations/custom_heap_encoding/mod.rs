@@ -57,6 +57,28 @@ pub(in super::super) fn custom_heap_encoding<'p, 'v: 'p, 'tcx: 'v>(
             block.statements = statements;
             heap_encoder.finish_current_block(label.clone())?;
         }
+        for label in &traversal_order {
+            let mut statements = Vec::new();
+            let block = procedure.basic_blocks.get_mut(label).unwrap();
+            for statement in std::mem::take(&mut block.statements) {
+                if let vir_low::Statement::Assume(vir_low::ast::statement::Assume {
+                    expression: vir_low::Expression::Local(local),
+                    ..
+                }) = &statement
+                {
+                    if let Some(quantifier_instantiations) = heap_encoder
+                        .quantifiers
+                        .quantifier_instantiations
+                        .remove(&local.variable.name)
+                    {
+                        statements.extend(quantifier_instantiations);
+                        continue;
+                    }
+                }
+                statements.push(statement);
+            }
+            block.statements = statements;
+        }
         for label in traversal_order {
             if let Some(intermediate_blocks) = basic_block_edges.remove(&label) {
                 let mut block = procedure.basic_blocks.remove(&label).unwrap();
@@ -162,7 +184,47 @@ impl Quantifiers {
         expression: &vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
-        unimplemented!();
+        let func_app = match expression {
+            vir_low::Expression::DomainFuncApp(func_app) => func_app,
+            vir_low::Expression::BinaryOp(vir_low::ast::expression::BinaryOp {
+                right:
+                    box vir_low::Expression::BinaryOp(vir_low::ast::expression::BinaryOp {
+                        right: box vir_low::Expression::DomainFuncApp(func_app),
+                        ..
+                    }),
+                ..
+            }) => func_app,
+            _ => unimplemented!("expression: {}", expression),
+        };
+        let term = func_app.arguments.last().unwrap();
+        let mut new_triggers = Vec::new();
+        for (id, quantifier) in &self.quantifiers {
+            let trigger_term = &quantifier.triggers[0].terms[0];
+            if let vir_low::Expression::DomainFuncApp(trigger_func_app) = trigger_term {
+                if trigger_func_app.arguments.last().unwrap() == term {
+                    let mut replacements = FxHashMap::default();
+                    for (variable, argument) in quantifier.variables.iter().zip(&func_app.arguments)
+                    {
+                        replacements.insert(variable, argument);
+                    }
+                    let assumed_expression =
+                        quantifier.body.clone().substitute_variables(&replacements);
+                    let instantiation = vir_low::macros::stmtp! {
+                        position => assume ([assumed_expression.clone()])
+                    };
+                    if !self.quantifier_instantiations[id].contains(&instantiation) {
+                        self.quantifier_instantiations
+                            .get_mut(id)
+                            .unwrap()
+                            .push(instantiation);
+                        new_triggers.push(assumed_expression);
+                    }
+                }
+            }
+        }
+        for new_trigger in new_triggers {
+            self.trigger_quantifiers(&new_trigger, position)?;
+        }
         Ok(())
     }
 }
@@ -381,10 +443,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     .conjoin()
                     .substitute_variables(&replacements);
                 let pres = self.fallible_fold_expression(pres)?;
-                self.statements.push(vir_low::Statement::assert(
-                    vir_low::Expression::implies(path_condition, pres),
+                let assert_precondition = vir_low::Expression::implies(path_condition, pres);
+                self.heap_encoder.encode_expression_assert(
+                    self.statements,
+                    assert_precondition,
                     self.position,
-                ));
+                    self.current_state_label,
+                    self.old_state_label,
+                )?;
+                // self.statements.push(vir_low::Statement::assert(
+                //     assert_precondition,
+                //     self.position,
+                // ));
                 match function.kind {
                     vir_low::FunctionKind::MemoryBlockBytes => todo!(),
                     vir_low::FunctionKind::CallerFor => todo!(),
@@ -675,6 +745,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         old_label,
                         position,
                     )?;
+                    {
+                        // Trigger `encode_perm_unchanged_quantifier` with `perm_old`.
+                        self.quantifiers.trigger_quantifiers(&perm_old, position)?;
+                    }
                     statements.push(vir_low::Statement::assume(
                         vir_low::Expression::equals(
                             perm_new.clone(),
@@ -831,12 +905,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     //     perm<P>(arg1, arg2, v_new) > 0 ==>
                     //     heap<P>(arg1, arg2, vh_new) == heap<P>(arg1, arg2, vh_old)
                     // FIXME: Uncomment.
-                    self.encode_heap_unchanged_quantifier(
-                        statements,
-                        &expression,
-                        new_permission_mask,
-                        position,
-                    )?;
+                    // self.encode_heap_unchanged_quantifier(
+                    //     statements,
+                    //     &expression,
+                    //     new_permission_mask,
+                    //     position,
+                    // )?;
                 }
                 vir_low::Expression::Unfolding(_) => todo!(),
                 vir_low::Expression::LabelledOld(_) => todo!(),
@@ -889,6 +963,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     unimplemented!("expression: {:?}", expression);
                 }
             }
+        }
+        Ok(())
+    }
+
+    fn encode_expression_assert(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        expression: vir_low::Expression,
+        position: vir_low::Position,
+        expression_evaluation_state_label: Option<&str>,
+        old_label: &Option<String>,
+    ) -> SpannedEncodingResult<()> {
+        assert!(!position.is_default(), "expression: {}", expression);
+        if expression.is_pure() {
+            let expression = self.encode_pure_expression(
+                statements,
+                expression,
+                expression_evaluation_state_label,
+                old_label,
+                position,
+            )?;
+            statements.push(vir_low::Statement::assert(expression, position));
+        } else {
+            // FIXME: This should call `encode_expression_exhale` and rollback
+            // the state after.
         }
         Ok(())
     }
