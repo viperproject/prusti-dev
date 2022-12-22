@@ -2,7 +2,7 @@ use csv::Writer;
 
 use crate::{
     error::Error,
-    parser::TheoryKind,
+    parser::{TheoryKind, EventKind},
     types::{Level, QuantifierId, TermId, BUILTIN_QUANTIFIER_ID},
 };
 use std::{
@@ -86,6 +86,8 @@ struct LargestPop {
 pub(crate) struct State {
     quantifiers: HashMap<QuantifierId, Quantifier>,
     terms: HashMap<TermId, Term>,
+    /// Frequencies of each event kind.
+    event_kind_counters: HashMap<EventKind, usize>,
     /// The currently matched quantifiers (via [new-match]) at a given level.
     quantifiers_matched_events: HashMap<QuantifierId, Vec<QuantifierMatchedEvent>>,
     /// The currently discovered quantifiers (via [inst-discovered]) at a given level.
@@ -121,6 +123,11 @@ pub(crate) struct State {
 }
 
 impl State {
+    pub(crate) fn register_event_kind(&mut self, event_kind: EventKind) {
+        let entry = self.event_kind_counters.entry(event_kind).or_insert(0);
+        *entry += 1;
+    }
+
     pub(crate) fn register_label(&mut self, label: String) {
         self.trace.push(BasicBlockVisitedEvent {
             level: self.current_active_scopes_count,
@@ -452,6 +459,24 @@ impl State {
     }
 
     pub(crate) fn write_statistics(&self, input_file: &str) {
+        {
+            let mut writer = Writer::from_path(format!("{}.event-kinds.csv", input_file)).unwrap();
+            writer
+                .write_record([
+                    "Event Kind",
+                    "Count",
+                ])
+                .unwrap();
+            for (event_kind, counter) in &self.event_kind_counters {
+                writer
+                    .write_record([
+                        format!("{:?}", event_kind),
+                        counter.to_string(),
+                    ])
+                .unwrap();
+            }
+        }
+
         {
             // [instance] – the number of quantifier instantiations.
             let mut writer = Writer::from_path(format!("{}.instances.csv", input_file)).unwrap();
@@ -788,4 +813,5 @@ impl State {
             );
         }
     }
+
 }

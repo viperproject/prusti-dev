@@ -33,7 +33,9 @@ pub struct Settings {
 
 fn process_line(settings: &Settings, state: &mut State, line: &str) -> Result<(), Error> {
     let mut parser = Parser::from_line(line);
-    match parser.parse_event_kind()? {
+    let event_kind = parser.parse_event_kind()?;
+    state.register_event_kind(event_kind);
+    match event_kind {
         EventKind::Pop => {
             let scopes_to_pop = parser.parse_number()?;
             let active_scopes_count = parser.parse_number()?;
@@ -128,7 +130,7 @@ fn process_line(settings: &Settings, state: &mut State, line: &str) -> Result<()
         EventKind::Instance => {
             state.register_instance()?;
         }
-        EventKind::Unrecognized => {}
+        _ => {}
     }
     Ok(())
 }
