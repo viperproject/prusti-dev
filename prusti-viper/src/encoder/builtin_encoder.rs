@@ -9,7 +9,7 @@ use vir_crate::polymorphic::{self as vir};
 use vir_crate::common::identifier::WithIdentifier;
 use super::errors::EncodingResult;
 use super::high::builtin_functions::HighBuiltinFunctionEncoderInterface;
-use super::{versioning, resources};
+use super::versioning;
 
 const PRIMITIVE_VALID_DOMAIN_NAME: &str = "PrimitiveValidDomain";
 
