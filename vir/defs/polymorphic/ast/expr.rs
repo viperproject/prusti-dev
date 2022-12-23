@@ -827,7 +827,7 @@ impl Expr {
                 self.non_pure = true;
             }
             fn walk_resource_access_predicate(
-                &mut self, 
+                &mut self,
                 _resource_access_predicate: &ResourceAccessPredicate,
             ) {
                 self.non_pure = true;
