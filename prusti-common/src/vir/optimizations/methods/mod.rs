@@ -13,6 +13,7 @@ mod purifier;
 mod quantifier_fixer;
 mod unfolding_fixer;
 mod var_remover;
+mod simplifier;
 
 use super::log_method;
 use crate::{config::Optimizations, vir::polymorphic_vir::cfg::CfgMethod};
@@ -20,7 +21,7 @@ use crate::{config::Optimizations, vir::polymorphic_vir::cfg::CfgMethod};
 use self::{
     assert_remover::remove_trivial_assertions, cfg_cleaner::clean_cfg,
     empty_if_remover::remove_empty_if, purifier::purify_vars, quantifier_fixer::fix_quantifiers,
-    unfolding_fixer::fix_unfoldings, var_remover::remove_unused_vars,
+    simplifier::simplify_expr, unfolding_fixer::fix_unfoldings, var_remover::remove_unused_vars,
 };
 
 #[allow(clippy::let_and_return)]
@@ -57,6 +58,7 @@ pub fn optimize_method_encoding(
     };
     let cfg = apply!(fix_unfoldings, cfg);
     let cfg = apply!(fix_quantifiers, cfg);
+    let cfg = apply!(simplify_expr, cfg);
     let cfg = apply!(remove_empty_if, cfg);
     let cfg = apply!(remove_unused_vars, cfg);
     let cfg = apply!(remove_trivial_assertions, cfg);

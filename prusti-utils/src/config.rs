@@ -23,6 +23,7 @@ pub struct Optimizations {
     pub purify_vars: bool,
     pub fix_quantifiers: bool,
     pub fix_unfoldings: bool,
+    pub simplify_expr: bool,
     pub remove_unused_vars: bool,
     pub remove_trivial_assertions: bool,
     pub clean_cfg: bool,
@@ -38,6 +39,7 @@ impl Optimizations {
             purify_vars: false,
             fix_quantifiers: false,
             fix_unfoldings: false,
+            simplify_expr: false,
             remove_unused_vars: false,
             remove_trivial_assertions: false,
             clean_cfg: false,
@@ -54,6 +56,7 @@ impl Optimizations {
             fix_quantifiers: true,
             // Disabled because https://github.com/viperproject/prusti-dev/issues/892 has been fixed
             fix_unfoldings: false,
+            simplify_expr: true,
             remove_unused_vars: true,
             remove_trivial_assertions: true,
             clean_cfg: true,
