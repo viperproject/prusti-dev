@@ -16,6 +16,20 @@ fn sum(n: u32) -> u32 {
     res
 }
 
+#[requires(time_credits(n as usize + 1))]
+#[ensures(time_receipts(n as usize + 1))]
+fn sum2(n: u32) -> u32 {
+    let mut i = n; // To be correct it should be n
+    let mut res = 0;
+    while 0 < i {
+        body_invariant!(time_credits(i as usize));
+        body_invariant!(time_receipts(1 + (n - i) as usize));
+        res += i;
+        i -= 1;
+    }
+    res
+}
+
 #[requires(time_credits(12))]
 #[ensures(time_receipts(12))]
 fn main() {
