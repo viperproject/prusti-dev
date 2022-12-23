@@ -4,19 +4,33 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::super::builtin_encoder::BuiltinMethodKind;
+use super::super::errors::ErrorCtxt;
+use prusti_rustc_interface::errors::MultiSpan;
 use vir_crate::polymorphic as vir;
 
 pub trait ResourcesEncoderInterface {
-    fn get_tick_call(&self, amount: usize) -> vir::Stmt;
+    fn get_tick_call<T: Into<MultiSpan>>(&self, span: T, amount: usize) -> Vec<vir::Stmt>;
 }
 
-impl<'v, 'tcx> ResourcesEncoderInterface for super::super::Encoder<'v, 'tcx> {
-    fn get_tick_call(&self, amount: usize) -> vir::Stmt {
-        vir::Stmt::MethodCall(vir::MethodCall {
-            method_name: self.encode_builtin_method_use(BuiltinMethodKind::Tick),
-            arguments: vec![amount.into()],
-            targets: vec![],
-        })
+impl<'p, 'v: 'p, 'tcx: 'v> ResourcesEncoderInterface
+    for super::super::procedure_encoder::ProcedureEncoder<'p, 'v, 'tcx>
+{
+    fn get_tick_call<T: Into<MultiSpan>>(&self, span: T, amount: usize) -> Vec<vir::Stmt> {
+        let pos = self.register_error(span, ErrorCtxt::NotEnoughTimeCredits);
+        vec![
+            vir::Stmt::Exhale(vir::Exhale {
+                expr: vir::Expr::resource_access_predicate(
+                    vir::common::ResourceType::TimeCredits,
+                    amount.into(),
+                ).set_pos(pos),
+                position: pos,
+            }),
+            vir::Stmt::Inhale(vir::Inhale {
+                expr: vir::Expr::resource_access_predicate(
+                    vir::common::ResourceType::TimeReceipts,
+                    amount.into(),
+                ),
+            }),
+        ]
     }
 }

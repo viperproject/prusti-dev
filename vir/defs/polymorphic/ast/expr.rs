@@ -826,6 +826,12 @@ impl Expr {
             ) {
                 self.non_pure = true;
             }
+            fn walk_resource_access_predicate(
+                &mut self, 
+                _resource_access_predicate: &ResourceAccessPredicate,
+            ) {
+                self.non_pure = true;
+            }
         }
         let mut walker = PurityFinder { non_pure: false };
         walker.walk(self);
@@ -1143,6 +1149,7 @@ impl Expr {
                     return_type: Type::Bool,
                     ..
                 })
+                | Expr::ResourceAccessPredicate(..)
                 | Expr::ForAll(..)
                 | Expr::Exists(..) => true,
                 Expr::BinOp(BinOp { op_kind, .. }) => {
