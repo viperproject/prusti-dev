@@ -2,7 +2,7 @@ use csv::Writer;
 
 use crate::{
     error::Error,
-    parser::{TheoryKind, EventKind},
+    parser::{EventKind, TheoryKind},
     types::{Level, QuantifierId, TermId, BUILTIN_QUANTIFIER_ID},
 };
 use std::{
@@ -120,6 +120,7 @@ pub(crate) struct State {
     current_active_scopes_count: Level,
     traced_quantifier: Option<QuantifierId>,
     traced_quantifier_triggers: Option<String>,
+    decide_and_or_terms: Vec<(TermId, String, TermId, String)>,
 }
 
 impl State {
@@ -307,6 +308,20 @@ impl State {
             .insert(term_id, Term::AttachMeaning { ident, value });
     }
 
+    pub(crate) fn register_decide_and_or_term(&mut self, term_id: TermId, undef_child_id: TermId) {
+        let mut rendered_term = String::new();
+        self.render_term(term_id, &mut rendered_term, 30).unwrap();
+        let mut rendered_undef_child = String::new();
+        self.render_term(undef_child_id, &mut rendered_undef_child, 30)
+            .unwrap();
+        self.decide_and_or_terms.push((
+            term_id,
+            rendered_term,
+            undef_child_id,
+            rendered_undef_child,
+        ));
+    }
+
     pub(crate) fn active_scopes_count(&self) -> Level {
         self.current_active_scopes_count
     }
@@ -461,19 +476,11 @@ impl State {
     pub(crate) fn write_statistics(&self, input_file: &str) {
         {
             let mut writer = Writer::from_path(format!("{}.event-kinds.csv", input_file)).unwrap();
-            writer
-                .write_record([
-                    "Event Kind",
-                    "Count",
-                ])
-                .unwrap();
+            writer.write_record(["Event Kind", "Count"]).unwrap();
             for (event_kind, counter) in &self.event_kind_counters {
                 writer
-                    .write_record([
-                        format!("{:?}", event_kind),
-                        counter.to_string(),
-                    ])
-                .unwrap();
+                    .write_record([format!("{:?}", event_kind), counter.to_string()])
+                    .unwrap();
             }
         }
 
@@ -635,6 +642,30 @@ impl State {
                         &format!("{:?}", theory),
                         &counter.to_string(),
                         &total.to_string(),
+                    ])
+                    .unwrap();
+            }
+        }
+
+        {
+            // [decide-and-or] – Case splits.
+            let mut writer =
+                Writer::from_path(format!("{}.decide-and-or.csv", input_file)).unwrap();
+            writer
+                .write_record([
+                    "TermId",
+                    "Rendered Term",
+                    "Undef child ID",
+                    "Rendered undef child",
+                ])
+                .unwrap();
+            for (term_id, rendered_term, child_id, rendered_child) in &self.decide_and_or_terms {
+                writer
+                    .write_record(&[
+                        &term_id.to_string(),
+                        rendered_term,
+                        &child_id.to_string(),
+                        rendered_child,
                     ])
                     .unwrap();
             }
@@ -813,5 +844,4 @@ impl State {
             );
         }
     }
-
 }

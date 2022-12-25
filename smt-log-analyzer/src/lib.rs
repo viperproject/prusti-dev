@@ -130,6 +130,12 @@ fn process_line(settings: &Settings, state: &mut State, line: &str) -> Result<()
         EventKind::Instance => {
             state.register_instance()?;
         }
+        EventKind::DecideAndOr => {
+            let term_id = parser.parse_id()?;
+            let undef_child_id = parser.parse_id()?;
+            // FIXME: This information seems to be useless.
+            state.register_decide_and_or_term(term_id, undef_child_id);
+        }
         _ => {}
     }
     Ok(())
