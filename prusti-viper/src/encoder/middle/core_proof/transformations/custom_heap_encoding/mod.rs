@@ -194,6 +194,14 @@ impl Quantifiers {
                     }),
                 ..
             }) => func_app,
+            vir_low::Expression::BinaryOp(vir_low::ast::expression::BinaryOp {
+                right:
+                    box vir_low::Expression::Conditional(vir_low::ast::expression::Conditional {
+                        else_expr: box vir_low::Expression::DomainFuncApp(func_app),
+                        ..
+                    }),
+                ..
+            }) => func_app,
             _ => unimplemented!("expression: {}", expression),
         };
         let term = func_app.arguments.last().unwrap();
@@ -610,6 +618,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         new_permission_mask: vir_low::Expression,
         position: vir_low::Position,
         old_label: &Option<String>,
+        perm_new_value: vir_low::Expression,
     ) -> SpannedEncodingResult<()> {
         let perm_new = self.perm_call_for_predicate_def(&predicate, new_permission_mask.clone())?;
         let perm_old = self.perm_call_for_predicate_def(&predicate, old_permission_mask.clone())?;
@@ -624,9 +633,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             .zip(arguments)
             .map(|(parameter, argument)| vir_low::Expression::equals(parameter, argument))
             .conjoin();
-        let body = vir_low::Expression::implies(
-            vir_low::Expression::not(guard),
-            vir_low::Expression::equals(perm_new, perm_old),
+        // let body = vir_low::Expression::implies(
+        //     vir_low::Expression::not(guard),
+        //     vir_low::Expression::equals(perm_new, perm_old),
+        // );
+        let body = vir_low::Expression::equals(
+            perm_new,
+            vir_low::Expression::conditional_no_pos(guard, perm_new_value, perm_old),
         );
         let quantifier = vir_low::expression::Quantifier {
             kind: vir_low::expression::QuantifierKind::ForAll,
@@ -749,17 +762,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         // Trigger `encode_perm_unchanged_quantifier` with `perm_old`.
                         self.quantifiers.trigger_quantifiers(&perm_old, position)?;
                     }
-                    statements.push(vir_low::Statement::assume(
-                        vir_low::Expression::equals(
-                            perm_new.clone(),
-                            vir_low::Expression::perm_binary_op_no_pos(
-                                vir_low::ast::expression::PermBinaryOpKind::Add,
-                                perm_old.clone(),
-                                (*expression.permission).clone(),
-                            ),
-                        ),
-                        position, // FIXME: use position of expression.permission with proper ErrorCtxt.
-                    ));
+                    let perm_new_value = vir_low::Expression::perm_binary_op_no_pos(
+                        vir_low::ast::expression::PermBinaryOpKind::Add,
+                        perm_old.clone(),
+                        (*expression.permission).clone(),
+                    );
+                    // statements.push(vir_low::Statement::assume(
+                    //     vir_low::Expression::equals(
+                    //         perm_new.clone(),
+                    //         vir_low::Expression::perm_binary_op_no_pos(
+                    //             vir_low::ast::expression::PermBinaryOpKind::Add,
+                    //             perm_old.clone(),
+                    //             (*expression.permission).clone(),
+                    //         ),
+                    //     ),
+                    //     position, // FIXME: use position of expression.permission with proper ErrorCtxt.
+                    // ));
                     // assume forall arg1: Ref, arg2: Ref ::
                     //     {perm<P>(arg1, arg2, v_new)}
                     //     !(r1 == arg1 && r2 == arg2) ==>
@@ -771,6 +789,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         new_permission_mask,
                         position,
                         old_label,
+                        perm_new_value,
                     )?;
                 }
                 vir_low::Expression::Unfolding(_) => todo!(),
@@ -877,17 +896,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         position, // FIXME: use position of expression.permission with proper ErrorCtxt.
                     ));
                     // assume perm<P>(r1, r2, v_new) == perm<P>(r1, r2, v_old) - p
-                    statements.push(vir_low::Statement::assume(
-                        vir_low::Expression::equals(
-                            perm_new.clone(),
-                            vir_low::Expression::perm_binary_op_no_pos(
-                                vir_low::ast::expression::PermBinaryOpKind::Sub,
-                                perm_old.clone(),
-                                (*expression.permission).clone(),
-                            ),
-                        ),
-                        position, // FIXME: use position of expression.permission with proper ErrorCtxt.
-                    ));
+                    let perm_new_value = vir_low::Expression::perm_binary_op_no_pos(
+                        vir_low::ast::expression::PermBinaryOpKind::Sub,
+                        perm_old.clone(),
+                        (*expression.permission).clone(),
+                    );
+                    // statements.push(vir_low::Statement::assume(
+                    //     vir_low::Expression::equals(
+                    //         perm_new.clone(),
+                    //         vir_low::Expression::perm_binary_op_no_pos(
+                    //             vir_low::ast::expression::PermBinaryOpKind::Sub,
+                    //             perm_old.clone(),
+                    //             (*expression.permission).clone(),
+                    //         ),
+                    //     ),
+                    //     position, // FIXME: use position of expression.permission with proper ErrorCtxt.
+                    // ));
                     // assume forall arg1: Ref, arg2: Ref ::
                     //     {perm<P>(arg1, arg2, v_new)}
                     //     !(r1 == arg1 && r2 == arg2) ==>
@@ -899,6 +923,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         new_permission_mask.clone(),
                         position,
                         old_label,
+                        perm_new_value,
                     )?;
                     // assume forall arg1: Ref, arg2: Ref ::
                     //     {heap<P>(arg1, arg2, vh_new)}
@@ -1131,6 +1156,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         let perm_version_domain = vir_low::DomainDecl::new("PermVersion", Vec::new(), Vec::new());
         let heap_version_domain = vir_low::DomainDecl::new("HeapVersion", Vec::new(), Vec::new());
         let mut perm_functions = Vec::new();
+        let mut perm_axioms = Vec::new();
         let mut heap_functions = Vec::new();
         for predicate in self.predicates.values() {
             {
@@ -1139,12 +1165,37 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     "version",
                     self.perm_version_type(),
                 ));
-                perm_functions.push(vir_low::DomainFunctionDecl::new(
-                    self.get_perm_function_name_for(&predicate.name),
+                let function_name = self.get_perm_function_name_for(&predicate.name);
+                let function = vir_low::DomainFunctionDecl::new(
+                    function_name.clone(),
                     false,
-                    parameters,
+                    parameters.clone(),
                     vir_low::Type::Perm,
-                ));
+                );
+                perm_functions.push(function);
+                let function_call = vir_low::Expression::domain_func_app_no_pos(
+                    "PermFunctions".to_string(),
+                    function_name.clone(),
+                    parameters
+                        .clone()
+                        .into_iter()
+                        .map(|parameter| parameter.into())
+                        .collect(),
+                    parameters.clone(),
+                    vir_low::Type::Perm,
+                );
+                use vir_low::macros::*;
+                let body = vir_low::Expression::forall(
+                    parameters,
+                    vec![vir_low::Trigger::new(vec![function_call.clone()])],
+                    expr! {
+                        ([vir_low::Expression::no_permission()] <= [function_call.clone()]) &&
+                        ([function_call] <= [vir_low::Expression::full_permission()])
+                    },
+                );
+                let axiom =
+                    vir_low::DomainAxiomDecl::new(None, format!("{}$bounds", function_name), body);
+                perm_axioms.push(axiom);
             }
             if let Some(snapshot_type) = self.get_snapshot_type_for_predicate(&predicate.name) {
                 let mut parameters = predicate.parameters.clone();
@@ -1160,7 +1211,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 ));
             }
         }
-        let perm_domain = vir_low::DomainDecl::new("PermFunctions", perm_functions, Vec::new());
+        let perm_domain = vir_low::DomainDecl::new("PermFunctions", perm_functions, perm_axioms);
         let heap_domain = vir_low::DomainDecl::new("HeapFunctions", heap_functions, Vec::new());
         let domains = vec![
             perm_domain,
