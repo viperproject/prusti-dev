@@ -83,6 +83,8 @@ fn collect_fncalls(env: &Environment<'_>) -> Vec<(String, Span)> {
     // let hir_body = l_hir.body();
 
     let mut fnvisitor = call_finder::CallSpanFinder::new(env);
+
+    // let mut adjusted_visitor = 
     // fnvisitor.visit_body(hir_body);
     env.tcx()
         .hir()

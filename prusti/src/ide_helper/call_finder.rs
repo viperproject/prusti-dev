@@ -1,18 +1,12 @@
-use prusti_rustc_interface::hir::intravisit::{
-    self,
-    Visitor,
-};
-use prusti_rustc_interface::middle::{
-    hir::map::Map,
-    ty::TyCtxt,
-};
-use prusti_rustc_interface::hir::{
-    Expr, ExprKind, QPath,
-};
-use prusti_rustc_interface::span::Span;
-use prusti_interface::environment::{
-    Environment,
-    EnvQuery,
+use prusti_interface::environment::{EnvQuery, Environment};
+use prusti_rustc_interface::{
+    hir::{
+        def_id::DefId,
+        intravisit::{self, Visitor},
+        Expr, ExprKind,
+    },
+    middle::{hir::map::Map, ty::TyCtxt},
+    span::Span,
 };
 
 pub struct CallSpanFinder<'tcx> {
@@ -29,6 +23,24 @@ impl<'tcx> CallSpanFinder<'tcx> {
             tcx: env.tcx(),
         }
     }
+
+    pub fn resolve_expression(&self, expr: &'tcx Expr) -> Result<(DefId, DefId), ()> {
+        let maybe_method_def_id = self
+            .tcx
+            .typeck(expr.hir_id.owner.def_id)
+            .type_dependent_def_id(expr.hir_id);
+        if let Some(method_def_id) = maybe_method_def_id {
+            let owner_def_id = expr.hir_id.owner.def_id;
+            let tyck_res = self.tcx.typeck(owner_def_id);
+            let substs = tyck_res.node_substs(expr.hir_id);
+            let (resolved_def_id, _subst) =
+                self.env_query
+                    .resolve_method_call(owner_def_id, method_def_id, substs);
+            return Ok((method_def_id, resolved_def_id));
+        } else {
+            return Err(());
+        }
+    }
 }
 
 impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
@@ -38,10 +50,9 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
     fn nested_visit_map(&mut self) -> Self::Map {
         self.env_query.hir()
     }
-    fn visit_expr(&mut self, ex: &'tcx Expr) {
-        intravisit::walk_expr(self, ex);
-        match ex.kind {
-            // Find all calls and methodcalls, not sure what the difference is..
+    fn visit_expr(&mut self, expr: &'tcx Expr) {
+        intravisit::walk_expr(self, expr);
+        match expr.kind {
             ExprKind::Call(e1, _e2) => {
                 println!("found a call: resolving!");
                 if let ExprKind::Path(ref qself) = e1.kind {
@@ -50,55 +61,70 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
                     if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = res {
                         let defpath = self.tcx.def_path_debug_str(def_id);
                         println!("Call DefPath: {}", defpath);
-                        self.spans.push((defpath, ex.span))
+                        self.spans.push((defpath, expr.span))
+                    } else {
+                        println!("Resolving a call failed!\n\n\n");
                     }
+                } else {
+                    println!("Resolving a Call failed!\n\n\n");
                 }
-            },
-            ExprKind::MethodCall(path, e1, _e2, sp) => {
-                let ident = format!("Method Call: {}", path.ident.as_str());
-                // let path: &'tcx PathSegment<'tcx> = p;
-                let maybe_method_def_id = self
-                    .tcx
-                    .typeck(ex.hir_id.owner.def_id)
-                    .type_dependent_def_id(ex.hir_id);
-                if let Some(method_def_id) = maybe_method_def_id {
-                    let _is_local = method_def_id.as_local().is_some();
-                    // if !is_local {
-                    let defpath = self.tcx.def_path_debug_str(method_def_id);
-                    println!("Found MethodCall: {}", defpath.clone());
-                    self.spans.push((defpath, sp));
-                // }
-                    // try something
-                    let owner_def_id = ex.hir_id.owner.def_id;
-                    let owner_def_path = self.tcx.def_path_debug_str(owner_def_id.into());
-                    // what if we give it e1's defid
-                    let tyck_res = self.tcx.typeck(owner_def_id);
-                    let substs = tyck_res.node_substs(ex.hir_id);
-                    let (other_def_id, _subst) = self
-                        .env_query
-                        .resolve_method_call(owner_def_id, method_def_id, substs);
-                    if other_def_id != method_def_id {
-                        let other_def_path = self.tcx.def_path_debug_str(other_def_id);
-                        println!("Resolved method call to different defpath: {}", other_def_path);
-                        self.spans.push((other_def_path, sp));
-                    }
-                } // local methods do not need external specifications. 
-                // should we still allow it?
-                // the interesting thing about methodCalls is that in the case of traits
-                // there are 2 possible things we can annotate. The behavior of the trait 
-                // methods itself, or the methods of this specific implementation
+            }
+            ExprKind::MethodCall(_path, _e1, _e2, sp) => {
+                let resolve_res = self.resolve_expression(expr);
+                match resolve_res {
+                    Ok((method_def_id, resolved_def_id)) => {
+                        let _is_local = method_def_id.as_local().is_some();
+                        let defpath_unresolved = self.tcx.def_path_debug_str(method_def_id);
+                        let defpath_resolved = self.tcx.def_path_debug_str(resolved_def_id);
 
-            },
-            ExprKind::Binary(binop, _e1, _e2) | ExprKind::AssignOp(binop, _e1, _e2) => {
-                let ident = binop.node.as_str();
-                self.spans.push((ident.to_string(), ex.span));
-            },
-            ExprKind::Unary(unop, _e1) => {
-                let ident = unop.as_str();
-                self.spans.push((ident.to_string(), ex.span));
-            },
+                        if true {
+                            // TODO: replace with is_local once we are not debugging anymore
+                            // no need to create external specs for local methods
+                            if defpath_unresolved == defpath_resolved {
+                                self.spans.push((defpath_resolved, sp));
+                            } else {
+                                // in this case we want both
+                                self.spans.push((defpath_resolved, sp));
+                                self.spans.push((defpath_unresolved, sp));
+                            }
+                        }
+                    }
+                    Err(()) => {}
+                }
+            }
+            ExprKind::Binary(..) | ExprKind::AssignOp(..) | ExprKind::Unary(..) => {
+                let resolve_res = self.resolve_expression(expr);
+                // this will already fail for standard addition
+                match resolve_res {
+                    Ok((method_def_id, resolved_def_id)) => {
+                        let _is_local = method_def_id.as_local().is_some();
+                        let defpath_unresolved = self.tcx.def_path_debug_str(method_def_id);
+                        let defpath_resolved = self.tcx.def_path_debug_str(resolved_def_id);
+
+                        if true {
+                            // TODO: replace with is_local once we are not debugging anymore
+                            // no need to create external specs for local methods
+                            if defpath_unresolved == defpath_resolved {
+                                println!("Defpaths for binary operation were equal");
+                                self.spans.push((defpath_resolved, expr.span));
+                            } else {
+                                // For binary operations this will be the operation
+                                // from the standard libary and the "overriding" method
+                                println!(
+                                    "\n\n\n\nFound two differing defpaths for binary operation"
+                                );
+                                println!("1. {}", defpath_resolved);
+                                println!("2. {}", defpath_unresolved);
+
+                                self.spans.push((defpath_resolved, expr.span));
+                                self.spans.push((defpath_unresolved, expr.span));
+                            }
+                        }
+                    }
+                    Err(()) => {} // standard addition etc should be caught here
+                }
+            }
             _ => {}
         }
     }
 }
-
