@@ -1488,11 +1488,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // The called method might be a trait method.
         // We try to resolve it to the concrete implementation
         // and type substitutions.
-        let (called_def_id, call_substs) =
-            self.encoder
-                .env()
-                .query
-                .resolve_method_call(self.def_id, called_def_id, call_substs);
+        let (called_def_id, call_substs) = self.encoder.env().query.resolve_method_call(
+            self.def_id,
+            called_def_id,
+            self.encoder.env().tcx().erase_regions(call_substs),
+        );
 
         // find static lifetime to exhale
         let mut lifetimes_to_exhale_inhale: Vec<String> = Vec::new();
@@ -1505,28 +1505,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         }
         assert_eq!(lifetimes_to_exhale_inhale.len(), 1); // there must be exactly one static lifetime
 
-        // find generic argument lifetimes
-        let mut subst_lifetimes: Vec<String> = call_substs
-            .iter()
-            .filter_map(|generic| match generic.unpack() {
-                ty::subst::GenericArgKind::Lifetime(region) => Some(region.to_text()),
-                _ => None,
-            })
-            .collect();
-        if subst_lifetimes.is_empty() {
-            // If subst_lifetimes is empty, check args for a lifetime
-            for arg in args {
-                if let &mir::Operand::Move(place) = arg {
-                    let place_high = self.encode_place(place, None)?;
-                    let lifetimes = place_high.get_lifetimes();
-                    for lifetime in lifetimes {
-                        subst_lifetimes.push(lifetime.name.clone());
+        // find lifetimes for function args
+        for arg in args {
+            match arg {
+                &mir::Operand::Move(place) => {
+                    let encoded_place = self.encode_place(place, None)?;
+                    let place_lifetimes = encoded_place.get_lifetimes();
+                    for lifetime in place_lifetimes {
+                        lifetimes_to_exhale_inhale.push(lifetime.name.clone());
                     }
                 }
+                _ => {}
             }
-        }
-        for lifetime in subst_lifetimes {
-            lifetimes_to_exhale_inhale.push(lifetime);
         }
 
         // construct function lifetime
