@@ -1507,15 +1507,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         // find lifetimes for function args
         for arg in args {
-            match arg {
-                &mir::Operand::Move(place) => {
-                    let encoded_place = self.encode_place(place, None)?;
-                    let place_lifetimes = encoded_place.get_lifetimes();
-                    for lifetime in place_lifetimes {
-                        lifetimes_to_exhale_inhale.push(lifetime.name.clone());
-                    }
+            if let &mir::Operand::Move(place) = arg {
+                let encoded_place = self.encode_place(place, None)?;
+                let place_lifetimes = encoded_place.get_lifetimes();
+                for lifetime in place_lifetimes {
+                    lifetimes_to_exhale_inhale.push(lifetime.name.clone());
                 }
-                _ => {}
             }
         }
 
