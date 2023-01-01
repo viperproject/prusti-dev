@@ -189,10 +189,10 @@ pub(super) fn encode_quantifier<'tcx>(
             let (trigger_def_id, trigger_substs, trigger_span, _, _) =
                 extract_closure_from_ty(encoder.env().query, ty_trigger);
             let set_field = encoder
-                .encode_raw_ref_field(format!("tuple_{}", trigger_set_idx), ty_trigger_set)
+                .encode_raw_ref_field(format!("tuple_{trigger_set_idx}"), ty_trigger_set)
                 .with_span(trigger_span)?;
             let trigger_field = encoder
-                .encode_raw_ref_field(format!("tuple_{}", trigger_idx), ty_trigger)
+                .encode_raw_ref_field(format!("tuple_{trigger_idx}"), ty_trigger)
                 .with_span(trigger_span)?;
             // note: `is_encoding_trigger` must be set back to `false` before returning early in case of errors
             encoder.is_encoding_trigger.set(true);
@@ -248,7 +248,7 @@ pub(super) fn encode_quantifier<'tcx>(
     let mut fixed_qvars = vec![];
     for (arg_idx, qvar) in encoded_qvars.iter().enumerate() {
         let qvar_rep = vir_crate::polymorphic::LocalVar::new(
-            format!("_{}_quant_{}", arg_idx, quantifier_depth),
+            format!("_{arg_idx}_quant_{quantifier_depth}"),
             qvar.typ.clone(),
         );
         qvar_replacements.push((

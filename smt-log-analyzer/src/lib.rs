@@ -166,7 +166,7 @@ pub fn analyze(
         std::mem::swap(&mut line, &mut prev_line);
         line_number += 1;
         process_line(&settings, &mut state, &line)
-            .unwrap_or_else(|error| panic!("Error {} on line {}", error, line_number));
+            .unwrap_or_else(|error| panic!("Error {error} on line {line_number}"));
         line.clear();
     }
     let scopes_left = state.active_scopes_count();

@@ -6,7 +6,7 @@
 
 use prusti_rustc_interface::hir::Mutability;
 use prusti_rustc_interface::middle::ty::{
-    AdtDef, FieldDef, List, ParamTy, ProjectionTy, Region, Ty, TyCtxt,
+    AdtDef, FieldDef, List, ParamTy, Region, AliasKind, AliasTy, Ty, TyCtxt,
     TypeFlags, TyKind, IntTy, UintTy, FloatTy, VariantDef, subst::SubstsRef, Const
 };
 use prusti_rustc_interface::hir::def_id::DefId;
@@ -61,8 +61,8 @@ pub trait TypeVisitor<'tcx>: Sized {
             TyKind::Param(param) => {
                 self.visit_param(param)
             }
-            TyKind::Projection(data) => {
-                self.visit_projection(data)
+            TyKind::Alias(AliasKind::Projection, alias_ty) => {
+                self.visit_projection(alias_ty)
             }
             TyKind::Closure(def_id, substs) => {
                 self.visit_closure(def_id, substs)
@@ -118,7 +118,7 @@ pub trait TypeVisitor<'tcx>: Sized {
 
     fn visit_projection(
         &mut self,
-        _data: ProjectionTy<'tcx>
+        _data: AliasTy<'tcx>
     ) -> Result<(), Self::Error> {
         Ok(())
     }

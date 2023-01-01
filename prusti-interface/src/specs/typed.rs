@@ -145,7 +145,7 @@ impl DefSpecificationMap {
         let loop_specs: Vec<_> = self
             .loop_specs
             .values()
-            .map(|spec| format!("{:?}", spec))
+            .map(|spec| format!("{spec:?}"))
             .collect();
         let proc_specs: Vec<_> = self
             .proc_specs
@@ -155,17 +155,17 @@ impl DefSpecificationMap {
         let type_specs: Vec<_> = self
             .type_specs
             .values()
-            .map(|spec| format!("{:?}", spec))
+            .map(|spec| format!("{spec:?}"))
             .collect();
         let asserts: Vec<_> = self
             .prusti_assertions
             .values()
-            .map(|spec| format!("{:?}", spec))
+            .map(|spec| format!("{spec:?}"))
             .collect();
         let assumptions: Vec<_> = self
             .prusti_assumptions
             .values()
-            .map(|spec| format!("{:?}", spec))
+            .map(|spec| format!("{spec:?}"))
             .collect();
         let mut values = Vec::new();
         values.extend(loop_specs);

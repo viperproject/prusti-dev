@@ -57,7 +57,7 @@ impl Context {
     ) -> Result<(), std::io::Error> {
         if let Some(log_file) = &self.log_file {
             let mut file = log_file.lock().await;
-            write!(file, "{}: {}", stream, line).await?;
+            write!(file, "{stream}: {line}").await?;
         }
         Ok(())
     }
@@ -69,15 +69,14 @@ impl Context {
     ) -> Result<(), std::io::Error> {
         if let Some(log_file) = &self.log_file {
             let mut file = log_file.lock().await;
-            writeln!(file, "{}: {}", stream, number).await?;
+            writeln!(file, "{stream}: {number}").await?;
         }
         Ok(())
     }
 
     pub(crate) async fn write_config_to_log(&self) -> Result<(), std::io::Error> {
         self.write_to_log("context", "--------\n-").await?;
-        self.write_to_log("context", &format!("{:?}\n", self))
-            .await?;
+        self.write_to_log("context", &format!("{self:?}\n")).await?;
         self.write_to_log("context", "---------\n").await?;
         Ok(())
     }
@@ -94,9 +93,7 @@ impl Context {
                         let quant_instantiations: u64 = words.next().unwrap().parse().unwrap();
                         assert!(
                             quant_instantiations < quantifier_instantiations_bound_global,
-                            "Quantifier instantiation bound exceeded: {} < {}",
-                            quant_instantiations,
-                            quantifier_instantiations_bound_global
+                            "Quantifier instantiation bound exceeded: {quant_instantiations} < {quantifier_instantiations_bound_global}"
                         );
                     }
                 }

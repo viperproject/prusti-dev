@@ -198,19 +198,15 @@ fn generate(
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_type = generate_jni_type(par_sign);
-        code.push(format!(
-            "/// - `{}`: `{}` (`{}`)",
-            par_name, par_type, par_sign
-        ));
+        code.push(format!("/// - `{par_name}`: `{par_type}` (`{par_sign}`)"));
     }
 
     code.push("///".to_string());
     code.push(format!(
-        "/// Return type and Java signature: `{}` (`{}`)",
-        return_type, return_signature
+        "/// Return type and Java signature: `{return_type}` (`{return_signature}`)"
     ));
 
-    code.push(format!("pub fn {}(", rust_method_name));
+    code.push(format!("pub fn {rust_method_name}("));
     code.push("    &self,".to_string());
     code.push("    receiver: JObject<'a>,".to_string());
 
@@ -218,20 +214,18 @@ fn generate(
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_type = generate_jni_type(par_sign);
-        code.push(format!("    {}: {},", par_name, par_type));
+        code.push(format!("    {par_name}: {par_type},"));
     }
 
-    code.push(format!(") -> JNIResult<{}> {{", return_type));
+    code.push(format!(") -> JNIResult<{return_type}> {{"));
 
     code.push(format!("    let class_name = \"{}\";", class.path()));
     code.push(format!("    let method_name = \"{}\";", method_name));
     code.push(format!(
-        "    let method_signature = \"{}\";",
-        method_signature
+        "    let method_signature = \"{method_signature}\";"
     ));
     code.push(format!(
-        "    let return_signature = \"{}\";",
-        return_signature
+        "    let return_signature = \"{return_signature}\";"
     ));
     code.push("".to_string());
 
@@ -290,7 +284,7 @@ fn generate(
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_jvalue = generate_jvalue_wrapper(par_name, par_sign);
-        code.push(format!("            {}.into(),", par_jvalue));
+        code.push(format!("            {par_jvalue}.into(),"));
     }
 
     code.push("        ]".to_string());
@@ -349,39 +343,33 @@ fn generate_static(
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_type = generate_jni_type(par_sign);
-        code.push(format!(
-            "/// - `{}`: `{}` (`{}`)",
-            par_name, par_type, par_sign
-        ));
+        code.push(format!("/// - `{par_name}`: `{par_type}` (`{par_sign}`)"));
     }
 
     code.push("///".to_string());
     code.push(format!(
-        "/// Return type and Java signature: `{}` (`{}`)",
-        return_type, return_signature
+        "/// Return type and Java signature: `{return_type}` (`{return_signature}`)"
     ));
 
-    code.push(format!("pub fn {}(", rust_method_name));
+    code.push(format!("pub fn {rust_method_name}("));
     code.push("    &self,".to_string());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_type = generate_jni_type(par_sign);
-        code.push(format!("    {}: {},", par_name, par_type));
+        code.push(format!("    {par_name}: {par_type},"));
     }
 
-    code.push(format!(") -> JNIResult<{}> {{", return_type));
+    code.push(format!(") -> JNIResult<{return_type}> {{"));
 
     code.push(format!("    let class_name = \"{}\";", class.path()));
     code.push(format!("    let method_name = \"{}\";", method_name));
     code.push(format!(
-        "    let method_signature = \"{}\";",
-        method_signature
+        "    let method_signature = \"{method_signature}\";"
     ));
     code.push(format!(
-        "    let return_signature = \"{}\";",
-        return_signature
+        "    let return_signature = \"{return_signature}\";"
     ));
     code.push("".to_string());
 
@@ -436,7 +424,7 @@ fn generate_static(
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_jvalue = generate_jvalue_wrapper(par_name, par_sign);
-        code.push(format!("            {}.into(),", par_jvalue));
+        code.push(format!("            {par_jvalue}.into(),"));
     }
     code.push("        ]".to_string());
     code.push(format!(

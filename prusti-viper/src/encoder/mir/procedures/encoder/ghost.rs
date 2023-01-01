@@ -49,7 +49,7 @@ impl<'a, 'p, 'v, 'tcx> GhostChecker<'a, 'p, 'v, 'tcx> {
     }
     fn is_ghost_local(&self, local: &mir::Local) -> bool {
         let ty = &self.p.mir.local_decls[*local].ty;
-        let ty_str = format!("{:?}", ty);
+        let ty_str = format!("{ty:?}");
 
         let ghost_tys = ["Ghost", "Int", "Seq", "Map"];
 

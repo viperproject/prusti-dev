@@ -166,8 +166,7 @@ impl ApplyOnState for vir::Stmt {
                     // This is not move assignemnt or the creation of a borrow
                     assert!(
                         matches!(kind, vir::AssignKind::Copy),
-                        "Unexpected assignment kind: {:?}",
-                        kind
+                        "Unexpected assignment kind: {kind:?}"
                     );
                 }
             }
@@ -266,8 +265,7 @@ impl ApplyOnState for vir::Stmt {
                 if !unchecked {
                     debug_assert!(
                         !left.is_simple_place() || state.is_prefix_of_some_acc(left) || state.is_prefix_of_some_pred(left),
-                        "The fold/unfold state does not contain the permission for an expiring borrow: {}",
-                        left
+                        "The fold/unfold state does not contain the permission for an expiring borrow: {left}"
                     );
                 }
                 /*assert!(

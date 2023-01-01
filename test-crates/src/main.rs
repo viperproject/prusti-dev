@@ -262,7 +262,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         if !args.skip_build_check {
             info!("Build crate...");
-            let mut build_dir = workspace.build_dir(&format!("build_{}", index));
+            let mut build_dir = workspace.build_dir(&format!("build_{index}"));
 
             let sandbox = cmd::SandboxBuilder::new()
                 .memory_limit(Some(1024 * 1024 * 1024))
@@ -290,7 +290,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         info!("Verify crate...");
         {
-            let mut build_dir = workspace.build_dir(&format!("verify_{}", index));
+            let mut build_dir = workspace.build_dir(&format!("verify_{index}"));
 
             let mut sandbox = cmd::SandboxBuilder::new()
                 .memory_limit(Some(4024 * 1024 * 1024))
@@ -356,7 +356,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         if args.fail_fast {
             if let Some((krate, test_kind)) = failed_crates.first() {
-                panic!("Failed to verify the crate {} ({:?})", krate, test_kind);
+                panic!("Failed to verify the crate {krate} ({test_kind:?})");
             }
         }
     }

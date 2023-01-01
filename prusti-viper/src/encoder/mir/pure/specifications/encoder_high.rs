@@ -82,8 +82,7 @@ pub(super) fn inline_spec_item_high<'tcx>(
     assert_eq!(
         mir.arg_count,
         target_args.len() + usize::from(target_return.is_some()),
-        "def_id: {:?}",
-        def_id
+        "def_id: {def_id:?}"
     );
     let mir_encoder = MirEncoder::new(encoder, &mir, def_id);
     let mut body_replacements = vec![];
@@ -167,12 +166,12 @@ pub(super) fn encode_quantifier_high<'tcx>(
             let (trigger_def_id, trigger_substs, _, _, _) =
                 extract_closure_from_ty(encoder.env().query, ty_trigger);
             let set_field = vir_high::FieldDecl::new(
-                format!("tuple_{}", trigger_set_idx),
+                format!("tuple_{trigger_set_idx}"),
                 trigger_set_idx,
                 encoder.encode_type_high(ty_trigger_set)?,
             );
             let trigger_field = vir_high::FieldDecl::new(
-                format!("tuple_{}", trigger_idx),
+                format!("tuple_{trigger_idx}"),
                 trigger_idx,
                 encoder.encode_type_high(ty_trigger)?,
             );

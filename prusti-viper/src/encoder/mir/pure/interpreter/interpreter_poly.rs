@@ -309,10 +309,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             }
 
             TerminatorKind::SwitchInt {
-                switch_ty,
                 ref discr,
                 ref targets,
             } => {
+                let switch_ty = self.mir_encoder.get_operand_ty(discr);
                 trace!(
                     "SwitchInt ty '{:?}', discr '{:?}', targets '{:?}'",
                     switch_ty,
@@ -498,7 +498,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let idx_ty_did = match idx_ty.ty_adt_def() {
                                     Some(def) => def.did(),
                                     None => return Err(SpannedEncodingError::unsupported(
-                                        format!("Using {} as index/range type for {} is not currently supported in pure functions", idx_ty, base_ty),
+                                        format!("Using {idx_ty} as index/range type for {base_ty} is not currently supported in pure functions"),
                                         span,
                                     ))
                                 };
@@ -608,8 +608,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 } else {
                                     return Err(SpannedEncodingError::incorrect(
                                         format!(
-                                            "use of impure function {:?} in pure code is not allowed",
-                                            func_proc_name
+                                            "use of impure function {func_proc_name:?} in pure code is not allowed"
                                         ),
                                         span,
                                     ));
@@ -622,7 +621,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                     .map(|(i, arg)| {
                                         self.mir_encoder
                                             .encode_operand_expr_type(arg)
-                                            .map(|ty| vir::LocalVar::new(format!("x{}", i), ty))
+                                            .map(|ty| vir::LocalVar::new(format!("x{i}"), ty))
                                     })
                                     .collect::<Result<_, _>>()
                                     .with_span(term.source_info.span)?;
@@ -883,7 +882,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 };
                                 let mut field_exprs = vec![];
                                 for (field_num, operand) in operands.iter().enumerate() {
-                                    let field_name = format!("tuple_{}", field_num);
+                                    let field_name = format!("tuple_{field_num}");
                                     let field_ty = field_types[field_num];
                                     let encoded_field = self.encoder
                                         .encode_raw_ref_field(field_name, field_ty)
@@ -964,7 +963,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let mut field_exprs = vec![];
                                 for (field_index, field_ty) in cl_substs.upvar_tys().enumerate() {
                                     let operand = &operands[field_index];
-                                    let field_name = format!("closure_{}", field_index);
+                                    let field_name = format!("closure_{field_index}");
 
                                     let encoded_field = self.encoder
                                         .encode_raw_ref_field(field_name, field_ty)
@@ -1021,7 +1020,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                             ref agg => {
                                 return Err(SpannedEncodingError::internal(
-                                    format!("unimplemented encoding of RHS aggregate '{:?}'", agg),
+                                    format!("unimplemented encoding of RHS aggregate '{agg:?}'"),
                                     span
                                 ));
                             }
@@ -1085,7 +1084,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             .clone()
                             .field(value_field);
                         let lhs_check = encoded_lhs
-                            .clone()
                             .field(check_field);
 
                         // Substitute a place of a value with an expression
@@ -1136,7 +1134,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             }
                             ref x => {
                                 return Err(SpannedEncodingError::internal(
-                                    format!("the discriminant of type {:?} is not defined", x),
+                                    format!("the discriminant of type {x:?} is not defined"),
                                     span
                                 ));
                             }
@@ -1218,7 +1216,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                             state.substitute_value(&opt_lhs_value_place.unwrap(), unsize_func);
                         } else {
                             return Err(SpannedEncodingError::unsupported(
-                                format!("unsizing a {} into a {} is not supported", rhs_ref_ty, lhs_ref_ty),
+                                format!("unsizing a {rhs_ref_ty} into a {lhs_ref_ty} is not supported"),
                                 span,
                             ));
                         }
@@ -1226,7 +1224,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                     mir::Rvalue::Cast(unsupported_kind, _, _) => {
                         return Err(SpannedEncodingError::unsupported(
-                            format!("unsupported cast of kind '{:?}'", unsupported_kind),
+                            format!("unsupported cast of kind '{unsupported_kind:?}'"),
                             span,
                         ));
                     }
@@ -1255,7 +1253,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
                     ref rhs => {
                         return Err(SpannedEncodingError::internal(
-                            format!("unimplemented encoding of RHS '{:?}'", rhs),
+                            format!("unimplemented encoding of RHS '{rhs:?}'"),
                             span
                         ));
                     }
@@ -1264,7 +1262,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
 
             ref stmt => {
                 return Err(SpannedEncodingError::internal(
-                    format!("unimplemented encoding of statement '{:?}'", stmt),
+                    format!("unimplemented encoding of statement '{stmt:?}'"),
                     span
                 ));
             }

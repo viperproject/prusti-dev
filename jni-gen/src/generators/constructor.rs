@@ -107,7 +107,7 @@ pub fn generate_constructor(
 
     let constructor_name = match suffix {
         None => "new".to_string(),
-        Some(s) => format!("new_{}", s),
+        Some(s) => format!("new_{s}"),
     };
 
     Ok(generate(
@@ -140,10 +140,7 @@ fn generate(
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_type = generate_jni_type(par_sign);
-        code.push(format!(
-            "/// - `{}`: `{}` (`{}`)",
-            par_name, par_type, par_sign
-        ));
+        code.push(format!("/// - `{par_name}`: `{par_type}` (`{par_sign}`)"));
     }
 
     code.push("///".to_string());
@@ -152,14 +149,14 @@ fn generate(
         class.path()
     ));
 
-    code.push(format!("pub fn {}(", constructor_name));
+    code.push(format!("pub fn {constructor_name}("));
     code.push("    &self,".to_string());
 
     for i in 0..parameter_names.len() {
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_type = generate_jni_type(par_sign);
-        code.push(format!("    {}: {},", par_name, par_type));
+        code.push(format!("    {par_name}: {par_type},"));
     }
 
     code.push(") -> JNIResult<JObject<'a>> {".to_string());
@@ -183,8 +180,7 @@ fn generate(
     code.push(format!("    let class_name = \"{}\";", class.path()));
     code.push("    let method_name = \"<init>\";".to_string());
     code.push(format!(
-        "    let method_signature = \"{}\";",
-        constructor_signature
+        "    let method_signature = \"{constructor_signature}\";"
     ));
 
     code.push(
@@ -214,7 +210,7 @@ fn generate(
         let par_name = &parameter_names[i];
         let par_sign = &parameter_signatures[i];
         let par_jvalue = generate_jvalue_wrapper(par_name, par_sign);
-        code.push(format!("            {},", par_jvalue));
+        code.push(format!("            {par_jvalue},"));
     }
 
     code.push("        ]".to_string());

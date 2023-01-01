@@ -46,7 +46,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         ty: &vir_mid::Type,
         version: u64,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
-        let name = format!("{}$snapshot${}", name, version);
+        let name = format!("{name}$snapshot${version}");
         let ty = ty.to_snapshot(self)?;
         self.create_variable(name, ty)
     }
@@ -346,7 +346,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
             .snapshots_state
             .variables_at_label
             .get(label)
-            .unwrap_or_else(|| panic!("not found label {}", label))
+            .unwrap_or_else(|| panic!("not found label {label}"))
             .get_or_default(&variable.name);
         self.create_snapshot_variable(&variable.name, &variable.ty, version)
     }
