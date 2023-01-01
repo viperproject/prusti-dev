@@ -153,7 +153,7 @@ impl EventLog {
             borrow,
             result
                 .iter()
-                .map(|(a, p, id)| format!("({}, {}, {}), ", a, p, id))
+                .map(|(a, p, id)| format!("({a}, {p}, {id}), "))
                 .collect::<String>()
         );
         result

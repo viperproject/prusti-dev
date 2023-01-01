@@ -253,7 +253,7 @@ pub fn dump() -> String {
     let map = config::Source::collect(&*settings).unwrap();
     let mut pairs: Vec<_> = map
         .iter()
-        .map(|(key, value)| format!("{}={:#?}", key, value))
+        .map(|(key, value)| format!("{key}={value:#?}"))
         .collect();
     pairs.sort();
     pairs.join("\n\n")
@@ -274,7 +274,7 @@ where
         .read()
         .unwrap()
         .get(name)
-        .unwrap_or_else(|e| panic!("Failed to read setting {} due to {}", name, e))
+        .unwrap_or_else(|e| panic!("Failed to read setting {name} due to {e}"))
 }
 
 fn write_setting<T: Into<config::Value>>(key: &'static str, value: T) {
@@ -282,7 +282,7 @@ fn write_setting<T: Into<config::Value>>(key: &'static str, value: T) {
         .write()
         .unwrap()
         .set(key, value)
-        .unwrap_or_else(|e| panic!("Failed to write setting {} due to {}", key, e));
+        .unwrap_or_else(|e| panic!("Failed to write setting {key} due to {e}"));
 }
 
 // The following methods are all convenience wrappers for the actual call to
@@ -758,8 +758,7 @@ fn read_smt_wrapper_dependent_bool(name: &'static str) -> bool {
     if value {
         assert!(
             use_smt_wrapper(),
-            "use_smt_wrapper must be true to use {}",
-            name
+            "use_smt_wrapper must be true to use {name}"
         );
     }
     value
@@ -770,8 +769,7 @@ fn read_smt_wrapper_dependent_option(name: &'static str) -> Option<u64> {
     if value.is_some() {
         assert!(
             use_smt_wrapper(),
-            "use_smt_wrapper must be true to use {}",
-            name
+            "use_smt_wrapper must be true to use {name}"
         );
     }
     value

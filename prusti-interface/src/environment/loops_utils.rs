@@ -165,9 +165,9 @@ impl<'tcx> fmt::Display for PermissionNode<'tcx> {
                 kind,
                 children,
             } => {
-                write!(f, "acc({:?}, {:?})", place, kind)?;
+                write!(f, "acc({place:?}, {kind:?})")?;
                 for child in children.iter() {
-                    write!(f, " && {}", child)?;
+                    write!(f, " && {child}")?;
                 }
             }
             PermissionNode::BorrowedNode { .. } => {

@@ -38,9 +38,8 @@ fn find_prusti_rustc_path() -> PathBuf {
         return workspace_prusti_rustc_path;
     }
     panic!(
-        "Could not find the {:?} prusti-rustc binary to be used in tests. \
-        It might be that Prusti has not been compiled correctly.",
-        target_directory
+        "Could not find the {target_directory:?} prusti-rustc binary to be used in tests. \
+        It might be that Prusti has not been compiled correctly."
     );
 }
 

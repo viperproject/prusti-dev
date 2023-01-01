@@ -127,7 +127,7 @@ fn restore_unfoldings(unfolding_map: UnfoldingMap, mut expr: ast::Expr) -> ast::
             } else if base_k1 > base_k2 || k2.has_prefix(k1) {
                 Ordering::Greater
             } else {
-                format!("{}", k1).cmp(&format!("{}", k2))
+                format!("{k1}").cmp(&format!("{k2}"))
             }
         }
     });

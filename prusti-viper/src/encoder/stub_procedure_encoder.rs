@@ -88,7 +88,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
 
             log::report_with_writer(
                 "graphviz_method_stub",
-                format!("{}.{}.dot", source_filename, method_name),
+                format!("{source_filename}.{method_name}.dot"),
                 |writer| cfg_method.to_graphviz(writer),
             );
         }

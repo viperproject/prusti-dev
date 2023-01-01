@@ -228,11 +228,11 @@ impl GeneratedIdents {
 
         GeneratedIdents {
             model_struct_ident: Ident::new(
-                format!("Prusti{}Model_{}", name, uuid).as_str(),
+                format!("Prusti{name}Model_{uuid}").as_str(),
                 item_struct.ident.span(),
             ),
             to_model_trait_ident: Ident::new(
-                format!("Prusti{}ToModel_{}", name, uuid).as_str(),
+                format!("Prusti{name}ToModel_{uuid}").as_str(),
                 item_struct.ident.span(),
             ),
         }

@@ -242,7 +242,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         );
         let axiom = vir_low::DomainAxiomDecl {
             comment: None,
-            name: format!("{}$simplification_axiom", variant),
+            name: format!("{variant}$simplification_axiom"),
             body,
         };
         self.declare_axiom(&domain_name, axiom)?;
@@ -275,7 +275,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         );
         let axiom = vir_low::DomainAxiomDecl {
             comment: None,
-            name: format!("{}$eval_axiom", variant),
+            name: format!("{variant}$eval_axiom"),
             body,
         };
         if config::use_eval_axioms() {
@@ -473,7 +473,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
                 );
                 let axiom = vir_low::DomainAxiomDecl {
                     comment: None,
-                    name: format!("{}$simplification_axiom", variant_name),
+                    name: format!("{variant_name}$simplification_axiom"),
                     body,
                 };
                 self.declare_axiom(&domain_name, axiom)?;

@@ -103,7 +103,7 @@ impl<'v> ToViper<'v, viper::Type<'v>> for Type {
             Type::Bool => ast.bool_type(),
             Type::Ref | Type::TypedRef(_) => ast.ref_type(),
             Type::Domain(ref name) => ast.domain_type(name, &[], &[]),
-            Type::Snapshot(ref name) => ast.domain_type(&format!("Snap${}", name), &[], &[]),
+            Type::Snapshot(ref name) => ast.domain_type(&format!("Snap${name}"), &[], &[]),
             Type::Seq(ref elem_ty) => ast.seq_type(elem_ty.to_viper(_context, ast)),
             Type::Map(ref key_type, ref val_type) => ast.map_type(
                 key_type.to_viper(_context, ast),
@@ -171,7 +171,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                 )
             }
             Stmt::Exhale(ref expr, ref pos) => {
-                assert!(!pos.is_default(), "stmt with default pos: {}", self);
+                assert!(!pos.is_default(), "stmt with default pos: {self}");
                 ast.exhale(expr.to_viper(context, ast), pos.to_viper(context, ast))
             }
             Stmt::Assert(ref expr, ref pos) => {
@@ -320,7 +320,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
                     pos.to_viper(context, ast),
                 );
                 let position =
-                    ast.identifier_position(pos.line(), pos.column(), &pos.id().to_string());
+                    ast.identifier_position(pos.line(), pos.column(), pos.id().to_string());
                 let apply = ast.apply(wand.to_viper(context, ast), position);
                 ast.seqn(&[inhale, apply], &[])
             }
@@ -1096,9 +1096,7 @@ fn cfg_method_convert_basic_block_path<'v>(
             current_label = next_label;
             assert!(
                 successors.contains(&current_label),
-                "successors: {:?} next_label: {:?}",
-                successors,
-                current_label
+                "successors: {successors:?} next_label: {current_label:?}"
             );
         } else {
             break;

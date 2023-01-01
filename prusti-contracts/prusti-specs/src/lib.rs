@@ -343,7 +343,7 @@ fn generate_for_trusted_for_types(attr: TokenStream, item: &syn::DeriveInput) ->
     let item_span = item.span();
     let item_ident = item.ident.clone();
     let item_name = syn::Ident::new(
-        &format!("prusti_trusted_item_{}_{}", item_ident, spec_id),
+        &format!("prusti_trusted_item_{item_ident}_{spec_id}"),
         item_span,
     );
 
@@ -623,7 +623,7 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         let item_span = item.span();
         let item_ident = item.ident.clone();
         let item_name = syn::Ident::new(
-            &format!("prusti_trusted_item_{}_{}", item_ident, spec_id),
+            &format!("prusti_trusted_item_{item_ident}_{spec_id}"),
             item_span,
         );
 
@@ -692,7 +692,7 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let item_span = item.span();
     let item_ident = item.ident.clone();
     let item_name = syn::Ident::new(
-        &format!("prusti_invariant_item_{}_{}", item_ident, spec_id),
+        &format!("prusti_invariant_item_{item_ident}_{spec_id}"),
         item_span,
     );
 

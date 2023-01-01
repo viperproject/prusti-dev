@@ -298,7 +298,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 fn parse_spec_id(spec_id: String, def_id: DefId) -> SpecificationId {
     spec_id
         .try_into()
-        .unwrap_or_else(|_| panic!("cannot parse the spec_id attached to {:?}", def_id))
+        .unwrap_or_else(|_| panic!("cannot parse the spec_id attached to {def_id:?}"))
 }
 
 /// Returns true iff def_id points to a spec function (i.e. a function for

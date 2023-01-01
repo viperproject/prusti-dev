@@ -31,12 +31,11 @@ impl Viper {
         debug!("Using Viper home: '{}'", &viper_home);
         assert!(
             Path::new(&viper_home).is_dir(),
-            "The VIPER_HOME environment variable ({:?}) does not point to a valid folder.",
-            viper_home
+            "The VIPER_HOME environment variable ({viper_home:?}) does not point to a valid folder."
         );
 
         let jar_paths: Vec<String> = fs::read_dir(viper_home)
-            .unwrap_or_else(|_| panic!("failed to open {:?}", viper_home))
+            .unwrap_or_else(|_| panic!("failed to open {viper_home:?}"))
             .map(|x| x.unwrap().path().to_str().unwrap().to_string())
             .collect();
 
@@ -50,7 +49,7 @@ impl Viper {
                 jar_paths.join(classpath_separator)
             ))
             // maximum heap size
-            .option(&format!("-Xmx{}m", heap_size))
+            .option(&format!("-Xmx{heap_size}m"))
             // stack size
             .option("-Xss512m");
         //.option("-Xdebug")

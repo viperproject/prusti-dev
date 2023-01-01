@@ -109,7 +109,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
     }
     /// Creates a field that corresponds to the enum variant ``index``.
     fn encode_enum_variant_field(&self, index: &str) -> vir::Field {
-        let name = format!("enum_{}", index);
+        let name = format!("enum_{index}");
         vir::Field::new(name, vir::Type::typed_ref(""))
     }
     fn encode_discriminant_field(&self) -> vir::Field {
@@ -161,7 +161,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
             }
             _ => {
                 return Err(SpannedEncodingError::internal(
-                    format!("{} has no fields", type_decl,),
+                    format!("{type_decl} has no fields",),
                     primary_span,
                 ));
             }
@@ -287,7 +287,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
             let name = variant.ident(self.env().tcx()).to_string();
             Ok(name.into())
         } else {
-            Err(EncodingError::internal(format!("{:?} is not an enum", ty)))
+            Err(EncodingError::internal(format!("{ty:?} is not an enum")))
         }
     }
     fn decode_type_high(&self, ty: &vir_high::Type) -> ty::Ty<'tcx> {

@@ -363,8 +363,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
                         self.tcx.sess.delay_span_bug(
                             terminator.source_info.span,
                             format!(
-                                "drop of untracked, uninitialized value {:?}, place {:?} ({:?})",
-                                bb, place, path,
+                                "drop of untracked, uninitialized value {bb:?}, place {place:?} ({path:?})",
                             ),
                         );
                     }
@@ -421,7 +420,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
                         LookupResult::Parent(..) => {
                             self.tcx.sess.delay_span_bug(
                                 terminator.source_info.span,
-                                format!("drop of untracked value {:?}", bb),
+                                format!("drop of untracked value {bb:?}"),
                             );
                         }
                     }
