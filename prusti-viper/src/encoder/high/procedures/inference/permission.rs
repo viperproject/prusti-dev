@@ -33,7 +33,7 @@ impl Permission {
 }
 
 #[derive(Debug, Clone, derive_more::Display, PartialEq, Eq, PartialOrd, Ord)]
-#[display(fmt = "MutBorrowed({}, {})", lifetime, place)]
+#[display(fmt = "MutBorrowed({lifetime}, {place})")]
 pub(in super::super) struct MutBorrowed {
     pub(in super::super) lifetime: vir_typed::ty::LifetimeConst,
     pub(in super::super) place: vir_typed::Expression,

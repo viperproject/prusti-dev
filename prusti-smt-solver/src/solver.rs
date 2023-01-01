@@ -11,7 +11,7 @@ async fn main() -> Result<(), std::io::Error> {
     let z3_path = std::env::var("PRUSTI_ORIGINAL_SMT_SOLVER_PATH").unwrap();
     let context = Context::new().await;
     for arg in std::env::args() {
-        context.write_to_log("init", &format!("{}\n", arg)).await?;
+        context.write_to_log("init", &format!("{arg}\n")).await?;
     }
     context.write_config_to_log().await?;
     let args: Vec<_> = std::env::args().skip(1).collect();
@@ -23,11 +23,11 @@ async fn main() -> Result<(), std::io::Error> {
     if let Some(z3_trace_path) = &context.z3_trace_path {
         cmd.arg("trace=true")
             .arg("proof=true")
-            .arg(format!("trace_file_name={}", z3_trace_path))
+            .arg(format!("trace_file_name={z3_trace_path}"))
             .arg("smt.qi.profile=true")
             .arg("smt.qi.profile_freq=10000");
     }
-    context.write_to_log("z3", &format!("{:?}\n", cmd)).await?;
+    context.write_to_log("z3", &format!("{cmd:?}\n")).await?;
     let solver = cmd.spawn()?;
     let solver_stdin = solver.stdin.expect("failed to create stdin pipe with Z3");
     let solver_stdout = solver.stdout.expect("failed to create stdout pipe with Z3");

@@ -650,7 +650,7 @@ fn translate_spec_ent(
     // TODO: move extraction function generation into "fn_type_extractor"
     let arg_count = cl_args.len();
     let generics_args = (0..arg_count)
-        .map(|i| TokenTree::Ident(proc_macro2::Ident::new(&format!("GA{}", i), span)))
+        .map(|i| TokenTree::Ident(proc_macro2::Ident::new(&format!("GA{i}"), span)))
         .collect::<Vec<_>>();
     let generic_res = TokenTree::Ident(proc_macro2::Ident::new("GR", span));
 

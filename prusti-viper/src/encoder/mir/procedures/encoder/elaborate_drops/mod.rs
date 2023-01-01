@@ -34,7 +34,7 @@ pub(super) fn elaborate_drops<'v, 'tcx: 'v>(
         (input_facts, location_table)
     } else {
         return Err(SpannedEncodingError::internal(
-            format!("failed to obtain borrow information for {:?}", def_id),
+            format!("failed to obtain borrow information for {def_id:?}"),
             procedure.get_span(),
         ));
     };

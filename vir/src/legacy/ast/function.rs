@@ -25,19 +25,19 @@ impl fmt::Display for Function {
             if !first {
                 write!(f, ", ")?;
             }
-            write!(f, "{:?}", arg)?;
+            write!(f, "{arg:?}")?;
             first = false
         }
         writeln!(f, "): {}", self.return_type)?;
         for pre in &self.pres {
-            writeln!(f, "  requires {}", pre)?;
+            writeln!(f, "  requires {pre}")?;
         }
         for post in &self.posts {
-            writeln!(f, "  ensures {}", post)?;
+            writeln!(f, "  ensures {post}")?;
         }
         if let Some(ref body) = self.body {
             writeln!(f, "{{")?;
-            writeln!(f, "\t{}", body)?;
+            writeln!(f, "\t{body}")?;
             write!(f, "}}")?;
         }
         write!(f, "")

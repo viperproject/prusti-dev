@@ -588,7 +588,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
         statement: &mir::Statement<'tcx>,
     ) -> SpannedEncodingResult<()> {
-        block_builder.add_comment(format!("{:?} {:?}", location, statement));
+        block_builder.add_comment(format!("{location:?} {statement:?}"));
         match &statement.kind {
             mir::StatementKind::StorageLive(local) => {
                 self.locals_without_explicit_allocation.remove(local);
@@ -1030,9 +1030,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let encoded_source = self.encode_place(*source, Some(span))?;
                 assert!(
                     encoded_source.is_place(),
-                    "{} is not place (encoded from: {:?}",
-                    encoded_source,
-                    source
+                    "{encoded_source} is not place (encoded from: {source:?}"
                 );
 
                 let deref_base = encoded_source.get_dereference_base().cloned();
@@ -1172,7 +1170,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         location: mir::Location,
         terminator: &mir::TerminatorKind<'tcx>,
     ) -> SpannedEncodingResult<()> {
-        block_builder.add_comment(format!("{:?} {:?}", location, terminator));
+        block_builder.add_comment(format!("{location:?} {terminator:?}"));
         let span = self.encoder.get_span_of_location(self.mir, location);
         use prusti_rustc_interface::middle::mir::TerminatorKind;
         let successor = match &terminator {
@@ -1182,18 +1180,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     self.encode_basic_block_label(*target),
                 ))
             }
-            TerminatorKind::SwitchInt {
-                targets,
-                discr,
-                switch_ty,
-            } => self.encode_terminator_switch_int(
-                block_builder,
-                location,
-                span,
-                targets,
-                discr,
-                *switch_ty,
-            )?,
+            TerminatorKind::SwitchInt { targets, discr } => {
+                let switch_ty = discr.ty(self.mir, self.encoder.env().tcx());
+                self.encode_terminator_switch_int(
+                    block_builder,
+                    location,
+                    span,
+                    targets,
+                    discr,
+                    switch_ty,
+                )?
+            }
             TerminatorKind::Resume => SuccessorBuilder::exit_resume_panic(),
             // TerminatorKind::Abort => {
             //     graph.add_exit_edge(bb, "abort");
@@ -1303,8 +1300,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 {
                     let real_target = all_targets[(spec + 1) % 2];
                     let spec_target = all_targets[spec];
-                    block_builder
-                        .add_comment(format!("Specification from block: {:?}", spec_target));
+                    block_builder.add_comment(format!("Specification from block: {spec_target:?}"));
                     if let Some(statements) = self.specification_block_encoding.remove(&spec_target)
                     {
                         block_builder.add_statements(statements);
@@ -1837,7 +1833,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         };
 
         let target_label = self.encode_basic_block_label(target);
-        block_builder.add_comment(format!("Rust assertion: {}", assert_msg));
+        block_builder.add_comment(format!("Rust assertion: {assert_msg}"));
         if self.check_panics {
             block_builder.add_statement(self.encoder.set_statement_error_ctxt(
                 vir_high::Statement::assert_no_pos(guard.clone()),
@@ -1861,7 +1857,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     /// Also marks it as reachable.
     fn encode_basic_block_label(&mut self, bb: mir::BasicBlock) -> vir_high::BasicBlockId {
         self.reachable_blocks.insert(bb);
-        vir_high::BasicBlockId::new(format!("label_{:?}", bb))
+        vir_high::BasicBlockId::new(format!("label_{bb:?}"))
     }
 
     fn fresh_basic_block_label(&mut self) -> vir_high::BasicBlockId {

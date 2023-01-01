@@ -489,7 +489,7 @@ impl ExprFolder for Purifier<'_, '_, '_> {
                 }
                 if function_name.ends_with("$$discriminant$$") {
                     let predicate_name = formal_arguments[0].typ.name();
-                    let domain_name = format!("Snap${}", predicate_name);
+                    let domain_name = format!("Snap${predicate_name}");
                     let arg_dom_expr = vir::Expr::Local(vir::Local {
                         variable: local_var.clone(),
                         position: *local_pos,

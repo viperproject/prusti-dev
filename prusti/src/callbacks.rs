@@ -106,7 +106,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             // Do print_typeckd_specs prior to importing cross crate
             if config::print_typeckd_specs() {
                 for value in def_spec.all_values_debug(config::hide_uuids()) {
-                    println!("{}", value);
+                    println!("{value}");
                 }
             }
             CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);

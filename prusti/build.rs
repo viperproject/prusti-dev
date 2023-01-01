@@ -13,7 +13,7 @@ fn main() {
         .ok()
         .and_then(|output| String::from_utf8(output.stdout).ok())
     {
-        println!("cargo:rustc-env=COMMIT_HASH={}", commit_hash);
+        println!("cargo:rustc-env=COMMIT_HASH={commit_hash}");
     }
 
     if let Some(commit_timestamp) = Command::new("git")

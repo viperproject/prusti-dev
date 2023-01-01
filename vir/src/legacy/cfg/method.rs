@@ -160,8 +160,7 @@ impl CfgMethod {
         for label_name in gather_labels(&stmt) {
             assert!(
                 self.is_fresh_local_name(&label_name),
-                "label {} is not fresh",
-                label_name
+                "label {label_name} is not fresh"
             );
             self.labels.insert(label_name);
         }
@@ -182,8 +181,7 @@ impl CfgMethod {
             .all(|c| c.is_alphanumeric() || c == '_'));
         assert!(
             self.basic_blocks_labels.iter().all(|l| l != label),
-            "Label {} is already used",
-            label
+            "Label {label} is already used"
         );
         assert!(label != RETURN_LABEL);
         let index = self.basic_blocks.len();

@@ -146,15 +146,15 @@ impl<L: fmt::Debug, P: fmt::Debug> fmt::Display for ProcedureContractGeneric<L, 
         writeln!(f, "ProcedureContract {{")?;
         writeln!(f, "IN:")?;
         for path in self.args.iter() {
-            writeln!(f, "  {:?}", path)?;
+            writeln!(f, "  {path:?}")?;
         }
         writeln!(f, "OUT:")?;
         for path in self.returned_refs.iter() {
-            writeln!(f, "  {:?}", path)?;
+            writeln!(f, "  {path:?}")?;
         }
         writeln!(f, "MAGIC:")?;
         for borrow_info in self.borrow_infos.iter() {
-            writeln!(f, "{}", borrow_info)?;
+            writeln!(f, "{borrow_info}")?;
         }
         writeln!(f, "}}")
     }

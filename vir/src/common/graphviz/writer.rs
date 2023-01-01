@@ -2,7 +2,7 @@ use super::graph::{Edge, EdgeKind, Graph, HeaderRow, Node, Row, Table};
 use std::io::Write;
 
 fn create_node_id(node_id: &str) -> String {
-    format!("node{}", node_id)
+    format!("node{node_id}")
 }
 
 impl Graph {
@@ -12,7 +12,7 @@ impl Graph {
         writeln!(writer, "node [fontname=monospace];")?;
         writeln!(writer, "edge [fontname=monospace];")?;
         for (i, table) in self.tables.iter().enumerate() {
-            table.write(format!("table{}", i), writer)?;
+            table.write(format!("table{i}"), writer)?;
         }
         for node in &self.nodes {
             node.write(&self.column_names, writer)?;
@@ -59,7 +59,7 @@ impl HeaderRow {
     fn write(&self, writer: &mut dyn Write) -> std::io::Result<()> {
         write!(writer, "    <tr>")?;
         for name in &self.column_names {
-            write!(writer, "<td><b>{}</b></td>", name)?;
+            write!(writer, "<td><b>{name}</b></td>")?;
         }
         writeln!(writer, "</tr>")?;
         Ok(())
@@ -80,13 +80,13 @@ impl Row {
             }
             Row::Seq(values) => {
                 for value in values {
-                    write!(writer, "<td align=\"left\">{}</td>", value)?;
+                    write!(writer, "<td align=\"left\">{value}</td>")?;
                 }
             }
             Row::Map(values) => {
                 for column in column_names {
                     if let Some(value) = values.get(column) {
-                        write!(writer, "<td align=\"left\">{}</td>", value)?;
+                        write!(writer, "<td align=\"left\">{value}</td>")?;
                     } else {
                         write!(writer, "<td align=\"left\">n/a</td>")?;
                     }
@@ -115,7 +115,7 @@ impl Node {
         )?;
         write!(writer, "    <tr>")?;
         for name in column_names {
-            write!(writer, "<td><b>{}</b></td>", name)?;
+            write!(writer, "<td><b>{name}</b></td>")?;
         }
         writeln!(writer, "</tr>")?;
         for row in &self.rows {
@@ -132,26 +132,24 @@ impl Edge {
         let source = create_node_id(&self.source);
         let target = create_node_id(&self.target);
         let annotation = if let Some(annotation) = &self.annotation {
-            format!("label=\"{}\"", annotation)
+            format!("label=\"{annotation}\"")
         } else {
             "".to_string()
         };
         match self.kind {
             EdgeKind::Normal => {
-                writeln!(writer, "\"{}\" -> \"{}\" [{}]", source, target, annotation)?;
+                writeln!(writer, "\"{source}\" -> \"{target}\" [{annotation}]")?;
             }
             EdgeKind::Unwind => {
                 writeln!(
                     writer,
-                    "\"{}\" -> \"{}\" [color=red {}]",
-                    source, target, annotation
+                    "\"{source}\" -> \"{target}\" [color=red {annotation}]"
                 )?;
             }
             EdgeKind::Imaginary => {
                 writeln!(
                     writer,
-                    "\"{}\" -> \"{}\" [style=\"dashed\" {}]",
-                    source, target, annotation
+                    "\"{source}\" -> \"{target}\" [style=\"dashed\" {annotation}]"
                 )?;
             }
         };

@@ -265,7 +265,7 @@ pub fn read_prusti_attrs<T: Borrow<ast::Attribute>>(attr_name: &str, attrs: &[T]
                         segments,
                         tokens: _,
                     },
-                args: ast::MacArgs::Eq(_, ast::MacArgsEq::Hir(ast::Lit { token_lit, .. })),
+                args: ast::AttrArgs::Eq(_, ast::AttrArgsEq::Hir(token_lit)),
                 tokens: _,
             } = &normal_attr.item
             {
@@ -279,7 +279,7 @@ pub fn read_prusti_attrs<T: Borrow<ast::Attribute>>(attr_name: &str, attrs: &[T]
                 fn extract_string(token: &prusti_rustc_interface::ast::token::Lit) -> String {
                     token.symbol.as_str().replace("\\\"", "\"")
                 }
-                strings.push(extract_string(token_lit));
+                strings.push(extract_string(&token_lit.as_token_lit()));
             }
         };
     }

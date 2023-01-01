@@ -134,7 +134,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
         let ty = self.domain_type("Lifetime")?;
         let mut lifetimes: Vec<vir_low::VariableDecl> = vec![];
         for i in 1..(lft_count + 1) {
-            lifetimes.push(vir_low::VariableDecl::new(format!("lft_{}", i), ty.clone()));
+            lifetimes.push(vir_low::VariableDecl::new(format!("lft_{i}"), ty.clone()));
         }
         Ok(lifetimes)
     }

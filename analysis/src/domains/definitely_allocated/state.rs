@@ -38,7 +38,7 @@ impl<'mir, 'tcx: 'mir> Serialize for DefinitelyAllocatedState<'mir, 'tcx> {
         let mut seq = serializer.serialize_seq(Some(self.def_allocated_locals.len()))?;
         let oredered_set: BTreeSet<_> = self.def_allocated_locals.iter().collect();
         for local in oredered_set {
-            seq.serialize_element(&format!("{:?}", local))?;
+            seq.serialize_element(&format!("{local:?}"))?;
         }
         seq.end()
     }

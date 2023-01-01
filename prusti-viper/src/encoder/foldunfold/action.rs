@@ -73,7 +73,7 @@ impl fmt::Display for Action {
         match self {
             Action::Fold(..) | Action::Unfold(..) => write!(f, "{}", self.to_stmt()),
             Action::Drop(ref perm, ref missing_perm) => {
-                write!(f, "drop {} ({})", perm, missing_perm)
+                write!(f, "drop {perm} ({missing_perm})")
             }
         }
     }

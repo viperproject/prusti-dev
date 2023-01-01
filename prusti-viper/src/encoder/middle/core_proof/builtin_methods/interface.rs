@@ -380,13 +380,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         &self,
         lft_count: usize,
     ) -> SpannedEncodingResult<String> {
-        Ok(format!("lft_tok_sep_take${}", lft_count))
+        Ok(format!("lft_tok_sep_take${lft_count}"))
     }
     fn encode_lft_tok_sep_return_method_name(
         &self,
         lft_count: usize,
     ) -> SpannedEncodingResult<String> {
-        Ok(format!("lft_tok_sep_return${}", lft_count))
+        Ok(format!("lft_tok_sep_return${lft_count}"))
     }
     fn encode_assign_method_name(
         &self,
@@ -1241,7 +1241,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         operand_counter: u32,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         Ok(vir_low::VariableDecl::new(
-            format!("operand{}_place", operand_counter),
+            format!("operand{operand_counter}_place"),
             self.place_type()?,
         ))
     }
@@ -1250,7 +1250,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         operand_counter: u32,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         Ok(vir_low::VariableDecl::new(
-            format!("operand{}_root_address", operand_counter),
+            format!("operand{operand_counter}_root_address"),
             self.address_type()?,
         ))
     }
@@ -1260,7 +1260,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         operand: &vir_mid::Operand,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         Ok(vir_low::VariableDecl::new(
-            format!("operand{}_value", operand_counter),
+            format!("operand{operand_counter}_value"),
             operand.expression.get_type().to_snapshot(self)?,
         ))
     }

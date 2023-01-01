@@ -265,8 +265,7 @@ impl<'tcx> ErrorManager<'tcx> {
                     Err(err) => {
                         return PrustiError::internal(
                             format!(
-                                "unexpected Viper position '{}': {}",
-                                viper_pos_id, err
+                                "unexpected Viper position '{viper_pos_id}': {err}"
                             ),
                             MultiSpan::new()
                         );
@@ -282,8 +281,7 @@ impl<'tcx> ErrorManager<'tcx> {
                     Err(err) => {
                         return PrustiError::internal(
                             format!(
-                                "unexpected Viper reason position '{}': {}",
-                                viper_reason_pos_id, err
+                                "unexpected Viper reason position '{viper_reason_pos_id}': {err}"
                             ),
                             MultiSpan::new()
                         );
@@ -387,7 +385,7 @@ impl<'tcx> ErrorManager<'tcx> {
             }
 
             ("assert.failed:assertion.false", ErrorCtxt::AssertTerminator(ref message)) => {
-                PrustiError::verification(format!("assertion might fail with \"{}\"", message), error_span)
+                PrustiError::verification(format!("assertion might fail with \"{message}\""), error_span)
                     .set_failing_assertion(opt_cause_span)
             }
 
@@ -542,7 +540,7 @@ impl<'tcx> ErrorManager<'tcx> {
                 ErrorCtxt::PureFunctionAssertTerminator(ref message),
             ) => {
                 PrustiError::disabled_verification(
-                    format!("assertion might fail with \"{}\"", message),
+                    format!("assertion might fail with \"{message}\""),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             },
@@ -626,7 +624,7 @@ impl<'tcx> ErrorManager<'tcx> {
 
             ("assert.failed:assertion.false", ErrorCtxt::Unsupported(ref reason)) => {
                 PrustiError::unsupported(
-                    format!("an unsupported Rust feature might be reachable: {}.", reason),
+                    format!("an unsupported Rust feature might be reachable: {reason}."),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             }

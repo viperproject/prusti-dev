@@ -26,10 +26,7 @@ fn cargo_prusti_path() -> PathBuf {
         .collect();
     if local_prusti_rustc_path.exists() {
         return fs::canonicalize(&local_prusti_rustc_path).unwrap_or_else(|_| {
-            panic!(
-                "Failed to canonicalize the path {:?}",
-                local_prusti_rustc_path
-            )
+            panic!("Failed to canonicalize the path {local_prusti_rustc_path:?}")
         });
     }
     let workspace_prusti_rustc_path: PathBuf = ["..", "target", target_directory, executable_name]
@@ -37,16 +34,12 @@ fn cargo_prusti_path() -> PathBuf {
         .collect();
     if workspace_prusti_rustc_path.exists() {
         return fs::canonicalize(&workspace_prusti_rustc_path).unwrap_or_else(|_| {
-            panic!(
-                "Failed to canonicalize the path {:?}",
-                workspace_prusti_rustc_path
-            )
+            panic!("Failed to canonicalize the path {workspace_prusti_rustc_path:?}")
         });
     }
     panic!(
-        "Could not find the {:?} cargo-prusti binary to be used in tests. \
-        It might be that Prusti has not been compiled correctly.",
-        target_directory
+        "Could not find the {target_directory:?} cargo-prusti binary to be used in tests. \
+        It might be that Prusti has not been compiled correctly."
     );
 }
 

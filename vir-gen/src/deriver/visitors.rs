@@ -118,7 +118,7 @@ impl Deriver {
             Vec::new()
         };
         Self {
-            trait_ident: append_ident(&enum_ident, &format!("{:?}", kind)),
+            trait_ident: append_ident(&enum_ident, &format!("{kind:?}")),
             enum_ident,
             trait_items,
             default_functions: Vec::new(),

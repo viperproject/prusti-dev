@@ -100,7 +100,7 @@ pub(super) fn find_variant_struct<'a>(
         .ok_or_else(|| {
             syn::Error::new(
                 variant_type.span(),
-                format!("not found variant {}", variant_type),
+                format!("not found variant {variant_type}"),
             )
         })?;
     if let syn::Item::Struct(struct_item) = item {
@@ -127,13 +127,13 @@ pub(super) fn type_to_indent(ty: &syn::Type) -> Result<&syn::Ident, syn::Error> 
         } else {
             Err(syn::Error::new(
                 ty.span(),
-                format!("cannot convert {:?} to ident", ty),
+                format!("cannot convert {ty:?} to ident"),
             ))
         }
     } else {
         Err(syn::Error::new(
             ty.span(),
-            format!("cannot convert {:?} to ident", ty),
+            format!("cannot convert {ty:?} to ident"),
         ))
     }
 }

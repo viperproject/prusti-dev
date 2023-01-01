@@ -191,8 +191,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<()> {
         assert!(
             statement.is_comment() || statement.is_leak_all() || !statement.position().is_default(),
-            "Statement has default position: {}",
-            statement
+            "Statement has default position: {statement}"
         );
         if let vir_typed::Statement::DeadLifetime(dead_lifetime) = statement {
             self.process_dead_lifetime(dead_lifetime, state)?;

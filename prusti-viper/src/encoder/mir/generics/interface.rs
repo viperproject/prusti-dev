@@ -66,7 +66,7 @@ impl<'v, 'tcx: 'v> MirGenericsEncoderInterface<'tcx> for super::super::super::En
             .replace('>', "_gt_")
             .replace('<', "_lt_")
             .replace('=', "_eq_");
-        let identifier = format!("{}${}", sanitized_name, index);
+        let identifier = format!("{sanitized_name}${index}");
         vir_high::ty::TypeVar::generic_type(identifier)
     }
 }

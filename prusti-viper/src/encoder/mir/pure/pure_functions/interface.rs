@@ -283,8 +283,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
         trace!("[enter] encode_pure_function_def({:?})", proc_def_id);
         assert!(
             self.is_pure(proc_def_id, Some(substs)),
-            "procedure is not marked as pure: {:?}",
-            proc_def_id
+            "procedure is not marked as pure: {proc_def_id:?}"
         );
 
         let mir_span = self.env().query.get_def_span(proc_def_id);
@@ -430,8 +429,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
     ) -> SpannedEncodingResult<(String, vir_poly::Type)> {
         assert!(
             self.is_pure(proc_def_id, Some(substs)),
-            "procedure is not marked as pure: {:?}",
-            proc_def_id
+            "procedure is not marked as pure: {proc_def_id:?}"
         );
 
         let key = compute_key(self, proc_def_id, parent_def_id, substs)?;
@@ -490,8 +488,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
     ) -> SpannedEncodingResult<(String, vir_high::Type)> {
         assert!(
             self.is_pure(proc_def_id, Some(substs)),
-            "procedure is not marked as pure: {:?}",
-            proc_def_id
+            "procedure is not marked as pure: {proc_def_id:?}"
         );
 
         let key = compute_key(self, proc_def_id, parent_def_id, substs)?;

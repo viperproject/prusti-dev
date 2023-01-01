@@ -19,7 +19,7 @@ pub(in super::super::super) fn valid_call(
 ) -> SpannedEncodingResult<vir_low::Expression> {
     Ok(vir_low::Expression::domain_function_call(
         domain_name,
-        format!("valid${}", domain_name),
+        format!("valid${domain_name}"),
         vec![variable.clone().into()],
         vir_low::Type::Bool,
     ))
@@ -106,7 +106,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_low::Expression> {
         self.create_domain_func_app(
             domain_name,
-            format!("valid${}", domain_name),
+            format!("valid${domain_name}"),
             vec![argument],
             vir_low::Type::Bool,
             Default::default(),
@@ -163,10 +163,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         if parameters.is_empty() {
             let axiom = vir_low::DomainAxiomDecl {
                 comment: None,
-                name: format!(
-                    "{}$validity_axiom_bottom_up_alternative_no_parameters",
-                    domain_name
-                ),
+                name: format!("{domain_name}$validity_axiom_bottom_up_alternative_no_parameters"),
                 body: expr! { [ valid_constructor ] == [ invariant ] },
             };
             self.declare_axiom(domain_name, axiom)?;
@@ -212,10 +209,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
             );
             let axiom_top_down = vir_low::DomainAxiomDecl {
                 comment: None,
-                name: format!(
-                    "{}${}$validity_axiom_top_down_alternative",
-                    domain_name, variant_name
-                ),
+                name: format!("{domain_name}${variant_name}$validity_axiom_top_down_alternative"),
                 body: axiom_top_down_body,
             };
             self.declare_axiom(domain_name, axiom_top_down)?;
@@ -235,10 +229,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         // valid if we know that its fields are valid.
         let axiom_bottom_up = vir_low::DomainAxiomDecl {
             comment: None,
-            name: format!(
-                "{}${}$validity_axiom_bottom_up_alternative",
-                domain_name, variant_name
-            ),
+            name: format!("{domain_name}${variant_name}$validity_axiom_bottom_up_alternative"),
             body: axiom_bottom_up_body,
         };
         self.declare_axiom(domain_name, axiom_bottom_up)?;
@@ -297,7 +288,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
             );
             let axiom_top_down = vir_low::DomainAxiomDecl {
                 comment: None,
-                name: format!("{}$validity_axiom_top_down_enum", domain_name),
+                name: format!("{domain_name}$validity_axiom_top_down_enum"),
                 body: axiom_top_down_body,
             };
             self.declare_axiom(domain_name, axiom_top_down)?;
@@ -350,10 +341,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         // valid if we know that its fields are valid.
         let validity_axiom_bottom_up = vir_low::DomainAxiomDecl {
             comment: None,
-            name: format!(
-                "{}${}$validity_axiom_bottom_up_enum_variant",
-                domain_name, variant_name
-            ),
+            name: format!("{domain_name}${variant_name}$validity_axiom_bottom_up_enum_variant"),
             body: axiom_bottom_up_body,
         };
         self.declare_axiom(domain_name, validity_axiom_bottom_up)?;
@@ -371,7 +359,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         // The axiom that defines the discriminant of the variant.
         let dicsriminant_axiom = vir_low::DomainAxiomDecl {
             comment: None,
-            name: format!("{}${}$discriminant_axiom", domain_name, variant_name),
+            name: format!("{domain_name}${variant_name}$discriminant_axiom"),
             body: discriminant_axiom_body,
         };
         self.declare_axiom(domain_name, dicsriminant_axiom)?;

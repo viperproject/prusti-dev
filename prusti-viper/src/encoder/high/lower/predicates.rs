@@ -109,7 +109,7 @@ impl IntoPredicates for vir_high::type_decl::Tuple {
             .iter()
             .enumerate()
             .map(|(field_num, ty)| {
-                let field_name = format!("tuple_{}", field_num);
+                let field_name = format!("tuple_{field_num}");
                 vir_high::FieldDecl::new(field_name, field_num, ty.clone()).lower(encoder)
             })
             .collect();
@@ -250,7 +250,7 @@ impl IntoPredicates for vir_high::type_decl::Closure {
             .iter()
             .enumerate()
             .map(|(field_num, ty)| {
-                let field_name = format!("closure_{}", field_num);
+                let field_name = format!("closure_{field_num}");
                 vir_high::FieldDecl::new(field_name, field_num, ty.clone()).lower(encoder)
             })
             .collect();

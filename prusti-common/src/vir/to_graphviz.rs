@@ -61,8 +61,8 @@ impl ToGraphViz for CfgMethod {
 
             if config::dump_reborrowing_dag_in_debug_info() {
                 for dag in reborrowing_dags {
-                    writeln!(graph, "subgraph cluster_{} {{", label).unwrap();
-                    writeln!(graph, "   label=\"Reborrowing DAG {}\"", label).unwrap();
+                    writeln!(graph, "subgraph cluster_{label} {{").unwrap();
+                    writeln!(graph, "   label=\"Reborrowing DAG {label}\"").unwrap();
                     for node in dag.iter() {
                         writeln!(
                             graph,
@@ -200,7 +200,7 @@ impl ToGraphViz for CfgMethod {
             }
             let stmt_html = splitted_stmt_lines.join("<br/>");
             if stmt.is_comment() {
-                lines.push(format!("<font color=\"orange\">{}</font>", stmt_html));
+                lines.push(format!("<font color=\"orange\">{stmt_html}</font>"));
             } else {
                 lines.push(stmt_html);
             }

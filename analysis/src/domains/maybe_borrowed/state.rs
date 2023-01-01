@@ -31,14 +31,14 @@ impl<'tcx> Serialize for MaybeBorrowedState<'tcx> {
         maybe_shared_borrowed_set.sort();
         let mut maybe_shared_borrowed_strings = vec![];
         for &place in maybe_shared_borrowed_set {
-            maybe_shared_borrowed_strings.push(format!("{:?}", place));
+            maybe_shared_borrowed_strings.push(format!("{place:?}"));
         }
         seq.serialize_entry("frozen", &maybe_shared_borrowed_strings)?;
         let mut maybe_mut_borrowed_set: Vec<_> = self.maybe_mut_borrowed.iter().collect();
         maybe_mut_borrowed_set.sort();
         let mut maybe_mut_borrowed_strings = vec![];
         for &place in maybe_mut_borrowed_set {
-            maybe_mut_borrowed_strings.push(format!("{:?}", place));
+            maybe_mut_borrowed_strings.push(format!("{place:?}"));
         }
         seq.serialize_entry("blocked", &maybe_mut_borrowed_strings)?;
         seq.end()

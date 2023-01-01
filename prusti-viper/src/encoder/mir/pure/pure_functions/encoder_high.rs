@@ -100,13 +100,13 @@ pub(super) fn encode_pure_expression<'p, 'v: 'p, 'tcx: 'v>(
     );
     let state = run_backward_interpretation(&mir, &interpreter)?.ok_or_else(|| {
         SpannedEncodingError::incorrect(
-            format!("procedure {:?} contains a loop", proc_def_id),
+            format!("procedure {proc_def_id:?} contains a loop"),
             encoder.env().query.get_def_span(proc_def_id),
         )
     })?;
     let body = state.into_expr().ok_or_else(|| {
         SpannedEncodingError::internal(
-            format!("failed to encode function's body: {:?}", proc_def_id),
+            format!("failed to encode function's body: {proc_def_id:?}"),
             encoder.env().query.get_def_span(proc_def_id),
         )
     })?;
@@ -417,7 +417,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
                 self.get_local_span(local),
             ));
         }
-        let var_name = format!("{:?}", local);
+        let var_name = format!("{local:?}");
         let var_type = self.encoder.encode_type_high(ty.skip_binder())?;
         Ok(vir_high::VariableDecl {
             name: var_name,

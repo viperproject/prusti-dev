@@ -17,9 +17,9 @@ pub enum Predicate {
 impl fmt::Display for Predicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Predicate::Struct(p) => write!(f, "{}", p),
-            Predicate::Enum(p) => write!(f, "{}", p),
-            Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {}({});", name, this),
+            Predicate::Struct(p) => write!(f, "{p}"),
+            Predicate::Enum(p) => write!(f, "{p}"),
+            Predicate::Bodyless(name, this) => write!(f, "bodyless_predicate {name}({this});"),
         }
     }
 }
@@ -171,7 +171,7 @@ impl fmt::Display for StructPredicate {
             None => writeln!(f, ");"),
             Some(ref body) => {
                 writeln!(f, "){{")?;
-                writeln!(f, "  {}", body)?;
+                writeln!(f, "  {body}")?;
                 writeln!(f, "}}")
             }
         }
@@ -275,7 +275,7 @@ impl fmt::Display for EnumPredicate {
         writeln!(f, "enum_predicate {}({}){{", self.name, self.this)?;
         writeln!(f, "  discriminant_field={}", self.discriminant_field)?;
         for (guard, name, variant) in self.variants.iter() {
-            writeln!(f, "  {}: {} ==> {}\n", name, guard, variant)?;
+            writeln!(f, "  {name}: {guard} ==> {variant}\n")?;
         }
         writeln!(f, "}}")
     }

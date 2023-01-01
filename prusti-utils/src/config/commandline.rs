@@ -111,8 +111,7 @@ impl Source for CommandLine {
             if !self.is_valid_arg(&arg) {
                 if !self.ignore_invalid {
                     return Err(ConfigError::Message(format!(
-                        "Invalid command-line arg: '{}'",
-                        arg
+                        "Invalid command-line arg: '{arg}'"
                     )));
                 }
 

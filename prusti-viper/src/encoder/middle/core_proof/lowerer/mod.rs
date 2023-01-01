@@ -238,7 +238,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             .iter()
             .enumerate()
             .map(|(index, arg)| {
-                vir_low::VariableDecl::new(format!("_{}", index), arg.get_type().clone())
+                vir_low::VariableDecl::new(format!("_{index}"), arg.get_type().clone())
             })
             .collect()
     }
@@ -247,7 +247,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         &mut self,
         label: &vir_mid::BasicBlockId,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
-        self.create_variable(format!("{}$marker", label), vir_low::Type::Bool)
+        self.create_variable(format!("{label}$marker"), vir_low::Type::Bool)
     }
 
     /// If `check_copy` is true, encode `copy` builtin method.

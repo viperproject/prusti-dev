@@ -76,7 +76,7 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterfacePrivate for super::super::super::Enco
                 if config::dump_debug_info() {
                     log::report(
                         "vir_predicates",
-                        format!("{}.vir", predicate_name),
+                        format!("{predicate_name}.vir"),
                         predicate.to_string(),
                     );
                 }

@@ -57,7 +57,7 @@ impl<'v, 'tcx> HighToTypedTypeDeclLowerer for crate::encoder::Encoder<'v, 'tcx> 
             arguments
                 .into_iter()
                 .enumerate()
-                .map(|(index, ty)| vir_typed::FieldDecl::new(format!("tuple_{}", index), index, ty))
+                .map(|(index, ty)| vir_typed::FieldDecl::new(format!("tuple_{index}"), index, ty))
                 .collect(),
         ))
     }

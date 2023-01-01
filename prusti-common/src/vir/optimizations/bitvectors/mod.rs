@@ -81,11 +81,11 @@ pub fn replace_all_ints(program: &mut vir_poly::Program) {
         let signed = vir_poly::BitVector::Signed(typ);
         let unsigned = vir_poly::BitVector::Unsigned(typ);
         program.fields.push(vir_poly::Field::new(
-            format!("field_{}", signed),
+            format!("field_{signed}"),
             vir_poly::Type::BitVector(signed),
         ));
         program.fields.push(vir_poly::Field::new(
-            format!("field_{}", unsigned),
+            format!("field_{unsigned}"),
             vir_poly::Type::BitVector(unsigned),
         ));
     }
@@ -116,7 +116,7 @@ impl ExprFolder for Replacer {
             if let Some(variant) = variant {
                 self.captured_bv = Some(variant);
                 expr.field = vir_poly::Field::new(
-                    format!("field_{}", variant),
+                    format!("field_{variant}"),
                     vir_poly::Type::BitVector(variant),
                 )
             }

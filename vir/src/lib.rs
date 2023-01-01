@@ -8,6 +8,9 @@
 #![deny(unused_variables)]
 #![deny(unused_doc_comments)]
 
+// If only it wasn't generated automatically
+// so that one could do `clippy --fix`...
+#[allow(clippy::uninlined_format_args)]
 #[rustfmt::skip]
 #[path = "../gen/mod.rs"]
 mod gen;

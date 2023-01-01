@@ -151,7 +151,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
             .set_default_position(position))
     }
     fn encode_discriminant_name(&mut self, domain_name: &str) -> SpannedEncodingResult<String> {
-        Ok(format!("discriminant${}", domain_name))
+        Ok(format!("discriminant${domain_name}"))
     }
     fn obtain_enum_discriminant(
         &mut self,

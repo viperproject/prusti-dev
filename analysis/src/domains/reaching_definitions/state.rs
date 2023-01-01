@@ -87,12 +87,12 @@ impl<'mir, 'tcx: 'mir> Serialize for ReachingDefsState<'mir, 'tcx> {
                         let stmt = location_to_stmt_str(*l, self.mir);
                         // Include the location to differentiate between same statement on
                         // different lines.
-                        location_vec.push(format!("{:?}: {}", l, stmt));
+                        location_vec.push(format!("{l:?}: {stmt}"));
                     }
-                    DefLocation::Parameter(idx) => location_vec.push(format!("arg{}", idx)),
+                    DefLocation::Parameter(idx) => location_vec.push(format!("arg{idx}")),
                 }
             }
-            map.serialize_entry(&format!("{:?}", local), &location_vec)?;
+            map.serialize_entry(&format!("{local:?}"), &location_vec)?;
         }
         map.end()
     }

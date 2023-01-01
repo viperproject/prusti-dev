@@ -130,10 +130,10 @@ impl DAG {
         for (i, node) in self.nodes.iter().enumerate() {
             assert!(self.borrow_indices[&node.borrow] == i);
             for borrow in &node.reborrowing_nodes {
-                assert!(self.borrow_indices.contains_key(borrow), "{:?}", borrow);
+                assert!(self.borrow_indices.contains_key(borrow), "{borrow:?}");
             }
             for borrow in &node.reborrowed_nodes {
-                assert!(self.borrow_indices.contains_key(borrow), "{:?}", borrow);
+                assert!(self.borrow_indices.contains_key(borrow), "{borrow:?}");
             }
             for place in &node.borrowed_places {
                 debug!("{:?}: {}", node.borrow, place);

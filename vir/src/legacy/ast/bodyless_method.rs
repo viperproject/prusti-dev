@@ -30,7 +30,7 @@ impl fmt::Display for BodylessMethod {
             if !first {
                 write!(f, ", ")?;
             }
-            write!(f, "{:?}", arg)?;
+            write!(f, "{arg:?}")?;
             first = false
         }
         write!(f, ") returns (")?;
@@ -38,15 +38,15 @@ impl fmt::Display for BodylessMethod {
             if !first {
                 write!(f, ", ")?;
             }
-            write!(f, "{:?}", arg)?;
+            write!(f, "{arg:?}")?;
             first = false
         }
         write!(f, ")")?;
         for pre in &self.pres {
-            write!(f, "\n    requires {}", pre)?;
+            write!(f, "\n    requires {pre}")?;
         }
         for post in &self.posts {
-            write!(f, "\n    ensures {}", post)?;
+            write!(f, "\n    ensures {post}")?;
         }
         write!(f, ";")
     }

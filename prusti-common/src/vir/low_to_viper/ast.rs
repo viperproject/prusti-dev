@@ -71,8 +71,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::LogEvent {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             self.expression.is_domain_func_app(),
-            "The log event has to be a domain function application: {}",
-            self
+            "The log event has to be a domain function application: {self}"
         );
         ast.inhale(self.expression.to_viper(context, ast), ast.no_position())
     }
@@ -82,8 +81,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Assume {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
-            "Statement with default position: {}",
-            self
+            "Statement with default position: {self}"
         );
         ast.inhale(
             self.expression.to_viper(context, ast),
@@ -96,8 +94,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Assert {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
-            "Statement with default position: {}",
-            self
+            "Statement with default position: {self}"
         );
         ast.assert(
             self.expression.to_viper(context, ast),
@@ -110,8 +107,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Inhale {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
-            "Statement with default position: {}",
-            self
+            "Statement with default position: {self}"
         );
         ast.inhale(
             self.expression.to_viper(context, ast),
@@ -124,8 +120,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Exhale {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
-            "Statement with default position: {}",
-            self
+            "Statement with default position: {self}"
         );
         ast.exhale(
             self.expression.to_viper(context, ast),
@@ -138,8 +133,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Fold {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
-            "Statement with default position: {}",
-            self
+            "Statement with default position: {self}"
         );
         ast.fold_with_pos(
             self.expression.to_viper(context, ast),
@@ -152,8 +146,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Unfold {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
-            "Statement with default position: {}",
-            self
+            "Statement with default position: {self}"
         );
         ast.unfold_with_pos(
             self.expression.to_viper(context, ast),
@@ -166,8 +159,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::ApplyMagicWand {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
-            "Statement with default position: {}",
-            self
+            "Statement with default position: {self}"
         );
         ast.apply(
             self.expression.to_viper(context, ast),
@@ -180,8 +172,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Conditional {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
-            "Statement with default position: {}",
-            self
+            "Statement with default position: {self}"
         );
         ast.if_stmt(
             self.guard.to_viper(context, ast),
@@ -195,8 +186,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::MethodCall {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         assert!(
             !self.position.is_default(),
-            "Statement with default position: {}",
-            self
+            "Statement with default position: {self}"
         );
         ast.method_call_with_pos(
             &self.method_name,

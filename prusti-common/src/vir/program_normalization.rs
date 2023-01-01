@@ -95,10 +95,7 @@ impl NormalizationInfo {
     /// Denormalize a position string.
     pub fn denormalize_position_string(&self, pos: &mut String) {
         let pos_id: u64 = pos.parse().unwrap_or_else(|err| {
-            panic!(
-                "Cannot denormalize position {:?}: parsing error {:?}",
-                pos, err
-            )
+            panic!("Cannot denormalize position {pos:?}: parsing error {err:?}")
         });
         *pos = self.denormalize_position_id(pos_id).to_string();
     }

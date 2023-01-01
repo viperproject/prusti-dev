@@ -72,7 +72,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
         match method {
             BuiltinMethodKind::HavocBool => "builtin$havoc_bool".to_string(),
             BuiltinMethodKind::HavocInt => "builtin$havoc_int".to_string(),
-            BuiltinMethodKind::HavocBV(variant)  => format!("builtin$havoc_{}", variant),
+            BuiltinMethodKind::HavocBV(variant)  => format!("builtin$havoc_{variant}"),
             BuiltinMethodKind::HavocF32 => "builtin$havoc_f32".to_string(),
             BuiltinMethodKind::HavocF64 => "builtin$havoc_f64".to_string(),
             BuiltinMethodKind::HavocRef => "builtin$havoc_ref".to_string(),
@@ -292,7 +292,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinEncoder<'p, 'v, 'tcx> {
 
                 let self_arg = vir::LocalVar::new("self", arg_typ);
                 vir::DomainFunc {
-                    name: format!("{}$valid", domain_name),
+                    name: format!("{domain_name}$valid"),
                     type_arguments: vec![], // FIXME: This is most likely wrong.
                     formal_args: vec![self_arg],
                     return_type: vir::Type::Bool,

@@ -25,7 +25,7 @@ pub(in super::super) struct ExprBackwardInterpreterState {
 impl Display for ExprBackwardInterpreterState {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if let Some(expr) = self.expr.as_ref() {
-            write!(f, "expr={}", expr)
+            write!(f, "expr={expr}")
         } else {
             write!(f, "expr=undefined")
         }
