@@ -42,6 +42,72 @@ pub(in super::super) fn custom_heap_encoding<'p, 'v: 'p, 'tcx: 'v>(
     for mut procedure in std::mem::take(&mut result.procedures) {
         let predecessors = procedure.predecessors_owned();
         let traversal_order = procedure.get_topological_sort();
+        // Inline method calls.
+        for label in &traversal_order {
+            let block = procedure.basic_blocks.get_mut(label).unwrap();
+            let mut statements = Vec::new();
+            for statement in std::mem::take(&mut block.statements) {
+                if let vir_low::Statement::MethodCall(statement) = statement {
+                    statements.push(vir_low::Statement::comment(format!("{}", statement)));
+                    let old_label = heap_encoder.fresh_label();
+                    statements.push(vir_low::Statement::label(old_label, statement.position));
+                    let method = heap_encoder.methods[&statement.method_name];
+                    let mut replacements = method
+                        .parameters
+                        .iter()
+                        .zip(statement.arguments.iter())
+                        .collect();
+                    let assertion = method
+                        .pres
+                        .clone()
+                        .into_iter()
+                        .conjoin()
+                        .substitute_variables(&replacements);
+                    statements.push(vir_low::Statement::exhale(assertion, statement.position));
+                    replacements.extend(method.targets.iter().zip(statement.targets.iter()));
+                    let assertion = method
+                        .posts
+                        .clone()
+                        .into_iter()
+                        .conjoin()
+                        .substitute_variables(&replacements);
+                    statements.push(vir_low::Statement::inhale(assertion, statement.position));
+                } else {
+                    statements.push(statement);
+                }
+            }
+            block.statements = statements;
+        }
+        // Inline compute_address.
+        for label in &traversal_order {
+            let block = procedure.basic_blocks.get_mut(label).unwrap();
+            let mut statements = Vec::new();
+            for statement in std::mem::take(&mut block.statements) {
+                let statement = match statement {
+                    vir_low::Statement::Inhale(mut statement) => {
+                        statement.expression = inline_compute_address(statement.expression);
+                        vir_low::Statement::Inhale(statement)
+                    }
+                    vir_low::Statement::Exhale(mut statement) => {
+                        statement.expression = inline_compute_address(statement.expression);
+                        vir_low::Statement::Exhale(statement)
+                    }
+                    vir_low::Statement::Comment(_)
+                    | vir_low::Statement::Label(_)
+                    | vir_low::Statement::LogEvent(_)
+                    | vir_low::Statement::Assume(_)
+                    | vir_low::Statement::Assert(_)
+                    | vir_low::Statement::Fold(_)
+                    | vir_low::Statement::Unfold(_)
+                    | vir_low::Statement::ApplyMagicWand(_)
+                    | vir_low::Statement::MethodCall(_)
+                    | vir_low::Statement::Assign(_)
+                    | vir_low::Statement::Conditional(_) => statement,
+                };
+                statements.push(statement);
+            }
+            block.statements = statements;
+        }
         let mut basic_block_edges = BTreeMap::new();
         for label in &traversal_order {
             heap_encoder.prepare_new_current_block(
@@ -141,6 +207,34 @@ pub(in super::super) fn custom_heap_encoding<'p, 'v: 'p, 'tcx: 'v>(
         .domains
         .extend(heap_encoder.generate_necessary_domains()?);
     Ok(())
+}
+
+fn inline_compute_address(expression: vir_low::Expression) -> vir_low::Expression {
+    struct Inliner {}
+    impl ExpressionFolder for Inliner {
+        fn fold_domain_func_app_enum(
+            &mut self,
+            mut domain_func_app: vir_low::expression::DomainFuncApp,
+        ) -> vir_low::Expression {
+            if domain_func_app.domain_name == "ComputeAddress"
+                && domain_func_app.function_name == "compute_address"
+            {
+                let address = domain_func_app.arguments.pop().unwrap();
+                assert!(address.is_local());
+                let place = domain_func_app.arguments.pop().unwrap();
+                assert!(place.is_domain_func_app());
+                assert!(domain_func_app.arguments.is_empty());
+                address
+            } else {
+                vir_low::Expression::DomainFuncApp(self.fold_domain_func_app(domain_func_app))
+            }
+        }
+    }
+    let mut inliner = Inliner {};
+    // eprintln!("Before: {}", expression);
+    let expression = inliner.fold_expression(expression);
+    // eprintln!("After: {}", expression);
+    expression
 }
 
 #[derive(Default)]
@@ -360,36 +454,37 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                 unimplemented!("magic wands are not supported yet");
             }
             vir_low::Statement::MethodCall(statement) => {
-                statements.push(vir_low::Statement::comment(format!("{}", statement)));
-                let old_label = self.fresh_label();
-                self.ssa_state.save_state_at_label(old_label.clone());
-                let method = self.methods[&statement.method_name];
-                let mut replacements = method
-                    .parameters
-                    .iter()
-                    .zip(statement.arguments.iter())
-                    .collect();
-                let maybe_old_label = Some(old_label.clone());
-                for assertion in &method.pres {
-                    let assertion = assertion.clone().substitute_variables(&replacements);
-                    self.encode_expression_exhale(
-                        statements,
-                        assertion,
-                        statement.position,
-                        &old_label,
-                        &maybe_old_label,
-                    )?;
-                }
-                replacements.extend(method.targets.iter().zip(statement.targets.iter()));
-                for assertion in &method.posts {
-                    let assertion = assertion.clone().substitute_variables(&replacements);
-                    self.encode_expression_inhale(
-                        statements,
-                        assertion,
-                        statement.position,
-                        &maybe_old_label,
-                    )?;
-                }
+                unreachable!("method call: {}", statement);
+                // statements.push(vir_low::Statement::comment(format!("{}", statement)));
+                // let old_label = self.fresh_label();
+                // self.ssa_state.save_state_at_label(old_label.clone());
+                // let method = self.methods[&statement.method_name];
+                // let mut replacements = method
+                //     .parameters
+                //     .iter()
+                //     .zip(statement.arguments.iter())
+                //     .collect();
+                // let maybe_old_label = Some(old_label.clone());
+                // for assertion in &method.pres {
+                //     let assertion = assertion.clone().substitute_variables(&replacements);
+                //     self.encode_expression_exhale(
+                //         statements,
+                //         assertion,
+                //         statement.position,
+                //         &old_label,
+                //         &maybe_old_label,
+                //     )?;
+                // }
+                // replacements.extend(method.targets.iter().zip(statement.targets.iter()));
+                // for assertion in &method.posts {
+                //     let assertion = assertion.clone().substitute_variables(&replacements);
+                //     self.encode_expression_inhale(
+                //         statements,
+                //         assertion,
+                //         statement.position,
+                //         &maybe_old_label,
+                //     )?;
+                // }
             }
             vir_low::Statement::Conditional(mut conditional) => {
                 let mut then_statements = Vec::new();
