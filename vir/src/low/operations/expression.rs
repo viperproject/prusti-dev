@@ -1,6 +1,8 @@
 use super::ty::Typed;
 use crate::low::ast::expression::{
-    visitors::{default_fold_expression, ExpressionFolder, ExpressionWalker},
+    visitors::{
+        default_fold_expression, default_fold_labelled_old, ExpressionFolder, ExpressionWalker,
+    },
     *,
 };
 use rustc_hash::FxHashMap;
@@ -165,6 +167,22 @@ impl Expression {
             }
         }
         PlaceReplacer { replacements }.fold_expression(self)
+    }
+    #[must_use]
+    pub fn set_old_label(self, old_label: &str) -> Self {
+        struct LabelReplacer<'a> {
+            old_label: &'a str,
+        }
+        impl<'a> ExpressionFolder for LabelReplacer<'a> {
+            fn fold_labelled_old(&mut self, labelled_old: LabelledOld) -> LabelledOld {
+                let mut labelled_old = default_fold_labelled_old(self, labelled_old);
+                if labelled_old.label.is_none() {
+                    labelled_old.label = Some(self.old_label.to_string());
+                }
+                labelled_old
+            }
+        }
+        LabelReplacer { old_label }.fold_expression(self)
     }
     #[must_use]
     pub fn replace_discriminant(self, new_discriminant: &Expression) -> Self {
