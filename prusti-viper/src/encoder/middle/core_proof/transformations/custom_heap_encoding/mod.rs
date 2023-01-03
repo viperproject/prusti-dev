@@ -259,6 +259,8 @@ impl VariableDeclarations {
 struct Quantifiers {
     quantifiers: BTreeMap<String, vir_low::expression::Quantifier>,
     quantifier_instantiations: BTreeMap<String, Vec<vir_low::Statement>>,
+    predicate_permission_changes:
+        BTreeMap<String, FxHashMap<vir_low::Expression, Vec<vir_low::Expression>>>,
 }
 
 impl Quantifiers {
@@ -399,6 +401,69 @@ impl Quantifiers {
             });
         }
         Ok(())
+    }
+
+    fn register_permission_change(
+        &mut self,
+        predicate_name: &str,
+        guard: vir_low::Expression,
+        permission_change: vir_low::Expression,
+    ) -> SpannedEncodingResult<()> {
+        let predicate_entry = self
+            .predicate_permission_changes
+            .entry(predicate_name.to_string())
+            .or_insert_with(|| Default::default());
+        let guard_entry = predicate_entry
+            .entry(guard)
+            .or_insert_with(|| Default::default());
+        guard_entry.push(permission_change);
+        Ok(())
+    }
+
+    fn compute_perm_sum(
+        &mut self,
+        predicate: &vir_low::expression::PredicateAccessPredicate,
+        predicate_parameters: &[vir_low::VariableDecl],
+        position: vir_crate::high::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        let predicate_entry = self
+            .predicate_permission_changes
+            .entry(predicate.name.to_string())
+            .or_insert_with(|| Default::default());
+        let mut guards = predicate_entry.keys().collect::<Vec<_>>();
+        guards.sort_by_cached_key(|guard| guard.to_string());
+        let mut sum = vir_low::Expression::no_permission();
+        let mut replacements = FxHashMap::default();
+        assert_eq!(predicate.arguments.len(), predicate_parameters.len());
+        for (argument, parameter) in predicate.arguments.iter().zip(predicate_parameters) {
+            replacements.insert(parameter, argument);
+        }
+        for guard in guards {
+            let permission_changes = predicate_entry.get(guard).unwrap();
+            let mut permission_change_sum = vir_low::Expression::no_permission();
+            for permission_change in permission_changes {
+                permission_change_sum = vir_low::Expression::perm_binary_op(
+                    vir_low::ast::expression::PermBinaryOpKind::Add,
+                    permission_change_sum.clone(),
+                    permission_change.clone(),
+                    position,
+                );
+            }
+            assert!(permission_change_sum.get_type().is_perm());
+            let guard = guard.clone().substitute_variables(&replacements);
+            sum = vir_low::Expression::perm_binary_op(
+                vir_low::ast::expression::PermBinaryOpKind::Add,
+                sum,
+                vir_low::Expression::conditional(
+                    guard.clone(),
+                    permission_change_sum,
+                    vir_low::Expression::no_permission(),
+                    position,
+                ),
+                position,
+            );
+        }
+        Ok(sum)
     }
 }
 
@@ -826,6 +891,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
         Ok(())
     }
 
+    fn encode_perm_unchanged_quantifier2(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        predicate: &vir_low::ast::expression::PredicateAccessPredicate,
+        position: vir_low::Position,
+        old_label: &Option<String>,
+        permission_change: vir_low::Expression,
+    ) -> SpannedEncodingResult<()> {
+        // let predicate_parameters = self
+        //     .get_predicate_parameters_for(&predicate.name)
+        //     .to_owned();
+        let predicate_arguments = self.predicate_parameters(predicate)?;
+        let arguments = self.predicate_arguments(statements, predicate, old_label, position)?;
+        let guard = predicate_arguments
+            .into_iter()
+            .zip(arguments)
+            .map(|(parameter, argument)| vir_low::Expression::equals(parameter, argument))
+            .conjoin();
+        self.quantifiers
+            .register_permission_change(&predicate.name, guard, permission_change)?;
+        Ok(())
+    }
+
     fn heap_call(
         &mut self,
         predicate: &vir_low::ast::expression::PredicateAccessPredicate,
@@ -949,14 +1037,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     //     {perm<P>(arg1, arg2, v_new)}
                     //     !(r1 == arg1 && r2 == arg2) ==>
                     //     perm<P>(arg1, arg2, v_new) == perm<P>(arg1, arg2, v_old)
-                    self.encode_perm_unchanged_quantifier(
+                    // self.encode_perm_unchanged_quantifier(
+                    //     statements,
+                    //     &expression,
+                    //     old_permission_mask,
+                    //     new_permission_mask,
+                    //     position,
+                    //     old_label,
+                    //     perm_new_value,
+                    // )?;
+                    self.encode_perm_unchanged_quantifier2(
                         statements,
                         &expression,
-                        old_permission_mask,
-                        new_permission_mask,
                         position,
                         old_label,
-                        perm_new_value,
+                        (*expression.permission).clone(),
                     )?;
                 }
                 vir_low::Expression::Unfolding(_) => todo!(),
@@ -1050,16 +1145,29 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         old_label,
                         position,
                     )?;
-                    {
-                        // // Trigger `encode_perm_unchanged_quantifier` with `perm_old`.
-                        // self.quantifiers.trigger_quantifiers(&perm_old, position)?;
-                        self.quantifiers
-                            .add_groupped_triggerred_quantifiers(statements, &perm_old, position)?;
-                    }
-                    // assert perm<P>(r1, r2, v_old) >= p
+                    // {
+                    //     // // Trigger `encode_perm_unchanged_quantifier` with `perm_old`.
+                    //     // self.quantifiers.trigger_quantifiers(&perm_old, position)?;
+                    //     self.quantifiers
+                    //         .add_groupped_triggerred_quantifiers(statements, &perm_old, position)?;
+                    // }
+                    // // assert perm<P>(r1, r2, v_old) >= p
+                    // statements.push(vir_low::Statement::assert(
+                    //     vir_low::Expression::greater_equals(
+                    //         perm_old.clone(),
+                    //         (*expression.permission).clone(),
+                    //     ),
+                    //     position, // FIXME: use position of expression.permission with proper ErrorCtxt.
+                    // ));
+                    let predicate_parameters = self.get_predicate_parameters_for(&expression.name).to_owned();
+                    let perm_sum = self.quantifiers.compute_perm_sum(
+                        &expression,
+                        &predicate_parameters,
+                        position,
+                    )?;
                     statements.push(vir_low::Statement::assert(
                         vir_low::Expression::greater_equals(
-                            perm_old.clone(),
+                            perm_sum,
                             (*expression.permission).clone(),
                         ),
                         position, // FIXME: use position of expression.permission with proper ErrorCtxt.
@@ -1085,14 +1193,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     //     {perm<P>(arg1, arg2, v_new)}
                     //     !(r1 == arg1 && r2 == arg2) ==>
                     //     perm<P>(arg1, arg2, v_new) == perm<P>(arg1, arg2, v_old)
-                    self.encode_perm_unchanged_quantifier(
+                    // self.encode_perm_unchanged_quantifier(
+                    //     statements,
+                    //     &expression,
+                    //     old_permission_mask.clone(),
+                    //     new_permission_mask.clone(),
+                    //     position,
+                    //     old_label,
+                    //     perm_new_value,
+                    // )?;
+                    self.encode_perm_unchanged_quantifier2(
                         statements,
                         &expression,
-                        old_permission_mask.clone(),
-                        new_permission_mask.clone(),
                         position,
                         old_label,
-                        perm_new_value,
+                        vir_low::Expression::perm_binary_op(
+                            vir_low::ast::expression::PermBinaryOpKind::Sub,
+                            vir_low::Expression::no_permission(),
+                            (*expression.permission).clone(),
+                            position,
+                        )
                     )?;
                     // assume forall arg1: Ref, arg2: Ref ::
                     //     {heap<P>(arg1, arg2, vh_new)}
