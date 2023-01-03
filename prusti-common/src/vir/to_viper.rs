@@ -660,7 +660,6 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                 pos.to_viper(context, ast),
             ),
             Expr::ForAll(ref vars, ref triggers, ref body, ref pos) => {
-                info!("FORALL pos: {:?}", pos);
                 ast.forall_with_pos(
                 &vars.to_viper_decl(context, ast)[..],
                 &(triggers, pos).to_viper(context, ast),

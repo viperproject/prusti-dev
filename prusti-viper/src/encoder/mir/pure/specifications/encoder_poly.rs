@@ -24,7 +24,6 @@ use prusti_rustc_interface::{
 };
 use rustc_hash::FxHashSet;
 use vir_crate::polymorphic::ExprIterator;
-use log::info;
 
 // TODO: this variant (poly) should not need to exist, eventually should be
 //       replaced by the high variant + lowering
@@ -233,8 +232,8 @@ pub(super) fn encode_quantifier<'tcx>(
         body_substs,
     )?;
 
+    // FIXME: we get the wrong span here
     let pos = encoder.error_manager().register_span(parent_def_id, span);
-    info!("Encoding quantifier with span '{:?}' and pos '{:?}, parent_def_id '{:?}'", span, pos, parent_def_id);
 
     // replace qvars with a nicer name based on quantifier depth to ensure that
     // quantifiers remain stable for caching

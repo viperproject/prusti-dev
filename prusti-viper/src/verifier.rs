@@ -30,6 +30,7 @@ use prusti_rustc_interface::span::DUMMY_SP;
 use prusti_server::tokio::runtime::Builder;
 use std::sync::Arc;
 use std::collections::HashMap;
+use serde_json::json;
 
 // /// A verifier builder is an object that lives entire program's
 // /// lifetime, has no mutable state, and is responsible for constructing
@@ -283,24 +284,31 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         let mut java_exceptions : Vec<_> = vec![];
         // the quantifier instantiations among different programs are independent and thus are
         // aggregated
+        // (denormalized ID, name (with normalized ID)), num_instantiations for each file
         let mut quantifier_instantiations: HashMap::<(u64, String), u64> = HashMap::new();
         for (method_name, result) in verification_results.into_iter() {
             match result {
-                viper::VerificationResult::Success => {}
+                viper::VerificationResult::Success => {
+                    info!("Result: Normal Success");
+                }
                 viper::VerificationResult::ConsistencyErrors(errors) => {
+                    info!("Result: ConsistencyErrors");
                     for error in errors.into_iter() {
                         consistency_errors.push((method_name.clone(), error));
                     }
                 }
                 viper::VerificationResult::Failure(errors) => {
+                    info!("Result: Failure");
                     for error in errors.into_iter() {
                         verification_errors.push((method_name.clone(), error));
                     }
                 }
                 viper::VerificationResult::JavaException(exception) => {
+                    info!("Result: JavaException");
                     java_exceptions.push((method_name, exception));
                 }
                 viper::VerificationResult::EnrichedSuccess(q_insts) => {
+                    info!("Result: EnrichedSuccess");
                     for (key, n) in q_insts {
                         match quantifier_instantiations.get(&key) {
                             Some(before) => {
@@ -315,6 +323,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                     }
                 }
                 viper::VerificationResult::EnrichedFailure(errors, q_insts) => {
+                    info!("Result: EnrichedFailure");
                     for (key, n) in q_insts {
                         match quantifier_instantiations.get(&key) {
                             Some(before) => {
@@ -337,11 +346,19 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         let error_manager = self.encoder.error_manager();
 
         // report the quantifier instantiations
-        info!("Reporting qi_profile");
         if config::report_qi_profile() {
+            info!("Reporting qi_profile");
             for ((pos_id, q_name), n) in quantifier_instantiations {
-                let span = error_manager.position_manager().get_span_from_id(pos_id);
-                info!("{} {} {} {:?}", q_name, n, pos_id, span);
+                match error_manager.position_manager().get_span_from_id(pos_id) {
+                    Some(span) => {
+                        PrustiError::message(
+                            format!("quantifier_instantiations_message{}",
+                                json!({"q_name": q_name, "instantiations": n}),
+                            ), span.clone()
+                        ).emit(&self.env.diagnostic);
+                    },
+                    None => info!("Quantifier instantiations for unknown position id {} {} {}", q_name, n, pos_id),
+                }
             }
         }
 
