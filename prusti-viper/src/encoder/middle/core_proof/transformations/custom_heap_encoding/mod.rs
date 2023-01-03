@@ -123,28 +123,28 @@ pub(in super::super) fn custom_heap_encoding<'p, 'v: 'p, 'tcx: 'v>(
             block.statements = statements;
             heap_encoder.finish_current_block(label.clone())?;
         }
-        for label in &traversal_order {
-            let mut statements = Vec::new();
-            let block = procedure.basic_blocks.get_mut(label).unwrap();
-            for statement in std::mem::take(&mut block.statements) {
-                if let vir_low::Statement::Assume(vir_low::ast::statement::Assume {
-                    expression: vir_low::Expression::Local(local),
-                    ..
-                }) = &statement
-                {
-                    if let Some(quantifier_instantiations) = heap_encoder
-                        .quantifiers
-                        .quantifier_instantiations
-                        .remove(&local.variable.name)
-                    {
-                        statements.extend(quantifier_instantiations);
-                        continue;
-                    }
-                }
-                statements.push(statement);
-            }
-            block.statements = statements;
-        }
+        // for label in &traversal_order {
+        //     let mut statements = Vec::new();
+        //     let block = procedure.basic_blocks.get_mut(label).unwrap();
+        //     for statement in std::mem::take(&mut block.statements) {
+        //         if let vir_low::Statement::Assume(vir_low::ast::statement::Assume {
+        //             expression: vir_low::Expression::Local(local),
+        //             ..
+        //         }) = &statement
+        //         {
+        //             if let Some(quantifier_instantiations) = heap_encoder
+        //                 .quantifiers
+        //                 .quantifier_instantiations
+        //                 .remove(&local.variable.name)
+        //             {
+        //                 statements.extend(quantifier_instantiations);
+        //                 continue;
+        //             }
+        //         }
+        //         statements.push(statement);
+        //     }
+        //     block.statements = statements;
+        // }
         for label in traversal_order {
             if let Some(intermediate_blocks) = basic_block_edges.remove(&label) {
                 let mut block = procedure.basic_blocks.remove(&label).unwrap();
@@ -326,6 +326,77 @@ impl Quantifiers {
         }
         for new_trigger in new_triggers {
             self.trigger_quantifiers(&new_trigger, position)?;
+        }
+        Ok(())
+    }
+
+    /// Same as `trigger_quantifiers`, but returns the instantiations instead of
+    /// storing them.
+    fn trigger_quantifiers2(
+        &self,
+        expression: &vir_low::Expression,
+        position: vir_low::Position,
+        instantiations: &mut FxHashSet<vir_low::Expression>,
+    ) -> SpannedEncodingResult<()> {
+        let func_app = match expression {
+            vir_low::Expression::DomainFuncApp(func_app) => func_app,
+            vir_low::Expression::BinaryOp(vir_low::ast::expression::BinaryOp {
+                right:
+                    box vir_low::Expression::BinaryOp(vir_low::ast::expression::BinaryOp {
+                        right: box vir_low::Expression::DomainFuncApp(func_app),
+                        ..
+                    }),
+                ..
+            }) => func_app,
+            vir_low::Expression::BinaryOp(vir_low::ast::expression::BinaryOp {
+                right:
+                    box vir_low::Expression::Conditional(vir_low::ast::expression::Conditional {
+                        else_expr: box vir_low::Expression::DomainFuncApp(func_app),
+                        ..
+                    }),
+                ..
+            }) => func_app,
+            _ => unimplemented!("expression: {}", expression),
+        };
+        let term = func_app.arguments.last().unwrap();
+        let mut new_triggers = Vec::new();
+        for (_, quantifier) in &self.quantifiers {
+            let trigger_term = &quantifier.triggers[0].terms[0];
+            if let vir_low::Expression::DomainFuncApp(trigger_func_app) = trigger_term {
+                if trigger_func_app.arguments.last().unwrap() == term {
+                    let mut replacements = FxHashMap::default();
+                    for (variable, argument) in quantifier.variables.iter().zip(&func_app.arguments)
+                    {
+                        replacements.insert(variable, argument);
+                    }
+                    let assumed_expression =
+                        quantifier.body.clone().substitute_variables(&replacements);
+                    if instantiations.insert(assumed_expression.clone()) {
+                        new_triggers.push(assumed_expression);
+                    }
+                }
+            }
+        }
+        for new_trigger in new_triggers {
+            self.trigger_quantifiers2(&new_trigger, position, instantiations)?;
+        }
+        Ok(())
+    }
+
+    fn add_groupped_triggerred_quantifiers(
+        &self,
+        statements: &mut Vec<vir_low::Statement>,
+        expression: &vir_low::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        let mut instantiations = FxHashSet::default();
+        self.trigger_quantifiers2(expression, position, &mut instantiations)?;
+        let mut instantiations: Vec<_> = instantiations.into_iter().collect();
+        instantiations.sort_by_cached_key(|instantiation| instantiation.to_string());
+        for instantiation in instantiations {
+            statements.push(vir_low::macros::stmtp! {
+                position => assume ([instantiation])
+            });
         }
         Ok(())
     }
@@ -744,10 +815,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
             position,
         };
         let quantifier_id = self.quantifiers.register_quantifier(quantifier)?;
-        statements.push(vir_low::Statement::assume(
-            vir_low::VariableDecl::new(quantifier_id, vir_low::Type::Bool).into(),
-            position,
-        ));
+        // statements.push(vir_low::Statement::assume(
+        //     vir_low::VariableDecl::new(quantifier_id, vir_low::Type::Bool).into(),
+        //     position,
+        // ));
         // statements.push(vir_low::Statement::assume(
         //     vir_low::Expression::forall(predicate_parameters, triggers, body),
         //     position,
@@ -854,8 +925,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         position,
                     )?;
                     {
-                        // Trigger `encode_perm_unchanged_quantifier` with `perm_old`.
-                        self.quantifiers.trigger_quantifiers(&perm_old, position)?;
+                        // // Trigger `encode_perm_unchanged_quantifier` with `perm_old`.
+                        // self.quantifiers.trigger_quantifiers(&perm_old, position)?;
+                        // FIXME: Call trigger_quantifiers2 here?
                     }
                     let perm_new_value = vir_low::Expression::perm_binary_op_no_pos(
                         vir_low::ast::expression::PermBinaryOpKind::Add,
@@ -979,8 +1051,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                         position,
                     )?;
                     {
-                        // Trigger `encode_perm_unchanged_quantifier` with `perm_old`.
-                        self.quantifiers.trigger_quantifiers(&perm_old, position)?;
+                        // // Trigger `encode_perm_unchanged_quantifier` with `perm_old`.
+                        // self.quantifiers.trigger_quantifiers(&perm_old, position)?;
+                        self.quantifiers
+                            .add_groupped_triggerred_quantifiers(statements, &perm_old, position)?;
                     }
                     // assert perm<P>(r1, r2, v_old) >= p
                     statements.push(vir_low::Statement::assert(
