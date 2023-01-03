@@ -261,8 +261,11 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             "prusti_contracts::time_credits" | "prusti_contracts::time_receipts" => {
                 if config::time_reasoning() {
                     Ok(encode_time_specifications(
+                        self,
                         &encoded_args[0],
                         vir_poly::ResourceType::from_function_name(fn_name),
+                        parent_def_id,
+                        span,
                     ))
                 } else {
                     Ok(true.into())
