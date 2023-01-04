@@ -5,20 +5,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 use crate::{
     hyperdigraph::{Bijection, DHEdge, Hyperdigraph},
-    pcs::{debug_print_scc, LoanSCC},
+    pcs::{debug_print_scc, BorrowMove, LoanSCC},
 };
 use analysis::mir_utils::{self, PlaceImpl};
-use prusti_interface::environment::{
-    borrowck::facts::{Loan, PointIndex},
-    Environment,
-};
+use prusti_interface::environment::borrowck::facts::Loan;
 use rustc_middle::{mir, ty::TyCtxt};
-use std::{
-    cmp::{self, Ordering},
-    collections::BTreeSet,
-    fmt::Debug,
-    iter::zip,
-};
+use std::{cmp::Ordering, collections::BTreeSet, fmt::Debug, iter::zip};
 
 // Custom wrapper for MIR places, used to implement
 //  1. ordering
@@ -178,6 +170,7 @@ impl<'tcx> CouplingDigraph<'tcx> {
     }
 
     /// Core coupling method
+    #[allow(unused)]
     fn couple_edges(&mut self, edges: &BTreeSet<DHEdge<CPlace<'tcx>>>) {
         // I'm not sure this works in general, this function
         // 1. Doesn't support repack edges (need to find an affine path first)
@@ -283,6 +276,18 @@ impl<'tcx> CouplingDigraph<'tcx> {
 
     pub fn pprint(&self) {
         self.graph.pprint_with_annotations(&self.annotations);
+    }
+
+    pub fn apply_borrow_move(&mut self, bm: BorrowMove<'tcx>) {
+        // Change all LHS which have "from" permission to the "to" permission.
+        // The borrow checker enforces that
+        //      > let mut s0 = S {x: 0, y: 0};
+        //      > let bx = &mut s0.x;
+        //      > let s1 = s0;
+        //      > let bx1 = bx;
+        // does not compile.
+        self.graph
+            .replace_nodes(CPlace(bm.from), CPlace(bm.to), &mut self.annotations);
     }
 }
 

@@ -4,7 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prusti_interface::environment::borrowck::facts::{Loan, PointIndex};
 use prusti_rustc_interface::data_structures::fx::{FxHashMap, FxHashSet};
 use std::{collections::BTreeSet, fmt::Debug, hash::Hash};
 
@@ -38,17 +37,23 @@ impl<A: Bijectable, B: Bijectable> Bijection<A, B> {
         Some(b)
     }
 
-    pub fn remove_b(&mut self, a: &A) -> B {
+    #[allow(unused)]
+    pub fn remove_b(&mut self, _: &A) -> B {
         todo!();
     }
     pub fn get_fwd(&self, a: &A) -> Option<&B> {
         self.fwd.get(a)
     }
 
+    #[allow(unused)]
     pub fn pprint(&self) {
         for (k, v) in self.fwd.iter() {
             println!("\t** {:?} <-> {:?} ", k, v);
         }
+    }
+
+    pub fn replace_a(&mut self, a: A, a1: A) {
+        todo!();
     }
 }
 
@@ -62,12 +67,14 @@ pub struct DEdge<N: Node> {
     rhs: N,
 }
 
+#[allow(unused)]
 pub struct Digraph<N: Node, A: Annotation> {
     nodes: FxHashSet<N>,
     edges: FxHashSet<DEdge<N>>,
     annotation: FxHashMap<DEdge<N>, A>,
 }
 
+#[allow(unused)]
 impl<N: Node, A: Annotation> Digraph<N, A> {
     pub fn new(nodes: FxHashSet<N>, edges: FxHashSet<DEdge<N>>) -> Self {
         Self {
@@ -228,6 +235,11 @@ impl<N: Node> Hyperdigraph<N> {
         assert!(self.nodes.insert(n));
     }
 
+    /// Remove a node that does exist exist
+    pub fn remove_node(&mut self, n: &N) {
+        assert!(self.nodes.remove(n));
+    }
+
     // In the literature, a directed hyperpath between nodes a and b is a sequence of
     //  directed hyperedges where the intersection beteeen the RHS and LHS of subsequent
     //  hyperedges are nonempty, a is in the LHS of the first hyperpath, and b is in the
@@ -261,6 +273,7 @@ impl<N: Node> Hyperdigraph<N> {
     //  and {Y} disjoint union {Bi} are equal. The above example is not a linear
     //  K-path.
 
+    #[allow(unused)]
     pub fn find_affine_path(
         &self,
         from: &BTreeSet<N>,
@@ -308,6 +321,7 @@ impl<N: Node> Hyperdigraph<N> {
         }
     }
 
+    #[allow(unused)]
     // Find all edges whose LHS is a subset of "nodes"
     fn hyper_successor(&self, nodes: &BTreeSet<N>) -> Vec<DHEdge<N>> {
         self.edges
@@ -321,6 +335,35 @@ impl<N: Node> Hyperdigraph<N> {
         println!("\t** nodes: {:?}", self.nodes);
         for e in self.edges.iter() {
             println!("\t * edge: {:?}\t({:?})", e, ann.get_fwd(&e));
+        }
+    }
+
+    /// Replace one node with another.
+    /// Panics if the from node does not exist or the to node already exists.
+    pub fn replace_nodes<X: Bijectable>(
+        &mut self,
+        from: N,
+        to: N,
+        edge_labels: &mut Bijection<DHEdge<N>, BTreeSet<X>>,
+    ) {
+        // Update the nodes
+        self.remove_node(&from);
+        self.insert_node(to.clone());
+
+        // Update the edges
+        // fixme: slow hack
+        let owned_edges = std::mem::replace(&mut self.edges, BTreeSet::new());
+        for mut e in owned_edges.into_iter() {
+            let bij_rhs = (*edge_labels.get_fwd(&e).unwrap()).clone();
+            edge_labels.remove_a(&e).unwrap();
+            if e.lhs.remove(&from) {
+                assert!(e.lhs.insert(to.clone()));
+            }
+            if e.rhs.remove(&from) {
+                assert!(e.rhs.insert(to.clone()));
+            }
+            edge_labels.insert(e.clone(), bij_rhs);
+            self.edges.insert(e);
         }
     }
 }
