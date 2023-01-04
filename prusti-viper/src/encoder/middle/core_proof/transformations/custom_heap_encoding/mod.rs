@@ -419,9 +419,11 @@ impl Quantifiers {
         guard_entry.push(permission_change);
         Ok(())
     }
-
+    // TODO: Compute performance per line of code to see whether it is exponential or not.
+    // TODO: Check Z3 trace to see whether it is still branching.
     fn compute_perm_sum(
         &mut self,
+        statements: &mut Vec<vir_low::Statement>,
         predicate: &vir_low::expression::PredicateAccessPredicate,
         predicate_parameters: &[vir_low::VariableDecl],
         position: vir_crate::high::Position,
@@ -438,6 +440,7 @@ impl Quantifiers {
         for (argument, parameter) in predicate.arguments.iter().zip(predicate_parameters) {
             replacements.insert(parameter, argument);
         }
+        let mut conjuncts = Vec::new();
         for guard in guards {
             let permission_changes = predicate_entry.get(guard).unwrap();
             let mut permission_change_sum = vir_low::Expression::no_permission();
@@ -451,18 +454,35 @@ impl Quantifiers {
             }
             assert!(permission_change_sum.get_type().is_perm());
             let guard = guard.clone().substitute_variables(&replacements);
+            let term = vir_low::Expression::conditional(
+                guard.clone(),
+                permission_change_sum,
+                vir_low::Expression::no_permission(),
+                position,
+            );
+            // let term = term.simplify();
+            conjuncts.push(vir_low::Expression::greater_equals(
+                term.clone(),
+                vir_low::Expression::no_permission(),
+            ));
+            statements.push(vir_low::Statement::assert(
+                vir_low::Expression::greater_equals(
+                    term.clone(),
+                    vir_low::Expression::no_permission(),
+                ),
+                position,
+            ));
             sum = vir_low::Expression::perm_binary_op(
                 vir_low::ast::expression::PermBinaryOpKind::Add,
                 sum,
-                vir_low::Expression::conditional(
-                    guard.clone(),
-                    permission_change_sum,
-                    vir_low::Expression::no_permission(),
-                    position,
-                ),
+                term,
                 position,
             );
         }
+        // let expression = conjuncts.into_iter().conjoin();
+        // let expression = expression.simplify();
+        // statements.push(vir_low::Statement::assert(expression, position));
+        // Ok(sum.simplify())
         Ok(sum)
     }
 }
@@ -1159,15 +1179,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                     //     ),
                     //     position, // FIXME: use position of expression.permission with proper ErrorCtxt.
                     // ));
-                    let predicate_parameters = self.get_predicate_parameters_for(&expression.name).to_owned();
+                    let predicate_parameters = self
+                        .get_predicate_parameters_for(&expression.name)
+                        .to_owned();
                     let perm_sum = self.quantifiers.compute_perm_sum(
+                        statements,
                         &expression,
                         &predicate_parameters,
                         position,
                     )?;
                     statements.push(vir_low::Statement::assert(
                         vir_low::Expression::greater_equals(
-                            perm_sum,
+                            perm_sum.clone(),
                             (*expression.permission).clone(),
                         ),
                         position, // FIXME: use position of expression.permission with proper ErrorCtxt.
@@ -1212,7 +1235,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> HeapEncoder<'p, 'v, 'tcx> {
                             vir_low::Expression::no_permission(),
                             (*expression.permission).clone(),
                             position,
-                        )
+                        ),
                     )?;
                     // assume forall arg1: Ref, arg2: Ref ::
                     //     {heap<P>(arg1, arg2, vh_new)}
