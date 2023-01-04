@@ -12,6 +12,8 @@ pub trait ResourcesEncoderInterface {
     fn get_tick_call<T: Into<MultiSpan>>(&self, span: T, amount: usize) -> Vec<vir::Stmt>;
 }
 
+// TODO: differentiate between loops' and functions' bodies errors
+
 impl<'p, 'v: 'p, 'tcx: 'v> ResourcesEncoderInterface
     for super::super::procedure_encoder::ProcedureEncoder<'p, 'v, 'tcx>
 {
