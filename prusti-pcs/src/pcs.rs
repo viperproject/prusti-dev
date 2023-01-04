@@ -3,22 +3,23 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#![allow(unused)]
 use prusti_rustc_interface::middle::mir::{
     Operand::Move,
     Rvalue::{Ref, Use},
     StatementKind::Assign,
 };
 use rustc_middle::mir::Statement;
-use std::{collections::BTreeSet, default::Default, fmt::Debug, hash::Hash};
+use rustc_mir_dataflow::{move_paths::MoveData, MoveDataParamEnv};
+use std::{collections::BTreeSet, default::Default, fmt::Debug};
 
 use crate::{
     coupling_digraph::*,
-    pcs::DagAnnotations::Borrow,
     pcs_analysis::conditional::CondPCSctx,
     syntax::MicroMirEncoder,
     util::{abbreviate_terminator, EncodingResult},
 };
-use analysis::mir_utils::get_blocked_place;
+// use analysis::mir_utils::get_blocked_place;
 use itertools::Itertools;
 use prusti_common::report::log;
 use prusti_interface::environment::{
@@ -31,7 +32,7 @@ use prusti_interface::environment::{
 };
 use prusti_rustc_interface::{
     data_structures::fx::{FxHashMap, FxHashSet},
-    middle::mir::{BasicBlock, Body, Location, Place, TerminatorKind},
+    middle::mir::{BasicBlock, Body, Location, TerminatorKind},
     polonius_engine::{Algorithm, Output},
 };
 use rustc_borrowck::consumers::{
@@ -84,12 +85,29 @@ pub fn vis_pcs_facts<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> Encoding
         let borrowck_in_facts = polonius_facts.input_facts.take().unwrap();
         let borrowck_out_facts = Output::compute(&borrowck_in_facts, Algorithm::Naive, true);
         let location_table = polonius_facts.location_table.take().unwrap();
+        let tcx = env.tcx();
+        let param_env = tcx.param_env_reveal_all_normalized(*proc_id);
+        let move_data = match MoveData::gather_moves(mir, tcx, param_env) {
+            Ok((_, move_data)) => move_data,
+            Err((move_data, _)) => {
+                panic!("no move errors in compiled code")
+            }
+        };
+        let mdpe = MoveDataParamEnv {
+            move_data,
+            param_env,
+        };
+
+        println!("{:#?}", borrowck_in_facts);
+        println!("{:#?}", borrowck_out_facts);
+
         let bctx = BorrowingContext {
             borrowck_in_facts: &borrowck_in_facts,
             borrowck_out_facts: &borrowck_out_facts,
             location_table: &location_table,
             mir: &mir,
             env: &env,
+            mdpe,
         };
 
         bctx.compute_cdg_trace();
@@ -247,12 +265,7 @@ pub struct BorrowingContext<'facts, 'mir, 'env: 'mir, 'tcx: 'env> {
     location_table: &'facts LocationTable,
     mir: &'mir Body<'tcx>,
     env: &'env Environment<'tcx>,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum DagAnnotations {
-    Borrow(Loan),
-    Repack,
+    mdpe: MoveDataParamEnv<'tcx>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -271,6 +284,7 @@ impl<N: Clone + Debug + Eq, E: Clone + Debug + Eq> Default for Digraph<N, E> {
 }
 
 impl<N: Clone + Debug + Eq, E: Clone + Debug + Eq> Digraph<N, E> {
+    #[allow(unused)]
     pub fn outgoing_edges(&self, n: N) -> Vec<(N, N, E)> {
         self.edges
             .iter()
@@ -280,6 +294,7 @@ impl<N: Clone + Debug + Eq, E: Clone + Debug + Eq> Digraph<N, E> {
     }
 
     // Returns all paths, represented as edges, between two nodes
+    #[allow(unused)]
     pub fn paths_between(&self, n0: N, n1: &N) -> Vec<Vec<E>> {
         if n0 == *n1 {
             return vec![vec![]];
@@ -345,6 +360,7 @@ impl LoanSCC {
             .collect()
     }
 
+    #[allow(unused)]
     pub fn all_loans(&self) -> BTreeSet<Loan> {
         self.0.nodes.iter().cloned().flatten().collect()
     }
@@ -512,7 +528,7 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
         let mut done: Vec<PointIndex> = vec![];
 
         loop {
-            let mut pt: PointIndex;
+            let pt: PointIndex;
             let mut working_cdg: CouplingDigraph<'tcx>;
 
             if let Some((curr_pt, prev_dag)) = dirty_single.pop() {
@@ -552,6 +568,28 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
 
             // self.strengthen_dag_by_scc(pt, &mut working_dag);
 
+            if let Some(bm) = self.borrow_moves_at_location(&pt) {
+                println!("borrow_moves: {:?}", bm);
+
+                // Apply the borrow moves to the LHS of all wands:
+                // Note to self: This is slightly a hack because the compiler models borrow creation/moves like this
+                //      x = &mut y  => create temporary (issuing) origin for borrow, move that issuing origin into new origin
+                //      x = y       => move the origin corresponding to y and kill x
+                // whereas we model it like
+                //      x = &mut y  => origins issung and assigning origins are the same in the SCC so create one edge
+                //      x = y       => modify the edge corresponding to y and kill x
+                // I suspect these are no different when using the SCC since we treat origins as sets (so these
+                // new origins after a subset are indistinguishable) but if there are issues translating CDG edges
+                // to origins this line is probably why.
+
+                // Changing this will involve some backwards reasoning on the types of origins and moves: if I can
+                // characterize all origins (issuing origin, assignment origin, etc.) we might consider moving from
+                // the SCC model for figuring out which loans are coupled.
+                // MARKUS: I'm investigating this, and have asked about it on the Rust Zulip.
+
+                working_cdg.apply_borrow_move(bm.clone());
+            };
+
             println!(">> finished cdg computation");
             working_cdg.pprint();
             f.insert(pt, working_cdg.clone());
@@ -575,6 +613,46 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
         }
 
         f
+    }
+
+    fn location_index_to_location(&self, pt: &PointIndex) -> Location {
+        match self.location_table.to_location(*pt) {
+            Start(location) => location,
+            Mid(location) => location,
+        }
+    }
+
+    #[allow(unused)]
+    fn show_move_path_moves(&self, loc: &PointIndex) -> () {
+        let location = self.location_index_to_location(&loc);
+        let move_outs = self.mdpe.move_data.loc_map[location]
+            .iter()
+            .map(|mo_ix| self.mdpe.move_data.moves[*mo_ix])
+            .map(|mo| mo.path)
+            .map(|mpi| self.mdpe.move_data.move_paths[mpi].place)
+            .collect::<Vec<rustc_middle::mir::Place>>();
+        if move_outs.len() > 0 {
+            print!("move_out: [");
+            for p in move_outs.iter() {
+                print!("{:?}, ", p);
+            }
+            println!("]");
+        }
+
+        let move_inits = self.mdpe.move_data.init_loc_map[location]
+            .iter()
+            .map(|mo_ix| self.mdpe.move_data.inits[*mo_ix])
+            .map(|mo| mo.path)
+            .map(|mpi| self.mdpe.move_data.move_paths[mpi].place)
+            .collect::<Vec<rustc_middle::mir::Place>>();
+
+        if move_outs.len() > 0 {
+            print!("move_init: [");
+            for p in move_inits.iter() {
+                print!("{:?}, ", p);
+            }
+            println!("]");
+        }
     }
 
     // Plan: SCC nodes => subgraphs of the CDG
@@ -609,7 +687,7 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
                     cdg.new_loan(self.mir, self.env.tcx().clone(), lhs, rhs, loan);
                 }
                 _ => {
-                    panic!("unsupported borrow creation, at ");
+                    panic!("unsupported borrow creation, at {:#?}", loc);
                 }
             }
         }
@@ -750,6 +828,48 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
         }
         (pred, succ)
     }
+
+    fn place_is_ref(&self, p: &rustc_middle::mir::Place<'tcx>) -> bool {
+        p.ty(&self.mir.local_decls, self.env.tcx()).ty.is_ref()
+    }
+
+    fn borrow_moves_at_location(&self, point: &PointIndex) -> Option<BorrowMove<'tcx>> {
+        // Detecting borrow moves syntactically right now. Could (should?) be refactored
+        // to detect using eg. MovePaths.
+
+        let location = match self.location_table.to_location(*point) {
+            Start(location) => location,
+            Mid(location) => {
+                return None;
+            }
+        };
+
+        self.mir
+            .stmt_at(location)
+            .left()
+            .and_then(|mir_stmt| match &mir_stmt.kind {
+                rustc_middle::mir::StatementKind::Assign(box (
+                    assign_to,
+                    rustc_middle::mir::Rvalue::Use(rustc_middle::mir::Operand::Move(assign_from)),
+                )) => {
+                    if self.place_is_ref(assign_to) && self.place_is_ref(assign_from) {
+                        Some(BorrowMove {
+                            from: (*assign_from).clone(),
+                            to: (*assign_to).clone(),
+                        })
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
+            })
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct BorrowMove<'tcx> {
+    pub from: rustc_middle::mir::Place<'tcx>,
+    pub to: rustc_middle::mir::Place<'tcx>,
 }
 
 fn prettify_origin(og: rustc_middle::ty::RegionVid) -> String {
@@ -835,15 +955,6 @@ fn bb_title(b: &BasicBlock) -> String {
             .replace("{", "_")
             .replace("}", "_"),
     ))
-}
-
-fn debug_print_annotation(ann: &DagAnnotations) {
-    match ann {
-        Borrow(l) => {
-            print!("borrow {:?}", l)
-        }
-        DagAnnotations::Repack => print!("repack"),
-    }
 }
 
 pub fn debug_print_scc(s: &LoanSCC) {
