@@ -423,7 +423,7 @@ impl<'tcx> ErrorManager<'tcx> {
                     .set_help("This might be a bug in the Rust compiler.")
             }
 
-            ("exhale.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => {
+            ("assert.failed:assertion.false" | "exhale.failed:assertion.false", ErrorCtxt::ExhaleMethodPrecondition) => {
                 PrustiError::verification("precondition might not hold.", error_span)
                     .set_failing_assertion(opt_cause_span)
             }

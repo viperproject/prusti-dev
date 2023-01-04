@@ -69,32 +69,13 @@ impl ExprSimplifier {
                         position: inner_pos,
                     }),
                 position: pos,
-            }) => ast::Expr::BinOp(ast::BinOp {
+            }) if !matches!(left.get_type(), ast::Type::Float(_)) => ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::NeCmp,
                 left: Box::new(left),
                 right: Box::new(right),
                 position: pos,
             })
             .set_default_pos(inner_pos),
-            ast::Expr::BinOp(ast::BinOp {
-                op_kind: ast::BinaryOpKind::And,
-                left:
-                    box ast::Expr::Const(ast::ConstExpr {
-                        value: ast::Const::Bool(b1),
-                        position: inner_pos1,
-                    }),
-                right:
-                    box ast::Expr::Const(ast::ConstExpr {
-                        value: ast::Const::Bool(b2),
-                        position: inner_pos2,
-                    }),
-                position: pos,
-            }) => ast::Expr::Const(ast::ConstExpr {
-                value: ast::Const::Bool(b1 && b2),
-                position: pos,
-            })
-            .set_default_pos(inner_pos1)
-            .set_default_pos(inner_pos2),
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
                 left:
@@ -114,9 +95,13 @@ impl ExprSimplifier {
                         position: inner_pos,
                     }),
                 position: pos,
-            }) => if b { conjunct } else { false.into() }
-                .set_pos(pos)
-                .set_default_pos(inner_pos),
+            }) => if b {
+                conjunct
+            } else {
+                Into::<ast::Expr>::into(false).set_pos(inner_pos)
+            }
+            .set_default_pos(pos)
+            .set_default_pos(inner_pos),
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::Or,
                 left:
@@ -136,9 +121,13 @@ impl ExprSimplifier {
                         position: inner_pos,
                     }),
                 position: pos,
-            }) => if b { true.into() } else { disjunct }
-                .set_pos(pos)
-                .set_default_pos(inner_pos),
+            }) => if b {
+                Into::<ast::Expr>::into(true).set_pos(inner_pos)
+            } else {
+                disjunct
+            }
+            .set_default_pos(pos)
+            .set_default_pos(inner_pos),
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::Implies,
                 left: guard,
@@ -167,9 +156,13 @@ impl ExprSimplifier {
                     }),
                 right: box body,
                 position: pos,
-            }) => if b { body } else { true.into() }
-                .set_pos(pos)
-                .set_default_pos(inner_pos),
+            }) => if b {
+                body
+            } else {
+                Into::<ast::Expr>::into(true).set_pos(inner_pos)
+            }
+            .set_default_pos(inner_pos)
+            .set_default_pos(pos),
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
                 left: box op1,
