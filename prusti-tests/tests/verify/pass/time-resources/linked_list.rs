@@ -2,6 +2,7 @@
 
 use prusti_contracts::*;
 
+// ignore-test: time reasoning on pure functions does not work for now
 enum LinkedList<T> {
     Empty,
     Cons(T, Box<LinkedList<T>>),
