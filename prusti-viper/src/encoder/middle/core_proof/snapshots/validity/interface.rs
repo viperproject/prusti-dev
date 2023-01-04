@@ -162,6 +162,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         let valid_constructor = self.encode_snapshot_valid_call(domain_name, constructor_call)?;
         if parameters.is_empty() {
             let axiom = vir_low::DomainAxiomDecl {
+                comment: None,
                 name: format!(
                     "{}$validity_axiom_bottom_up_alternative_no_parameters",
                     domain_name
@@ -210,6 +211,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                 },
             );
             let axiom_top_down = vir_low::DomainAxiomDecl {
+                comment: None,
                 name: format!(
                     "{}${}$validity_axiom_top_down_alternative",
                     domain_name, variant_name
@@ -232,6 +234,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         // The axiom that allows proving that the data structure is
         // valid if we know that its fields are valid.
         let axiom_bottom_up = vir_low::DomainAxiomDecl {
+            comment: None,
             name: format!(
                 "{}${}$validity_axiom_bottom_up_alternative",
                 domain_name, variant_name
@@ -293,6 +296,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                 },
             );
             let axiom_top_down = vir_low::DomainAxiomDecl {
+                comment: None,
                 name: format!("{}$validity_axiom_top_down_enum", domain_name),
                 body: axiom_top_down_body,
             };
@@ -345,6 +349,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         // The axiom that allows proving that the data structure is
         // valid if we know that its fields are valid.
         let validity_axiom_bottom_up = vir_low::DomainAxiomDecl {
+            comment: None,
             name: format!(
                 "{}${}$validity_axiom_bottom_up_enum_variant",
                 domain_name, variant_name
@@ -365,6 +370,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
         };
         // The axiom that defines the discriminant of the variant.
         let dicsriminant_axiom = vir_low::DomainAxiomDecl {
+            comment: None,
             name: format!("{}${}$discriminant_axiom", domain_name, variant_name),
             body: discriminant_axiom_body,
         };
@@ -416,6 +422,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
             },
         );
         let axiom_top_down = vir_low::DomainAxiomDecl {
+            comment: None,
             // We use ty identifier to distinguish sequences from arrays.
             name: format!(
                 "{}${}$validity_axiom_top_down_sequence",

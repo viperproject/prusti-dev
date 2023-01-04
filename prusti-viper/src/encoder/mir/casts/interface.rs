@@ -2,7 +2,7 @@ use log::{debug, trace};
 use prusti_rustc_interface::middle::ty;
 use vir_crate::high::{self as vir_high};
 
-use crate::encoder::errors::{EncodingError, EncodingResult};
+use crate::{encoder::errors::EncodingResult, error_unsupported};
 
 pub(crate) trait CastsEncoderInterface<'tcx> {
     fn encode_int_cast_high(
@@ -75,10 +75,7 @@ impl<'v, 'tcx: 'v> CastsEncoderInterface<'tcx> for super::super::super::Encoder<
                 number.into()
             }
             kind => {
-                return Err(EncodingError::unsupported(format!(
-                    "unsupported integer cast: {:?}",
-                    kind
-                )));
+                error_unsupported!("unsupported integer cast: {:?}", kind);
             }
         };
         debug!("encode_int_cast {:?} as {:?} --> {:?}", value, ty, expr);

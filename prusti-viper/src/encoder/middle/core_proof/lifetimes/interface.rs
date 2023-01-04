@@ -226,6 +226,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             Default::default(),
         )?;
         let axiom = vir_low::DomainAxiomDecl {
+            comment: None,
             name: "included_in_itself$".to_string(),
             body: QuantifierHelpers::forall(
                 vec![lft],
@@ -263,6 +264,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             };
 
             let axiom = vir_low::DomainAxiomDecl {
+                comment: None,
                 name: "included_intersect$1".to_string(),
                 body: QuantifierHelpers::forall(
                     vec![lft_1, lft_2],
@@ -292,6 +294,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
                 ) == (lft_2 in lft_1)
             };
             let axiom = vir_low::DomainAxiomDecl {
+                comment: None,
                 name: "included_intersect$2".to_string(),
                 body: QuantifierHelpers::forall(
                     vec![lft_1, lft_2],
@@ -318,6 +321,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
                 [intersect] == lft
             };
             let axiom = vir_low::DomainAxiomDecl {
+                comment: None,
                 name: "intersect_singleton$".to_string(),
                 body: QuantifierHelpers::forall(
                     vec![lft],
