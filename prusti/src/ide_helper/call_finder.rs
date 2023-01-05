@@ -12,14 +12,14 @@ use prusti_rustc_interface::{
 pub struct CallSpanFinder<'tcx> {
     pub env_query: EnvQuery<'tcx>,
     pub tcx: TyCtxt<'tcx>,
-    pub spans: Vec<(String, Span)>,
+    pub called_functions: Vec<(String, DefId, Span)>,
 }
 
 impl<'tcx> CallSpanFinder<'tcx> {
     pub fn new(env: &Environment<'tcx>) -> Self {
         Self {
             env_query: env.query,
-            spans: Vec::new(),
+            called_functions: Vec::new(),
             tcx: env.tcx(),
         }
     }
@@ -61,7 +61,7 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
                     if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = res {
                         let defpath = self.tcx.def_path_debug_str(def_id);
                         println!("Call DefPath: {}", defpath);
-                        self.spans.push((defpath, expr.span))
+                        self.called_functions.push((defpath, def_id, expr.span))
                     } else {
                         println!("Resolving a call failed!\n\n\n");
                     }
@@ -81,11 +81,11 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
                             // TODO: replace with is_local once we are not debugging anymore
                             // no need to create external specs for local methods
                             if defpath_unresolved == defpath_resolved {
-                                self.spans.push((defpath_resolved, sp));
+                                self.called_functions.push((defpath_resolved, resolved_def_id, sp));
                             } else {
                                 // in this case we want both
-                                self.spans.push((defpath_resolved, sp));
-                                self.spans.push((defpath_unresolved, sp));
+                                self.called_functions.push((defpath_resolved, resolved_def_id, sp));
+                                self.called_functions.push((defpath_unresolved, method_def_id, sp));
                             }
                         }
                     }
@@ -106,7 +106,7 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
                             // no need to create external specs for local methods
                             if defpath_unresolved == defpath_resolved {
                                 println!("Defpaths for binary operation were equal");
-                                self.spans.push((defpath_resolved, expr.span));
+                                self.called_functions.push((defpath_resolved, resolved_def_id, expr.span));
                             } else {
                                 // For binary operations this will be the operation
                                 // from the standard libary and the "overriding" method
@@ -116,8 +116,8 @@ impl<'tcx> Visitor<'tcx> for CallSpanFinder<'tcx> {
                                 println!("1. {}", defpath_resolved);
                                 println!("2. {}", defpath_unresolved);
 
-                                self.spans.push((defpath_resolved, expr.span));
-                                self.spans.push((defpath_unresolved, expr.span));
+                                self.called_functions.push((defpath_resolved, resolved_def_id,expr.span));
+                                self.called_functions.push((defpath_unresolved, method_def_id, expr.span));
                             }
                         }
                     }

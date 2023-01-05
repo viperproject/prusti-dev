@@ -1,13 +1,11 @@
-use prusti_common::config;
 use prusti_interface::environment::Environment;
-
 use prusti_rustc_interface::{
     hir::def_id::DefId,
     span::{source_map::SourceMap, Span},
 };
-
 use super::call_finder;
-use serde::Serialize;
+use super::query_signature;
+use serde::{Serialize, ser::SerializeStruct};
 
 // create some struct storing all the information the IDE will ever need.
 // needs to be transformable into json!
@@ -16,35 +14,52 @@ use serde::Serialize;
 pub struct IdeInfo {
     procedure_defs: Vec<ProcDef>,
     function_calls: Vec<ProcDef>,
+    queried_source: Option<String>,
     // additionally this will contain:
     // function_calls:
     // ... we'll see
+
 }
 
 impl IdeInfo {
     pub fn collect(env: &Environment<'_>, procedures: &Vec<DefId>) -> Self {
         let procs = collect_procedures(env, procedures);
         let source_map = env.tcx().sess.source_map();
-        let fncalls = collect_fncalls(env)
+        let fncalls: Vec<ProcDef> = collect_fncalls(env)
             .into_iter()
-            .map(|(name, sp)| ProcDef {
+            .map(|(name, defid, sp)| ProcDef {
                 name,
+                defid,
                 span: VscSpan::from_span(sp, source_map).unwrap(),
             })
             .collect();
+
         // For declaring external specifications:
-        let _queried_source = collect_queried_signatures(env);
+        let queried_source = query_signature::collect_queried_signatures(env, &fncalls);
         Self {
             procedure_defs: procs,
             function_calls: fncalls,
+            queried_source,
         }
     }
 }
 
-#[derive(Serialize)]
 pub struct ProcDef {
-    name: String,
-    span: VscSpan,
+    pub name: String,
+    pub defid: DefId,
+    pub span: VscSpan,
+}
+
+// defid is not needed for VSCode and not serializable as of now..
+impl Serialize for ProcDef {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer {
+        let mut state = serializer.serialize_struct("ProcDef", 2)?;
+        state.serialize_field("name", &self.name)?;
+        state.serialize_field("span", &self.span)?;
+        state.end()
+    }
 }
 
 /// a representation of spans that is more usable with VSCode.
@@ -72,13 +87,14 @@ fn collect_procedures(env: &Environment<'_>, procedures: &Vec<DefId>) -> Vec<Pro
 
         procs.push(ProcDef {
             name: defpath,
+            defid: *procedure,
             span: vscspan,
         });
     }
     procs
 }
 
-fn collect_fncalls(env: &Environment<'_>) -> Vec<(String, Span)> {
+fn collect_fncalls(env: &Environment<'_>) -> Vec<(String, DefId, Span)> {
     // let l_hir = env.tcx().hir();
     // let hir_body = l_hir.body();
 
@@ -90,13 +106,7 @@ fn collect_fncalls(env: &Environment<'_>) -> Vec<(String, Span)> {
         .hir()
         .visit_all_item_likes_in_crate(&mut fnvisitor);
 
-    return fnvisitor.spans;
-}
-
-fn collect_queried_signatures(env: &Environment<'_>) -> Option<String> {
-    let def_path_str: String = config::query_method_signature()?;
-
-    return Some(String::from("hello"))
+    return fnvisitor.called_functions;
 }
 
 impl VscSpan {
