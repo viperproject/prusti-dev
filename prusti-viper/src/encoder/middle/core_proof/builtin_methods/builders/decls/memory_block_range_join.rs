@@ -7,7 +7,7 @@ use crate::encoder::{
     errors::{BuiltinMethodKind, SpannedEncodingResult},
     middle::core_proof::{
         addresses::AddressesInterface,
-        lowerer::Lowerer,
+        lowerer::{Lowerer, DomainsLowererInterface},
         predicates::PredicatesMemoryBlockInterface,
         snapshots::{IntoSnapshot, SnapshotValuesInterface},
         type_layouts::TypeLayoutsInterface,
@@ -151,17 +151,25 @@ impl<'l, 'p, 'v, 'tcx> MemoryBlockRangeJoinMethodBuilder<'l, 'p, 'v, 'tcx> {
             byte_index.clone().into(),
             self.inner.inner.position,
         )?;
-        let block_start_index = vir_low::Expression::multiply(
-            self.inner.inner.lowerer.obtain_constant_value(
-                &size_type,
-                element_size.clone(),
-                self.inner.inner.position,
-            )?,
-            index.clone().into(),
-        );
+        let block_size = self.inner.inner.lowerer.obtain_constant_value(
+            &size_type,
+            element_size.clone(),
+            self.inner.inner.position,
+        )?;
+        // let block_start_index = vir_low::Expression::multiply(
+        //     block_size,
+        //     index.clone().into(),
+        // );
+        // let whole_byte_index =vir_low::Expression::add(block_start_index, byte_index.clone().into());
+        let whole_byte_index = self.inner.inner.lowerer.create_domain_func_app(
+            "Arithmetic", "mul_add", vec![
+                block_size,
+                index.clone().into(),
+                byte_index.clone().into(),
+            ], vir_low::Type::Int, self.inner.inner.position)?;
         let read_whole_byte = self.inner.inner.lowerer.encode_read_byte_expression(
             whole_bytes.clone(),
-            vir_low::Expression::add(block_start_index, byte_index.clone().into()),
+            whole_byte_index,
             self.inner.inner.position,
         )?;
         let element_size_int = self.inner.inner.lowerer.obtain_constant_value(
