@@ -1488,11 +1488,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // The called method might be a trait method.
         // We try to resolve it to the concrete implementation
         // and type substitutions.
-        let (called_def_id, call_substs) = self.encoder.env().query.resolve_method_call(
-            self.def_id,
-            called_def_id,
-            self.encoder.env().tcx().erase_regions(call_substs),
-        );
+        let query = self.encoder.env().query;
+        let (called_def_id, call_substs) =
+            query.resolve_method_call(self.def_id, called_def_id, call_substs);
 
         // find static lifetime to exhale
         let mut lifetimes_to_exhale_inhale: Vec<String> = Vec::new();
@@ -1506,12 +1504,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         assert_eq!(lifetimes_to_exhale_inhale.len(), 1); // there must be exactly one static lifetime
 
         // find lifetimes for function args
-        for arg in args {
-            if let &mir::Operand::Move(place) = arg {
-                let encoded_place = self.encode_place(place, None)?;
-                let place_lifetimes = encoded_place.get_lifetimes();
-                for lifetime in place_lifetimes {
-                    lifetimes_to_exhale_inhale.push(lifetime.name.clone());
+        let has_erased_regions = call_substs.regions().any(|r| r.is_erased());
+        let mut subst_regions = call_substs.regions().peekable();
+        if !has_erased_regions && subst_regions.peek().is_some() {
+            // use generic argument lifetimes
+            lifetimes_to_exhale_inhale.extend(subst_regions.map(|r| r.to_string()));
+        } else {
+            // if we find any erased regions, cancel everything and fall back on resolving lifetimes from args directly
+            // this happens e.g. when working with the result of trait method resolution, which erases lifetimes
+            for arg in args {
+                if let &mir::Operand::Move(place) = arg {
+                    let encoded_place = self.encode_place(place, None)?;
+                    let place_lifetimes = encoded_place.get_lifetimes();
+                    for lifetime in place_lifetimes {
+                        lifetimes_to_exhale_inhale.push(lifetime.name.clone());
+                    }
                 }
             }
         }
