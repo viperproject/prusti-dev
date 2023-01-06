@@ -118,7 +118,7 @@ impl Predicate {
             Predicate::Struct(p) => &p.name,
             Predicate::Enum(p) => &p.name,
             Predicate::Bodyless(ref name, _) => name,
-            Predicate::ResourceAccess(typ) => &typ,
+            Predicate::ResourceAccess(typ) => typ,
         }
     }
     pub fn body(&self) -> Option<Expr> {
