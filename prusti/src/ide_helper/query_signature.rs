@@ -27,7 +27,13 @@ pub fn collect_queried_signatures(env: &Environment<'_>, fncalls: &Vec<ProcDef>)
     // check what kind of definition we are looking at:
 
     let def_kind = tcx.opt_def_kind(defid)?;
+    println!("DefKind: {:?}", def_kind);
     match def_kind {
+        DefKind::Fn => {
+            // TODO
+            println!("Still a todo :)");
+            None
+        },
         DefKind::AssocFn => {
             let opt_item_name = tcx.opt_item_name(defid)?;
             let item_name = opt_item_name.as_str();
@@ -46,38 +52,29 @@ pub fn collect_queried_signatures(env: &Environment<'_>, fncalls: &Vec<ProcDef>)
                         ImplSubject::Inherent(ty) => ty,
                     };
                     println!("Self Type: {:?}", self_ty);
-                    // apprently this is dangerous, is it in our case?
-                    let signature = tcx.fn_sig(defid).skip_binder();
-                    println!("Signature: {:?}", signature);
 
-                    let inputs = signature.inputs().iter();
-                    let output = signature.output();
-
-                    // Arg Names? We could choose them ourselves if we wanted to..
-                    let arg_names = tcx.fn_arg_names(defid);
-                    let nr_args = arg_names.len();
-
-                    // let generics = tcx.generics_of(defid);
-
+                    let signature_str = fn_signature_str(defid, &tcx);
                     let (impl_generics_str, _opt_where) = generic_params_str(impl_of_method, &tcx, false);
                     let (fn_generics_str, _opt_where) = generic_params_str(defid, &tcx, false);
 
                     // Generate result:
                     let mut res = "#[extern_spec]\nimpl".to_string();
                     res.push_str(&format!("{} ", impl_generics_str));
+                    // if impl block is implementing a trait:
                     if let Some(traitname) = trait_name {
                         res.push_str(&traitname);
                         res.push_str(" for ");
                     }
-                    res.push_str(&format!("{} {{\n\tpub fn {}{}(", self_ty, item_name, fn_generics_str));
-                    for (id, (name, ty)) in arg_names.iter().zip(inputs).enumerate() {
-                        let argument = format!("{}: {}", name.as_str(), ty);
-                        res.push_str(&argument);
-                        if id < nr_args - 1 {
-                            res.push_str(", ");
-                        }
-                    }
-                    res.push_str(&format!(") -> {};\n}}", output));
+                    //pub fn name<generics>(arguments)
+                    res.push_str(
+                        &format!(
+                            "{} {{\n\tpub fn {}{}{};\n}}", 
+                            self_ty, 
+                            item_name, 
+                            fn_generics_str,
+                            signature_str,
+                        )
+                    );
 
                     println!("Result: {}", res);
 
@@ -85,7 +82,28 @@ pub fn collect_queried_signatures(env: &Environment<'_>, fncalls: &Vec<ProcDef>)
                 }
                 None => {
                     // we are apparently dealing with a trait, or even something else
-                    None
+                    // This part is not working at all so far..
+                    let parent = tcx.opt_parent(defid)?;
+
+                    if tcx.is_trait(parent) {
+                        println!("Yes indeed this is a trait");
+                        let fn_name = tcx.def_path_str(defid);
+                        let traitname = tcx.def_path_str(parent);
+                        let trait_params = trait_params(parent, &tcx);
+                        let (fn_generics, _where) = generic_params_str(defid, &tcx, false);
+                        let fn_sig = fn_signature_str(defid, &tcx);
+                        Some(format!(
+                            "#[extern_spec]\ntrait {}{} {{\n\tfn {}{}{};\n}}",
+                            traitname,
+                            trait_params,
+                            fn_name,
+                            fn_generics,
+                            fn_sig,
+                        ))
+                    } else {
+                        println!("Nope it's not actually a trait, check this case");
+                        None
+                    }
                 }
             }
         }
@@ -95,6 +113,39 @@ pub fn collect_queried_signatures(env: &Environment<'_>, fncalls: &Vec<ProcDef>)
             None
         }
     }
+}
+
+
+// by signature we mean the arguments + return type
+pub fn fn_signature_str(
+    defid: DefId, 
+    tcx: &TyCtxt<'_>,
+) -> String {
+    let signature = tcx.fn_sig(defid).skip_binder();
+    let inputs = signature.inputs().iter();
+    let arg_names = tcx.fn_arg_names(defid);
+
+    let output = signature.output();
+
+    let args = arg_names.iter().zip(inputs)
+        .map(|(name, ty)| format!("{}: {}", name.as_str(), ty))
+        .collect::<Vec<String>>()
+        .join(", ");
+    format!("({}) -> {}", args, output)
+}
+
+pub fn trait_params(defid: DefId, tcx: &TyCtxt<'_>) -> String {
+    let generic_params = tcx.generics_of(defid);
+    let result = generic_params.params.iter()
+        .filter(|p| p.has_default()) // types like Self will show up here,but can't be in code 
+        .map(|p| format!("{}={:?}", p.name, p.default_value(*tcx).unwrap()))
+        .collect::<Vec<String>>().join(", ");
+    if generic_params.params.iter().len() > 0 {
+        format!("<{}>", result)
+    } else {
+        "".to_string()
+    }
+
 }
 
 enum GenArguments<'a> {
@@ -114,7 +165,6 @@ impl<'a> fmt::Display for GenArguments<'a> {
         }
     }
 }
-
 pub fn generic_params_str(
     defid: DefId, // defid of a function or impl block
     tcx: &TyCtxt<'_>,
@@ -210,7 +260,7 @@ pub fn generic_params_str(
                             format!("{trait_str}<{param_str}>")
                         }
                     }).collect::<Vec<String>>().join(" + ");
-                    format!("{param}:{trait_list_str}")
+                    format!("{param}: {trait_list_str}")
                 } else {
                     param.to_string()
                 }
