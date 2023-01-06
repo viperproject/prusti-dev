@@ -1508,7 +1508,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let mut subst_regions = call_substs.regions().peekable();
         if !has_erased_regions && subst_regions.peek().is_some() {
             // use generic argument lifetimes
-            lifetimes_to_exhale_inhale.extend(subst_regions.map(|r| r.to_string()));
+            lifetimes_to_exhale_inhale.extend(subst_regions.map(|r| r.to_text()));
         } else {
             // if we find any erased regions, cancel everything and fall back on resolving lifetimes from args directly
             // this happens e.g. when working with the result of trait method resolution, which erases lifetimes
