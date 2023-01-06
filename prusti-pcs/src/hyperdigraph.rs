@@ -235,9 +235,13 @@ impl<N: Node> Hyperdigraph<N> {
         assert!(self.nodes.insert(n));
     }
 
-    /// Remove a node that does exist exist
+    /// Remove a node
     pub fn remove_node(&mut self, n: &N) {
         assert!(self.nodes.remove(n));
+    }
+
+    pub fn exclude_node(&mut self, n: &N) {
+        self.nodes.remove(n);
     }
 
     // In the literature, a directed hyperpath between nodes a and b is a sequence of
@@ -346,9 +350,8 @@ impl<N: Node> Hyperdigraph<N> {
         to: N,
         edge_labels: &mut Bijection<DHEdge<N>, BTreeSet<X>>,
     ) {
-        // Update the nodes
-        self.remove_node(&from);
-        self.insert_node(to.clone());
+        self.exclude_node(&from);
+        self.include_node(&to);
 
         // Update the edges
         // fixme: slow hack

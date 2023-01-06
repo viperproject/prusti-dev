@@ -8,7 +8,10 @@ use crate::{
     pcs::{debug_print_scc, BorrowMove, LoanSCC},
 };
 use analysis::mir_utils::{self, PlaceImpl};
-use prusti_interface::environment::borrowck::facts::Loan;
+use prusti_interface::{
+    environment::borrowck::facts::{Loan, PointIndex},
+    utils::is_prefix,
+};
 use rustc_middle::{mir, ty::TyCtxt};
 use std::{cmp::Ordering, collections::BTreeSet, fmt::Debug, iter::zip};
 
@@ -17,17 +20,20 @@ use std::{cmp::Ordering, collections::BTreeSet, fmt::Debug, iter::zip};
 //  2. tagging
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
-pub struct CPlace<'tcx>(pub mir::Place<'tcx>);
+pub struct CPlace<'tcx> {
+    pub place: mir::Place<'tcx>,
+    pub tag: Option<PointIndex>,
+}
 
 impl<'tcx> CPlace<'tcx> {
     pub fn cmp_local(&self, x: &CPlace<'tcx>) -> bool {
-        self.0.local == x.0.local
+        self.place.local == x.place.local
     }
 
     /// Measure the lexicographic similarity between two place's projections
     pub fn cmp_lex(&self, x: &CPlace<'tcx>) -> u32 {
         let mut r: u32 = 0;
-        for (p0, p1) in zip(self.0.iter_projections(), x.0.iter_projections()) {
+        for (p0, p1) in zip(self.place.iter_projections(), x.place.iter_projections()) {
             if p0 != p1 {
                 break;
             }
@@ -37,10 +43,11 @@ impl<'tcx> CPlace<'tcx> {
     }
 
     pub fn unpack(&self, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> BTreeSet<Self> {
-        mir_utils::expand_struct_place(self.0, mir, tcx, None)
+        mir_utils::expand_struct_place(self.place, mir, tcx, None)
             .iter()
             .map(|p| Self {
-                0: p.to_mir_place(),
+                place: p.to_mir_place(),
+                tag: self.tag,
             })
             .collect()
     }
@@ -54,8 +61,8 @@ impl<'tcx> PartialOrd for CPlace<'tcx> {
 
 impl<'tcx> Ord for CPlace<'tcx> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        match self.0.local.cmp(&other.0.local) {
-            Ordering::Equal => self.0.projection.cmp(other.0.projection),
+        match self.place.local.cmp(&other.place.local) {
+            Ordering::Equal => self.place.projection.cmp(other.place.projection),
             r @ (Ordering::Less | Ordering::Greater) => r,
         }
     }
@@ -278,7 +285,7 @@ impl<'tcx> CouplingDigraph<'tcx> {
         self.graph.pprint_with_annotations(&self.annotations);
     }
 
-    pub fn apply_borrow_move(&mut self, bm: BorrowMove<'tcx>) {
+    pub fn apply_borrow_move(&mut self, bm: BorrowMove<'tcx>, pt: PointIndex) {
         // Change all LHS which have "from" permission to the "to" permission.
         // The borrow checker enforces that
         //      > let mut s0 = S {x: 0, y: 0};
@@ -286,9 +293,88 @@ impl<'tcx> CouplingDigraph<'tcx> {
         //      > let s1 = s0;
         //      > let bx1 = bx;
         // does not compile.
-        self.graph
-            .replace_nodes(CPlace(bm.from), CPlace(bm.to), &mut self.annotations);
+
+        // assert!(self.graph.nodes().contains(&CPlace {
+        //     place: bm.to,
+        //     tag: None
+        // }));
+
+        // MARKUS: I need to reorganize this
+
+        println!("BEFORE KILLS: {:?}", self.graph.nodes());
+
+        assert!(!self.graph.nodes().contains(&CPlace {
+            place: bm.to,
+            tag: Some(pt.clone())
+        }));
+
+        if self.graph.nodes().contains(&CPlace {
+            place: bm.to,
+            tag: None,
+        }) {
+            // 1. kill the "to" place
+            self.graph.replace_nodes(
+                CPlace {
+                    place: bm.to,
+                    tag: None,
+                },
+                CPlace {
+                    place: bm.to,
+                    tag: Some(pt),
+                },
+                &mut self.annotations,
+            );
+        }
+        println!("AFTER KILLS: {:?}", self.graph.nodes());
+
+        // 2. Now without conflicts, move the place
+        assert!(self.graph.nodes().contains(&CPlace {
+            place: bm.from,
+            tag: None
+        }));
+        assert!(!self.graph.nodes().contains(&CPlace {
+            place: bm.to,
+            tag: None
+        }));
+
+        self.graph.replace_nodes(
+            CPlace {
+                place: bm.from,
+                tag: None,
+            },
+            CPlace {
+                place: bm.to,
+                tag: None,
+            },
+            &mut self.annotations,
+        );
+
+        println!("AFTER MOVES: {:?}", self.graph.nodes());
     }
+
+    // pub fn apply_kill(&mut self, p: mir::Place<'tcx>, l: PointIndex) {
+    //     // Replace all nodes which are not tagged and whose place is a suffix of p, to be tagged at l.
+    //     let to_kill = self
+    //         .graph
+    //         .nodes()
+    //         .iter()
+    //         .filter(|k| is_prefix(k.place, p))
+    //         .filter(|k| k.tag.is_none())
+    //         .cloned()
+    //         .collect::<Vec<_>>();
+    //     for k in to_kill.iter() {
+    //         self.graph.replace_nodes(
+    //             k.clone(),
+    //             CPlace {
+    //                 place: k.place,
+    //                 tag: Some(l),
+    //             },
+    //             &mut self.annotations,
+    //             false,
+    //         )
+    //     }
+    //     todo!();
+    // }
 }
 
 fn print_btree_inline<T>(set: &BTreeSet<T>)
