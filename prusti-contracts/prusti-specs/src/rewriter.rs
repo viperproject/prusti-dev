@@ -186,7 +186,7 @@ impl AstRewriter {
             #[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
             #[prusti::spec_only]
             #[prusti::spec_id = #spec_id_str]
-            fn #item_name() {} // we only care about this for evaluating
+            fn #item_name() {} // we only need this for attaching constraints to (to evaluate when the function is pure)
         };
 
         spec_item.sig.generics = item.sig().generics.clone();
