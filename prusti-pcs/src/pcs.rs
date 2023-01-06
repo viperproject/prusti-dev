@@ -9,7 +9,7 @@ use prusti_rustc_interface::middle::mir::{
     Rvalue::{Ref, Use},
     StatementKind::Assign,
 };
-use rustc_middle::mir::Statement;
+use rustc_middle::mir::{Place, Statement};
 use rustc_mir_dataflow::{move_paths::MoveData, MoveDataParamEnv};
 use std::{collections::BTreeSet, default::Default, fmt::Debug};
 
@@ -587,7 +587,7 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
                 // the SCC model for figuring out which loans are coupled.
                 // MARKUS: I'm investigating this, and have asked about it on the Rust Zulip.
 
-                working_cdg.apply_borrow_move(bm.clone());
+                working_cdg.apply_borrow_move(bm.clone(), pt.clone());
             };
 
             println!(">> finished cdg computation");
@@ -682,8 +682,20 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
         if let Some(loan) = self.loan_issued_at_at(loc) {
             match self.expect_mir_statement(loc).kind {
                 Assign(box (to, Ref(_, _, from))) | Assign(box (to, Use(Move(from)))) => {
-                    let lhs: BTreeSet<_> = vec![CPlace { 0: to }].iter().cloned().collect();
-                    let rhs: BTreeSet<_> = vec![CPlace { 0: from }].iter().cloned().collect();
+                    let lhs: BTreeSet<_> = vec![CPlace {
+                        place: to,
+                        tag: None,
+                    }]
+                    .iter()
+                    .cloned()
+                    .collect();
+                    let rhs: BTreeSet<_> = vec![CPlace {
+                        place: from,
+                        tag: None,
+                    }]
+                    .iter()
+                    .cloned()
+                    .collect();
                     cdg.new_loan(self.mir, self.env.tcx().clone(), lhs, rhs, loan);
                 }
                 _ => {
@@ -863,6 +875,16 @@ impl<'facts, 'env, 'mir: 'env, 'tcx: 'env> BorrowingContext<'facts, 'mir, 'env, 
                 }
                 _ => None,
             })
+    }
+
+    pub fn loan_kills_at_location(&self, pt: &PointIndex) -> Vec<Place<'tcx>> {
+        let killed_loans = self
+            .borrowck_in_facts
+            .loan_killed_at
+            .iter()
+            .filter(|(_, l)| l == pt)
+            .map(|(loan, _)| loan);
+        todo!()
     }
 }
 
