@@ -177,9 +177,9 @@ struct UsedPredicateCollector {
 impl UsedPredicateCollector {
     fn new() -> Self {
         UsedPredicateCollector {
-            used_predicates: FxHashSet::new(),
-            folded_predicates: FxHashSet::new(),
-            used_resource_predicates: FxHashSet::new(),
+            used_predicates: FxHashSet::default(),
+            folded_predicates: FxHashSet::default(),
+            used_resource_predicates: FxHashSet::default(),
         }
     }
 }
