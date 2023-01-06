@@ -6,7 +6,7 @@ fn test<T>(_t: T) -> bool {
     true
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
 struct Copyrighted; // not Copy
 
 fn main() {
