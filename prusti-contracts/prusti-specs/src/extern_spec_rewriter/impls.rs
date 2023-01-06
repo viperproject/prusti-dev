@@ -329,10 +329,10 @@ mod tests {
         }
 
         #[test]
-        fn generics_supported() {
+        fn generic_trait() {
             let mut inp_impl: syn::ItemImpl = parse_quote!(
-                impl MyTrait<I> for MyStruct {
-                    fn foo(&mut self, arg1: I);
+                impl MyTrait<Foo> for MyStruct {
+                    fn foo(&mut self, arg1: Foo);
                 }
             );
 
@@ -341,6 +341,31 @@ mod tests {
             let newtype_ident = &rewritten.generated_struct.ident;
             let expected_impl: syn::ItemImpl = parse_quote! {
                 impl #newtype_ident <> {
+                    #[prusti::extern_spec = "trait_impl"]
+                    #[allow(unused, dead_code)]
+                    #[prusti::trusted]
+                    fn foo(_self: &mut MyStruct, arg1: Foo) {
+                        <MyStruct as MyTrait<Foo>> :: foo :: <>(_self, arg1)
+                    }
+                }
+            };
+
+            assert_eq_tokenizable(rewritten.generated_impl.clone(), expected_impl);
+        }
+
+        #[test]
+        fn generic_blanket_impl() {
+            let mut inp_impl: syn::ItemImpl = parse_quote!(
+                impl<I> MyTrait<I> for MyStruct {
+                    fn foo(&mut self, arg1: I);
+                }
+            );
+
+            let rewritten = rewrite_extern_spec_internal(&mut inp_impl).unwrap();
+
+            let newtype_ident = &rewritten.generated_struct.ident;
+            let expected_impl: syn::ItemImpl = parse_quote! {
+                impl<I> #newtype_ident <I> {
                     #[prusti::extern_spec = "trait_impl"]
                     #[allow(unused, dead_code)]
                     #[prusti::trusted]
