@@ -33,5 +33,3 @@ pub trait PartialEq<Rhs: ?Sized = Self> {
 ```
 
 Thus, any client implementing `Eq` on a custom type can take advantage of the additional semantics of the total equivalence.
-
-> Refinements like these are not scoped. Therefore, considering the previous example, implementing `Eq` on a type implies that the total equivalence contract is always considered on the type, irrespective of whether `Eq` is in scope or not.
