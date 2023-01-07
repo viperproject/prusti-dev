@@ -878,20 +878,25 @@ impl PrustiBinaryOp {
         }
     }
 
-    fn translate(&self, span: Span, lhs: TokenStream, rhs: TokenStream) -> TokenStream {
+    fn translate(&self, span: Span, raw_lhs: TokenStream, raw_rhs: TokenStream) -> TokenStream {
+        let lhs = quote_spanned! { raw_lhs.span() => (#raw_lhs) };
+        let rhs = quote_spanned! { raw_rhs.span() => (#raw_rhs) };
         match self {
-            Self::Rust(op) => op.translate(span, lhs, rhs),
+            Self::Rust(op) => op.translate(span, raw_lhs, raw_rhs),
             // implication is desugared into this form to avoid evaluation
             // order issues: `f(a, b)` makes Rust evaluate both `a` and `b`
             // before the `f` call
             Self::Implies => {
                 // preserve span of LHS
-                let not_lhs = quote_spanned! { lhs.span() => !(#lhs) };
-                quote_spanned! { span => (#not_lhs || (#rhs)) }
+                let not_lhs = quote_spanned! { lhs.span() => !#lhs };
+                quote_spanned! { span => #not_lhs || #rhs }
             }
-            Self::Or => quote_spanned! { span => (#lhs) || (#rhs) },
-            Self::And => quote_spanned! { span => (#lhs) && (#rhs) },
-            Self::SnapEq => quote_spanned! { span => snapshot_equality(&(#lhs), &(#rhs)) },
+            Self::Or => quote_spanned! { span => #lhs || #rhs },
+            Self::And => quote_spanned! { span => #lhs && #rhs },
+            Self::SnapEq => {
+                let joined_span = join_spans(lhs.span(), rhs.span());
+                quote_spanned! { joined_span => snapshot_equality(&#lhs, &#rhs) }
+            }
         }
     }
 }
