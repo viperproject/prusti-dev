@@ -1,5 +1,3 @@
-// ignore-test #[concrete] is troublesome
-
 use prusti_contracts::*;
 
 /// External traits
@@ -9,9 +7,12 @@ trait MyTrait<T> {
 /// External traits
 
 #[extern_spec]
-trait MyTrait<#[concrete] i32 > {
-    #[ensures(result == 42)]
-    fn get_value(&self) -> i32;
+trait MyTrait<T> {
+    // no equality constraints yet
+    #[refine_spec(where T: SpecifiedGeneric, [
+        ensures(result === T::my_trait__get_value()),
+    ])]
+    fn get_value(&self) -> T;
 }
 
 struct Impl;
@@ -22,7 +23,20 @@ impl MyTrait<i32> for Impl {
 }
 
 fn main() {
-    let s = Impl{};
+    let s = Impl {};
     assert!(MyTrait::<i32>::get_value(&s) == 42);
     assert!(s.get_value() == 42);
+}
+
+// equality constraint workaround (in the general case, this would take an `&impl MyTrait<Self>` as arg)
+trait SpecifiedGeneric {
+    #[pure]
+    fn my_trait__get_value() -> Self;
+}
+
+impl SpecifiedGeneric for i32 {
+    #[pure]
+    fn my_trait__get_value() -> Self {
+        42
+    }
 }

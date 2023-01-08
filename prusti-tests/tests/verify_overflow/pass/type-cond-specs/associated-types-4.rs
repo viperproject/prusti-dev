@@ -22,7 +22,7 @@ impl<T> SomeTrait<T> for Foo {
 }
 
 #[extern_spec]
-trait SomeTrait<#[generic] T> {
+trait SomeTrait<T> {
     #[refine_spec(where Self: A<AssocType = <Self as SomeTrait<T>>::AssocType>, [
         ensures(result > 0)
     ])]

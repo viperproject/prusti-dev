@@ -15,7 +15,9 @@ impl A<i8, i16> for FooMatch {
 }
 impl SomeTrait<i8, i16> for FooMatch {
     type AssocType = i32;
-    fn foo(&self) -> i32 { 42 }
+    fn foo(&self) -> i32 {
+        42
+    }
 }
 
 struct FooNoMatch1;
@@ -24,7 +26,9 @@ impl A<i8, i16> for FooNoMatch1 {
 }
 impl SomeTrait<i8, i8> for FooNoMatch1 {
     type AssocType = i32;
-    fn foo(&self) -> i32 { 42 }
+    fn foo(&self) -> i32 {
+        42
+    }
 }
 
 struct FooNoMatch2;
@@ -33,11 +37,13 @@ impl A<i8, i16> for FooNoMatch2 {
 }
 impl SomeTrait<i8, i16> for FooNoMatch2 {
     type AssocType = i16;
-    fn foo(&self) -> i32 { 42 }
+    fn foo(&self) -> i32 {
+        42
+    }
 }
 
 #[extern_spec]
-trait SomeTrait<#[generic] X, #[generic] Y> {
+trait SomeTrait<X, Y> {
     #[refine_spec(where Self: A<X, Y, AssocType = <Self as SomeTrait<X, Y>>::AssocType>, [
         ensures(result > 0)
     ])]
@@ -59,5 +65,4 @@ fn verify_no_match_2() {
     assert!(f.foo() > 0); //~ ERROR: [Prusti: verification error] the asserted expression might not hold
 }
 
-fn main() {
-}
+fn main() {}

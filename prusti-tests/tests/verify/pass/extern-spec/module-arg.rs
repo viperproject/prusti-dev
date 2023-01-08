@@ -13,7 +13,7 @@ fn main() {
 
     assert!(free_1() == 1);
     assert!(free_2() == 2);
-    
+
     let s = Struct;
     assert!(s.method() == 42);
 }
@@ -25,7 +25,10 @@ trait Example {
 }
 
 #[extern_spec(module::inner)]
-trait Advanced<#[generic] T> where T: Copy {
+trait Advanced<T>
+where
+    T: Copy,
+{
     #[pure]
     fn example() -> T;
 }
@@ -53,7 +56,7 @@ mod module {
         pub trait Example {
             fn example() -> i32;
         }
-        
+
         pub trait Advanced<T: Copy> {
             fn example() -> T;
         }
@@ -65,9 +68,9 @@ mod module {
         pub fn free_2() -> i32 {
             2
         }
-        
+
         pub struct Struct;
-        
+
         impl Struct {
             pub fn method(&self) -> i32 {
                 42
