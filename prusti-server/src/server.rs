@@ -4,8 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{process_verification_request, VerificationRequest};
-use log::info;
+use crate::{process_verification_request, VerificationRequest, ServerMessage};
+use log::{info, error};
 use prusti_common::{config, Stopwatch};
 use std::{
     net::{Ipv4Addr, SocketAddr},
@@ -14,7 +14,7 @@ use std::{
 };
 use tokio::runtime::Builder;
 use viper::{PersistentCache, Viper};
-use warp::Filter;
+use futures_util::{FutureExt, StreamExt, pin_mut};
 
 #[derive(Debug)]
 struct BincodeReject(bincode::Error);
@@ -61,31 +61,56 @@ where
     let cache = Arc::new(Mutex::new(cache_data));
     let build_verification_request_handler = |viper_arc: Arc<Viper>, cache| {
         move |request: VerificationRequest| {
-            process_verification_request(&viper_arc, request, &cache)
+            process_verification_request(&viper_arc, request, &cache);
         }
     };
 
     let json_verify = warp::path!("json" / "verify")
-        .and(warp::body::json())
-        .map(build_verification_request_handler(
-            viper.clone(),
-            cache.clone(),
-        ))
-        .map(|response| warp::reply::json(&response));
-
-    let bincode_verify = warp::path!("bincode" / "verify")
-        .and(warp::body::bytes())
-        .and_then(|buf: warp::hyper::body::Bytes| async move {
-            bincode::deserialize(&buf).map_err(|err| {
-                info!("request bincode body error: {}", err);
-                warp::reject::custom(BincodeReject(err))
+        .and(warp::filters::ws::ws())
+        .map(|ws: warp::filters::ws::Ws| {
+            ws.on_upgrade(|websocket| {
+                let (tx, rx) = websocket.split();
+                let handle_req = build_verification_request_handler(viper.clone(), cache.clone());
+                let handle_msg = |msg: warp::filters::ws::Message| {
+                    match msg.to_str().and_then(|s| serde_json::from_str(s)) {
+                        Ok(req) => handle_req(req),
+                        Err(err) => error!("ERROR in json request: {}", err),
+                    }
+                }
+                let stream = handle_msg(rx.next().await);
+                pin_mut!(stream);
+                while let Some(msg) = stream.next().await {
+                    tx.send(warp::filters::ws::Message::text(serde_json::to_string(&msg))).await;
+                }
+                tx.close().await;
             })
-        })
-        .map(build_verification_request_handler(viper.clone(), cache.clone()))
-        .map(|result| {
+        });
+                          )
+
+    let bincode_send_closure = |result| {
             warp::http::Response::new(
                 bincode::serialize(&result).expect("could not encode verification result"),
-            )
+            )};
+
+    let bincode_verify = warp::path!("bincode" / "verify")
+        .and(warp::filters::ws::ws())
+        .map(|ws: warp::filters::ws::Ws| {
+            ws.on_upgrade(|websocket| {
+                let (tx, rx) = websocket.split();
+                let handle_req = build_verification_request_handler(viper.clone(), cache.clone());
+                let handle_msg = |msg: warp::filters::ws::Message| {
+                    match msg.as_bytes().and_then(|b| bincode::deserialize(&b)) {
+                        Ok(req) => handle_req(req),
+                        Err(err) => error!("ERROR in bincode request: {}", err),
+                    }
+                }
+                let stream = handle_msg(rx.next().await);
+                pin_mut!(stream);
+                while let Some(msg) = stream.next().await {
+                    tx.send(warp::filters::ws::Message::bytes(bincode::serialize(&msg))).await;
+                }
+                tx.close().await;
+            })
         });
 
     let save_cache = warp::post()

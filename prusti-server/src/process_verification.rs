@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{VerificationRequest, ViperBackendConfig, jni_utils::JniUtils};
+use crate::{VerificationRequest, ViperBackendConfig, jni_utils::JniUtils, ServerMessage};
 use log::info;
 use prusti_common::{
     config,
@@ -19,205 +19,185 @@ use viper::{
 use viper_sys::wrappers::viper::*;
 use std::time;
 use std::sync::mpsc;
+use async_stream::stream;
 
 pub fn process_verification_request<'v, 't: 'v>(
     viper_arc: &Arc<Viper>,
     mut request: VerificationRequest,
     cache: impl Cache,
-) -> viper::VerificationResult {
-    let stopwatch = Stopwatch::start("prusti-server", "attach thread to JVM");
-    let verification_context = viper_arc.attach_current_thread();
-    stopwatch.finish();
-    let ast_utils = verification_context.new_ast_utils();
+) -> impl Stream<Item = ServerMessage> {
+    stream! {
+        let stopwatch = Stopwatch::start("prusti-server", "attach thread to JVM");
+        let verification_context = viper_arc.attach_current_thread();
+        stopwatch.finish();
+        let ast_utils = verification_context.new_ast_utils();
 
-    // Only for testing: Check that the normalization is reversible.
-    if config::print_hash() {
-        debug_assert!({
-            let mut program = request.program.clone();
-            let normalization_info = NormalizationInfo::normalize_program(&mut program);
-            normalization_info.denormalize_program(&mut program);
-            program == request.program
-        });
-    }
-
-    // Normalize the request before reaching the cache.
-    let normalization_info = NormalizationInfo::normalize_program(&mut request.program);
-
-    let hash = request.get_hash();
-    info!(
-        "Verification request hash: {} - for program {}",
-        hash,
-        request.program.get_name()
-    );
-
-    let build_or_dump_viper_program = || {
-        let mut stopwatch = Stopwatch::start("prusti-server", "construction of JVM objects");
-        let ast_factory = verification_context.new_ast_factory();
-        let viper_program = request
-            .program
-            .to_viper(prusti_common::vir::LoweringContext::default(), &ast_factory);
-
-        if config::dump_viper_program() {
-            stopwatch.start_next("dumping viper program");
-            dump_viper_program(
-                &ast_utils,
-                viper_program,
-                &request.program.get_name_with_check_mode(),
-            );
-        }
-
-        viper_program
-    };
-
-    // Only for testing: Print the hash and skip verification.
-    if config::print_hash() {
-        println!(
-            "Received verification request for: {}",
-            request.program.get_name()
-        );
-        println!("Hash of the request is: {}", hash);
-        // Some tests need the dump to report a diff of the Viper programs.
-        if config::dump_viper_program() {
-            ast_utils.with_local_frame(16, || {
-                let _ = build_or_dump_viper_program();
+        // Only for testing: Check that the normalization is reversible.
+        if config::print_hash() {
+            debug_assert!({
+                let mut program = request.program.clone();
+                let normalization_info = NormalizationInfo::normalize_program(&mut program);
+                normalization_info.denormalize_program(&mut program);
+                program == request.program
             });
         }
-        return viper::VerificationResult::Success;
-    }
 
-    // Early return in case of cache hit
-    if config::enable_cache() {
-        if let Some(mut result) = cache.get(hash) {
-            info!(
-                "Using cached result {:?} for program {}",
-                &result,
+        // Normalize the request before reaching the cache.
+        let normalization_info = NormalizationInfo::normalize_program(&mut request.program);
+
+        let hash = request.get_hash();
+        info!(
+            "Verification request hash: {} - for program {}",
+            hash,
+            request.program.get_name()
+        );
+
+        let build_or_dump_viper_program = || {
+            let mut stopwatch = Stopwatch::start("prusti-server", "construction of JVM objects");
+            let ast_factory = verification_context.new_ast_factory();
+            let viper_program = request
+                .program
+                .to_viper(prusti_common::vir::LoweringContext::default(), &ast_factory);
+
+            if config::dump_viper_program() {
+                stopwatch.start_next("dumping viper program");
+                dump_viper_program(
+                    &ast_utils,
+                    viper_program,
+                    &request.program.get_name_with_check_mode(),
+                );
+            }
+
+            viper_program
+        };
+
+        // Only for testing: Print the hash and skip verification.
+        if config::print_hash() {
+            println!(
+                "Received verification request for: {}",
                 request.program.get_name()
             );
+            println!("Hash of the request is: {}", hash);
+            // Some tests need the dump to report a diff of the Viper programs.
             if config::dump_viper_program() {
                 ast_utils.with_local_frame(16, || {
                     let _ = build_or_dump_viper_program();
                 });
             }
-            normalization_info.denormalize_result(&mut result);
-            return result;
+            yield ServerMessage::Termination(viper::VerificationResult::Success);
+            return;
         }
-    };
 
-    ast_utils.with_local_frame(16, || {
-        let viper_program = build_or_dump_viper_program();
-        let program_name = request.program.get_name();
+        // Early return in case of cache hit
+        if config::enable_cache() {
+            if let Some(mut result) = cache.get(hash) {
+                info!(
+                    "Using cached result {:?} for program {}",
+                    &result,
+                    request.program.get_name()
+                );
+                if config::dump_viper_program() {
+                    ast_utils.with_local_frame(16, || {
+                        let _ = build_or_dump_viper_program();
+                    });
+                }
+                normalization_info.denormalize_result(&mut result);
+                yield ServerMessage::Termination(result);
+                return;
+            }
+        };
 
-        // Create a new verifier each time.
-        // Workaround for https://github.com/viperproject/prusti-dev/issues/744
-        let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
-        let mut verifier =
-            new_viper_verifier(program_name, &verification_context, request.backend_config);
+        ast_utils.with_local_frame(16, || {
+            let viper_program = build_or_dump_viper_program();
+            let program_name = request.program.get_name();
 
-        let mut result = VerificationResult::Success;
-        let mut q_insts = HashMap::<(u64, String), u64>::new();
-        let normalization_info_clone = normalization_info.clone();
+            // Create a new verifier each time.
+            // Workaround for https://github.com/viperproject/prusti-dev/issues/744
+            let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
+            let mut verifier =
+                new_viper_verifier(program_name, &verification_context, request.backend_config);
 
-        // start thread for polling messages and print on receive
-        // TODO: Detach warning
-        thread::scope(|s| {
-            // get the reporter
-            let env = &verification_context.env();
-            let jni = JniUtils::new(env);
-            let verifier_wrapper = silver::verifier::Verifier::with(env);
-            let reporter = jni.unwrap_result(verifier_wrapper.call_reporter(verifier.verifier_instance().clone()));
-            let rep_glob_ref = env.new_global_ref(reporter).unwrap();
+            let mut result = VerificationResult::Success;
+            let normalization_info_clone = normalization_info.clone();
 
-            let (main_tx, thread_rx) = mpsc::channel();
-            let (thread_tx, main_rx) = mpsc::channel();
-            let polling_thread = s.spawn(move || {
-                let verification_context = viper_arc.attach_current_thread();
-                let env = verification_context.env();
+            // start thread for polling messages and print on receive
+            // TODO: Detach warning
+            thread::scope(|s| {
+                // get the reporter
+                let env = &verification_context.env();
                 let jni = JniUtils::new(env);
-                let reporter_instance = rep_glob_ref.as_obj();
-                let reporter_wrapper = silver::reporter::PollingReporter::with(env);
-                let mut done = false;
-                let mut q_insts = HashMap::<(u64, String), u64>::new();
-                while !done {
-                    while reporter_wrapper.call_hasNewMessage(reporter_instance).unwrap() {
-                        let msg = reporter_wrapper.call_getNewMessage(reporter_instance).unwrap();
-                        match jni.class_name(msg).as_str() {
-                            "viper.silver.reporter.QuantifierInstantiationsMessage" => {
-                                let msg_wrapper = silver::reporter::QuantifierInstantiationsMessage::with(env);
-                                let q_name = jni.get_string(jni.unwrap_result(msg_wrapper.call_quantifier(msg)));
-                                let q_inst = jni.unwrap_result(msg_wrapper.call_instantiations(msg));
-                                // TODO: find out which more quantifiers are derived from the user
-                                // quantifiers
-                                info!("QuantifierInstantiationsMessage: {} {}", q_name, q_inst);
-                                // also matches the "-aux" quantifiers generated
-                                // TODO: some positions have just the id 0 and cannot be denormalized...
-                                if q_name.starts_with("quant_with_posID") {
-                                    let no_pref = q_name.strip_prefix("quant_with_posID").unwrap();
-                                    let stripped = no_pref.strip_suffix("-aux").or(Some(no_pref)).unwrap();
-                                    let parsed = stripped.parse::<u64>();
-                                    match parsed {
-                                        Ok(pos_id) => {
-                                            let norm_pos_id = normalization_info_clone.denormalize_position_id(pos_id);
-                                            // insert also updates the entry
-                                            q_insts.insert((norm_pos_id, q_name), q_inst.try_into().unwrap());
-                                            ()
+                let verifier_wrapper = silver::verifier::Verifier::with(env);
+                let reporter = jni.unwrap_result(verifier_wrapper.call_reporter(verifier.verifier_instance().clone()));
+                let rep_glob_ref = env.new_global_ref(reporter).unwrap();
+
+                let (main_tx, thread_rx) = mpsc::channel();
+                let polling_thread = s.spawn(move || {
+                    let verification_context = viper_arc.attach_current_thread();
+                    let env = verification_context.env();
+                    let jni = JniUtils::new(env);
+                    let reporter_instance = rep_glob_ref.as_obj();
+                    let reporter_wrapper = silver::reporter::PollingReporter::with(env);
+                    let mut done = false;
+                    while !done {
+                        while reporter_wrapper.call_hasNewMessage(reporter_instance).unwrap() {
+                            let msg = reporter_wrapper.call_getNewMessage(reporter_instance).unwrap();
+                            match jni.class_name(msg).as_str() {
+                                "viper.silver.reporter.QuantifierInstantiationsMessage" => {
+                                    let msg_wrapper = silver::reporter::QuantifierInstantiationsMessage::with(env);
+                                    let q_name = jni.get_string(jni.unwrap_result(msg_wrapper.call_quantifier(msg)));
+                                    let q_inst = jni.unwrap_result(msg_wrapper.call_instantiations(msg));
+                                    // TODO: find out which more quantifiers are derived from the user
+                                    // quantifiers
+                                    info!("QuantifierInstantiationsMessage: {} {}", q_name, q_inst);
+                                    // also matches the "-aux" quantifiers generated
+                                    // TODO: some positions have just the id 0 and cannot be denormalized...
+                                    if q_name.starts_with("quant_with_posID") {
+                                        let no_pref = q_name.strip_prefix("quant_with_posID").unwrap();
+                                        let stripped = no_pref.strip_suffix("-aux").or(Some(no_pref)).unwrap();
+                                        let parsed = stripped.parse::<u64>();
+                                        match parsed {
+                                            Ok(pos_id) => {
+                                                let norm_pos_id = normalization_info_clone.denormalize_position_id(pos_id);
+                                                yield ServerMessage::QuantifierInstantiation(q_name, q_inst, norm_pos_id);
+                                                ()
+                                            }
+                                            _ => info!("Unexpected quantifier name {}", q_name)
                                         }
-                                        _ => info!("Unexpected quantifier name {}", q_name)
                                     }
                                 }
+                                _ => ()
                             }
-                            _ => ()
+                        }
+                        if !thread_rx.try_recv().is_err() {
+                            info!("Polling thread received termination signal!");
+                            done = true;
+                        } else {
+                            thread::sleep(time::Duration::from_millis(10));
                         }
                     }
-                    if !thread_rx.try_recv().is_err() {
-                        info!("Received termination signal!");
-                        done = true;
-                    } else {
-                        thread::sleep(time::Duration::from_millis(10));
-                    }
-                }
-                thread_tx.send(q_insts).unwrap();
+                });
+                stopwatch.start_next("verification");
+                result = verifier.verify(viper_program);
+                // send termination signal to polling thread
+                main_tx.send(()).unwrap();
+                // FIXME: here the global ref is dropped from a detached thread
+                polling_thread.join().unwrap();
             });
-            stopwatch.start_next("verification");
-            result = verifier.verify(viper_program);
 
-            main_tx.send(true).unwrap();
-            q_insts = main_rx.recv().unwrap();
-            // FIXME: here the global ref is dropped from a detached thread
-            polling_thread.join().unwrap();
-        });
+            // Don't cache Java exceptions, which might be due to misconfigured paths.
+            if config::enable_cache() && !matches!(result, VerificationResult::JavaException(_)) {
+                info!(
+                    "Storing new cached result {:?} for program {}",
+                    &result,
+                    request.program.get_name()
+                );
+                cache.insert(hash, result.clone());
+            }
 
-        // Don't cache Java exceptions, which might be due to misconfigured paths.
-        if config::enable_cache() && !matches!(result, VerificationResult::JavaException(_)) {
-            info!(
-                "Storing new cached result {:?} for program {}",
-                &result,
-                request.program.get_name()
-            );
-            cache.insert(hash, result.clone());
-        }
-
-        // denormalized positioned id, name, total number of instantiations (because we overwrite
-        // each time in the polling thread)
-        normalization_info.denormalize_result(&mut result);
-        let enriched_result = match result {
-            VerificationResult::Success => {
-                info!("Enriching result");
-                for ((pos_id, q_name), n) in q_insts.iter() {
-                    info!("Enriching with {} {}: {}", q_name, pos_id, n);
-                }
-                VerificationResult::EnrichedSuccess(q_insts)
-            },
-            VerificationResult::Failure(errors)=> {
-                info!("Enriching result");
-                for ((pos_id, q_name), n) in q_insts.iter() {
-                    info!("Enriching with {} {}: {}", q_name, pos_id, n);
-                }
-                VerificationResult::EnrichedFailure(errors, q_insts)
-            },
-            _ => result,
-        };
-        enriched_result
-    })
+            normalization_info.denormalize_result(&mut result);
+            yield ServerMessage::Termination(result);
+        })
+    }
 }
 
 fn dump_viper_program(ast_utils: &viper::AstUtils, program: viper::Program, program_name: &str) {

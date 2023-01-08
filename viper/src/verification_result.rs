@@ -18,10 +18,6 @@ pub enum VerificationResult {
     ConsistencyErrors(Vec<String>),
     /// The verification raised a Java exception.
     JavaException(JavaException),
-    /// Ships with quantifier statistics (currently only provided by Z3) that
-    /// map from position ID and name to the number of instantiations.
-    EnrichedSuccess(HashMap<(u64, String), u64>),
-    EnrichedFailure(Vec<VerificationError>, HashMap<(u64, String), u64>),
 }
 
 impl VerificationResult {
