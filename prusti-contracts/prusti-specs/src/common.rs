@@ -149,7 +149,7 @@ mod syn_extensions {
 mod self_type_rewriter {
     use syn::{
         parse_quote_spanned, spanned::Spanned, visit_mut::VisitMut, ImplItemMethod, ItemFn, Type,
-        TypePath,
+        TypePath, WhereClause,
     };
 
     /// Given a replacement for the `Self` type and the trait it should fulfill,
@@ -193,6 +193,16 @@ mod self_type_rewriter {
         }
     }
 
+    impl SelfTypeRewriter for WhereClause {
+        fn rewrite_self_type(&mut self, self_type: &Type, self_type_trait: Option<&TypePath>) {
+            let mut rewriter = Rewriter {
+                self_type,
+                self_type_trait,
+            };
+            rewriter.rewrite_where_clause(self);
+        }
+    }
+
     struct Rewriter<'a> {
         self_type: &'a Type,
         self_type_trait: Option<&'a TypePath>,
@@ -205,6 +215,10 @@ mod self_type_rewriter {
 
         pub fn rewrite_item_fn(&mut self, item: &mut syn::ItemFn) {
             syn::visit_mut::visit_item_fn_mut(self, item);
+        }
+
+        pub fn rewrite_where_clause(&mut self, where_clause: &mut WhereClause) {
+            syn::visit_mut::visit_where_clause_mut(self, where_clause);
         }
     }
 

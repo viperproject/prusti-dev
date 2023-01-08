@@ -1,7 +1,7 @@
 //! Encoding of external specs for traits
 use super::common::*;
 use crate::{
-    is_predicate_macro, parse_quote_spanned,
+    common::SelfTypeRewriter, is_predicate_macro, parse_quote_spanned,
     specifications::common::generate_struct_name_for_trait, ExternSpecKind,
 };
 use proc_macro2::TokenStream;
@@ -73,21 +73,23 @@ fn generate_new_struct(
     new_generics.extend(parsed_generics.into_iter().map(syn::GenericParam::Type));
 
     // Add a where clause which restricts this self type parameter to the trait
-    let self_where_clause: syn::WhereClause =
-        if let Some(where_clause) = &item_trait.generics.where_clause {
-            let mut where_clause = where_clause.clone();
-            // remove trailing comma
-            let p = where_clause.predicates.pop().unwrap();
-            where_clause.predicates.push(p.into_value());
-            // merge into existing where clause
-            parse_quote! {
-                #where_clause, #self_type_ident: #self_type_trait
-            }
-        } else {
-            parse_quote! {
-                where #self_type_ident: #self_type_trait
-            }
-        };
+    let self_where_clause: syn::WhereClause = if let Some(where_clause) =
+        &item_trait.generics.where_clause
+    {
+        let mut where_clause = where_clause.clone();
+        where_clause.rewrite_self_type(&parse_quote! { #self_type_ident }, Some(&self_type_trait));
+        // remove trailing comma
+        let p = where_clause.predicates.pop().unwrap();
+        where_clause.predicates.push(p.into_value());
+        // merge into existing where clause
+        parse_quote! {
+            #where_clause, #self_type_ident: #self_type_trait
+        }
+    } else {
+        parse_quote! {
+            where #self_type_ident: #self_type_trait
+        }
+    };
     new_struct.generics.where_clause = Some(self_where_clause);
 
     add_phantom_data_for_generic_params(&mut new_struct);
