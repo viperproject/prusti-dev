@@ -1,6 +1,6 @@
 use super::{super::ensurer::ExpandedPermissionKind, Visitor};
 use crate::encoder::{
-    errors::{ErrorCtxt, SpannedEncodingResult},
+    errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult},
     high::to_typed::types::HighToTypedTypeEncoderInterface,
     mir::errors::ErrorInterface,
 };
@@ -47,14 +47,29 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
         let expansion = match type_decl {
             vir_typed::TypeDecl::Bool
             | vir_typed::TypeDecl::Int(_)
-            | vir_typed::TypeDecl::Float(_)
-            | vir_typed::TypeDecl::Pointer(_) => {
-                // Primitive type. Convert.
-                vec![(ExpandedPermissionKind::MemoryBlock, place.clone())]
+            | vir_typed::TypeDecl::Float(_) => {
+                // Primitive type.
+                unreachable!();
+            }
+            vir_typed::TypeDecl::Pointer(_) => {
+                let target_type = ty.clone().unwrap_pointer().target_type;
+                let deref_place =
+                    vir_typed::Expression::deref(place.clone(), *target_type, place.position());
+                vec![(ExpandedPermissionKind::Same, deref_place)]
             }
             vir_typed::TypeDecl::Trusted(_) => unimplemented!("ty: {}", ty),
             vir_typed::TypeDecl::TypeVar(_) => unimplemented!("ty: {}", ty),
-            vir_typed::TypeDecl::Struct(decl) => expand_fields(place, decl.fields.iter()),
+            vir_typed::TypeDecl::Struct(decl) => {
+                // if decl.is_manually_managed_type() {
+                //     let place_span = self.get_span(guiding_place.position()).unwrap();
+                //     let error = SpannedEncodingError::incorrect(
+                //         "types with structural invariants are required to be managed manually",
+                //         place_span,
+                //     );
+                //     return Err(error);
+                // }
+                expand_fields(place, decl.fields.iter())
+            }
             vir_typed::TypeDecl::Enum(decl) => {
                 let position = place.position();
                 let variant_name = place.get_variant_name(guiding_place);

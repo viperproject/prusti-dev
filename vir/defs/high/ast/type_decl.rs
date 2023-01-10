@@ -1,6 +1,7 @@
 pub(crate) use super::{
     expression::Expression,
     field::FieldDecl,
+    position::Position,
     ty::{GenericType, LifetimeConst, Type, Uniqueness},
     variable::VariableDecl,
 };
@@ -70,7 +71,9 @@ pub struct Struct {
     pub name: String,
     pub lifetimes: Vec<LifetimeConst>,
     pub const_parameters: Vec<VariableDecl>,
+    pub structural_invariant: Option<Vec<Expression>>,
     pub fields: Vec<FieldDecl>,
+    pub position: Position,
 }
 
 pub type DiscriminantValue = i128;

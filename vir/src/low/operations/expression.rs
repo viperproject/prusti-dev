@@ -1,7 +1,12 @@
 use super::ty::Typed;
-use crate::low::ast::expression::{
-    visitors::{default_fold_expression, ExpressionFolder},
-    *,
+use crate::{
+    common::expression::SyntacticEvaluation,
+    low::ast::expression::{
+        visitors::{
+            default_fold_expression, default_fold_labelled_old, ExpressionFolder, ExpressionWalker,
+        },
+        *,
+    },
 };
 use rustc_hash::FxHashMap;
 
@@ -124,6 +129,30 @@ impl Expression {
         replacer.fold_expression(self)
     }
     #[must_use]
+    pub fn replace_self(self, replacement: &Expression) -> Self {
+        struct PlaceReplacer<'a> {
+            replacement: &'a Expression,
+        }
+        impl<'a> ExpressionFolder for PlaceReplacer<'a> {
+            fn fold_local_enum(&mut self, local: Local) -> Expression {
+                if local.variable.name == "self$" {
+                    assert_eq!(
+                        &local.variable.ty,
+                        self.replacement.get_type(),
+                        "{} → {}",
+                        local.variable.ty,
+                        self.replacement
+                    );
+                    self.replacement.clone()
+                } else {
+                    Expression::Local(local)
+                }
+            }
+        }
+        let mut replacer = PlaceReplacer { replacement };
+        replacer.fold_expression(self)
+    }
+    #[must_use]
     pub fn substitute_variables(
         self,
         replacements: &FxHashMap<&VariableDecl, &Expression>,
@@ -141,6 +170,22 @@ impl Expression {
             }
         }
         PlaceReplacer { replacements }.fold_expression(self)
+    }
+    #[must_use]
+    pub fn set_old_label(self, old_label: &str) -> Self {
+        struct LabelReplacer<'a> {
+            old_label: &'a str,
+        }
+        impl<'a> ExpressionFolder for LabelReplacer<'a> {
+            fn fold_labelled_old(&mut self, labelled_old: LabelledOld) -> LabelledOld {
+                let mut labelled_old = default_fold_labelled_old(self, labelled_old);
+                if labelled_old.label.is_none() {
+                    labelled_old.label = Some(self.old_label.to_string());
+                }
+                labelled_old
+            }
+        }
+        LabelReplacer { old_label }.fold_expression(self)
     }
     #[must_use]
     pub fn replace_discriminant(self, new_discriminant: &Expression) -> Self {
@@ -174,5 +219,156 @@ impl Expression {
             Self::full_permission(),
             denominator.into(),
         )
+    }
+    pub fn into_unfolding(self, base: Self) -> Self {
+        let predicate = self.unwrap_predicate_access_predicate();
+        // Self::unfolding(predicate.name, predicate.arguments, *predicate.permission, base, predicate.position)
+        let position = predicate.position;
+        Self::unfolding(predicate, base, position)
+    }
+    pub fn is_pure(&self) -> bool {
+        struct Checker {
+            is_pure: bool,
+        }
+        impl ExpressionWalker for Checker {
+            fn walk_predicate_access_predicate(&mut self, _: &PredicateAccessPredicate) {
+                self.is_pure = false;
+            }
+            fn walk_field_access_predicate(&mut self, _: &FieldAccessPredicate) {
+                self.is_pure = false;
+            }
+        }
+        let mut checker = Checker { is_pure: true };
+        checker.walk_expression(self);
+        checker.is_pure
+    }
+    fn apply_simplification_rules(self) -> Self {
+        let mut expression = self;
+        loop {
+            expression = match expression {
+                Expression::PermBinaryOp(PermBinaryOp {
+                    op_kind: PermBinaryOpKind::Add,
+                    left,
+                    right,
+                    position: _,
+                }) if left.is_zero() => *right,
+                Expression::PermBinaryOp(PermBinaryOp {
+                    op_kind: PermBinaryOpKind::Add,
+                    left,
+                    right,
+                    position: _,
+                }) if right.is_zero() => *left,
+                Expression::PermBinaryOp(PermBinaryOp {
+                    op_kind: PermBinaryOpKind::Add,
+                    left:
+                        box Expression::Constant(Constant {
+                            value: ConstantValue::Int(left_value),
+                            ty: left_type,
+                            ..
+                        }),
+                    right:
+                        box Expression::Constant(Constant {
+                            value: ConstantValue::Int(right_value),
+                            ty: right_type,
+                            ..
+                        }),
+                    position,
+                }) => {
+                    assert_eq!(left_type, right_type);
+                    Expression::constant(
+                        (left_value.checked_add(right_value).unwrap()).into(),
+                        left_type.clone(),
+                        position,
+                    )
+                }
+                Expression::PermBinaryOp(PermBinaryOp {
+                    op_kind: PermBinaryOpKind::Sub,
+                    left:
+                        box Expression::Constant(Constant {
+                            value: ConstantValue::Int(left_value),
+                            ty: left_type,
+                            ..
+                        }),
+                    right:
+                        box Expression::Constant(Constant {
+                            value: ConstantValue::Int(right_value),
+                            ty: right_type,
+                            ..
+                        }),
+                    position,
+                }) => {
+                    assert_eq!(left_type, right_type);
+                    Expression::constant(
+                        (left_value.checked_sub(right_value).unwrap()).into(),
+                        left_type.clone(),
+                        position,
+                    )
+                }
+                Expression::Conditional(Conditional {
+                    guard: _,
+                    then_expr,
+                    else_expr,
+                    position: _,
+                }) if then_expr == else_expr => *then_expr,
+                Expression::Conditional(Conditional {
+                    guard,
+                    then_expr,
+                    else_expr: _,
+                    position: _,
+                }) if guard.is_true() => *then_expr,
+                Expression::BinaryOp(BinaryOp {
+                    op_kind: BinaryOpKind::EqCmp,
+                    left,
+                    right,
+                    position,
+                }) if left == right => Expression::constant(true.into(), Type::Bool, position),
+                Expression::BinaryOp(BinaryOp {
+                    op_kind: BinaryOpKind::And,
+                    left,
+                    right,
+                    position: _,
+                }) if left.is_true() => *right,
+                Expression::BinaryOp(BinaryOp {
+                    op_kind: BinaryOpKind::And,
+                    left,
+                    right,
+                    position: _,
+                }) if right.is_true() => *left,
+                Expression::BinaryOp(BinaryOp {
+                    op_kind: BinaryOpKind::GeCmp,
+                    left:
+                        box Expression::Constant(Constant {
+                            value: ConstantValue::Int(left_value),
+                            ty: left_type,
+                            ..
+                        }),
+                    right:
+                        box Expression::Constant(Constant {
+                            value: ConstantValue::Int(right_value),
+                            ty: right_type,
+                            ..
+                        }),
+                    position,
+                }) => {
+                    assert_eq!(left_type, right_type);
+                    Expression::constant((left_value >= right_value).into(), Type::Bool, position)
+                }
+                _ => {
+                    break expression;
+                }
+            };
+        }
+    }
+    pub fn simplify(self) -> Self {
+        struct Simplifier;
+        impl ExpressionFolder for Simplifier {
+            fn fold_expression(&mut self, expression: Expression) -> Expression {
+                let expression = expression.apply_simplification_rules();
+                let expression = default_fold_expression(self, expression);
+                expression.apply_simplification_rules()
+            }
+        }
+        let simplified = Simplifier.fold_expression(self);
+        simplified
     }
 }

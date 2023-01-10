@@ -7,6 +7,7 @@ impl WithIdentifier for Rvalue {
             Self::Repeat(value) => value.get_identifier(),
             Self::AddressOf(value) => value.get_identifier(),
             Self::Len(value) => value.get_identifier(),
+            Self::Cast(value) => value.get_identifier(),
             Self::BinaryOp(value) => value.get_identifier(),
             Self::CheckedBinaryOp(value) => value.get_identifier(),
             Self::UnaryOp(value) => value.get_identifier(),
@@ -45,6 +46,16 @@ impl WithIdentifier for AddressOf {
 impl WithIdentifier for Len {
     fn get_identifier(&self) -> String {
         format!("Len${}", self.place.get_type().get_identifier())
+    }
+}
+
+impl WithIdentifier for Cast {
+    fn get_identifier(&self) -> String {
+        format!(
+            "Cast${}${}",
+            self.operand.get_identifier(),
+            self.ty.get_identifier()
+        )
     }
 }
 

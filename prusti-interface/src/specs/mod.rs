@@ -57,6 +57,7 @@ impl From<&ProcedureSpecRefs> for ProcedureSpecificationKind {
 #[derive(Debug, Default)]
 struct TypeSpecRefs {
     invariants: Vec<LocalDefId>,
+    structural_invariants: Vec<LocalDefId>,
     trusted: bool,
     model: Option<(String, LocalDefId)>,
     countexample_print: Vec<(Option<String>, LocalDefId)>,
@@ -148,7 +149,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                         ));
                     }
                     SpecIdRef::Terminates(spec_id) => {
-                        spec.set_terminates(*self.spec_functions.get(spec_id).unwrap());
+                        spec.set_terminates(self.spec_functions.get(spec_id).unwrap().to_def_id());
                     }
                 }
             }
@@ -222,7 +223,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
     fn determine_type_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for (type_id, refs) in self.type_specs.iter() {
-            if !refs.invariants.is_empty() && !prusti_common::config::enable_type_invariants() {
+            if !(refs.invariants.is_empty() && refs.structural_invariants.is_empty())
+                && !prusti_common::config::enable_type_invariants()
+            {
                 let span = self.env.query.get_def_span(*type_id);
                 PrustiError::unsupported(
                     "Type invariants need to be enabled with the feature flag `enable_type_invariants`",
@@ -237,6 +240,13 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                     source: type_id.to_def_id(),
                     invariant: SpecificationItem::Inherent(
                         refs.invariants
+                            .clone()
+                            .into_iter()
+                            .map(LocalDefId::to_def_id)
+                            .collect(),
+                    ),
+                    structural_invariant: SpecificationItem::Inherent(
+                        refs.structural_invariants
                             .clone()
                             .into_iter()
                             .map(LocalDefId::to_def_id)
@@ -436,11 +446,20 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 let hir = self.env.query.hir();
                 let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
-                self.type_specs
-                    .entry(type_id.as_local().unwrap())
-                    .or_default()
-                    .invariants
-                    .push(local_id);
+                if has_prusti_attr(attrs, "type_invariant_structural") {
+                    self.type_specs
+                        .entry(type_id.as_local().unwrap())
+                        .or_default()
+                        .structural_invariants
+                        .push(local_id);
+                } else {
+                    assert!(has_prusti_attr(attrs, "type_invariant_non_structural"));
+                    self.type_specs
+                        .entry(type_id.as_local().unwrap())
+                        .or_default()
+                        .invariants
+                        .push(local_id);
+                }
             }
 
             // Collect trusted type flag

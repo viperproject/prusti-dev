@@ -5,7 +5,7 @@ use crate::encoder::{
         builtin_methods::CallContext,
         lowerer::Lowerer,
         places::PlacesInterface,
-        predicates::FracRefUseBuilder,
+        predicates::{FracRefUseBuilder, PredicatesOwnedInterface},
         references::ReferencesInterface,
         snapshots::{IntoPureSnapshot, IntoSnapshot},
     },
@@ -128,16 +128,29 @@ impl<'l, 'p, 'v, 'tcx> DuplicateFracRefMethodBuilder<'l, 'p, 'v, 'tcx> {
             &target_type_decl,
             deref_source_place,
             root_address.clone(),
-            current_snapshot.clone(),
+            // current_snapshot.clone(),
             lifetime.clone().into(),
         )?;
         builder.add_lifetime_arguments()?;
         builder.add_const_arguments()?;
-        let source_expression = builder.build();
+        let source_expression = builder.build()?;
         self.add_precondition(source_expression.clone());
         self.add_postcondition(source_expression);
-        let mut builder = FracRefUseBuilder::new(
-            self.lowerer(),
+        // let mut builder = FracRefUseBuilder::new(
+        //     self.lowerer(),
+        //     CallContext::BuiltinMethod,
+        //     &target_type,
+        //     &target_type_decl,
+        //     deref_target_place,
+        //     root_address,
+        //     // current_snapshot,
+        //     lifetime.into(),
+        // )?;
+        // builder.add_lifetime_arguments()?;
+        // builder.add_const_arguments()?;
+        // let target_expression = builder.build();
+        let TODO_target_slice_len = None;
+        let target_expression = self.inner.lowerer.frac_ref_predicate(
             CallContext::BuiltinMethod,
             &target_type,
             &target_type_decl,
@@ -145,10 +158,8 @@ impl<'l, 'p, 'v, 'tcx> DuplicateFracRefMethodBuilder<'l, 'p, 'v, 'tcx> {
             root_address,
             current_snapshot,
             lifetime.into(),
+            TODO_target_slice_len,
         )?;
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        let target_expression = builder.build();
         self.add_postcondition(target_expression);
         Ok(())
     }

@@ -339,6 +339,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             self.lifetimes_state.is_lifetime_token_encoded = true;
             let predicate = vir_low::PredicateDecl::new(
                 "LifetimeToken",
+                vir_low::PredicateKind::WithoutSnapshot,
                 vec![vir_low::VariableDecl::new(
                     "lifetime",
                     self.lifetime_type()?,
@@ -348,6 +349,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             self.declare_predicate(predicate)?;
             let predicate = vir_low::PredicateDecl::new(
                 "DeadLifetimeToken",
+                vir_low::PredicateKind::WithoutSnapshot,
                 vec![vir_low::VariableDecl::new(
                     "lifetime",
                     self.lifetime_type()?,

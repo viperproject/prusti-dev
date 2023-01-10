@@ -16,7 +16,7 @@ pub use self::{
         field::FieldDecl,
         function::{FunctionDecl, FunctionKind},
         position::Position,
-        predicate::PredicateDecl,
+        predicate::{PredicateDecl, PredicateKind},
         statement::Statement,
         ty::{self, Type},
         variable::VariableDecl,

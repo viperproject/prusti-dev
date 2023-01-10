@@ -9,7 +9,7 @@ use crate::encoder::{
         builtin_methods::{calls::interface::CallContext, BuiltinMethodsInterface},
         lowerer::Lowerer,
         places::PlacesInterface,
-        predicates::OwnedNonAliasedUseBuilder,
+        predicates::PredicatesOwnedInterface,
         snapshots::{IntoSnapshot, SnapshotValidityInterface},
     },
 };
@@ -78,37 +78,33 @@ impl<'l, 'p, 'v, 'tcx> MoveCopyPlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
 
     pub(in super::super::super::super) fn create_source_owned(
         &mut self,
+        must_be_predicate: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        let mut builder = OwnedNonAliasedUseBuilder::new(
-            self.inner.lowerer,
+        self.inner.lowerer.owned_non_aliased_full_vars(
             CallContext::BuiltinMethod,
             self.inner.ty,
             self.inner.type_decl,
-            self.source_place.clone().into(),
-            self.source_root_address.clone().into(),
-            self.source_snapshot.clone().into(),
-        )?;
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        Ok(builder.build())
+            &self.source_place,
+            &self.source_root_address,
+            &self.source_snapshot,
+            must_be_predicate,
+        )
     }
 
     // FIXME: Remove duplicates with other builders.
     pub(in super::super::super::super) fn create_target_owned(
         &mut self,
+        must_be_predicate: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        let mut builder = OwnedNonAliasedUseBuilder::new(
-            self.inner.lowerer,
+        self.inner.lowerer.owned_non_aliased_full_vars(
             CallContext::BuiltinMethod,
             self.inner.ty,
             self.inner.type_decl,
-            self.target_place.clone().into(),
-            self.target_root_address.clone().into(),
-            self.source_snapshot.clone().into(),
-        )?;
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        Ok(builder.build())
+            &self.target_place,
+            &self.target_root_address,
+            &self.source_snapshot,
+            must_be_predicate,
+        )
     }
 
     // FIXME: Remove duplicate with add_source_validity_precondition

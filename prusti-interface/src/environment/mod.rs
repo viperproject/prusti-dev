@@ -140,21 +140,19 @@ impl<'tcx> Environment<'tcx> {
         called_def_id: ProcedureDefId,
         call_substs: SubstsRef<'tcx>,
     ) -> bool {
-        if called_def_id == caller_def_id {
-            true
-        } else {
+        if called_def_id != caller_def_id && called_def_id.is_local() {
             let param_env = self.tcx().param_env(caller_def_id);
             if let Some(instance) = self
                 .tcx()
                 .resolve_instance(param_env.and((called_def_id, call_substs)))
                 .unwrap()
             {
-                self.tcx()
-                    .mir_callgraph_reachable((instance, caller_def_id.expect_local()))
-            } else {
-                true
+                return self
+                    .tcx()
+                    .mir_callgraph_reachable((instance, caller_def_id.expect_local()));
             }
         }
+        true
     }
 
     /// Get the current version of the `prusti` crate

@@ -9,7 +9,7 @@ use crate::encoder::{
         },
         lowerer::Lowerer,
         places::PlacesInterface,
-        predicates::OwnedNonAliasedUseBuilder,
+        predicates::PredicatesOwnedInterface,
         snapshots::{IntoSnapshot, SnapshotValuesInterface},
     },
 };
@@ -73,19 +73,17 @@ impl<'l, 'p, 'v, 'tcx> IntoMemoryBlockMethodBuilder<'l, 'p, 'v, 'tcx> {
     // FIXME: Remove code duplication with create_source_owned.
     pub(in super::super::super::super) fn create_owned(
         &mut self,
+        must_be_predicate: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        let mut builder = OwnedNonAliasedUseBuilder::new(
-            self.inner.lowerer,
+        self.inner.lowerer.owned_non_aliased_full_vars(
             CallContext::BuiltinMethod,
             self.inner.ty,
             self.inner.type_decl,
-            self.place.clone().into(),
-            self.root_address.clone().into(),
-            self.snapshot.clone().into(),
-        )?;
-        builder.add_lifetime_arguments()?;
-        builder.add_const_arguments()?;
-        Ok(builder.build())
+            &self.place,
+            &self.root_address,
+            &self.snapshot,
+            must_be_predicate,
+        )
     }
 
     pub(in super::super::super::super) fn create_target_memory_block(

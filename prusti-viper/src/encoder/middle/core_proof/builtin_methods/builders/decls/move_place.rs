@@ -9,12 +9,16 @@ use crate::encoder::{
         builtin_methods::{
             calls::interface::CallContext, BuiltinMethodCallsInterface, BuiltinMethodsInterface,
         },
+        lifetimes::LifetimesInterface,
         lowerer::Lowerer,
         places::PlacesInterface,
+        predicates::PredicatesOwnedInterface,
+        references::ReferencesInterface,
         snapshots::SnapshotValuesInterface,
     },
 };
 use vir_crate::{
+    common::expression::UnaryOperationHelpers,
     low::{self as vir_low},
     middle as vir_mid,
 };
@@ -97,14 +101,16 @@ impl<'l, 'p, 'v, 'tcx> MovePlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
 
     pub(in super::super::super::super) fn create_source_owned(
         &mut self,
+        must_be_predicate: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        self.inner.create_source_owned()
+        self.inner.create_source_owned(must_be_predicate)
     }
 
     pub(in super::super::super::super) fn create_target_owned(
         &mut self,
+        must_be_predicate: bool,
     ) -> SpannedEncodingResult<vir_low::Expression> {
-        self.inner.create_target_owned()
+        self.inner.create_target_owned(must_be_predicate)
     }
 
     pub(in super::super::super::super) fn add_target_validity_postcondition(
@@ -338,6 +344,71 @@ impl<'l, 'p, 'v, 'tcx> MovePlaceMethodBuilder<'l, 'p, 'v, 'tcx> {
         builder.add_lifetime_arguments()?;
         builder.add_const_arguments()?;
         let statement = builder.build();
+        self.add_statement(statement);
+        Ok(())
+    }
+
+    pub(in super::super::super::super) fn add_dead_lifetime_hack(
+        &mut self,
+        lifetime: &vir_mid::ty::LifetimeConst,
+    ) -> SpannedEncodingResult<()> {
+        use vir_low::macros::*;
+        let lifetime_alive = self
+            .inner
+            .inner
+            .lowerer
+            .encode_lifetime_const_into_pure_is_alive_variable(lifetime)?;
+        let guard = vir_low::Expression::not(lifetime_alive.into());
+        let source_current_snapshot = self.inner.inner.lowerer.reference_target_current_snapshot(
+            self.inner.inner.ty,
+            self.inner.source_snapshot.clone().into(),
+            self.inner.inner.position,
+        )?;
+        let source_final_snapshot = self.inner.inner.lowerer.reference_target_final_snapshot(
+            self.inner.inner.ty,
+            self.inner.source_snapshot.clone().into(),
+            self.inner.inner.position,
+        )?;
+        let target_snapshot = self.inner.inner.lowerer.owned_non_aliased_snap(
+            CallContext::BuiltinMethod,
+            self.inner.inner.ty,
+            self.inner.inner.type_decl,
+            self.inner.target_place.clone().into(),
+            self.inner.target_root_address.clone().into(),
+            self.inner.inner.position,
+        )?;
+        let target_current_snapshot = self.inner.inner.lowerer.reference_target_current_snapshot(
+            self.inner.inner.ty,
+            target_snapshot.clone(),
+            self.inner.inner.position,
+        )?;
+        let target_final_snapshot = self.inner.inner.lowerer.reference_target_final_snapshot(
+            self.inner.inner.ty,
+            target_snapshot,
+            self.inner.inner.position,
+        )?;
+        let body = vec![
+            vir_low::Statement::comment(
+                "FIXME: This is a hack. Because the lifetime is dead, the reference \
+                is dangling and there is no predicate that would witness that \
+                the value of the dereference is the source of the dereference. \
+                This is also the reason why it is sound just to assume that the \
+                two are equal. A proper solution should use a custom equality function \
+                that equates the targets only if lifetimes are alive."
+                    .to_string(),
+            ),
+            stmtp! { self.inner.inner.position =>
+                assume ([source_current_snapshot] == [target_current_snapshot])
+            },
+            stmtp! { self.inner.inner.position =>
+                assume ([source_final_snapshot] == [target_final_snapshot])
+            },
+            //             assume destructor$Snap$ref$Unique$slice$struct$m_T1$$$target_current(source_snapshot) == destructor$Snap$ref$Unique$slice$struct$m_T1$$$target_current(snap_owned_non_aliased$ref$Unique$slice$struct$m_T1$(target_place, target_root_address, lft_early_bound_0$alive, lft_early_bound_0))
+
+            // assume destructor$Snap$ref$Unique$slice$struct$m_T1$$$target_final(source_snapshot) == destructor$Snap$ref$Unique$slice$struct$m_T1$$$target_final(snap_owned_non_aliased$ref$Unique$slice$struct$m_T1$(target_place, target_root_address, lft_early_bound_0$alive, lft_early_bound_0))
+        ];
+        let statement =
+            vir_low::Statement::conditional(guard, body, Vec::new(), self.inner.inner.position);
         self.add_statement(statement);
         Ok(())
     }

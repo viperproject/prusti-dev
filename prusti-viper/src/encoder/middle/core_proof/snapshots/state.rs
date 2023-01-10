@@ -15,10 +15,11 @@ pub(in super::super) struct SnapshotsState {
     pub(super) encoded_to_bytes: FxHashSet<vir_mid::Type>,
     /// The list of types for which sequence_repeat_constructor was encoded.
     pub(super) encoded_sequence_repeat_constructor: FxHashSet<vir_mid::Type>,
-    pub(super) all_variables: AllVariablesMap,
-    pub(super) variables: BTreeMap<vir_mid::BasicBlockId, VariableVersionMap>,
-    pub(super) variables_at_label: BTreeMap<String, VariableVersionMap>,
-    pub(super) current_variables: Option<VariableVersionMap>,
+    pub(super) ssa_state: vir_low::ssa::SSAState<vir_mid::BasicBlockId>,
+    // pub(super) all_variables: AllVariablesMap,
+    // pub(super) variables: BTreeMap<vir_mid::BasicBlockId, VariableVersionMap>,
+    // pub(super) variables_at_label: BTreeMap<String, VariableVersionMap>,
+    // pub(super) current_variables: Option<VariableVersionMap>,
     /// Mapping from low types to their domain names.
     pub(super) type_domains: FxHashMap<vir_low::Type, String>,
 }

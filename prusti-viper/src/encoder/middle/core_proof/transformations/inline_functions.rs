@@ -12,7 +12,7 @@ pub(crate) fn inline_caller_for(program: &mut vir_low::Program) {
         .map(|function| (function.name.clone(), function))
         .collect();
     for procedure in &mut program.procedures {
-        for block in &mut procedure.basic_blocks {
+        for block in procedure.basic_blocks.values_mut() {
             inline_in_statements(&mut block.statements, &caller_for_functions);
         }
     }
@@ -49,6 +49,7 @@ fn inline_in_statements(
                     .push(vir_low::Statement::Assert(statement));
             }
             vir_low::Statement::Comment(_)
+            | vir_low::Statement::Label(_)
             | vir_low::Statement::LogEvent(_)
             | vir_low::Statement::Inhale(_)
             | vir_low::Statement::Exhale(_)

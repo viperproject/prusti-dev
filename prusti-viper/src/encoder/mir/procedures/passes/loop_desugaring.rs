@@ -71,7 +71,7 @@ pub(in super::super) fn desugar_loops<'v, 'tcx: 'v>(
             ));
         for assertion in &loop_invariant.functional_specifications {
             let statement = encoder.set_surrounding_error_context_for_statement(
-                vir_high::Statement::assert_no_pos(assertion.clone()),
+                vir_high::Statement::exhale_expression_no_pos(assertion.clone()),
                 loop_invariant.position,
                 ErrorCtxt::AssertLoopInvariantOnEntry,
             )?;
@@ -122,7 +122,7 @@ pub(in super::super) fn desugar_loops<'v, 'tcx: 'v>(
 
         for assertion in loop_invariant.functional_specifications {
             let statement = encoder.set_surrounding_error_context_for_statement(
-                vir_high::Statement::assume_no_pos(assertion),
+                vir_high::Statement::inhale_expression_no_pos(assertion),
                 loop_invariant.position,
                 ErrorCtxt::UnexpectedAssumeLoopInvariantOnEntry,
             )?;
@@ -198,7 +198,7 @@ fn duplicate_blocks<'v, 'tcx: 'v>(
             let loop_invariant = block.statements.pop().unwrap().unwrap_loop_invariant();
             for assertion in loop_invariant.functional_specifications {
                 let statement = encoder.set_surrounding_error_context_for_statement(
-                    vir_high::Statement::assert_no_pos(assertion),
+                    vir_high::Statement::exhale_expression_no_pos(assertion),
                     loop_invariant.position,
                     ErrorCtxt::AssertLoopInvariantAfterIteration,
                 )?;

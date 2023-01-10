@@ -224,7 +224,7 @@ fn verify_programs(env: &Environment, programs: Vec<Program>)
         let check_mode = program.get_check_mode();
         // Prepend the Rust file name to the program.
         program.set_name(format!("{}_{}", rust_program_name, program_name));
-        let backend = if check_mode == CheckMode::Specifications {
+        let backend = if check_mode == CheckMode::PurificationFunctional {
             config::verify_specifications_backend()
         } else {
             config::viper_backend()

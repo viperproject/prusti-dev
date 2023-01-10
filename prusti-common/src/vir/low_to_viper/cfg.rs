@@ -15,14 +15,19 @@ impl<'a, 'v> ToViper<'v, viper::Method<'v>> for &'a ProcedureDecl {
         for local in &self.locals {
             declarations.push(local.to_viper_decl(context, ast).into());
         }
-        for block in &self.basic_blocks {
-            declarations.push(block.label.to_viper_decl(context, ast).into());
-            statements.push(block.label.to_viper(context, ast));
+        let traversal_order = self.get_topological_sort();
+        for label in &traversal_order {
+            let block = self.basic_blocks.get(label).unwrap();
+            declarations.push(label.to_viper_decl(context, ast).into());
+            statements.push(label.to_viper(context, ast));
             statements.extend(block.statements.to_viper(context, ast));
             statements.push(block.successor.to_viper(context, ast));
         }
         statements.push(ast.label(RETURN_LABEL, &[]));
         declarations.push(ast.label(RETURN_LABEL, &[]).into());
+        for label in &self.custom_labels {
+            declarations.push(label.to_viper_decl(context, ast).into());
+        }
         let body = Some(ast.seqn(&statements, &declarations));
         ast.method(&self.name, &[], &[], &[], &[], body)
     }

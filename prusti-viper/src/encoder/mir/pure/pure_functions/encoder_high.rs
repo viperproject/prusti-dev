@@ -98,16 +98,17 @@ pub(super) fn encode_pure_expression<'p, 'v: 'p, 'tcx: 'v>(
         parent_def_id,
         substs,
     );
+    let span = encoder.env().query.get_def_span(proc_def_id);
     let state = run_backward_interpretation(&mir, &interpreter)?.ok_or_else(|| {
         SpannedEncodingError::incorrect(
             format!("procedure {:?} contains a loop", proc_def_id),
-            encoder.env().query.get_def_span(proc_def_id),
+            span,
         )
     })?;
     let body = state.into_expr().ok_or_else(|| {
         SpannedEncodingError::internal(
             format!("failed to encode function's body: {:?}", proc_def_id),
-            encoder.env().query.get_def_span(proc_def_id),
+            span,
         )
     })?;
     debug!(
@@ -116,6 +117,7 @@ pub(super) fn encode_pure_expression<'p, 'v: 'p, 'tcx: 'v>(
     );
     // FIXME: Traverse the encoded function and check that all used types are
     // Copy. Doing this before encoding causes too many false positives.
+    let body = super::cleaner::clean_encoding_result(encoder, body, span)?;
     Ok(body)
 }
 

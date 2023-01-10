@@ -140,6 +140,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             || func_name.starts_with("prusti_contracts::prusti_contracts::Seq")
             || func_name.starts_with("prusti_contracts::prusti_contracts::Ghost")
             || func_name.starts_with("prusti_contracts::prusti_contracts::Int")
+        // || func_name.starts_with("prusti_contracts::prusti_contracts::prusti_own")
         {
             pure = true;
         }

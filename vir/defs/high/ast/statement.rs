@@ -17,13 +17,16 @@ use std::collections::BTreeSet;
 pub enum Statement {
     Comment(Comment),
     OldLabel(OldLabel),
-    Inhale(Inhale),
-    Exhale(Exhale),
+    InhalePredicate(InhalePredicate),
+    ExhalePredicate(ExhalePredicate),
+    InhaleExpression(InhaleExpression),
+    ExhaleExpression(ExhaleExpression),
+    Assume(Assume),
+    Assert(Assert),
     Consume(Consume),
     Havoc(Havoc),
     GhostHavoc(GhostHavoc),
-    Assume(Assume),
-    Assert(Assert),
+    HeapHavoc(HeapHavoc),
     LoopInvariant(LoopInvariant),
     MovePlace(MovePlace),
     CopyPlace(CopyPlace),
@@ -33,6 +36,16 @@ pub enum Statement {
     GhostAssign(GhostAssign),
     LeakAll(LeakAll),
     SetUnionVariant(SetUnionVariant),
+    Pack(Pack),
+    Unpack(Unpack),
+    Join(Join),
+    JoinRange(JoinRange),
+    Split(Split),
+    SplitRange(SplitRange),
+    StashRange(StashRange),
+    StashRangeRestore(StashRangeRestore),
+    ForgetInitialization(ForgetInitialization),
+    RestoreRawBorrowed(RestoreRawBorrowed),
     NewLft(NewLft),
     EndLft(EndLft),
     DeadLifetime(DeadLifetime),
@@ -59,16 +72,18 @@ pub struct OldLabel {
     pub position: Position,
 }
 
-/// Inhale the permission denoted by the place.
-#[display(fmt = "inhale {}", predicate)]
-pub struct Inhale {
+/// Inhale the permission denoted by the place. This operation is automatically
+/// managed by fold-unfold.
+#[display(fmt = "inhale-pred {}", predicate)]
+pub struct InhalePredicate {
     pub predicate: Predicate,
     pub position: Position,
 }
 
-#[display(fmt = "exhale {}", predicate)]
-/// Exhale the permission denoted by the place.
-pub struct Exhale {
+#[display(fmt = "exhale-pred {}", predicate)]
+/// Exhale the permission denoted by the place. This operation is automatically
+/// managed by fold-unfold.
+pub struct ExhalePredicate {
     pub predicate: Predicate,
     pub position: Position,
 }
@@ -88,20 +103,41 @@ pub struct Havoc {
 }
 
 #[display(fmt = "ghost-havoc {}", variable)]
+/// Havoc the local variable.
 pub struct GhostHavoc {
     pub variable: VariableDecl,
     pub position: Position,
 }
 
+#[display(fmt = "heap-havoc")]
+/// Havoc the heap.
+pub struct HeapHavoc {
+    pub position: Position,
+}
+
+#[display(fmt = "inhale-expr {}", expression)]
+/// Inhale the boolean expression. This operation is ignored by fold-unfold.
+pub struct InhaleExpression {
+    pub expression: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "exhale-expr {}", expression)]
+/// Exhale the boolean expression. This operation is ignored by fold-unfold.
+pub struct ExhaleExpression {
+    pub expression: Expression,
+    pub position: Position,
+}
+
 #[display(fmt = "assume {}", expression)]
-/// Assume the boolean expression.
+/// Assume the pure boolean expression.
 pub struct Assume {
     pub expression: Expression,
     pub position: Position,
 }
 
 #[display(fmt = "assert {}", expression)]
-/// Assert the boolean expression.
+/// Assert the pure boolean expression.
 pub struct Assert {
     pub expression: Expression,
     pub position: Position,
@@ -249,6 +285,111 @@ pub struct LeakAll {}
 #[display(fmt = "set-union-variant {}", variant_place)]
 pub struct SetUnionVariant {
     pub variant_place: Expression,
+    pub position: Position,
+}
+
+#[derive_helpers]
+#[derive(derive_more::From, derive_more::IsVariant, derive_more::Unwrap)]
+pub enum PredicateKind {
+    Owned,
+    UniqueRef(UniqueRef),
+    FracRef(FracRef),
+}
+
+pub struct UniqueRef {
+    pub lifetime: LifetimeConst,
+}
+
+pub struct FracRef {
+    pub lifetime: LifetimeConst,
+}
+
+#[display(fmt = "pack-{} {}", predicate_kind, place)]
+pub struct Pack {
+    pub place: Expression,
+    pub predicate_kind: PredicateKind,
+    pub position: Position,
+}
+
+#[display(fmt = "unpack-{} {}", predicate_kind, place)]
+pub struct Unpack {
+    pub place: Expression,
+    pub predicate_kind: PredicateKind,
+    pub position: Position,
+}
+
+#[display(fmt = "join {}", place)]
+pub struct Join {
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "join-range {} {} {}", address, start_index, end_index)]
+pub struct JoinRange {
+    pub address: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "split {}", place)]
+pub struct Split {
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "split-range {} {} {}", address, start_index, end_index)]
+pub struct SplitRange {
+    pub address: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "stash-range {} {} {} {}",
+    address,
+    start_index,
+    end_index,
+    label
+)]
+pub struct StashRange {
+    pub address: Expression,
+    pub start_index: Expression,
+    pub end_index: Expression,
+    pub label: String,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "stash-range-restore {} {} {} {} → {} {}",
+    old_address,
+    old_start_index,
+    old_end_index,
+    old_label,
+    new_address,
+    new_start_index
+)]
+pub struct StashRangeRestore {
+    pub old_address: Expression,
+    pub old_start_index: Expression,
+    pub old_end_index: Expression,
+    pub old_label: String,
+    pub new_address: Expression,
+    pub new_start_index: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "forget-initialization {}", place)]
+pub struct ForgetInitialization {
+    pub place: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "restore {} --* {}", borrowing_place, restored_place)]
+pub struct RestoreRawBorrowed {
+    pub borrowing_place: Expression,
+    pub restored_place: Expression,
     pub position: Position,
 }
 

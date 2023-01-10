@@ -51,6 +51,7 @@ impl WithLifetimes for Rvalue {
             Self::Repeat(value) => value.get_lifetimes(),
             Self::AddressOf(value) => value.get_lifetimes(),
             Self::Len(value) => value.get_lifetimes(),
+            Self::Cast(value) => value.get_lifetimes(),
             Self::BinaryOp(value) => value.get_lifetimes(),
             Self::CheckedBinaryOp(value) => value.get_lifetimes(),
             Self::UnaryOp(value) => value.get_lifetimes(),
@@ -93,6 +94,14 @@ impl WithLifetimes for AddressOf {
 impl WithLifetimes for Len {
     fn get_lifetimes(&self) -> Vec<LifetimeConst> {
         self.place.get_lifetimes()
+    }
+}
+
+impl WithLifetimes for Cast {
+    fn get_lifetimes(&self) -> Vec<LifetimeConst> {
+        let mut lifetimes = self.operand.get_lifetimes();
+        lifetimes.extend(self.ty.get_lifetimes());
+        lifetimes
     }
 }
 

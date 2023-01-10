@@ -3,10 +3,13 @@ use self::{
     predicates::PredicatesLowererState, variables::VariablesLowererState,
 };
 use super::{
+    addresses::AddressState,
     adts::AdtsState,
     builtin_methods::BuiltinMethodsState,
     compute_address::ComputeAddressState,
+    heap::HeapState,
     into_low::IntoLow,
+    labels::LabelsState,
     lifetimes::LifetimesState,
     places::PlacesState,
     predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface, PredicatesState},
@@ -14,12 +17,14 @@ use super::{
     types::TypesState,
 };
 use crate::encoder::{
-    errors::SpannedEncodingResult, middle::core_proof::builtin_methods::BuiltinMethodsInterface,
+    errors::{ErrorCtxt, SpannedEncodingResult},
+    middle::core_proof::builtin_methods::BuiltinMethodsInterface,
+    mir::errors::ErrorInterface,
     Encoder,
 };
 use prusti_rustc_interface::hir::def_id::DefId;
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
     common::{cfg::Cfg, check_mode::CheckMode, graphviz::ToGraphviz},
     low::{self as vir_low, operations::ty::Typed},
@@ -102,6 +107,9 @@ pub(super) struct Lowerer<'p, 'v: 'p, 'tcx: 'v> {
     pub(super) adts_state: AdtsState,
     pub(super) lifetimes_state: LifetimesState,
     pub(super) places_state: PlacesState,
+    pub(super) heap_state: HeapState,
+    pub(super) address_state: AddressState,
+    pub(super) labels_state: LabelsState,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
@@ -123,6 +131,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             adts_state: Default::default(),
             lifetimes_state: Default::default(),
             places_state: Default::default(),
+            heap_state: Default::default(),
+            address_state: Default::default(),
+            labels_state: Default::default(),
         }
     }
 
@@ -170,52 +181,98 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         std::mem::swap(entry_block_statements, &mut marker_initialisation);
         entry_block_statements.extend(marker_initialisation);
 
-        let mut basic_blocks = Vec::new();
+        let mut basic_blocks = BTreeMap::new();
         for basic_block_id in traversal_order {
             let (statements, mut successor) = basic_blocks_map.remove(&basic_block_id).unwrap();
             let label = basic_block_id.clone().into_low(&mut self)?;
             if let Some(intermediate_blocks) = basic_block_edges.remove(&basic_block_id) {
-                for (successor_label, successor_statements) in intermediate_blocks {
+                for (successor_label, equalities) in intermediate_blocks {
                     let successor_label = successor_label.into_low(&mut self)?;
                     let intermediate_block_label = vir_low::Label::new(format!(
                         "label__from__{}__to__{}",
                         label.name, successor_label.name
                     ));
                     successor.replace_label(&successor_label, intermediate_block_label.clone());
-                    basic_blocks.push(vir_low::BasicBlock {
-                        label: intermediate_block_label,
-                        statements: successor_statements,
-                        successor: vir_low::Successor::Goto(successor_label),
-                    });
+                    let mut successor_statements = Vec::new();
+                    for (variable_name, ty, position, old_version, new_version) in equalities {
+                        let new_variable = self.create_snapshot_variable_low(
+                            &variable_name,
+                            ty.clone(),
+                            new_version,
+                        )?;
+                        let old_variable = self.create_snapshot_variable_low(
+                            &variable_name,
+                            ty.clone(),
+                            old_version,
+                        )?;
+                        let position = self.encoder.change_error_context(
+                            // FIXME: Get a more precise span.
+                            position,
+                            ErrorCtxt::Unexpected,
+                        );
+                        let statement = vir_low::macros::stmtp! {
+                            position => assume (new_variable == old_variable)
+                        };
+                        successor_statements.push(statement);
+                    }
+                    basic_blocks.insert(
+                        intermediate_block_label,
+                        vir_low::BasicBlock {
+                            statements: successor_statements,
+                            successor: vir_low::Successor::Goto(successor_label),
+                        },
+                    );
                 }
             }
 
-            basic_blocks.push(vir_low::BasicBlock {
+            basic_blocks.insert(
                 label,
-                statements,
-                successor,
-            });
+                vir_low::BasicBlock {
+                    statements,
+                    successor,
+                },
+            );
         }
+        let entry = procedure.entry.clone().into_low(&mut self)?;
+        let exit = procedure.exit.clone().into_low(&mut self)?;
         let mut removed_functions = FxHashSet::default();
-        if procedure.check_mode == CheckMode::Specifications {
+        if procedure.check_mode == CheckMode::PurificationFunctional {
             removed_functions.insert(self.encode_memory_block_bytes_function_name()?);
         }
-        let mut predicates = self.collect_owned_predicate_decls()?;
-        basic_blocks[0].statements.splice(
+        let (mut predicates, predicates_info) = self.collect_owned_predicate_decls()?;
+        basic_blocks.get_mut(&entry).unwrap().statements.splice(
             0..0,
             self.lifetimes_state.lifetime_is_alive_initialization(),
         );
+        if prusti_common::config::dump_debug_info() {
+            let source_filename = self.encoder.env().name.source_file_name();
+            prusti_common::report::log::report_with_writer(
+                "graphviz_method_vir_low_before_perm_desugaring",
+                format!("{}.{}.dot", source_filename, procedure.name),
+                |writer| basic_blocks.to_graphviz(writer).unwrap(),
+            );
+        }
         let mut domains = self.domains_state.destruct();
         domains.extend(self.compute_address_state.destruct());
         predicates.extend(self.predicates_state.destruct());
         let mut lowered_procedure = vir_low::ProcedureDecl {
             name: procedure.name,
+            position: procedure.position,
             locals: self.variables_state.destruct(),
+            custom_labels: self.labels_state.destruct(),
             basic_blocks,
+            entry,
+            exit,
         };
         let mut methods = self.methods_state.destruct();
         let mut functions = self.functions_state.destruct();
-        if procedure.check_mode == CheckMode::Specifications {
+        if procedure.check_mode == CheckMode::PurificationFunctional {
+            removed_functions.extend(
+                functions
+                    .iter()
+                    .filter(|function| function.kind == vir_low::FunctionKind::Snap)
+                    .map(|function| function.name.clone()),
+            );
             super::transformations::remove_predicates::remove_predicates(
                 &mut lowered_procedure,
                 &mut methods,
@@ -224,13 +281,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             );
             functions.retain(|function| !removed_functions.contains(&function.name));
         };
-        Ok(LoweringResult {
+        let mut result = LoweringResult {
             procedures: vec![lowered_procedure],
             domains,
             functions,
             predicates,
             methods,
-        })
+        };
+        if prusti_common::config::custom_heap_encoding() {
+            super::transformations::custom_heap_encoding::custom_heap_encoding(
+                self.encoder,
+                &mut result,
+                predicates_info,
+            )?;
+        }
+        Ok(result)
     }
 
     fn create_parameters(&self, arguments: &[vir_low::Expression]) -> Vec<vir_low::VariableDecl> {
@@ -263,7 +328,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         if check_copy {
             self.encode_copy_place_method(&ty)?;
         }
-        let mut predicates = self.collect_owned_predicate_decls()?;
+        let (mut predicates, _) = self.collect_owned_predicate_decls()?;
         let mut domains = self.domains_state.destruct();
         domains.extend(self.compute_address_state.destruct());
         predicates.extend(self.predicates_state.destruct());

@@ -49,7 +49,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
             })?;
 
         let expression = self.encoder.encode_assertion_high(
-            expr.to_def_id(),
+            expr,
             None,
             arguments,
             None,
@@ -80,7 +80,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
             arguments.push(self.encode_local(local)?.into());
         }
 
-        if self.encoder.terminates(self.def_id, None) && self.check_mode != CheckMode::CoreProof {
+        if self.encoder.terminates(self.def_id, None) && self.check_mode.check_specifications() {
             let termination_expr = self.encode_termination_expression(
                 &procedure_contract,
                 mir_span,
