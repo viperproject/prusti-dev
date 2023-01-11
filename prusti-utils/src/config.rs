@@ -24,7 +24,7 @@ pub struct Optimizations {
     pub purify_vars: bool,
     pub fix_quantifiers: bool,
     pub fix_unfoldings: bool,
-    pub simplify_expr: bool,
+    pub simplify_exprs: bool,
     pub remove_unused_vars: bool,
     pub remove_trivial_assertions: bool,
     pub clean_cfg: bool,
@@ -40,7 +40,7 @@ impl Optimizations {
             purify_vars: false,
             fix_quantifiers: false,
             fix_unfoldings: false,
-            simplify_expr: false,
+            simplify_exprs: false,
             remove_unused_vars: false,
             remove_trivial_assertions: false,
             clean_cfg: false,
@@ -57,7 +57,7 @@ impl Optimizations {
             fix_quantifiers: true,
             // Disabled because https://github.com/viperproject/prusti-dev/issues/892 has been fixed
             fix_unfoldings: false,
-            simplify_expr: true,
+            simplify_exprs: true,
             remove_unused_vars: true,
             remove_trivial_assertions: true,
             clean_cfg: true,
@@ -371,6 +371,7 @@ pub fn check_panics() -> bool {
 }
 
 /// When enabled, the time reasoning constrains are verified. Otherwise they are ignored.
+/// Note that this is an experimental feature.
 pub fn time_reasoning() -> bool {
     read_setting("time_reasoning")
 }
@@ -712,6 +713,7 @@ pub fn verify_only_basic_block_path() -> Vec<String> {
 /// - `"purify_vars"`
 /// - `"fix_quantifiers"`
 /// - `"fix_unfoldings"`
+/// - `"simplify_exprs"`
 /// - `"remove_unused_vars"`
 /// - `"remove_trivial_assertions"`
 /// - `"clean_cfg"`
@@ -731,6 +733,7 @@ pub fn optimizations() -> Optimizations {
             "purify_vars" => opt.purify_vars = true,
             "fix_quantifiers" => opt.fix_quantifiers = true,
             "fix_unfoldings" => opt.fix_unfoldings = true,
+            "simplify_exprs" => opt.simplify_exprs = true,
             "remove_unused_vars" => opt.remove_unused_vars = true,
             "remove_trivial_assertions" => opt.remove_trivial_assertions = true,
             "clean_cfg" => opt.clean_cfg = true,

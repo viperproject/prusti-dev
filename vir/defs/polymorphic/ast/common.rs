@@ -524,7 +524,7 @@ impl ResourceType {
             "prusti_contracts::time_credits" => ResourceType::TimeCredits,
             "prusti_contracts::time_receipts" => ResourceType::TimeReceipts,
             _ => unreachable!(
-                "Fonction name: {} does not match any resource type.",
+                "Function name: {} does not match any resource type.",
                 function_name
             ),
         }

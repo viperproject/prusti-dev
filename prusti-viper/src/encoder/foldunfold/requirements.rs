@@ -95,17 +95,13 @@ impl RequiredStmtPermissionsGetter for vir::Stmt {
                 ref targets,
                 ..
             }) => {
-                // Preconditions and postconditions are empty or does not require permissions
-                let arguments_perm = arguments
-                    .iter()
-                    .map(|expr| expr.get_required_stmt_permissions(predicates).into_iter())
-                    .flatten();
+                // Preconditions and postconditions are empty
+                assert!(arguments.is_empty());
                 FxHashSet::from_iter(
                     targets
                         .iter()
                         .cloned()
-                        .map(|v| Acc(vir::Expr::local(v), PermAmount::Write))
-                        .chain(arguments_perm),
+                        .map(|v| Acc(vir::Expr::local(v), PermAmount::Write)),
                 )
             }
 

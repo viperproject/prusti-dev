@@ -71,6 +71,7 @@
 | [`SMT_SOLVER_WRAPPER_PATH`](#smt_solver_wrapper_path) | `Option<String>` | `None` | A |
 | [`SMT_UNIQUE_TRIGGERS_BOUND`](#smt_unique_triggers_bound) | `Option<u64>` | `None` | A |
 | [`SMT_UNIQUE_TRIGGERS_BOUND_TOTAL`](#smt_unique_triggers_bound_total) | `Option<u64>` | `None` | A |
+| [`TIME_REASONING`](#time_reasoning) | `bool` | `false` | A |
 | [`UNSAFE_CORE_PROOF`](#unsafe_core_proof) | `bool` | `false` | A |
 | [`USE_MORE_COMPLETE_EXHALE`](#use_more_complete_exhale) | `bool` | `true` | A |
 | [`USE_SMT_WRAPPER`](#use_smt_wrapper) | `bool` | `false` | A |
@@ -322,6 +323,7 @@ Comma-separated list of optimizations to enable, or `"all"` to enable all. Possi
 - `"purify_vars"`
 - `"fix_quantifiers"`
 - `"fix_unfoldings"`
+- `"simplify_exprs"`
 - `"remove_unused_vars"`
 - `"remove_trivial_assertions"`
 - `"clean_cfg"`
@@ -440,6 +442,13 @@ If not `None`, checks that the number of unique triggers used for each quantifie
 If not `None`, checks that the total number of unique triggers reported by the SMT wrapper is smaller than the specified bound.
 
 > **Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+
+## `TIME_REASONING` 
+
+When enabled, the `time_credits` and `time_receipts` predicates are usable and functions' and loops' bodies will concume time credits and produce time receipts.
+
+> **Note:** This is an experimental feature.
+> **Note:** Requires `SIMPLIFY_ENCODING` to be `true` and the `simplify_exprs` optimization to be enabled.
 
 ## `UNSAFE_CORE_PROOF`
 

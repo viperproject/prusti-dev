@@ -408,10 +408,9 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     pos.to_viper(context, ast),
                 ),
             Expr::ResourceAccessPredicate(ref resource_name, ref amount, ref pos) => {
-                // Resource are encoded as a predicate with no arguments
+                // resources are encoded as predicates with no arguments
                 ast.predicate_access_predicate_with_pos(
                     ast.predicate_access(&[], resource_name),
-                    // ast.int_perm_mul(amount.to_viper(context, ast), ast.full_perm()),
                     ast.fractional_perm(amount.to_viper(context, ast), ast.int_lit(1)),
                     pos.to_viper(context, ast),
                 )

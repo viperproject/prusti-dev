@@ -514,7 +514,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.encode_preconditions(start_cfg_block, precondition_weakening)?;
 
         if config::time_reasoning() {
-            // If time reasoning is enabled, add a call to tick after preconditions
+            // consume a time credits and produce a time receipt in the body of the function
             self.cfg_method.add_stmts(start_cfg_block, self.get_tick_call(self.mir.span, 1));
         }
 
@@ -976,6 +976,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let (mut stmts, fnspec_span) =
                 self.encode_loop_invariant_inhale_fnspec_stmts(loop_head, before_invariant_block, false)?;
             if config::time_reasoning() {
+                // consume a time credit and produce a time receipt at each iteration of the loop
                 stmts.extend(self.get_tick_call(fnspec_span.clone(), 1).into_iter());   
             }
             self.cfg_method.add_stmts(inv_post_block_fnspc, stmts); fnspec_span

@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::{
-    errors::{SpannedEncodingResult, WithSpan},
+    errors::{SpannedEncodingError, SpannedEncodingResult, WithSpan},
     mir::{
         places::PlacesEncoderInterface,
         pure::{
@@ -268,7 +268,14 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
                         span,
                     ))
                 } else {
-                    Ok(true.into())
+                    let mut error = SpannedEncodingError::unsupported(
+                        "Time reasoning is disabled but found a call to a time_credits/time_receipts predicate.", 
+                        span
+                    );
+                    error.set_help(
+                        "To enable time reasoning set the TIME_REASONING option to true.",
+                    );
+                    Err(error)
                 }
             }
             _ => unimplemented!(),

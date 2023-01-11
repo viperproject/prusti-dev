@@ -634,7 +634,6 @@ impl Expr {
     pub fn is_only_permissions(&self) -> bool {
         match self {
             Expr::PredicateAccessPredicate(..)
-            // TODO check this not sure
             | Expr::ResourceAccessPredicate(..)
             | Expr::FieldAccessPredicate(..) => true,
             Expr::BinOp(BinOp {

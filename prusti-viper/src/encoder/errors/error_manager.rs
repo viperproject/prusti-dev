@@ -187,7 +187,7 @@ pub enum ErrorCtxt {
     /// The state that fold-unfold algorithm deduced as unreachable, is actually
     /// reachable.
     UnreachableFoldingState,
-    // There is not enough time credtis to execute this code.
+    // There is not enough time credits to execute this code.
     NotEnoughTimeCredits,
     // The code did not create enough time receipts.
     NotEnoughTimeReceipts,
@@ -724,7 +724,9 @@ impl<'tcx> ErrorManager<'tcx> {
                 PrustiError::verification("Not enough time receipts.".to_string(), error_span)
             }
 
-            // TODO: this is a temporary fix for detecting time credits/receipts errors
+            // TODO: this is a temporary fix for detecting time credits/receipts errors. 
+            // Ideally time credits/receipts errors should have the `NotEnoughTimeCredits`/`NotEnoughTimeReceipts` error context and would be 
+            // handled by the previous cases. For this we need to be able to debug the positions that are given to Viper.
             ("exhale.failed:insufficient.permission", ErrorCtxt::ExhaleMethodPrecondition) if ver_error.message.contains("There might be insufficient permission to access time_credits()") => {
                 PrustiError::verification("Not enough time credits to call function.".to_string(), error_span)
             }
