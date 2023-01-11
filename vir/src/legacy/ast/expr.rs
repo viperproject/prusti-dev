@@ -75,6 +75,8 @@ pub enum Expr {
     /// Snapshot call to convert from a Ref to a snapshot value
     SnapApp(Box<Expr>, Position),
     Cast(CastKind, Box<Expr>, Position),
+    /// check that the given expression is at the low security level
+    Low(Box<Expr>, Position),
 }
 
 /// A component that can be used to represent a place as a vector.
@@ -306,6 +308,7 @@ impl fmt::Display for Expr {
 
             Expr::SnapApp(ref expr, _) => write!(f, "snap({expr})"),
             Expr::Cast(ref kind, ref base, _) => write!(f, "cast<{kind:?}>({base})"),
+            Expr::Low(ref base, _) => write!(f, "low({base})"),
         }
     }
 }
@@ -388,6 +391,7 @@ impl Expr {
             | Expr::Seq(_, _, p)
             | Expr::Map(_, _, p)
             | Expr::Cast(_, _, p)
+            | Expr::Low(_, p)
             | Expr::SnapApp(_, p) => *p,
             // TODO Expr::DomainFuncApp(_, _, _, _, _, p) => p,
             Expr::Downcast(box ref base, ..) => base.pos(),
@@ -1243,7 +1247,7 @@ impl Expr {
                 assert_eq!(typ1, typ2, "expr: {self:?}");
                 typ1?
             }
-            Expr::ForAll(..) | Expr::Exists(..) => &Type::Bool,
+            Expr::ForAll(..) | Expr::Exists(..) | Expr::Low(..) => &Type::Bool,
             Expr::MagicWand(..)
             | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
@@ -1716,6 +1720,7 @@ impl Expr {
                     | Expr::Seq(..)
                     | Expr::Map(..)
                     | Expr::SnapApp(..)
+                    | Expr::Low(..)
                     | Expr::Cast(..) => true.into(),
                 }
             }

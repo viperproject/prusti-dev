@@ -1489,4 +1489,14 @@ impl<'a> AstFactory<'a> {
         );
         Expr::new(obj)
     }
+
+    pub fn low(&self, expr: Expr, pos: Position) -> Expr<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Expr,
+            ast::SIFLowExpr,
+            expr.to_jobject(),
+            pos.to_jobject()
+        )
+    }
 }

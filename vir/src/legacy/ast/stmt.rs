@@ -71,6 +71,8 @@ pub enum Stmt {
     /// * place to the enumeration instance
     /// * field that encodes the variant
     Downcast(Expr, Field),
+    /// Mark the given expression as low security level
+    Declassify(Expr),
 }
 
 // This preserves `Stmt == Stmt ==> hash(Stmt) == hash(Stmt)`
@@ -97,6 +99,7 @@ impl Hash for Stmt {
             Stmt::ExpireBorrows(_) => return,
             Stmt::If(e, vs1, vs2) => (e, vs1, vs2).hash(state),
             Stmt::Downcast(e, f) => (e, f).hash(state),
+            Stmt::Declassify(e) => e.hash(state),
         }
         discriminant(self).hash(state);
     }
@@ -256,6 +259,7 @@ impl fmt::Display for Stmt {
             }
 
             Stmt::Downcast(e, v) => writeln!(f, "downcast {e} to {v}"),
+            Stmt::Declassify(e) => writeln!(f, "declassify {e}"),
         }
     }
 }
@@ -392,6 +396,7 @@ pub trait StmtFolder {
             Stmt::ExpireBorrows(d) => self.fold_expire_borrows(d),
             Stmt::If(g, t, e) => self.fold_if(g, t, e),
             Stmt::Downcast(e, f) => self.fold_downcast(e, f),
+            Stmt::Declassify(e) => self.fold_declassify(e),
         }
     }
 
@@ -515,6 +520,10 @@ pub trait StmtFolder {
     fn fold_downcast(&mut self, e: Expr, f: Field) -> Stmt {
         Stmt::Downcast(self.fold_expr(e), f)
     }
+
+    fn fold_declassify(&mut self, e: Expr) -> Stmt {
+        Stmt::Declassify(self.fold_expr(e))
+    }
 }
 
 pub trait FallibleStmtFolder {
@@ -542,6 +551,7 @@ pub trait FallibleStmtFolder {
             Stmt::ExpireBorrows(d) => self.fallible_fold_expire_borrows(d),
             Stmt::If(g, t, e) => self.fallible_fold_if(g, t, e),
             Stmt::Downcast(e, f) => self.fallible_fold_downcast(e, f),
+            Stmt::Declassify(e) => self.fallible_fold_declassify(e),
         }
     }
 
@@ -709,6 +719,10 @@ pub trait FallibleStmtFolder {
     fn fallible_fold_downcast(&mut self, e: Expr, f: Field) -> Result<Stmt, Self::Error> {
         Ok(Stmt::Downcast(self.fallible_fold_expr(e)?, f))
     }
+
+    fn fallible_fold_declassify(&mut self, e: Expr) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::Declassify(self.fallible_fold_expr(e)?))
+    }
 }
 
 pub trait StmtWalker {
@@ -732,6 +746,7 @@ pub trait StmtWalker {
             Stmt::ExpireBorrows(d) => self.walk_expire_borrows(d),
             Stmt::If(g, t, e) => self.walk_if(g, t, e),
             Stmt::Downcast(e, f) => self.walk_downcast(e, f),
+            Stmt::Declassify(e) => self.walk_declassify(e),
         }
     }
 
@@ -849,6 +864,10 @@ pub trait StmtWalker {
     }
 
     fn walk_downcast(&mut self, e: &Expr, _f: &Field) {
+        self.walk_expr(e);
+    }
+
+    fn walk_declassify(&mut self, e: &Expr) {
         self.walk_expr(e);
     }
 }

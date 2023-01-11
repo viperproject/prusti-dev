@@ -70,6 +70,8 @@ pub enum Expr {
     SnapApp(SnapApp),
     /// Cast from one type into another.
     Cast(Cast),
+    /// Set the given expression to the low security level
+    Low(Low),
 }
 
 impl fmt::Display for Expr {
@@ -102,6 +104,7 @@ impl fmt::Display for Expr {
             Expr::Map(map) => map.fmt(f),
             Expr::Downcast(downcast_expr) => downcast_expr.fmt(f),
             Expr::Cast(expr) => expr.fmt(f),
+            Expr::Low(low) => low.fmt(f),
         }
     }
 }
@@ -184,6 +187,7 @@ impl Expr {
             | Expr::ContainerOp(ContainerOp { position, .. })
             | Expr::Cast(Cast { position, .. })
             | Expr::Map(Map { position, .. })
+            | Expr::Low(Low { position, .. })
             | Expr::Seq(Seq { position, .. }) => *position,
             Expr::Downcast(DowncastExpr { base, .. }) => base.pos(),
         }
@@ -235,7 +239,8 @@ impl Expr {
             DomainFuncApp,
             InhaleExhale,
             SnapApp,
-            Cast
+            Cast,
+            Low
         )
     }
 
@@ -468,6 +473,13 @@ impl Expr {
 
     pub fn snap_app(expr: Expr) -> Self {
         Expr::SnapApp(SnapApp {
+            base: Box::new(expr),
+            position: Position::default(),
+        })
+    }
+
+    pub fn low(expr: Expr) -> Self {
+        Expr::Low(Low {
             base: Box::new(expr),
             position: Position::default(),
         })
@@ -1047,7 +1059,7 @@ impl Expr {
                 assert_eq!(typ1, typ2, "expr: {:?}", self);
                 typ1
             }
-            Expr::ForAll(..) | Expr::Exists(..) => &Type::Bool,
+            Expr::ForAll(..) | Expr::Exists(..) | Expr::Low(..) => &Type::Bool,
             Expr::MagicWand(..)
             | Expr::PredicateAccessPredicate(..)
             | Expr::FieldAccessPredicate(..)
@@ -1530,6 +1542,7 @@ impl Expr {
                     | Expr::Seq(..)
                     | Expr::Map(..)
                     | Expr::SnapApp(..)
+                    | Expr::Low(..)
                     | Expr::Cast(..) => true.into(),
                 }
             }
@@ -2605,6 +2618,30 @@ impl PartialEq for Cast {
 impl Hash for Cast {
     fn hash<H: Hasher>(&self, state: &mut H) {
         (&self.kind, &*self.base).hash(state);
+    }
+}
+
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
+pub struct Low {
+    pub base: Box<Expr>,
+    pub position: Position,
+}
+
+impl fmt::Display for Low {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "low({})", self.base)
+    }
+}
+
+impl PartialEq for Low {
+    fn eq(&self, other: &Self) -> bool {
+        self.base == other.base
+    }
+}
+
+impl Hash for Low {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.base.hash(state);
     }
 }
 

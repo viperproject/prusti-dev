@@ -365,4 +365,13 @@ pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
     true
 }
 
+/// Mark the given expression as low security level
+pub fn low<T>(_t: T) -> bool {
+    true
+}
+
+/// Declassify the given expression, making it low
+#[ensures(low(t))]
+pub fn declassify<T>(t: T) {}
+
 pub use private::*;

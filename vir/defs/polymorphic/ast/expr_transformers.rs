@@ -380,6 +380,14 @@ pub trait ExprFolder: Sized {
         })
     }
 
+    fn fold_low(&mut self, expr: Low) -> Expr {
+        let Low { base, position } = expr;
+        Expr::Low(Low {
+            base: self.fold_boxed(base),
+            position,
+        })
+    }
+
     fn fold_snap_app(&mut self, expr: SnapApp) -> Expr {
         let SnapApp { base, position } = expr;
         Expr::SnapApp(SnapApp {
@@ -470,6 +478,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::Seq(seq) => this.fold_seq(seq),
         Expr::Map(map) => this.fold_map(map),
         Expr::Cast(cast) => this.fold_cast(cast),
+        Expr::Low(low) => this.fold_low(low),
     }
 }
 
@@ -663,6 +672,12 @@ pub trait ExprWalker: Sized {
         self.walk(base);
         self.walk(enum_place);
     }
+
+    fn walk_low(&mut self, expr: &Low) {
+        let Low { base, .. } = expr;
+        self.walk(base);
+    }
+
     fn walk_snap_app(&mut self, expr: &SnapApp) {
         let SnapApp { base, .. } = expr;
         self.walk(base);
@@ -728,6 +743,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::Seq(seq) => this.walk_seq(seq),
         Expr::Map(map) => this.walk_map(map),
         Expr::Cast(cast) => this.walk_cast(cast),
+        Expr::Low(low) => this.walk_low(low),
     }
 }
 
@@ -1068,6 +1084,14 @@ pub trait FallibleExprFolder: Sized {
         }))
     }
 
+    fn fallible_fold_low(&mut self, expr: Low) -> Result<Expr, Self::Error> {
+        let Low { base, position } = expr;
+        Ok(Expr::Low(Low {
+            base: self.fallible_fold_boxed(base)?,
+            position,
+        }))
+    }
+
     fn fallible_fold_snap_app(&mut self, expr: SnapApp) -> Result<Expr, Self::Error> {
         let SnapApp { base, position } = expr;
         Ok(Expr::SnapApp(SnapApp {
@@ -1172,6 +1196,7 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::Seq(seq) => this.fallible_fold_seq(seq),
         Expr::Map(map) => this.fallible_fold_map(map),
         Expr::Cast(cast) => this.fallible_fold_cast(cast),
+        Expr::Low(low) => this.fallible_fold_low(low),
     }
 }
 
@@ -1384,6 +1409,11 @@ pub trait FallibleExprWalker: Sized {
         Ok(())
     }
 
+    fn fallible_walk_low(&mut self, expr: &Low) -> Result<(), Self::Error> {
+        let Low { base, .. } = expr;
+        self.fallible_walk(base)
+    }
+
     fn fallible_walk_snap_app(&mut self, expr: &SnapApp) -> Result<(), Self::Error> {
         let SnapApp { base, .. } = expr;
         self.fallible_walk(base)
@@ -1453,5 +1483,6 @@ pub fn default_fallible_walk_expr<U, T: FallibleExprWalker<Error = U>>(
         Expr::Seq(seq) => this.fallible_walk_seq(seq),
         Expr::Map(map) => this.fallible_walk_map(map),
         Expr::Cast(cast) => this.fallible_walk_cast(cast),
+        Expr::Low(low) => this.fallible_walk_low(low),
     }
 }

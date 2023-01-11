@@ -248,4 +248,8 @@ impl<'a> AstFactory<'a> {
     pub fn goto(&self, target: &str) -> Stmt<'a> {
         build_ast_node!(self, Stmt, ast::Goto, self.jni.new_string(target))
     }
+
+    pub fn declassify(&self, expr: Expr) -> Stmt<'a> {
+        build_ast_node!(self, Stmt, ast::SIFDeclassifyStmt, expr.to_jobject())
+    }
 }

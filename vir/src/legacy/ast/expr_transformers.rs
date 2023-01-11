@@ -338,7 +338,11 @@ pub trait ExprFolder: Sized {
     }
 
     fn fold_cast(&mut self, kind: CastKind, base: Box<Expr>, p: Position) -> Expr {
-        Expr::Cast(kind, base, self.fold_position(p))
+        Expr::Cast(kind, self.fold_boxed(base), self.fold_position(p))
+    }
+
+    fn fold_low(&mut self, expr: Box<Expr>, p: Position) -> Expr {
+        Expr::Low(self.fold_boxed(expr), self.fold_position(p))
     }
 
     fn fold_position(&mut self, p: Position) -> Position {
@@ -378,6 +382,7 @@ pub fn default_fold_expr<T: ExprFolder>(this: &mut T, e: Expr) -> Expr {
         Expr::Seq(x, y, p) => this.fold_seq(x, y, p),
         Expr::Map(x, y, p) => this.fold_map(x, y, p),
         Expr::Cast(kind, base, p) => this.fold_cast(kind, base, p),
+        Expr::Low(e, p) => this.fold_low(e, p),
     }
 }
 
@@ -606,6 +611,11 @@ pub trait ExprWalker: Sized {
         self.walk_position(pos);
     }
 
+    fn walk_low(&mut self, expr: &Expr, pos: &Position) {
+        self.walk(expr);
+        self.walk_position(pos);
+    }
+
     fn walk_position(&mut self, _pos: &Position) {}
 }
 
@@ -641,6 +651,7 @@ pub fn default_walk_expr<T: ExprWalker>(this: &mut T, e: &Expr) {
         Expr::Seq(ref ty, ref elems, ref p) => this.walk_seq(ty, elems, p),
         Expr::Map(ref ty, ref elems, ref p) => this.walk_map(ty, elems, p),
         Expr::Cast(ref kind, ref base, ref p) => this.walk_cast(kind, base, p),
+        Expr::Low(ref expr, ref p) => this.walk_low(expr, p),
     }
 }
 
@@ -964,6 +975,10 @@ pub trait FallibleExprFolder: Sized {
     ) -> Result<Expr, Self::Error> {
         Ok(Expr::Cast(kind, self.fallible_fold_boxed(base)?, p))
     }
+
+    fn fallible_fold_low(&mut self, expr: Box<Expr>, p: Position) -> Result<Expr, Self::Error> {
+        Ok(Expr::Low(self.fallible_fold_boxed(expr)?, p))
+    }
 }
 
 pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
@@ -1001,5 +1016,6 @@ pub fn default_fallible_fold_expr<U, T: FallibleExprFolder<Error = U>>(
         Expr::Seq(x, y, p) => this.fallible_fold_seq(x, y, p),
         Expr::Map(x, y, p) => this.fallible_fold_map(x, y, p),
         Expr::Cast(kind, base, p) => this.fallible_fold_cast(kind, base, p),
+        Expr::Low(expr, p) => this.fallible_fold_low(expr, p),
     }
 }
