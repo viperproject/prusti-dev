@@ -9,7 +9,7 @@ fn sum(n: i32) -> i32 {
     let mut res = 0;
     while i < n {
         body_invariant!(time_credits((n - i) as usize));
-        body_invariant!(time_receipts(i as usize + 1));
+        body_invariant!(time_receipts(i as usize));
         res += i;
         i += 1;
     }
@@ -25,7 +25,7 @@ fn sum2(n: i32) -> i32 {
     let mut res = 0;
     while i < n {
         body_invariant!(time_credits((n - i) as usize));
-        body_invariant!(time_receipts(i as usize + 1));
+        body_invariant!(time_receipts(i as usize));
         res += i;
         i += 1;
     }

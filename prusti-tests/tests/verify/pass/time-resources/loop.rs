@@ -9,7 +9,7 @@ fn sum(n: u32) -> u32 {
     let mut res = 0;
     while i < n {
         body_invariant!(time_credits((n - i) as usize));
-        body_invariant!(time_receipts(i as usize + 1));
+        body_invariant!(time_receipts(i as usize));
         res += i;
         i += 1;
     }
@@ -23,7 +23,7 @@ fn sum2(n: u32) -> u32 {
     let mut res = 0;
     while 0 < i {
         body_invariant!(time_credits(i as usize));
-        body_invariant!(time_receipts(1 + (n - i) as usize));
+        body_invariant!(time_receipts((n - i) as usize));
         res += i;
         i -= 1;
     }
@@ -36,7 +36,8 @@ fn double_loop(n: usize) -> u32 {
     let mut i = 0;
     let mut res = 0;
     while i < n {
-        body_invariant!(time_receipts(i * (n + 2) + 1));
+        body_invariant!(time_credits((n - i) * (n + 2)));
+        body_invariant!(time_receipts(i * (n + 2)));
         res += sum(n as u32);
         i += 1;
     }
@@ -55,7 +56,8 @@ fn loop_foo(n: usize) -> usize {
     let mut i = 0;
     let mut res = 0;
     while i < n {
-        body_invariant!(time_receipts(i + 1));
+        body_invariant!(time_credits(n - i));
+        body_invariant!(time_receipts(i));
         res += i;
         i += 1;
     }
@@ -70,13 +72,15 @@ fn loop_foo_loop_foo(n: usize) -> usize {
     let mut i = 0;
     let mut res = 0;
     while i < n {
-        body_invariant!(time_receipts(i + 1));
+        body_invariant!(time_credits(n - i));
+        body_invariant!(time_receipts(i));
         res += i;
         i += 1;
     }
     res += foo(); 
     while 0 < i { 
-        body_invariant!(time_receipts(2 * n - i + 2));
+        body_invariant!(time_credits(i));
+        body_invariant!(time_receipts(n - i));
         res += 1;
         i -= 1;
     }

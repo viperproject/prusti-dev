@@ -6,9 +6,8 @@ use prusti_contracts::*;
 impl usize {
     #[pure]
     #[ensures(self.pow(n) * self == self.pow(n + 1))]
-    #[ensures(2_usize.pow(n) + 2_usize.pow(n) == 2_usize.pow(n + 1))]
-    #[ensures(2_usize.pow(n) + 2_usize.pow(n + 1) <= 2_usize.pow(n + 2))]
-    #[ensures(result >= 1)]
+    #[ensures(self >= 1 ==> result >= 1)]
+    #[ensures(self >= 1 ==> self.pow(0) == 1)]
     fn pow(self, n: u32) -> usize;
 }
 
@@ -21,5 +20,8 @@ fn fib(n: usize) -> usize {
     }
 }
 
-#[requires(time_credits(1))]
-fn main() {}
+#[requires(time_credits(50))]
+fn main() {
+    // consumes 32 credits
+    fib(5);
+}

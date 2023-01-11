@@ -12,10 +12,12 @@ fn sum_2d(a: &[&[u32]]) -> u32 {
     let mut i = 0;
     let mut res = 0;
     while i < a.len() {
-        body_invariant!(time_receipts(i * a[i].len() + 1));
+        body_invariant!(time_credits((a.len() - i) * a[i].len()));
+        body_invariant!(time_receipts(i * a[i].len()));
         let mut j = 0;
         while j < a[i].len() {
-            body_invariant!(time_receipts(i * a[i].len() + j + 1));
+            body_invariant!(time_credits(a[i].len() - j));
+            body_invariant!(time_receipts(j));
             res += a[i][j];
             j += 1;
         }

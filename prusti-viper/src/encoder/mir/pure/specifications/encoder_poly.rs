@@ -133,13 +133,6 @@ pub(super) fn inline_spec_item<'tcx>(
         .replace_multiple_places(&body_replacements))
 }
 
-fn error_ctxt(resource_type: &vir_crate::polymorphic::ResourceType) -> ErrorCtxt {
-    match resource_type {
-        vir_crate::polymorphic::ResourceType::TimeCredits => ErrorCtxt::NotEnoughTimeCredits,
-        vir_crate::polymorphic::ResourceType::TimeReceipts => ErrorCtxt::NotEnoughTimeReceipts,
-    }
-}
-
 pub(super) fn encode_time_specifications<'tcx>(
     encoder: &Encoder<'_, 'tcx>,
     amount: &vir_crate::polymorphic::Expr,
@@ -147,10 +140,13 @@ pub(super) fn encode_time_specifications<'tcx>(
     parent_def_id: DefId,
     span: Span,
 ) -> vir_crate::polymorphic::Expr {
-    let pos =
-        encoder
-            .error_manager()
-            .register_error(span, error_ctxt(&resource_type), parent_def_id);
+    let error_ctxt = match resource_type {
+        vir_crate::polymorphic::ResourceType::TimeCredits => ErrorCtxt::NotEnoughTimeCredits,
+        vir_crate::polymorphic::ResourceType::TimeReceipts => ErrorCtxt::NotEnoughTimeReceipts,
+    };
+    let pos = encoder
+        .error_manager()
+        .register_error(span, error_ctxt, parent_def_id);
     let amount_non_negative = vir_crate::polymorphic::Expr::ge_cmp(amount.clone(), 0.into());
     let resource_access_predicate =
         vir_crate::polymorphic::Expr::resource_access_predicate(resource_type, amount.clone())

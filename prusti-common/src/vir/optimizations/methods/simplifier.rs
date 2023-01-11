@@ -10,10 +10,13 @@ use vir::polymorphic::*;
 
 use crate::vir::optimizations::functions::Simplifier;
 
-/// This optimization transformes ors were the RHS is impure into implications.
-/// This happens in the case of an implication with a resource access predicate in the RHS.
+/// This optimization simplifies all expressions in a method.
+/// It is required when resource access predicates appear on the RHS of
+/// implications as implications are transformed into ors which need to be
+/// transformed back into implications otherwise, we would have an impure
+/// expression in ors which is disallowed in Viper.
 
-pub fn simplify_expr(mut cfg: CfgMethod) -> CfgMethod {
+pub fn simplify_exprs(mut cfg: CfgMethod) -> CfgMethod {
     debug!("Simplifying exprs in {}", cfg.name());
     let mut sentinel_stmt = Stmt::comment("moved out stmt");
     for block in &mut cfg.basic_blocks {

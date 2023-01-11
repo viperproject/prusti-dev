@@ -9,7 +9,8 @@ fn bounded_sum(a: &[usize], bound: usize) -> (usize, usize) {
     let mut i = 0;
     let mut sum = 0;
     while i < a.len() && i < bound {
-        body_invariant!(time_receipts(i + 1));
+        body_invariant!(time_credits(bound - i));
+        body_invariant!(time_receipts(i));
         sum += a[i];
         i += 1;
     }

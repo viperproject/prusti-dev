@@ -99,8 +99,7 @@ impl ExprSimplifier {
             } else {
                 Into::<ast::Expr>::into(false).set_pos(inner_pos)
             }
-            .set_default_pos(pos)
-            .set_default_pos(inner_pos),
+            .set_default_pos(pos),
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::Or,
                 left:
@@ -125,8 +124,7 @@ impl ExprSimplifier {
             } else {
                 disjunct
             }
-            .set_default_pos(pos)
-            .set_default_pos(inner_pos),
+            .set_default_pos(pos),
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::Implies,
                 left: guard,
@@ -160,7 +158,6 @@ impl ExprSimplifier {
             } else {
                 Into::<ast::Expr>::into(true).set_pos(inner_pos)
             }
-            .set_default_pos(inner_pos)
             .set_default_pos(pos),
             ast::Expr::BinOp(ast::BinOp {
                 op_kind: ast::BinaryOpKind::And,
