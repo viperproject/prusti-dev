@@ -58,7 +58,7 @@ impl<'mir, 'tcx: 'mir> FixpointEngine<'mir, 'tcx> for CouplingAnalysis<'mir, 'tc
     }
 
     fn need_to_widen(counter: u32) -> bool {
-        assert!(counter < 2);
+        assert!(counter <= 2);
         false
     }
 
@@ -68,7 +68,7 @@ impl<'mir, 'tcx: 'mir> FixpointEngine<'mir, 'tcx> for CouplingAnalysis<'mir, 'tc
         location: mir::Location,
     ) -> AnalysisResult<()> {
         // todo: remove stub
-        Ok(())
+        state.apply_statement_effect(location)
     }
 
     fn apply_terminator_effect(

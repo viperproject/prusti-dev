@@ -10,13 +10,19 @@ use crate::{
     mir_utils::Place,
 };
 use prusti_rustc_interface::{
-    borrowck::{consumers::RustcFacts, BodyWithBorrowckFacts},
+    borrowck::{
+        consumers::{RichLocation, RustcFacts},
+        BodyWithBorrowckFacts,
+    },
     data_structures::fx::{FxHashMap, FxHashSet},
-    middle::{mir, mir::Location},
+    middle::{
+        mir,
+        mir::{Location, TerminatorKind},
+    },
     polonius_engine::FactTypes,
 };
 use serde::{ser::SerializeStruct, Serialize, Serializer};
-use std::{collections::BTreeSet, fmt, mem, rc::Rc};
+use std::{collections::BTreeSet, fmt, rc::Rc};
 
 // These types are stolen from prusti interface
 pub type Region = <RustcFacts as FactTypes>::Origin;
@@ -109,12 +115,35 @@ impl<'mir, 'tcx: 'mir> CouplingState<'mir, 'tcx> {
         &self,
         location: Location,
     ) -> AnalysisResult<Vec<(mir::BasicBlock, Self)>> {
-        let mut res_vec = Vec::new();
+        // todo: We can't apply cdg inference at terminators without muability.
+        let mut new_state = self.clone();
+        new_state.apply_cdg_inference(location)?;
         let terminator = self.mir.body[location.block].terminator();
-        for bb in terminator.successors() {
-            res_vec.push((bb, self.clone()));
-        }
-        Ok(res_vec)
+        Ok(terminator
+            // todo: this can be replaced with happy_path_successors provided that the other parts of the analysis crate stop complaining
+            .successors()
+            .into_iter()
+            .map(|bb| (bb, new_state.clone()))
+            .collect())
+    }
+
+    pub(crate) fn apply_statement_effect(&mut self, location: Location) -> AnalysisResult<()> {
+        self.apply_cdg_inference(location)
+    }
+
+    /// The main inference algorithm for the CDG
+    /// Unclear if polonius inference is supposed to be different for Start and Mid locations yet
+    fn apply_cdg_inference(&mut self, location: Location) -> AnalysisResult<()> {
+        println!("[inference]   enter {:?}", RichLocation::Start(location));
+        self.apply_polonius_inference(RichLocation::Start(location))?;
+        println!("[inference]   enter {:?}", RichLocation::Mid(location));
+        self.apply_polonius_inference(RichLocation::Mid(location))?;
+        Ok(())
+    }
+
+    fn apply_polonius_inference(&mut self, loctaion: RichLocation) -> AnalysisResult<()> {
+        // todo: inference algorithm
+        Ok(())
     }
 }
 
@@ -155,6 +184,6 @@ impl<'mir, 'tcx: 'mir> AbstractState for CouplingState<'mir, 'tcx> {
     }
 
     fn widen(&mut self, previous: &Self) {
-        // todo: remove stub
+        unimplemented!()
     }
 }
