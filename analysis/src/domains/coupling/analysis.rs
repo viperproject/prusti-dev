@@ -4,40 +4,50 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use super::state::{Loan, Path, PointIndex, Region, Variable};
 use crate::{
     abstract_interpretation::{AnalysisResult, FixpointEngine},
     domains::CouplingState,
-    PointwiseState,
+    AnalysisError, PointwiseState,
 };
 use prusti_rustc_interface::{
-    borrowck::BodyWithBorrowckFacts,
+    borrowck::{consumers::RichLocation, BodyWithBorrowckFacts},
     data_structures::fx::{FxHashMap, FxHashSet},
-    middle::{mir, ty::TyCtxt},
+    middle::{
+        mir,
+        mir::{BorrowKind, Location, Rvalue, StatementKind, TerminatorKind},
+        ty::TyCtxt,
+    },
     span::def_id::DefId,
 };
 
-pub struct CouplingAnalysis<'mir, 'tcx: 'mir> {
+pub struct CouplingAnalysis<'facts, 'mir: 'facts, 'tcx: 'mir> {
     tcx: TyCtxt<'tcx>,
     def_id: DefId,
+    fact_table: &'facts FactTable<'tcx>,
     body_with_facts: &'mir BodyWithBorrowckFacts<'tcx>,
 }
 
-impl<'mir, 'tcx: 'mir> CouplingAnalysis<'mir, 'tcx> {
+impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingAnalysis<'facts, 'mir, 'tcx> {
     pub fn new(
         tcx: TyCtxt<'tcx>,
         def_id: DefId,
+        fact_table: &'facts FactTable<'tcx>,
         body_with_facts: &'mir BodyWithBorrowckFacts<'tcx>,
     ) -> Self {
         CouplingAnalysis {
             tcx,
             def_id,
+            fact_table,
             body_with_facts,
         }
     }
 }
 
-impl<'mir, 'tcx: 'mir> FixpointEngine<'mir, 'tcx> for CouplingAnalysis<'mir, 'tcx> {
-    type State = CouplingState<'mir, 'tcx>;
+impl<'facts, 'mir: 'facts, 'tcx: 'mir> FixpointEngine<'mir, 'tcx>
+    for CouplingAnalysis<'facts, 'mir, 'tcx>
+{
+    type State = CouplingState<'facts, 'mir, 'tcx>;
 
     fn def_id(&self) -> DefId {
         self.def_id
@@ -49,12 +59,12 @@ impl<'mir, 'tcx: 'mir> FixpointEngine<'mir, 'tcx> for CouplingAnalysis<'mir, 'tc
 
     fn new_bottom(&self) -> Self::State {
         // todo: remove stub
-        Self::State::new_empty(self.body_with_facts)
+        Self::State::new_empty(self.body_with_facts, self.fact_table)
     }
 
     fn new_initial(&self) -> Self::State {
         // todo: remove stub
-        Self::State::new_empty(self.body_with_facts)
+        Self::State::new_empty(self.body_with_facts, self.fact_table)
     }
 
     fn need_to_widen(counter: u32) -> bool {
@@ -81,4 +91,91 @@ impl<'mir, 'tcx: 'mir> FixpointEngine<'mir, 'tcx> for CouplingAnalysis<'mir, 'tc
 }
 
 // todo: Put
-impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, CouplingState<'mir, 'tcx>> {}
+impl<'facts, 'mir: 'facts, 'tcx: 'mir>
+    PointwiseState<'mir, 'tcx, CouplingState<'facts, 'mir, 'tcx>>
+{
+}
+
+/// Struct containing lookups for all the Polonius facts
+#[derive(Debug)]
+pub struct FactTable<'tcx> {
+    /// Issue of a loan, into it's issuing origin, and a loan of a place
+    loan_issues: LoanIssues<'tcx>,
+}
+
+/// Issue of a new loan
+type LoanIssues<'tcx> = FxHashMap<PointIndex, (Region, Loan, mir::Place<'tcx>)>;
+
+/// Assignment and the associated subset_base fact
+type Assignments<'tcx> = FxHashMap<PointIndex, (mir::Place<'tcx>, Region, Region)>;
+
+enum StatementKinds<'mir, 'tcx: 'mir> {
+    Stmt(&'mir StatementKind<'tcx>),
+    Term(&'mir TerminatorKind<'tcx>),
+}
+
+impl<'tcx> FactTable<'tcx> {
+    pub fn new(mir: &BodyWithBorrowckFacts<'tcx>) -> AnalysisResult<Self> {
+        let loan_issues = Self::compute_loan_issues(mir)?;
+        let table = Ok(Self { loan_issues });
+        println!("[fact table]  {:#?}", table);
+        return table;
+    }
+
+    /// Collect the loan issue facts from Polonius
+    fn compute_loan_issues<'mir>(
+        mir: &'mir BodyWithBorrowckFacts<'tcx>,
+    ) -> AnalysisResult<LoanIssues<'tcx>> {
+        let mut ret = FxHashMap::<_, _>::default();
+        for (o, l, p) in mir.input_facts.loan_issued_at.iter() {
+            // ret.insert(*p, (*o, *l, todo!()));
+            let location = Self::expect_mid_location(mir.location_table.to_location(*p));
+            let statement = Self::mir_kind_at(mir, location);
+            let place = (*Self::get_borrowed_from_place(&statement, location)?).clone();
+            ret.insert(*p, (*o, *l, place));
+        }
+        return Ok(ret);
+    }
+
+    // Panics when a location is not a start location
+    fn expect_mid_location(location: RichLocation) -> Location {
+        match location {
+            RichLocation::Start(_) => panic!("expected a start location"),
+            RichLocation::Mid(l) => return l,
+        };
+    }
+
+    /// Collect the MIR statement at a location, panic if not a valid location
+    fn mir_kind_at<'mir>(
+        mir: &'mir BodyWithBorrowckFacts<'tcx>,
+        location: Location,
+    ) -> StatementKinds<'mir, 'tcx> {
+        let stmt = mir.body.stmt_at(location);
+        // fixme: can't pattern match on stmt because the Either used by rustc is private?
+        if stmt.is_left() {
+            return StatementKinds::Stmt(&stmt.left().unwrap().kind);
+        } else {
+            return StatementKinds::Term(&stmt.right().unwrap().kind);
+        }
+    }
+
+    // Get the borrowed-from place in all cases where we currently support borrow creation
+    fn get_borrowed_from_place<'a, 'mir>(
+        stmt: &'a StatementKinds<'mir, 'tcx>,
+        loc: Location,
+    ) -> AnalysisResult<&'a mir::Place<'tcx>> {
+        match stmt {
+            StatementKinds::Stmt(StatementKind::Assign(box (
+                _,
+                Rvalue::Ref(
+                    _,
+                    BorrowKind::Mut {
+                        allow_two_phase_borrow: false,
+                    },
+                    p,
+                ),
+            ))) => Ok(p),
+            _ => Err(AnalysisError::UnsupportedStatement(loc)),
+        }
+    }
+}

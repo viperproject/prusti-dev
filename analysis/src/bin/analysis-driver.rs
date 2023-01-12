@@ -7,7 +7,7 @@
 use analysis::{
     abstract_interpretation::FixpointEngine,
     domains::{
-        CouplingAnalysis, DefinitelyAccessibleAnalysis, DefinitelyInitializedAnalysis,
+        CouplingAnalysis, DefinitelyAccessibleAnalysis, DefinitelyInitializedAnalysis, FactTable,
         FramingAnalysis, MaybeBorrowedAnalysis, ReachingDefsAnalysis,
     },
 };
@@ -267,9 +267,14 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
                     }
                     "CouplingAnalysis" => {
                         println!("[driver]    Starting coupling analysis");
-                        let result =
-                            CouplingAnalysis::new(tcx, local_def_id.to_def_id(), &body_with_facts)
-                                .run_fwd_analysis();
+                        let fact_table = FactTable::new(&body_with_facts).unwrap();
+                        let result = CouplingAnalysis::new(
+                            tcx,
+                            local_def_id.to_def_id(),
+                            &fact_table,
+                            &body_with_facts,
+                        )
+                        .run_fwd_analysis();
                         match result {
                             Ok(state) => {
                                 println!("[driver]    Coupling analysis complete. State:");
