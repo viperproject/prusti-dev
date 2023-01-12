@@ -144,7 +144,8 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
     };
 
     // Build the method stub
-    let stub_method = generate_extern_spec_function_stub(method, &method_path, extern_spec_kind);
+    let stub_method =
+        generate_extern_spec_function_stub(method, &method_path, extern_spec_kind, false);
     let stub_method: syn::ImplItemMethod = syn::parse2(stub_method)?;
 
     // Eagerly extract and process specifications
@@ -189,10 +190,13 @@ pub(crate) fn generate_extern_spec_function_stub<Input: HasSignature + HasAttrib
     function: &Input,
     fn_path: &syn::ExprPath,
     extern_spec_kind: ExternSpecKind,
+    mangle_name: bool,
 ) -> TokenStream {
     let signature = function.sig();
     let mut signature = with_explicit_lifetimes(signature).unwrap_or_else(|| signature.clone());
-    signature.ident = format_ident!("prusti_extern_spec_{}", signature.ident);
+    if mangle_name {
+        signature.ident = format_ident!("prusti_extern_spec_{}", signature.ident);
+    }
     // Make elided lifetimes explicit, if necessary.
     let attrs = function.attrs().clone();
     let generic_params = &signature.generic_params_as_call_args();
@@ -203,7 +207,7 @@ pub(crate) fn generate_extern_spec_function_stub<Input: HasSignature + HasAttrib
         #[trusted]
         #[prusti::extern_spec = #extern_spec_kind_string]
         #(#attrs)*
-        #[allow(unused, dead_code, non_snake_case)]
+        #[allow(unused, dead_code)]
         #signature {
             #fn_path :: < #generic_params > ( #args )
         }

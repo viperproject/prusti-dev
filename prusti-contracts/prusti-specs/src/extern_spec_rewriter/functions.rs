@@ -47,5 +47,5 @@ pub fn rewrite_fn(item_fn: &syn::ItemFn, path: &syn::Path) -> TokenStream {
     let path_span = item_fn.sig.ident.span();
     let path = parse_quote_spanned!(path_span=> #path :: #ident);
 
-    generate_extern_spec_function_stub(item_fn, &path, ExternSpecKind::Method)
+    generate_extern_spec_function_stub(item_fn, &path, ExternSpecKind::Method, true)
 }
