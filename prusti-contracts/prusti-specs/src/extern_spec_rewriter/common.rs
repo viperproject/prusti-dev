@@ -6,7 +6,7 @@ use crate::{
     ExternSpecKind, RewritableReceiver, SelfTypeRewriter,
 };
 use itertools::Itertools;
-use quote::{quote, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 use syn::{
     parse_quote_spanned, punctuated::Punctuated, spanned::Spanned, visit::Visit,
     visit_mut::VisitMut, Expr, FnArg, GenericArgument, GenericParam, Pat, PatType, Token,
@@ -193,8 +193,9 @@ pub(crate) fn generate_extern_spec_function_stub<
     extern_spec_kind: ExternSpecKind,
 ) -> Output {
     let signature = function.sig();
+    let mut signature = with_explicit_lifetimes(&signature).unwrap_or_else(|| signature.clone());
+    signature.ident = format_ident!("prusti_extern_spec_{}", signature.ident);
     // Make elided lifetimes explicit, if necessary.
-    let signature = with_explicit_lifetimes(signature).unwrap_or_else(|| signature.clone());
     let attrs = function.attrs().clone();
     let generic_params = &signature.generic_params_as_call_args();
     let args = &signature.params_as_call_args();
@@ -204,7 +205,7 @@ pub(crate) fn generate_extern_spec_function_stub<
         #[trusted]
         #[prusti::extern_spec = #extern_spec_kind_string]
         #(#attrs)*
-        #[allow(unused, dead_code)]
+        #[allow(unused, dead_code, non_snake_case)]
         #signature {
             #fn_path :: < #generic_params > ( #args )
         }
