@@ -110,7 +110,7 @@ pub fn vis_pcs_facts<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> Encoding
             mdpe,
         };
 
-        bctx.compute_cdg_trace();
+        //  bctx.compute_cdg_trace();
 
         log::report_with_writer(
             "scc_trace",
