@@ -37,7 +37,7 @@ impl<'mir, 'tcx: 'mir> CouplingAnalysis<'mir, 'tcx> {
 }
 
 impl<'mir, 'tcx: 'mir> FixpointEngine<'mir, 'tcx> for CouplingAnalysis<'mir, 'tcx> {
-    type State = CouplingState<'tcx>;
+    type State = CouplingState<'mir, 'tcx>;
 
     fn def_id(&self) -> DefId {
         self.def_id
@@ -48,15 +48,16 @@ impl<'mir, 'tcx: 'mir> FixpointEngine<'mir, 'tcx> for CouplingAnalysis<'mir, 'tc
     }
 
     fn new_bottom(&self) -> Self::State {
-        todo!()
+        // todo: remove stub
+        Self::State::new_empty(self.body_with_facts)
     }
 
     fn new_initial(&self) -> Self::State {
-        todo!()
+        // todo: remove stub
+        Self::State::new_empty(self.body_with_facts)
     }
 
     fn need_to_widen(counter: u32) -> bool {
-        // todo: remove this.
         assert!(counter < 2);
         false
     }
@@ -66,7 +67,8 @@ impl<'mir, 'tcx: 'mir> FixpointEngine<'mir, 'tcx> for CouplingAnalysis<'mir, 'tc
         state: &mut Self::State,
         location: mir::Location,
     ) -> AnalysisResult<()> {
-        todo!()
+        // todo: remove stub
+        Ok(())
     }
 
     fn apply_terminator_effect(
@@ -74,9 +76,9 @@ impl<'mir, 'tcx: 'mir> FixpointEngine<'mir, 'tcx> for CouplingAnalysis<'mir, 'tc
         state: &Self::State,
         location: mir::Location,
     ) -> AnalysisResult<Vec<(mir::BasicBlock, Self::State)>> {
-        todo!()
+        state.apply_terminator_effect(location)
     }
 }
 
 // todo: Put
-impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, CouplingState<'tcx>> {}
+impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, CouplingState<'mir, 'tcx>> {}

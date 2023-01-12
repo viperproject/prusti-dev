@@ -13,7 +13,7 @@ use prusti_rustc_interface::{
 use super::CouplingState;
 use crate::mir_utils::Place;
 
-impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, CouplingState<'tcx>> {
+impl<'mir, 'tcx: 'mir> PointwiseState<'mir, 'tcx, CouplingState<'mir, 'tcx>> {
     // TODO: Put graphviz log stuff in here.
 }
 
