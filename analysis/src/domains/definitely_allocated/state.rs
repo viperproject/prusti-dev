@@ -92,6 +92,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyAllocatedState<'mir, 'tcx> {
         &self,
         location: mir::Location,
     ) -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
+        // todo: only happy paths please
         let mut res_vec = Vec::new();
         let terminator = self.mir[location.block].terminator();
         for bb in terminator.successors() {

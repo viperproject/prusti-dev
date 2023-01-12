@@ -272,7 +272,8 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
                                 .run_fwd_analysis();
                         match result {
                             Ok(state) => {
-                                println!("[driver]    Coupling analysis complete");
+                                println!("[driver]    Coupling analysis complete. State:");
+                                println!("[driver]    {:#?}", state);
                                 todo!("log the state into appropriate graphviz files");
                             }
                             Err(e) => eprintln!("{}", e.to_pretty_str(body)),

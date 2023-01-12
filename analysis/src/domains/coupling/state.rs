@@ -5,7 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // use log::info;
-use crate::{abstract_interpretation::AbstractState, mir_utils::Place};
+use crate::{
+    abstract_interpretation::{AbstractState, AnalysisResult},
+    mir_utils::Place,
+};
 use prusti_rustc_interface::{
     borrowck::{consumers::RustcFacts, BodyWithBorrowckFacts},
     data_structures::fx::{FxHashMap, FxHashSet},
@@ -63,19 +66,19 @@ pub enum CDGEdgeKind {
 // Coupling graph hyper-edges
 #[derive(Clone, PartialEq, Eq)]
 pub struct CDGEdge<'tcx> {
-    lhs: BTreeSet<Rc<CDGNode<'tcx>>>,
-    rhs: BTreeSet<Rc<CDGNode<'tcx>>>,
-    edge: CDGEdgeKind,
+    pub lhs: BTreeSet<Rc<CDGNode<'tcx>>>,
+    pub rhs: BTreeSet<Rc<CDGNode<'tcx>>>,
+    pub edge: CDGEdgeKind,
 }
 
 /// The CDG graph fragments associated with an origin
-/// Can be (roughly) interpreted as the Hoare triple
+/// INVARIANT: Can be (roughly) interpreted as the Hoare triple
 ///     {leaves} edges {roots}
 #[derive(Clone, PartialEq, Eq)]
 pub struct CDGOrigin<'tcx> {
-    pub edges: BTreeSet<CDGEdge<'tcx>>,
-    pub leaves: BTreeSet<Rc<CDGNode<'tcx>>>,
-    pub roots: BTreeSet<Rc<CDGNode<'tcx>>>,
+    edges: BTreeSet<CDGEdge<'tcx>>,
+    leaves: BTreeSet<Rc<CDGNode<'tcx>>>,
+    roots: BTreeSet<Rc<CDGNode<'tcx>>>,
 }
 
 // A coupling graph
@@ -84,19 +87,38 @@ pub struct CDG<'tcx> {
     pub origins: FxHashMap<Region, CDGOrigin<'tcx>>,
 }
 
-#[derive(Clone, Default, Eq, PartialEq)]
-pub struct CouplingState<'tcx> {
-    /// Placeholder
+#[derive(Clone)]
+pub struct CouplingState<'mir, 'tcx: 'mir> {
     coupling_graph: CDG<'tcx>,
+    mir: &'mir BodyWithBorrowckFacts<'tcx>,
 }
 
-impl<'tcx> CouplingState<'tcx> {
+impl<'mir, 'tcx: 'mir> CouplingState<'mir, 'tcx> {
     pub fn check_invariant(&self, location: impl fmt::Debug) -> bool {
-        todo!("check the invariants and determine if they hold")
+        todo!("check the Polonius invariants and determine if they hold")
+    }
+
+    pub(crate) fn new_empty(mir: &'mir BodyWithBorrowckFacts<'tcx>) -> Self {
+        Self {
+            coupling_graph: Default::default(),
+            mir,
+        }
+    }
+
+    pub(crate) fn apply_terminator_effect(
+        &self,
+        location: Location,
+    ) -> AnalysisResult<Vec<(mir::BasicBlock, Self)>> {
+        let mut res_vec = Vec::new();
+        let terminator = self.mir.body[location.block].terminator();
+        for bb in terminator.successors() {
+            res_vec.push((bb, self.clone()));
+        }
+        Ok(res_vec)
     }
 }
 
-impl<'tcx> Serialize for CouplingState<'tcx> {
+impl<'mir, 'tcx: 'mir> Serialize for CouplingState<'mir, 'tcx> {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
         let mut s = serializer.serialize_struct("CouplingState", 1)?;
         s.serialize_field("fixme", "fixme")?;
@@ -104,7 +126,7 @@ impl<'tcx> Serialize for CouplingState<'tcx> {
     }
 }
 
-impl fmt::Debug for CouplingState<'_> {
+impl fmt::Debug for CouplingState<'_, '_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -114,16 +136,25 @@ impl fmt::Debug for CouplingState<'_> {
     }
 }
 
-impl<'mir> AbstractState for CouplingState<'mir> {
+impl<'mir, 'tcx: 'mir> PartialEq for CouplingState<'mir, 'tcx> {
+    fn eq(&self, other: &Self) -> bool {
+        self.coupling_graph == other.coupling_graph
+    }
+}
+
+impl<'mir, 'tcx: 'mir> Eq for CouplingState<'mir, 'tcx> {}
+
+impl<'mir, 'tcx: 'mir> AbstractState for CouplingState<'mir, 'tcx> {
     fn is_bottom(&self) -> bool {
-        todo!()
+        // todo: remove stub
+        false
     }
 
     fn join(&mut self, other: &Self) {
-        todo!()
+        // todo: remove stub
     }
 
     fn widen(&mut self, previous: &Self) {
-        todo!()
+        // todo: remove stub
     }
 }
