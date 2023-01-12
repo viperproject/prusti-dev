@@ -122,11 +122,6 @@ pub(crate) fn generate_struct_name_for_trait(item: &syn::ItemTrait) -> String {
     format!("PrustiTrait{}_{}", item.ident, uuid)
 }
 
-pub(crate) fn generate_mod_name(ident: &syn::Ident) -> String {
-    let uuid = Uuid::new_v4().simple();
-    format!("{}_{}", ident, uuid)
-}
-
 fn generate_name_for_type(ty: &syn::Type) -> Option<String> {
     match ty {
         syn::Type::Path(ty_path) => Some(String::from_iter(

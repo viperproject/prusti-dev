@@ -8,7 +8,7 @@ use proc_macro2::{Group, TokenStream, TokenTree};
 use quote::{quote, ToTokens};
 use syn::{parse_quote_spanned, spanned::Spanned};
 
-pub fn rewrite_stub(stub_tokens: &mut TokenStream, path: &syn::Path) -> syn::Result<()> {
+pub fn rewrite_stub(stub_tokens: &TokenStream, path: &syn::Path) -> syn::Result<TokenStream> {
     // Transforms function stubs (functions with a `;` after the
     // signature instead of the body) into functions, then
     // processes them.
@@ -34,19 +34,18 @@ pub fn rewrite_stub(stub_tokens: &mut TokenStream, path: &syn::Path) -> syn::Res
 
     let mut item = res.unwrap();
     if let syn::Item::Fn(item_fn) = &mut item {
-        rewrite_fn(item_fn, path);
+        Ok(rewrite_fn(item_fn, path))
+    } else {
+        Ok(quote!(#item))
     }
-    *stub_tokens = quote!(#item);
-
-    Ok(())
 }
 
 /// Rewrite a specification function to a call to the specified function.
 /// The result of this rewriting is then parsed in `ExternSpecResolver`.
-pub fn rewrite_fn(item_fn: &mut syn::ItemFn, path: &syn::Path) {
+pub fn rewrite_fn(item_fn: &syn::ItemFn, path: &syn::Path) -> TokenStream {
     let ident = &item_fn.sig.ident;
     let path_span = item_fn.sig.ident.span();
     let path = parse_quote_spanned!(path_span=> #path :: #ident);
 
-    *item_fn = generate_extern_spec_function_stub(item_fn, &path, ExternSpecKind::Method);
+    generate_extern_spec_function_stub(item_fn, &path, ExternSpecKind::Method)
 }

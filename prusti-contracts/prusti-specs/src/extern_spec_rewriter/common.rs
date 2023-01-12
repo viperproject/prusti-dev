@@ -6,7 +6,8 @@ use crate::{
     ExternSpecKind, RewritableReceiver, SelfTypeRewriter,
 };
 use itertools::Itertools;
-use quote::{format_ident, quote, ToTokens};
+use proc_macro2::TokenStream;
+use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::{
     parse_quote_spanned, punctuated::Punctuated, spanned::Spanned, visit::Visit,
     visit_mut::VisitMut, Expr, FnArg, GenericArgument, GenericParam, Pat, PatType, Token,
@@ -143,8 +144,8 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
     };
 
     // Build the method stub
-    let stub_method: syn::ImplItemMethod =
-        generate_extern_spec_function_stub(method, &method_path, extern_spec_kind);
+    let stub_method = generate_extern_spec_function_stub(method, &method_path, extern_spec_kind);
+    let stub_method: syn::ImplItemMethod = syn::parse2(stub_method)?;
 
     // Eagerly extract and process specifications
     let mut stub_method = AnyFnItem::ImplMethod(stub_method);
@@ -184,16 +185,13 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
     Ok((stub_method, rewritten_spec_items))
 }
 
-pub(crate) fn generate_extern_spec_function_stub<
-    Input: HasSignature + HasAttributes + Spanned,
-    Output: syn::parse::Parse,
->(
+pub(crate) fn generate_extern_spec_function_stub<Input: HasSignature + HasAttributes + Spanned>(
     function: &Input,
     fn_path: &syn::ExprPath,
     extern_spec_kind: ExternSpecKind,
-) -> Output {
+) -> TokenStream {
     let signature = function.sig();
-    let mut signature = with_explicit_lifetimes(&signature).unwrap_or_else(|| signature.clone());
+    let mut signature = with_explicit_lifetimes(signature).unwrap_or_else(|| signature.clone());
     signature.ident = format_ident!("prusti_extern_spec_{}", signature.ident);
     // Make elided lifetimes explicit, if necessary.
     let attrs = function.attrs().clone();
@@ -201,7 +199,7 @@ pub(crate) fn generate_extern_spec_function_stub<
     let args = &signature.params_as_call_args();
     let extern_spec_kind_string: String = extern_spec_kind.into();
 
-    parse_quote_spanned! {function.span()=>
+    quote_spanned! {function.span()=>
         #[trusted]
         #[prusti::extern_spec = #extern_spec_kind_string]
         #(#attrs)*
