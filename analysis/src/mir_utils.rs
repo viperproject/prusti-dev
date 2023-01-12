@@ -13,6 +13,7 @@ use prusti_rustc_interface::{
     infer::infer::TyCtxtInferExt,
     middle::{
         mir,
+        mir::TerminatorKind,
         ty::{self, TyCtxt},
     },
     trait_selection::infer::InferCtxtExt,
@@ -365,4 +366,64 @@ pub fn get_blocked_place<'tcx>(tcx: TyCtxt<'tcx>, borrowed: Place<'tcx>) -> Plac
         }
     }
     borrowed
+}
+
+/// Successors of a terminator along non-unwinding paths
+#[allow(unused)]
+pub fn happy_path_successors(terminator: &TerminatorKind) -> Vec<mir::BasicBlock> {
+    match terminator {
+        TerminatorKind::SwitchInt {
+            discr: _,
+            switch_ty: _,
+            targets: ts,
+        } => ts.all_targets().iter().cloned().collect(),
+        TerminatorKind::Resume
+        | TerminatorKind::Abort
+        | TerminatorKind::Return
+        | TerminatorKind::Unreachable
+        | TerminatorKind::GeneratorDrop => vec![],
+        TerminatorKind::Goto { target: t }
+        | TerminatorKind::Drop {
+            place: _,
+            target: t,
+            unwind: _,
+        }
+        | TerminatorKind::DropAndReplace {
+            place: _,
+            value: _,
+            target: t,
+            unwind: _,
+        }
+        | TerminatorKind::Assert {
+            cond: _,
+            expected: _,
+            msg: _,
+            target: t,
+            cleanup: _,
+        }
+        | TerminatorKind::Yield {
+            value: _,
+            resume: t,
+            resume_arg: _,
+            drop: _,
+        }
+        | TerminatorKind::FalseEdge {
+            real_target: t,
+            imaginary_target: _,
+        }
+        | TerminatorKind::FalseUnwind {
+            real_target: t,
+            unwind: _,
+        }
+        | TerminatorKind::Call {
+            func: _,
+            args: _,
+            destination: _,
+            target: Some(t),
+            cleanup: _,
+            from_hir_call: _,
+            fn_span: _,
+        } => vec![(*t).clone()],
+        _ => vec![],
+    }
 }
