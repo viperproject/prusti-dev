@@ -35,8 +35,6 @@ where
 
 #[extern_spec(module)]
 mod inner {
-    use crate::*;
-
     #[ensures(result == 1)]
     fn free_1() -> i32;
 }

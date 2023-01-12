@@ -21,8 +21,6 @@ impl Clone for i32 {
 #[extern_spec]
 mod core {
     mod mem {
-        use crate::*;
-
         #[pure]
         pub fn size_of<T>() -> usize {} //~ ERROR: Unexpected method body. (Extern specs only define specifications.)
     }
