@@ -24,6 +24,8 @@ use prusti_rustc_interface::{
 use serde::{ser::SerializeStruct, Serialize, Serializer};
 use std::{collections::BTreeSet, fmt, rc::Rc};
 
+use super::FactTable;
+
 // These types are stolen from prusti interface
 pub type Region = <RustcFacts as FactTypes>::Origin;
 pub type Loan = <RustcFacts as FactTypes>::Loan;
@@ -94,19 +96,24 @@ pub struct CDG<'tcx> {
 }
 
 #[derive(Clone)]
-pub struct CouplingState<'mir, 'tcx: 'mir> {
+pub struct CouplingState<'facts, 'mir: 'facts, 'tcx: 'mir> {
     coupling_graph: CDG<'tcx>,
     mir: &'mir BodyWithBorrowckFacts<'tcx>,
+    fact_table: &'facts FactTable<'tcx>,
 }
 
-impl<'mir, 'tcx: 'mir> CouplingState<'mir, 'tcx> {
+impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
     pub fn check_invariant(&self, location: impl fmt::Debug) -> bool {
         todo!("check the Polonius invariants and determine if they hold")
     }
 
-    pub(crate) fn new_empty(mir: &'mir BodyWithBorrowckFacts<'tcx>) -> Self {
+    pub(crate) fn new_empty(
+        mir: &'mir BodyWithBorrowckFacts<'tcx>,
+        fact_table: &'facts FactTable<'tcx>,
+    ) -> Self {
         Self {
             coupling_graph: Default::default(),
+            fact_table,
             mir,
         }
     }
@@ -141,13 +148,16 @@ impl<'mir, 'tcx: 'mir> CouplingState<'mir, 'tcx> {
         Ok(())
     }
 
-    fn apply_polonius_inference(&mut self, loctaion: RichLocation) -> AnalysisResult<()> {
+    fn apply_polonius_inference(&mut self, location: RichLocation) -> AnalysisResult<()> {
         // todo: inference algorithm
+        // if loan_issues.len() > 0 {
+        //     println!("[inference]   loan_issues {:?}", loan_issues);
+        // }
         Ok(())
     }
 }
 
-impl<'mir, 'tcx: 'mir> Serialize for CouplingState<'mir, 'tcx> {
+impl<'facts, 'mir: 'facts, 'tcx: 'mir> Serialize for CouplingState<'facts, 'mir, 'tcx> {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
         let mut s = serializer.serialize_struct("CouplingState", 1)?;
         s.serialize_field("fixme", "fixme")?;
@@ -155,7 +165,7 @@ impl<'mir, 'tcx: 'mir> Serialize for CouplingState<'mir, 'tcx> {
     }
 }
 
-impl fmt::Debug for CouplingState<'_, '_> {
+impl fmt::Debug for CouplingState<'_, '_, '_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -165,15 +175,15 @@ impl fmt::Debug for CouplingState<'_, '_> {
     }
 }
 
-impl<'mir, 'tcx: 'mir> PartialEq for CouplingState<'mir, 'tcx> {
+impl<'facts, 'mir: 'facts, 'tcx: 'mir> PartialEq for CouplingState<'facts, 'mir, 'tcx> {
     fn eq(&self, other: &Self) -> bool {
         self.coupling_graph == other.coupling_graph
     }
 }
 
-impl<'mir, 'tcx: 'mir> Eq for CouplingState<'mir, 'tcx> {}
+impl<'facts, 'mir: 'facts, 'tcx: 'mir> Eq for CouplingState<'facts, 'mir, 'tcx> {}
 
-impl<'mir, 'tcx: 'mir> AbstractState for CouplingState<'mir, 'tcx> {
+impl<'facts, 'mir: 'facts, 'tcx: 'mir> AbstractState for CouplingState<'facts, 'mir, 'tcx> {
     fn is_bottom(&self) -> bool {
         // todo: remove stub
         false
