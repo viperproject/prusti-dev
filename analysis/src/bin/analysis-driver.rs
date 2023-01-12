@@ -7,8 +7,8 @@
 use analysis::{
     abstract_interpretation::FixpointEngine,
     domains::{
-        DefinitelyAccessibleAnalysis, DefinitelyInitializedAnalysis, FramingAnalysis,
-        MaybeBorrowedAnalysis, ReachingDefsAnalysis,
+        CouplingAnalysis, DefinitelyAccessibleAnalysis, DefinitelyInitializedAnalysis,
+        FramingAnalysis, MaybeBorrowedAnalysis, ReachingDefsAnalysis,
     },
 };
 use prusti_rustc_interface::{
@@ -261,6 +261,19 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
                         match analyzer.run_analysis() {
                             Ok(state) => {
                                 println!("{}", serde_json::to_string_pretty(&state).unwrap());
+                            }
+                            Err(e) => eprintln!("{}", e.to_pretty_str(body)),
+                        }
+                    }
+                    "CouplingAnalysis" => {
+                        println!("[driver]    Starting coupling analysis");
+                        let result =
+                            CouplingAnalysis::new(tcx, local_def_id.to_def_id(), &body_with_facts)
+                                .run_fwd_analysis();
+                        match result {
+                            Ok(state) => {
+                                println!("[driver]    Coupling analysis complete");
+                                todo!("log the state into appropriate graphviz files");
                             }
                             Err(e) => eprintln!("{}", e.to_pretty_str(body)),
                         }

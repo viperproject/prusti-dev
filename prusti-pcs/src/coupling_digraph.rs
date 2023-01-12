@@ -286,46 +286,33 @@ impl<'tcx> CouplingDigraph<'tcx> {
     }
 
     pub fn apply_borrow_move(&mut self, bm: BorrowMove<'tcx>, pt: PointIndex) {
-        // Change all LHS which have "from" permission to the "to" permission.
-        // The borrow checker enforces that
-        //      > let mut s0 = S {x: 0, y: 0};
-        //      > let bx = &mut s0.x;
-        //      > let s1 = s0;
-        //      > let bx1 = bx;
-        // does not compile.
+        // MARKUS: I need to reorganize this, pretty bad
 
-        // assert!(self.graph.nodes().contains(&CPlace {
-        //     place: bm.to,
-        //     tag: None
-        // }));
-
-        // MARKUS: I need to reorganize this
-
-        println!("BEFORE KILLS: {:?}", self.graph.nodes());
+        println!("\t[kills] before kills: {:?}", self.graph.nodes());
 
         assert!(!self.graph.nodes().contains(&CPlace {
             place: bm.to,
             tag: Some(pt.clone())
         }));
 
-        if self.graph.nodes().contains(&CPlace {
-            place: bm.to,
-            tag: None,
-        }) {
-            // 1. kill the "to" place
-            self.graph.replace_nodes(
-                CPlace {
-                    place: bm.to,
-                    tag: None,
-                },
-                CPlace {
-                    place: bm.to,
-                    tag: Some(pt),
-                },
-                &mut self.annotations,
-            );
+        // 1. kill all untagged nodes which are prefixes of bm.to
+        let all_nodes = self.graph.nodes().iter().cloned().collect::<Vec<_>>();
+
+        for n in all_nodes.iter() {
+            if (n.tag.is_none()) && is_prefix(n.place, bm.to) {
+                println!("\t[kills] killing node: {:?}", n);
+                self.graph.replace_nodes(
+                    (*n).clone(),
+                    CPlace {
+                        place: n.place,
+                        tag: Some(pt),
+                    },
+                    &mut self.annotations,
+                );
+            }
         }
-        println!("AFTER KILLS: {:?}", self.graph.nodes());
+
+        println!("\t[kills] after kills: {:?}", self.graph.nodes());
 
         // 2. Now without conflicts, move the place
         assert!(self.graph.nodes().contains(&CPlace {
@@ -349,7 +336,7 @@ impl<'tcx> CouplingDigraph<'tcx> {
             &mut self.annotations,
         );
 
-        println!("AFTER MOVES: {:?}", self.graph.nodes());
+        println!("[kills] after move: {:?}", self.graph.nodes());
     }
 
     // pub fn apply_kill(&mut self, p: mir::Place<'tcx>, l: PointIndex) {

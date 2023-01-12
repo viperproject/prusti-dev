@@ -10,7 +10,9 @@ mod definitely_initialized;
 mod framing;
 mod maybe_borrowed;
 mod reaching_definitions;
+mod coupling;
 
+pub use coupling::*;
 pub use definitely_accessible::*;
 pub use definitely_allocated::*;
 pub use definitely_initialized::*;
