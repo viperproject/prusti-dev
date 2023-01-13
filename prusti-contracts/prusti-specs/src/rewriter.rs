@@ -124,7 +124,7 @@ impl AstRewriter {
             )
         };
         let mut spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
-            #[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
+            #[allow(unused_must_use, unused_parens, unused_variables, dead_code, non_snake_case)]
             #[prusti::spec_only]
             #[prusti::spec_id = #spec_id_str]
             fn #item_name() -> #return_type {
