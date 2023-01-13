@@ -101,13 +101,54 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir>
 pub struct FactTable<'tcx> {
     /// Issue of a loan, into it's issuing origin, and a loan of a place
     loan_issues: LoanIssues<'tcx>,
+
+    // Interpretation of regions in terms of places and temporaries
+    origins: OriginPlaces<'tcx>,
 }
 
-/// Issue of a new loan
-type LoanIssues<'tcx> = FxHashMap<PointIndex, (Region, Loan, mir::Place<'tcx>)>;
+/// Issue of a new loan. The assocciated region should represent a borrow temporary.
+type LoanIssues<'tcx> = FxHashMap<PointIndex, Region>;
+
+/// Assignment between Origins and places
+/// Precise relationship between these two are yet unconfirmed by the Polonius team
+/// NOTE: The LHS of a origin is no necessarily this place, as it may be further unpacked.
+/// NOTE: We don't know if this is a bijection yet, nor the full scope of Temporaries Polonius
+/// uses (see: OriginLHS struct for the current characterization)
+#[derive(Debug, Default)]
+struct OriginPlaces<'tcx>(FxHashMap<Region, OriginLHS<'tcx>>);
+
+impl<'tcx> OriginPlaces<'tcx> {
+    // Attempt to add a new constraint to the origin mapping
+    pub fn new_constraint(&mut self, r: Region, c: OriginLHS<'tcx>) {
+        let normalized_c = Self::normalize_origin_lhs(c);
+        if let Some(old_lhs) = self.0.insert(r, normalized_c.clone()) {
+            assert!(old_lhs == normalized_c);
+        }
+    }
+
+    fn normalize_origin_lhs(c: OriginLHS<'tcx>) -> OriginLHS<'tcx> {
+        // fixme: Need to check that p is maximally packed if it is a place
+        return c;
+    }
+}
+
+#[derive(PartialEq, Eq, Clone)]
+pub enum OriginLHS<'tcx> {
+    Place(mir::Place<'tcx>),
+    Loan(Loan),
+}
+
+impl<'tcx> std::fmt::Debug for OriginLHS<'tcx> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Place(p) => f.write_fmt(format_args!("Place({:?})", p)),
+            Self::Loan(l) => f.write_fmt(format_args!("Loan({:?})", l)),
+        }
+    }
+}
 
 /// Assignment and the associated subset_base fact
-type Assignments<'tcx> = FxHashMap<PointIndex, (mir::Place<'tcx>, Region, Region)>;
+type Assignments<'tcx> = FxHashMap<PointIndex, (mir::Place<'tcx>, Region)>;
 
 enum StatementKinds<'mir, 'tcx: 'mir> {
     Stmt(&'mir StatementKind<'tcx>),
@@ -116,23 +157,31 @@ enum StatementKinds<'mir, 'tcx: 'mir> {
 
 impl<'tcx> FactTable<'tcx> {
     pub fn new(mir: &BodyWithBorrowckFacts<'tcx>) -> AnalysisResult<Self> {
-        let loan_issues = Self::compute_loan_issues(mir)?;
-        let table = Ok(Self { loan_issues });
+        let mut origins: OriginPlaces<'tcx> = Default::default();
+        let loan_issues = Self::compute_loan_issues(mir, &mut origins)?;
+        let table = Ok(Self {
+            loan_issues,
+            origins,
+        });
         println!("[fact table]  {:#?}", table);
         return table;
     }
 
     /// Collect the loan issue facts from Polonius
-    fn compute_loan_issues<'mir>(
+    fn compute_loan_issues<'a, 'mir>(
         mir: &'mir BodyWithBorrowckFacts<'tcx>,
+        origin_map: &'a mut OriginPlaces<'tcx>,
     ) -> AnalysisResult<LoanIssues<'tcx>> {
         let mut ret = FxHashMap::<_, _>::default();
         for (o, l, p) in mir.input_facts.loan_issued_at.iter() {
-            // ret.insert(*p, (*o, *l, todo!()));
-            let location = Self::expect_mid_location(mir.location_table.to_location(*p));
-            let statement = Self::mir_kind_at(mir, location);
-            let place = (*Self::get_borrowed_from_place(&statement, location)?).clone();
-            ret.insert(*p, (*o, *l, place));
+            // Insert facts for the borrow temporary
+            origin_map.new_constraint((*o).clone(), OriginLHS::Loan((*l).clone()));
+            ret.insert(*p, *o);
+
+            // Insert facts for reborrows (fixme)
+            // let location = Self::expect_mid_location(mir.location_table.to_location(*p));
+            // let statement = Self::mir_kind_at(mir, location);
+            // let place = (*Self::get_borrowed_from_place(&statement, location)?).clone();
         }
         return Ok(ret);
     }
