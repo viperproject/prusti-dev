@@ -98,6 +98,7 @@ pub struct CDG<'tcx> {
 #[derive(Clone)]
 pub struct CouplingState<'facts, 'mir: 'facts, 'tcx: 'mir> {
     coupling_graph: CDG<'tcx>,
+    // Also include: invariant checks, loan kill marks
     mir: &'mir BodyWithBorrowckFacts<'tcx>,
     fact_table: &'facts FactTable<'tcx>,
 }
@@ -153,6 +154,8 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
         // if loan_issues.len() > 0 {
         //     println!("[inference]   loan_issues {:?}", loan_issues);
         // }
+
+        // nts: Make sure to do the check and update a field in the state to track it
         Ok(())
     }
 }
