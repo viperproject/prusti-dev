@@ -363,6 +363,12 @@
 <a href="#363" id="363">363</a>
 <a href="#364" id="364">364</a>
 <a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
 </pre><pre class="rust"><code><span class="comment">// © 2022, ETH Zurich
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -374,7 +380,7 @@
         errors::{<a href="../../../errors/encoding_error.rs.html#15">EncodingError</a>, <a href="../../../errors/encoding_error.rs.html#20">EncodingResult</a>, <a href="../../../errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>, <a href="../../../errors/with_span.rs.html#13">WithSpan</a>},
         <a href="../../../high/types/interface.rs.html#127">high::types::HighTypeEncoderInterface</a>,
         mir::{
-            pure::{<a href="utils.rs.html#14-23">specifications::utils::extract_closure_from_ty</a>, <a href="../pure_functions/interface.rs.html#123">PureFunctionEncoderInterface</a>},
+            pure::{<a href="utils.rs.html#14-23">specifications::utils::extract_closure_from_ty</a>, <a href="../pure_functions/interface.rs.html#125">PureFunctionEncoderInterface</a>},
             <a href="../../types/interface.rs.html#23">types::MirTypeEncoderInterface</a>,
         },
         mir_encoder::{<a href="../../../mir_encoder/mod.rs.html#372">MirEncoder</a>, <a href="../../../mir_encoder/mod.rs.html#39">PlaceEncoder</a>},
@@ -445,9 +451,15 @@
     parent_def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
     substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 ) -&gt; SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir_crate::polymorphic::Expr</a>&gt; {
-    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
-        substs.len(),
-        encoder.env().query.identity_substs(def_id).len()
+    <span class="comment">// each non-lifetime parameter should be matched with a subst
+    </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
+        substs.non_erasable_generics().count(),
+        encoder
+            .env()
+            .query
+            .identity_substs(def_id)
+            .non_erasable_generics()
+            .count()
     );
 
     <span class="kw">let </span>mir = <a href="#75">encoder</a>
@@ -458,7 +470,7 @@
         mir.arg_count,
         target_args.len() + usize::from(target_return.is_some())
     );
-    <span class="kw">let </span>mir_encoder = MirEncoder::new(<a href="#75">encoder</a>, <span class="kw-2">&amp;</span><a href="#88">mir</a>, <a href="#76">def_id</a>);
+    <span class="kw">let </span>mir_encoder = MirEncoder::new(<a href="#75">encoder</a>, <span class="kw-2">&amp;</span><a href="#94">mir</a>, <a href="#76">def_id</a>);
     <span class="kw">let </span><span class="kw-2">mut </span>body_replacements = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
     <span class="kw">for </span>(arg_idx, arg_local) <span class="kw">in </span>mir.args_iter().enumerate() {
         <span class="kw">let </span>local_span = mir_encoder.get_local_span(arg_local);
@@ -489,7 +501,7 @@
     }
     <span class="prelude-val">Ok</span>(encoder
         .encode_pure_expression(def_id, parent_def_id, substs)<span class="question-mark">?
-        </span>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="#97">body_replacements</a>))
+        </span>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="#103">body_replacements</a>))
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>encode_quantifier&lt;<span class="lifetime">&#39;tcx</span>&gt;(
@@ -512,9 +524,9 @@
     //     |qvars...| -&gt; bool { &lt;body expr&gt; },
     //   )
 
-    </span><span class="kw">let </span>cl_type_body = <a href="#136">substs</a>.type_at(<span class="number">1</span>);
+    </span><span class="kw">let </span>cl_type_body = <a href="#142">substs</a>.type_at(<span class="number">1</span>);
     <span class="kw">let </span>(body_def_id, body_substs, body_span, args, <span class="kw">_</span>) =
-        <a href="utils.rs.html#14-23">extract_closure_from_ty</a>(<a href="#131">encoder</a>.<a href="../../../encoder.rs.html#225">env</a>().query, <a href="#150">cl_type_body</a>);
+        <a href="utils.rs.html#14-23">extract_closure_from_ty</a>(<a href="#137">encoder</a>.<a href="../../../encoder.rs.html#225">env</a>().query, <a href="#156">cl_type_body</a>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>encoded_qvars = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
     <span class="kw">let </span><span class="kw-2">mut </span>bounds = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
@@ -602,7 +614,7 @@
 
     <span class="comment">// replace qvars with a nicer name based on quantifier depth to ensure that
     // quantifiers remain stable for caching
-    </span><span class="kw">let </span>quantifier_depth = <a href="#286">find_quantifier_depth</a>(<span class="kw-2">&amp;</span><a href="#229">encoded_body</a>);
+    </span><span class="kw">let </span>quantifier_depth = <a href="#292">find_quantifier_depth</a>(<span class="kw-2">&amp;</span><a href="#235">encoded_body</a>);
     <span class="kw">let </span><span class="kw-2">mut </span>qvar_replacements = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
     <span class="kw">let </span><span class="kw-2">mut </span>fixed_qvars = <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
     <span class="kw">for </span>(arg_idx, qvar) <span class="kw">in </span>encoded_qvars.iter().enumerate() {
@@ -616,34 +628,34 @@
         ));
         fixed_qvars.push(qvar_rep);
     }
-    <span class="kw">let </span>bounds = <a href="#155">bounds</a>
+    <span class="kw">let </span>bounds = <a href="#161">bounds</a>
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|bound| <a href="#256">bound</a>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="#241">qvar_replacements</a>))
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|bound| <a href="#262">bound</a>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="#247">qvar_replacements</a>))
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-    <span class="kw">let </span>encoded_body = <a href="#229">encoded_body</a>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="#241">qvar_replacements</a>);
-    <span class="kw">let </span>encoded_trigger_sets = <a href="#176">encoded_trigger_sets</a>
+    <span class="kw">let </span>encoded_body = <a href="#235">encoded_body</a>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="#247">qvar_replacements</a>);
+    <span class="kw">let </span>encoded_trigger_sets = <a href="#182">encoded_trigger_sets</a>
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|set| <a href="#261">set</a>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="#241">qvar_replacements</a>))
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|set| <a href="#267">set</a>.replace_multiple_places(<span class="kw-2">&amp;</span><a href="#247">qvar_replacements</a>))
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
     <span class="kw">let </span>final_body = <span class="kw">if </span>bounds.is_empty() {
-        <a href="#258">encoded_body</a>
+        <a href="#264">encoded_body</a>
     } <span class="kw">else if </span>is_exists {
-        vir_crate::polymorphic::Expr::and(<a href="#254">bounds</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="../../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>(), <a href="#258">encoded_body</a>)
+        vir_crate::polymorphic::Expr::and(<a href="#260">bounds</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="../../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>(), <a href="#264">encoded_body</a>)
     } <span class="kw">else </span>{
-        vir_crate::polymorphic::Expr::implies(<a href="#254">bounds</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="../../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>(), <a href="#258">encoded_body</a>)
+        vir_crate::polymorphic::Expr::implies(<a href="#260">bounds</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a href="../../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>(), <a href="#264">encoded_body</a>)
     };
     <span class="kw">if </span>is_exists {
         <span class="prelude-val">Ok</span>(vir_crate::polymorphic::Expr::exists(
-            <a href="#242">fixed_qvars</a>,
-            <a href="#259">encoded_trigger_sets</a>,
-            <a href="#264">final_body</a>,
+            <a href="#248">fixed_qvars</a>,
+            <a href="#265">encoded_trigger_sets</a>,
+            <a href="#270">final_body</a>,
         ))
     } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(vir_crate::polymorphic::Expr::forall(
-            <a href="#242">fixed_qvars</a>,
-            <a href="#259">encoded_trigger_sets</a>,
-            <a href="#264">final_body</a>,
+            <a href="#248">fixed_qvars</a>,
+            <a href="#265">encoded_trigger_sets</a>,
+            <a href="#270">final_body</a>,
         ))
     }
 }
@@ -654,47 +666,47 @@
         current_depth: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         max_depth: <a href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     }
-    <span class="kw">impl </span><a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for </span><a href="#288">DepthChecker</a> {
+    <span class="kw">impl </span><a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for </span><a href="#294">DepthChecker</a> {
         <span class="kw">fn </span>walk_forall(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/polymorphic/ast/expr/struct.ForAll.html">vir_crate::polymorphic::ForAll</a>) {
-            <a class="self" href="#293">self</a>.current_depth += <span class="number">1</span>;
+            <a class="self" href="#299">self</a>.current_depth += <span class="number">1</span>;
             <span class="kw">if </span><span class="self">self</span>.current_depth &gt;= <span class="self">self</span>.max_depth {
-                <a class="self" href="#293">self</a>.max_depth = <a class="self" href="#293">self</a>.current_depth;
+                <a class="self" href="#299">self</a>.max_depth = <a class="self" href="#299">self</a>.current_depth;
             }
-            <a class="self" href="#293">self</a>.<a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<span class="kw-2">&amp;</span><a href="#293">statement</a>.body);
-            <a class="self" href="#293">self</a>.current_depth -= <span class="number">1</span>;
+            <a class="self" href="#299">self</a>.<a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<span class="kw-2">&amp;</span><a href="#299">statement</a>.body);
+            <a class="self" href="#299">self</a>.current_depth -= <span class="number">1</span>;
         }
         <span class="kw">fn </span>walk_exists(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/polymorphic/ast/expr/struct.Exists.html">vir_crate::polymorphic::Exists</a>) {
-            <a class="self" href="#301">self</a>.current_depth += <span class="number">1</span>;
+            <a class="self" href="#307">self</a>.current_depth += <span class="number">1</span>;
             <span class="kw">if </span><span class="self">self</span>.current_depth &gt;= <span class="self">self</span>.max_depth {
-                <a class="self" href="#301">self</a>.max_depth = <a class="self" href="#301">self</a>.current_depth;
+                <a class="self" href="#307">self</a>.max_depth = <a class="self" href="#307">self</a>.current_depth;
             }
-            <a class="self" href="#301">self</a>.<a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<span class="kw-2">&amp;</span><a href="#301">statement</a>.body);
-            <a class="self" href="#301">self</a>.current_depth -= <span class="number">1</span>;
+            <a class="self" href="#307">self</a>.<a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<span class="kw-2">&amp;</span><a href="#307">statement</a>.body);
+            <a class="self" href="#307">self</a>.current_depth -= <span class="number">1</span>;
         }
     }
-    <span class="kw">let </span><span class="kw-2">mut </span>checker = <a href="#288">DepthChecker</a> {
+    <span class="kw">let </span><span class="kw-2">mut </span>checker = <a href="#294">DepthChecker</a> {
         current_depth: <span class="number">0</span>,
         max_depth: <span class="number">0</span>,
     };
-    <a href="#310">checker</a>.<a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<a href="#286">expr</a>);
-    <a href="#310">checker</a>.max_depth
+    <a href="#316">checker</a>.<a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<a href="#292">expr</a>);
+    <a href="#316">checker</a>.max_depth
 }
 
 <span class="kw">fn </span>check_trigger(trigger: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir_crate::polymorphic::Expr</a>) -&gt; EncodingResult&lt;()&gt; {
     <span class="kw">use </span><a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprFolder.html">vir_crate::polymorphic::FallibleExprFolder</a>;
     <span class="kw">struct </span>TriggerChecker {}
-    <span class="kw">impl </span><a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprFolder.html">FallibleExprFolder</a> <span class="kw">for </span><a href="#320">TriggerChecker</a> {
+    <span class="kw">impl </span><a href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprFolder.html">FallibleExprFolder</a> <span class="kw">for </span><a href="#326">TriggerChecker</a> {
         <span class="kw">type </span>Error = <a href="../../../errors/encoding_error.rs.html#15">EncodingError</a>;
         <span class="kw">fn </span>fallible_fold(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
             e: <a href="../../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir_crate::polymorphic::Expr</a>,
         ) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="../../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir_crate::polymorphic::Expr</a>, <span class="self">Self</span>::Error&gt; {
-            <span class="kw">match </span><a href="#325">e</a> {
+            <span class="kw">match </span><a href="#331">e</a> {
                 <span class="comment">// legal triggers
                 </span>vir_crate::polymorphic::Expr::Local(..)
                 | vir_crate::polymorphic::Expr::Const(..)
                 | vir_crate::polymorphic::Expr::FuncApp(..)
-                | vir_crate::polymorphic::Expr::DomainFuncApp(..) =&gt; <span class="prelude-val">Ok</span>(<a href="#325">e</a>),
+                | vir_crate::polymorphic::Expr::DomainFuncApp(..) =&gt; <span class="prelude-val">Ok</span>(<a href="#331">e</a>),
                 <span class="comment">// everything else is illegal in triggers
                 </span><span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(EncodingError::incorrect(
                     <span class="string">&quot;only function calls are allowed in triggers&quot;</span>,
@@ -711,9 +723,9 @@
     bound_vars: <span class="kw-2">&amp;</span>[<a href="../../../../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir_crate::polymorphic::LocalVar</a>],
     trigger_set: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/polymorphic/ast/trigger/struct.Trigger.html">vir_crate::polymorphic::Trigger</a>,
 ) -&gt; EncodingResult&lt;()&gt; {
-    <span class="kw">let </span>bound_vars_expr = <a href="#346">bound_vars</a>
+    <span class="kw">let </span>bound_vars_expr = <a href="#352">bound_vars</a>
         .iter()
-        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|var| <a href="#351">var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(|var| <a href="#357">var</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
         .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
     <span class="kw">let </span><span class="kw-2">mut </span>found_bounded_vars = FxHashSet::default();
     <span class="kw">for </span>term <span class="kw">in </span>trigger_set.elements() {

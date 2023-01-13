@@ -591,6 +591,8 @@
 <a href="#591" id="591">591</a>
 <a href="#592" id="592">592</a>
 <a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
 </pre><pre class="rust"><code><span class="doccomment">//! A public interface to the pure function encoder.
 
 </span><span class="kw">use </span><span class="kw">super</span>::encoder_poly::{<a href="encoder_poly.rs.html#601">FunctionCallInfo</a>, <a href="encoder_poly.rs.html#619">FunctionCallInfoHigh</a>, <a href="encoder_poly.rs.html#41">PureFunctionEncoder</a>};
@@ -616,6 +618,7 @@
 /// to account for different monomorphisations resulting from the function
 /// being called from callers (with different parameter environments). Each
 /// variant of a pure function will be encoded as a separate Viper function.
+/// Lifetimes/regions are erased.
 </span><span class="kw">type </span>Key&lt;<span class="lifetime">&#39;tcx</span>&gt; = (<a href="../../../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>, SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;, ty::PolyFnSig&lt;<span class="lifetime">&#39;tcx</span>&gt;);
 
 <span class="doccomment">/// Compute the key for the given call.
@@ -625,13 +628,14 @@
     caller_def_id: <a href="../../../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>,
     substs: SubstsRef&lt;<span class="lifetime">&#39;tcx</span>&gt;,
 ) -&gt; SpannedEncodingResult&lt;Key&lt;<span class="lifetime">&#39;tcx</span>&gt;&gt; {
+    <span class="kw">let </span>tcx = <a href="#31">encoder</a>.<a href="../../../encoder.rs.html#225">env</a>().tcx();
     <span class="prelude-val">Ok</span>((
-        <a href="#31">proc_def_id</a>,
-        <a href="#33">substs</a>,
-        <a href="#30">encoder</a>
+        <a href="#32">proc_def_id</a>,
+        <a href="#36">tcx</a>.erase_regions(<a href="#34">substs</a>),
+        <a href="#31">encoder</a>
             .<a href="../../../encoder.rs.html#225">env</a>()
             .query
-            .get_fn_sig_resolved(<a href="#31">proc_def_id</a>, <a href="#33">substs</a>, <a href="#32">caller_def_id</a>),
+            .get_fn_sig_resolved(<a href="#32">proc_def_id</a>, <a href="#34">substs</a>, <a href="#33">caller_def_id</a>),
     ))
     <span class="comment">/*
     let tcx = encoder.env().tcx();
@@ -788,10 +792,10 @@
     <span class="kw">for </span><span class="kw">crate</span>::encoder::encoder::Encoder&lt;<span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>&gt;
 {
     <span class="kw">fn </span>get_proc_def_id(<span class="kw-2">&amp;</span><span class="self">self</span>, identifier: <a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="../../../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>&gt; {
-        <a class="self" href="#197">self</a>.pure_function_encoder_state
+        <a class="self" href="#199">self</a>.pure_function_encoder_state
             .function_proc_ids
             .borrow()
-            .get(<span class="kw-2">&amp;</span><a href="#197">identifier</a>)
+            .get(<span class="kw-2">&amp;</span><a href="#199">identifier</a>)
             .cloned()
     }
 
@@ -827,7 +831,7 @@
                 .insert(key, body)
                 .is_none());
         }
-        <span class="prelude-val">Ok</span>(<a class="self" href="#206">self</a>.pure_function_encoder_state.bodies_high.borrow()[<span class="kw-2">&amp;</span><a href="#211">key</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <span class="prelude-val">Ok</span>(<a class="self" href="#208">self</a>.pure_function_encoder_state.bodies_high.borrow()[<span class="kw-2">&amp;</span><a href="#213">key</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
     <span class="comment">// FIXME: This should be refactored to depend on encode_pure_expression_high
@@ -857,12 +861,12 @@
                 parent_def_id,
                 substs,
             )<span class="question-mark">?</span>;
-            <a class="self" href="#243">self</a>.pure_function_encoder_state
+            <a class="self" href="#245">self</a>.pure_function_encoder_state
                 .bodies_poly
                 .borrow_mut()
-                .insert(<a href="#248">key</a>, <a href="#255">body</a>);
+                .insert(<a href="#250">key</a>, <a href="#257">body</a>);
         }
-        <span class="prelude-val">Ok</span>(<a class="self" href="#243">self</a>.pure_function_encoder_state.bodies_poly.borrow()[<span class="kw-2">&amp;</span><a href="#248">key</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <span class="prelude-val">Ok</span>(<a class="self" href="#245">self</a>.pure_function_encoder_state.bodies_poly.borrow()[<span class="kw-2">&amp;</span><a href="#250">key</a>].<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
     <span class="kw">fn </span>encode_pure_function_def(
@@ -878,7 +882,7 @@
             proc_def_id
         );
 
-        <span class="kw">let </span>mir_span = <a class="self" href="#276">self</a>.<a href="../../../encoder.rs.html#225">env</a>().query.get_def_span(<a href="#277">proc_def_id</a>);
+        <span class="kw">let </span>mir_span = <a class="self" href="#278">self</a>.<a href="../../../encoder.rs.html#225">env</a>().query.get_def_span(<a href="#279">proc_def_id</a>);
         <span class="kw">let </span>key = compute_key(<span class="self">self</span>, proc_def_id, parent_def_id, substs)<span class="question-mark">?</span>;
         <span class="kw">if </span>!<span class="self">self
             </span>.pure_function_encoder_state
@@ -893,27 +897,27 @@
         {
             <a class="macro" href="../../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;not encoded: {:?}&quot;</span>, key);
 
-            <a class="self" href="#276">self</a>.pure_function_encoder_state
+            <a class="self" href="#278">self</a>.pure_function_encoder_state
                 .pure_functions_encoding_started
                 .borrow_mut()
-                .insert(<a href="#289">key</a>);
+                .insert(<a href="#291">key</a>);
 
             <span class="kw">let </span><span class="kw-2">mut </span>pure_function_encoder = PureFunctionEncoder::new(
-                <a class="self" href="#276">self</a>,
-                <a href="#277">proc_def_id</a>,
-                <a href="#74">PureEncodingContext::Code</a>,
-                <a href="#278">parent_def_id</a>,
-                <a href="#279">substs</a>,
+                <a class="self" href="#278">self</a>,
+                <a href="#279">proc_def_id</a>,
+                <a href="#76">PureEncodingContext::Code</a>,
+                <a href="#280">parent_def_id</a>,
+                <a href="#281">substs</a>,
             );
 
             <span class="kw">let </span>maybe_identifier: SpannedEncodingResult&lt;<a href="../../../../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir_poly::FunctionIdentifier</a>&gt; = (|| {
-                <span class="kw">let </span>proc_kind = <a class="self" href="#276">self</a>.<a href="../../specifications/interface.rs.html#76-80">get_proc_kind</a>(<a href="#277">proc_def_id</a>, <span class="prelude-val">Some</span>(<a href="#279">substs</a>));
-                <span class="kw">let </span>is_bodyless = <a class="self" href="#276">self</a>.<a href="../../specifications/interface.rs.html#82">is_trusted</a>(<a href="#277">proc_def_id</a>, <span class="prelude-val">Some</span>(<a href="#279">substs</a>))
-                    || !<a class="self" href="#276">self</a>.<a href="../../../encoder.rs.html#225">env</a>().query.has_body(<a href="#277">proc_def_id</a>);
+                <span class="kw">let </span>proc_kind = <a class="self" href="#278">self</a>.<a href="../../specifications/interface.rs.html#76-80">get_proc_kind</a>(<a href="#279">proc_def_id</a>, <span class="prelude-val">Some</span>(<a href="#281">substs</a>));
+                <span class="kw">let </span>is_bodyless = <a class="self" href="#278">self</a>.<a href="../../specifications/interface.rs.html#82">is_trusted</a>(<a href="#279">proc_def_id</a>, <span class="prelude-val">Some</span>(<a href="#281">substs</a>))
+                    || !<a class="self" href="#278">self</a>.<a href="../../../encoder.rs.html#225">env</a>().query.has_body(<a href="#279">proc_def_id</a>);
                 <span class="kw">let </span><span class="kw-2">mut </span>function = <span class="kw">if </span>is_bodyless {
                     pure_function_encoder.encode_bodyless_function()<span class="question-mark">?
                 </span>} <span class="kw">else </span>{
-                    <span class="kw">match </span><a href="#317">proc_kind</a> {
+                    <span class="kw">match </span><a href="#319">proc_kind</a> {
                         ProcedureSpecificationKind::Predicate(<span class="prelude-val">Some</span>(predicate_body)) =&gt; {
                             pure_function_encoder.encode_predicate_function(<span class="kw-2">&amp;</span>predicate_body)<span class="question-mark">?
                         </span>}
@@ -931,7 +935,7 @@
                                     substs,
                                 )<span class="question-mark">?</span>;
                             }
-                            <a href="#331">function</a>
+                            <a href="#333">function</a>
                         }
                         ProcedureSpecificationKind::Impure =&gt; {
                             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;trying to encode an impure function in pure encoder&quot;</span>)
@@ -945,42 +949,42 @@
                         | ProcedureSpecificationKind::Predicate(<span class="prelude-val">Some</span>(<span class="kw">_</span>)),
                 );
                 <span class="kw">if </span>needs_patching {
-                    <a class="self" href="#276">self</a>.mirror_encoder
+                    <a class="self" href="#278">self</a>.mirror_encoder
                         .borrow_mut()
-                        .<a href="../../../mirror_function_encoder.rs.html#45-50">encode_mirrors</a>(<a href="#277">proc_def_id</a>, <span class="kw-2">&amp;mut </span><a href="#320">function</a>);
+                        .<a href="../../../mirror_function_encoder.rs.html#45-50">encode_mirrors</a>(<a href="#279">proc_def_id</a>, <span class="kw-2">&amp;mut </span><a href="#322">function</a>);
                 }
 
-                <a href="#320">function</a> = <span class="self">self
+                <a href="#322">function</a> = <span class="self">self
                     </span>.patch_snapshots_function(function)
                     .with_span(mir_span)<span class="question-mark">?</span>;
 
-                <a class="self" href="#276">self</a>.<a href="../../../encoder.rs.html#202">log_vir_program_before_viper</a>(<a href="#320">function</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-                <span class="prelude-val">Ok</span>(<a class="self" href="#276">self</a>.<a href="../../../encoder.rs.html#275">insert_function</a>(<a href="#320">function</a>))
+                <a class="self" href="#278">self</a>.<a href="../../../encoder.rs.html#202">log_vir_program_before_viper</a>(<a href="#322">function</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                <span class="prelude-val">Ok</span>(<a class="self" href="#278">self</a>.<a href="../../../encoder.rs.html#275">insert_function</a>(<a href="#322">function</a>))
             })(
             );
-            <span class="kw">match </span><a href="#316">maybe_identifier</a> {
+            <span class="kw">match </span><a href="#318">maybe_identifier</a> {
                 <span class="prelude-val">Ok</span>(identifier) =&gt; {
-                    <a class="self" href="#276">self</a>.pure_function_encoder_state
+                    <a class="self" href="#278">self</a>.pure_function_encoder_state
                         .function_identifiers
                         .borrow_mut()
-                        .insert(<a href="#289">key</a>, <a href="#369">identifier</a>);
+                        .insert(<a href="#291">key</a>, <a href="#371">identifier</a>);
                 }
                 <span class="prelude-val">Err</span>(error) =&gt; {
-                    <a class="self" href="#276">self</a>.<a href="../../../encoder.rs.html#254">register_encoding_error</a>(<a href="#375">error</a>);
+                    <a class="self" href="#278">self</a>.<a href="../../../encoder.rs.html#254">register_encoding_error</a>(<a href="#377">error</a>);
                     <a class="macro" href="../../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Error encoding pure function: {:?}&quot;</span>, proc_def_id);
-                    <span class="kw">let </span>body = <span class="self"><a href="#276">self</a>
+                    <span class="kw">let </span>body = <span class="self"><a href="#278">self</a>
                         </span>.<a href="../../../encoder.rs.html#225">env</a>()
                         .body
-                        .get_pure_fn_body(<a href="#277">proc_def_id</a>, <a href="#279">substs</a>, <a href="#278">parent_def_id</a>);
+                        .get_pure_fn_body(<a href="#279">proc_def_id</a>, <a href="#281">substs</a>, <a href="#280">parent_def_id</a>);
                     <span class="comment">// TODO(tymap): does stub encoder need substs?
-                    </span><span class="kw">let </span>stub_encoder = StubFunctionEncoder::new(<a class="self" href="#276">self</a>, <a href="#277">proc_def_id</a>, <span class="kw-2">&amp;</span><a href="#378">body</a>, <a href="#279">substs</a>);
+                    </span><span class="kw">let </span>stub_encoder = StubFunctionEncoder::new(<a class="self" href="#278">self</a>, <a href="#279">proc_def_id</a>, <span class="kw-2">&amp;</span><a href="#380">body</a>, <a href="#281">substs</a>);
                     <span class="kw">let </span>function = stub_encoder.encode_function()<span class="question-mark">?</span>;
-                    <a class="self" href="#276">self</a>.<a href="../../../encoder.rs.html#202">log_vir_program_before_viper</a>(<a href="#384">function</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-                    <span class="kw">let </span>identifier = <a class="self" href="#276">self</a>.<a href="../../../encoder.rs.html#275">insert_function</a>(<a href="#384">function</a>);
-                    <a class="self" href="#276">self</a>.pure_function_encoder_state
+                    <a class="self" href="#278">self</a>.<a href="../../../encoder.rs.html#202">log_vir_program_before_viper</a>(<a href="#386">function</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+                    <span class="kw">let </span>identifier = <a class="self" href="#278">self</a>.<a href="../../../encoder.rs.html#275">insert_function</a>(<a href="#386">function</a>);
+                    <a class="self" href="#278">self</a>.pure_function_encoder_state
                         .function_identifiers
                         .borrow_mut()
-                        .insert(<a href="#289">key</a>, <a href="#386">identifier</a>);
+                        .insert(<a href="#291">key</a>, <a href="#388">identifier</a>);
                 }
             }
         }
@@ -993,15 +997,15 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         identifier: <span class="kw-2">&amp;</span><a href="../../../../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir_poly::FunctionIdentifier</a>,
     ) -&gt; SpannedEncodingResult&lt;()&gt; {
-        <span class="kw">let </span>function_descriptions = <span class="self"><a href="#400">self</a>
+        <span class="kw">let </span>function_descriptions = <span class="self"><a href="#402">self</a>
             </span>.pure_function_encoder_state
             .function_descriptions
             .borrow();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(function_description) = <a href="#403">function_descriptions</a>.get(<a href="#401">identifier</a>) {
-            <span class="kw">let </span>function_description = <a href="#407">function_description</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(function_description) = <a href="#405">function_descriptions</a>.get(<a href="#403">identifier</a>) {
+            <span class="kw">let </span>function_description = <a href="#409">function_description</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
             <span class="comment">// We need to release the borrow here before encoding the function
             // because otherwise encoding recursive functions cause a panic.
-            </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#403">function_descriptions</a>);
+            </span><a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#405">function_descriptions</a>);
             <span class="self">self</span>.encode_pure_function_def(
                 function_description.proc_def_id,
                 function_description.parent_def_id,
@@ -1027,26 +1031,26 @@
 
         <span class="kw">let </span>key = compute_key(<span class="self">self</span>, proc_def_id, parent_def_id, substs)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>call_infos = <span class="self"><a href="#424">self</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>call_infos = <span class="self"><a href="#426">self</a>
             </span>.pure_function_encoder_state
             .call_infos_poly
             .borrow_mut();
-        <span class="kw">if let </span>std::collections::hash_map::Entry::Vacant(e) = <a href="#437">call_infos</a>.entry(<a href="#435">key</a>) {
+        <span class="kw">if let </span>std::collections::hash_map::Entry::Vacant(e) = <a href="#439">call_infos</a>.entry(<a href="#437">key</a>) {
             <span class="comment">// Compute information necessary to encode the function call and
             // memoize it.
             </span><span class="kw">let </span>pure_function_encoder = PureFunctionEncoder::new(
-                <a class="self" href="#424">self</a>,
-                <a href="#425">proc_def_id</a>,
-                <a href="#74">PureEncodingContext::Code</a>,
-                <a href="#426">parent_def_id</a>,
-                <a href="#427">substs</a>,
+                <a class="self" href="#426">self</a>,
+                <a href="#427">proc_def_id</a>,
+                <a href="#76">PureEncodingContext::Code</a>,
+                <a href="#428">parent_def_id</a>,
+                <a href="#429">substs</a>,
             );
             <span class="kw">let </span>function_call_info = pure_function_encoder.encode_function_call_info()<span class="question-mark">?</span>;
 
             <span class="comment">// Save the information necessary to encode the function definition.
             </span><span class="kw">let </span>function_identifier: <a href="../../../../../../vir/gen/polymorphic/ast/function/struct.FunctionIdentifier.html">vir_poly::FunctionIdentifier</a> =
-                <a href="../../../../../../vir/common/identifier/trait.WithIdentifier.html">WithIdentifier::get_identifier</a>(<span class="kw-2">&amp;</span><a href="#451">function_call_info</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-            <span class="kw">let </span><span class="kw-2">mut </span>function_descriptions = <span class="self"><a href="#424">self</a>
+                <a href="../../../../../../vir/common/identifier/trait.WithIdentifier.html">WithIdentifier::get_identifier</a>(<span class="kw-2">&amp;</span><a href="#453">function_call_info</a>).<a href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+            <span class="kw">let </span><span class="kw-2">mut </span>function_descriptions = <span class="self"><a href="#426">self</a>
                 </span>.pure_function_encoder_state
                 .function_descriptions
                 .borrow_mut();
@@ -1055,21 +1059,21 @@
             // but the pure function call does not use these generics.
             // For instance a pure function call in a trait and then a trait impl;
             // in the former `substs` is empty, but in the latter the generic `Self` is mapped.
-            </span><a href="#456">function_descriptions</a>
-                .entry(<a href="#454">function_identifier</a>)
-                .or_insert(<a href="#117">FunctionDescription</a> {
-                    <a href="#425">proc_def_id</a>,
-                    <a href="#426">parent_def_id</a>,
-                    <a href="#427">substs</a>,
+            </span><a href="#458">function_descriptions</a>
+                .entry(<a href="#456">function_identifier</a>)
+                .or_insert(<a href="#119">FunctionDescription</a> {
+                    <a href="#427">proc_def_id</a>,
+                    <a href="#428">parent_def_id</a>,
+                    <a href="#429">substs</a>,
                 });
 
-            <a href="#441">e</a>.insert(<a href="#451">function_call_info</a>);
+            <a href="#443">e</a>.insert(<a href="#453">function_call_info</a>);
         }
-        <span class="kw">let </span>function_call_info = <span class="kw-2">&amp;</span><a href="#437">call_infos</a>[<span class="kw-2">&amp;</span><a href="#435">key</a>];
+        <span class="kw">let </span>function_call_info = <span class="kw-2">&amp;</span><a href="#439">call_infos</a>[<span class="kw-2">&amp;</span><a href="#437">key</a>];
 
         <span class="prelude-val">Ok</span>((
-            <a href="#475">function_call_info</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <a href="#475">function_call_info</a>.return_type.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a href="#477">function_call_info</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a href="#477">function_call_info</a>.return_type.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         ))
     }
 
@@ -1087,11 +1091,11 @@
 
         <span class="kw">let </span>key = compute_key(<span class="self">self</span>, proc_def_id, parent_def_id, substs)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>call_infos = <span class="self"><a href="#484">self</a>
+        <span class="kw">let </span><span class="kw-2">mut </span>call_infos = <span class="self"><a href="#486">self</a>
             </span>.pure_function_encoder_state
             .call_infos_high
             .borrow_mut();
-        <span class="kw">if let </span>std::collections::hash_map::Entry::Vacant(e) = <a href="#497">call_infos</a>.entry(<a href="#495">key</a>) {
+        <span class="kw">if let </span>std::collections::hash_map::Entry::Vacant(e) = <a href="#499">call_infos</a>.entry(<a href="#497">key</a>) {
             <span class="comment">// Compute information necessary to encode the function call and
             // memoize it.
             </span><span class="kw">let </span>function_call_info = <span class="kw">super</span>::encoder_high::encode_function_call_info(
@@ -1101,13 +1105,13 @@
                 substs,
             )<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>identifier = <a href="#504">function_call_info</a>.<a href="../../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>();
+            <span class="kw">let </span>identifier = <a href="#506">function_call_info</a>.<a href="../../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>();
 
             <span class="kw">if </span>prusti_common::config::counterexample() {
-                <a class="self" href="#484">self</a>.pure_function_encoder_state
+                <a class="self" href="#486">self</a>.pure_function_encoder_state
                     .function_proc_ids
                     .borrow_mut()
-                    .insert(<a href="#511">identifier</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#485">proc_def_id</a>);
+                    .insert(<a href="#513">identifier</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#487">proc_def_id</a>);
             }
 
             <span class="self">self</span>.register_function_constructor_mir(
@@ -1127,13 +1131,13 @@
                 <span class="kw">let _ </span>= <span class="self">self</span>.encode_pure_function_use(proc_def_id, parent_def_id, substs)<span class="question-mark">?</span>;
             }
 
-            <a href="#501">e</a>.insert(<a href="#504">function_call_info</a>);
+            <a href="#503">e</a>.insert(<a href="#506">function_call_info</a>);
         }
-        <span class="kw">let </span>function_call_info = <span class="kw-2">&amp;</span><a href="#497">call_infos</a>[<span class="kw-2">&amp;</span><a href="#495">key</a>];
+        <span class="kw">let </span>function_call_info = <span class="kw-2">&amp;</span><a href="#499">call_infos</a>[<span class="kw-2">&amp;</span><a href="#497">key</a>];
 
         <span class="prelude-val">Ok</span>((
-            <a href="#539">function_call_info</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-            <a href="#539">function_call_info</a>.return_type.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a href="#541">function_call_info</a>.name.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <a href="#541">function_call_info</a>.return_type.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         ))
     }
 
@@ -1141,29 +1145,29 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         function_identifier: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     ) -&gt; SpannedEncodingResult&lt;std::rc::Rc&lt;<a href="../../../../../../vir/gen/high/ast/function/struct.FunctionDecl.html">vir_high::FunctionDecl</a>&gt;&gt; {
-        <span class="kw">let </span>functions_borrow = <a class="self" href="#548">self</a>.pure_function_encoder_state.functions.borrow();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(function) = <a href="#551">functions_borrow</a>.get(<a href="#549">function_identifier</a>) {
+        <span class="kw">let </span>functions_borrow = <a class="self" href="#550">self</a>.pure_function_encoder_state.functions.borrow();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(function) = <a href="#553">functions_borrow</a>.get(<a href="#551">function_identifier</a>) {
             <span class="comment">// The function is already encoded.
-            </span><span class="prelude-val">Ok</span>(<a href="#552">function</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+            </span><span class="prelude-val">Ok</span>(<a href="#554">function</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
         } <span class="kw">else </span>{
-            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#551">functions_borrow</a>); <span class="comment">// Release the borrow.
+            <a href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a href="#553">functions_borrow</a>); <span class="comment">// Release the borrow.
 
-            </span><span class="kw">let </span>constructor = <span class="self"><a href="#548">self</a>
+            </span><span class="kw">let </span>constructor = <span class="self"><a href="#550">self</a>
                 </span>.pure_function_encoder_state
                 .function_constructors
                 .borrow_mut()
-                .remove(<a href="#549">function_identifier</a>);
+                .remove(<a href="#551">function_identifier</a>);
 
             <span class="comment">// The function is not yet encoded. Trigger the encoding.
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(constructor) = <a href="#558">constructor</a> {
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(constructor) = <a href="#560">constructor</a> {
                 <span class="kw">let </span>function = std::rc::Rc::new(constructor(<span class="self">self</span>)<span class="question-mark">?</span>);
-                <span class="kw">let </span>identifier = <a href="#566">function</a>.<a href="../../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>();
+                <span class="kw">let </span>identifier = <a href="#568">function</a>.<a href="../../../../../../vir/common/identifier/trait.WithIdentifier.html">get_identifier</a>();
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="kw-2">&amp;</span>identifier, function_identifier);
-                <a class="self" href="#548">self</a>.pure_function_encoder_state
+                <a class="self" href="#550">self</a>.pure_function_encoder_state
                     .functions
                     .borrow_mut()
-                    .insert(<a href="#567">identifier</a>, <a href="#566">function</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                <span class="prelude-val">Ok</span>(<a href="#566">function</a>)
+                    .insert(<a href="#569">identifier</a>, <a href="#568">function</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                <span class="prelude-val">Ok</span>(<a href="#568">function</a>)
             } <span class="kw">else </span>{
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;not found constructor for {}&quot;</span>, function_identifier);
             }

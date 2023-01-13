@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["common","The following grammar defines Prusti expressions (this is an LL(finite) grammar): assertion ::= prusti_expr ; pledge ::= pledge_lhs, “,”, prusti_expr ; pledge_lhs ::= [ ? actual rust expression ?, “=>” ], prusti_expr ;"],["preparser",""],["untyped",""]]};
+window.SIDEBAR_ITEMS = {"mod":[["common","Data structures for storing information about specifications."],["preparser",""],["untyped",""]]};

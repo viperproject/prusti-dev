@@ -321,6 +321,12 @@
 <a href="#321" id="321">321</a>
 <a href="#322" id="322">322</a>
 <a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
 </pre><pre class="rust"><code><span class="kw">use </span>prusti_rustc_interface::{
     errors::MultiSpan,
     hir::{
@@ -459,7 +465,7 @@
         id: prusti_rustc_interface::hir::hir_id::HirId,
         extern_spec_kind: <a href="../../../prusti_specs/extern_spec_rewriter/enum.ExternSpecKind.html">ExternSpecKind</a>,
     ) {
-        <span class="kw">let </span><span class="kw-2">mut </span>visitor = <a href="#293">ExternSpecVisitor</a> {
+        <span class="kw">let </span><span class="kw-2">mut </span>visitor = <a href="#299">ExternSpecVisitor</a> {
             env_query: <a class="self" href="#131">self</a>.env_query,
             spec_found: <span class="prelude-val">None</span>,
         };
@@ -501,13 +507,19 @@
                     // TODO: there is more that we could check, e.g. that trait
                     // constraints are the same (otherwise specs might not make sense)
                     </span><span class="kw">let </span>(resolved_gens, current_gens) = (
-                        <a class="self" href="#131">self</a>.env_query.<a href="../environment/query.rs.html#407">identity_substs</a>(<a href="#164">resolved_def_id</a>).len(),
-                        <a class="self" href="#131">self</a>.env_query.<a href="../environment/query.rs.html#407">identity_substs</a>(<a href="#144">current_def_id</a>).len(),
+                        <a class="self" href="#131">self</a>.env_query
+                            .<a href="../environment/query.rs.html#412">identity_substs</a>(<a href="#164">resolved_def_id</a>)
+                            .non_erasable_generics()
+                            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>(),
+                        <a class="self" href="#131">self</a>.env_query
+                            .<a href="../environment/query.rs.html#412">identity_substs</a>(<a href="#144">current_def_id</a>)
+                            .non_erasable_generics()
+                            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>(),
                     );
                     <span class="kw">if </span>resolved_gens != current_gens {
                         <span class="kw">let </span>diff = <a href="#180">resolved_gens</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a> - <a href="#180">current_gens</a> <span class="kw">as </span><a href="https://doc.rust-lang.org/nightly/std/primitive.isize.html">isize</a>;
                         <a class="self" href="#131">self</a>.errors.push(<a href="#40">ExternSpecResolverError::InvalidGenerics</a>(
-                            <a href="#185">diff</a>,
+                            <a href="#191">diff</a>,
                             <a href="#164">resolved_def_id</a>,
                             <a href="#145">span</a>,
                         ));
@@ -516,9 +528,9 @@
             }
 
             <span class="kw">if </span><span class="self">self</span>.extern_fn_map.contains_key(<span class="kw-2">&amp;</span>extern_spec_decl) {
-                <a class="self" href="#131">self</a>.<a href="#205">register_duplicate_spec</a>(<a href="#145">target_def_id</a>, <a href="#144">current_def_id</a>, <a href="#145">span</a>);
+                <a class="self" href="#131">self</a>.<a href="#211">register_duplicate_spec</a>(<a href="#145">target_def_id</a>, <a href="#144">current_def_id</a>, <a href="#145">span</a>);
             } <span class="kw">else </span>{
-                <a class="self" href="#131">self</a>.<a href="#214-219">check_validity</a>(<a href="#137">extern_spec_kind</a>, <span class="kw-2">&amp;</span><a href="#146">extern_spec_decl</a>, <a href="#145">span</a>);
+                <a class="self" href="#131">self</a>.<a href="#220-225">check_validity</a>(<a href="#137">extern_spec_kind</a>, <span class="kw-2">&amp;</span><a href="#146">extern_spec_decl</a>, <a href="#145">span</a>);
                 <a class="self" href="#131">self</a>.extern_fn_map
                     .insert(<a href="#146">extern_spec_decl</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#144">current_def_id</a>);
             }
@@ -526,10 +538,10 @@
     }
 
     <span class="kw">fn </span>register_duplicate_spec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, decl_def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, dup_spec_def_id: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, span: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>) {
-        <a class="self" href="#205">self</a>.spec_duplicates
-            .entry(<a href="#205">decl_def_id</a>)
+        <a class="self" href="#211">self</a>.spec_duplicates
+            .entry(<a href="#211">decl_def_id</a>)
             .or_default()
-            .push((<a href="#205">dup_spec_def_id</a>, <a href="#205">span</a>));
+            .push((<a href="#211">dup_spec_def_id</a>, <a href="#211">span</a>));
     }
 
     <span class="doccomment">/// Checks whether the encoded method call (call to `spec_for_def_id`) is valid.
@@ -541,10 +553,10 @@
         span: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>,
     ) {
         <span class="kw">if </span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(extern_spec_kind, ExternSpecKind::InherentImpl) {
-            <span class="kw">if let </span><a href="#53">ExternSpecDeclaration::TraitImpl</a>(def_id, <span class="kw">_</span>) = <a href="#217">declared_spec</a> {
-                <a class="self" href="#215">self</a>.errors
+            <span class="kw">if let </span><a href="#53">ExternSpecDeclaration::TraitImpl</a>(def_id, <span class="kw">_</span>) = <a href="#223">declared_spec</a> {
+                <a class="self" href="#221">self</a>.errors
                     .push(<a href="#37">ExternSpecResolverError::InvalidExternSpecForTraitImpl</a>(
-                        <span class="kw-2">*</span><a href="#221">def_id</a>, <a href="#218">span</a>,
+                        <span class="kw-2">*</span><a href="#227">def_id</a>, <a href="#224">span</a>,
                     ));
             }
         }
@@ -554,7 +566,7 @@
 
     <span class="doccomment">/// Report errors encountered when resolving extern specs
     </span><span class="kw">pub fn </span>check_errors(<span class="kw-2">&amp;</span><span class="self">self</span>, env_diagnostic: <span class="kw-2">&amp;</span>EnvDiagnostic&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
-        <a class="self" href="#233">self</a>.<a href="#275">check_duplicates</a>(<a href="#233">env_diagnostic</a>);
+        <a class="self" href="#239">self</a>.<a href="#281">check_duplicates</a>(<a href="#239">env_diagnostic</a>);
 
         <span class="kw">for </span>error <span class="kw">in </span><span class="self">self</span>.errors.iter() {
             <span class="kw">match </span>error {
@@ -623,25 +635,25 @@
     <span class="kw">type </span>NestedFilter = <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/hir/nested_filter/struct.All.html">prusti_rustc_interface::middle::hir::nested_filter::All</a>;
 
     <span class="kw">fn </span>nested_visit_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Map {
-        <a class="self" href="#302">self</a>.env_query.<a href="../environment/query.rs.html#44">hir</a>()
+        <a class="self" href="#308">self</a>.env_query.<a href="../environment/query.rs.html#44">hir</a>()
     }
 
     <span class="kw">fn </span>visit_expr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ex: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx </span>prusti_rustc_interface::hir::Expr&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
         <span class="kw">if </span><span class="self">self</span>.spec_found.is_some() {
             <span class="kw">return</span>;
         }
-        <span class="kw">if let </span>prusti_rustc_interface::hir::ExprKind::Call(callee_expr, _arguments) = <a href="#306">ex</a>.kind {
-            <span class="kw">if let </span>prusti_rustc_interface::hir::ExprKind::Path(<span class="kw-2">ref </span>qself) = <a href="#310">callee_expr</a>.kind {
-                <span class="kw">let </span>tyck_res = <a class="self" href="#306">self</a>.env_query.<a href="../environment/query.rs.html#39">tcx</a>().typeck(<a href="#310">callee_expr</a>.hir_id.owner.def_id);
-                <span class="kw">let </span>substs = <a href="#312">tyck_res</a>.node_substs(<a href="#310">callee_expr</a>.hir_id);
-                <span class="kw">let </span>res = <a href="#312">tyck_res</a>.qpath_res(<a href="#311">qself</a>, <a href="#310">callee_expr</a>.hir_id);
-                <span class="kw">if let </span>prusti_rustc_interface::hir::def::Res::Def(<span class="kw">_</span>, def_id) = <a href="#314">res</a> {
-                    <a class="self" href="#306">self</a>.spec_found = <span class="prelude-val">Some</span>((<a href="#315">def_id</a>, <a href="#313">substs</a>, <a href="#306">ex</a>.span));
+        <span class="kw">if let </span>prusti_rustc_interface::hir::ExprKind::Call(callee_expr, _arguments) = <a href="#312">ex</a>.kind {
+            <span class="kw">if let </span>prusti_rustc_interface::hir::ExprKind::Path(<span class="kw-2">ref </span>qself) = <a href="#316">callee_expr</a>.kind {
+                <span class="kw">let </span>tyck_res = <a class="self" href="#312">self</a>.env_query.<a href="../environment/query.rs.html#39">tcx</a>().typeck(<a href="#316">callee_expr</a>.hir_id.owner.def_id);
+                <span class="kw">let </span>substs = <a href="#318">tyck_res</a>.node_substs(<a href="#316">callee_expr</a>.hir_id);
+                <span class="kw">let </span>res = <a href="#318">tyck_res</a>.qpath_res(<a href="#317">qself</a>, <a href="#316">callee_expr</a>.hir_id);
+                <span class="kw">if let </span>prusti_rustc_interface::hir::def::Res::Def(<span class="kw">_</span>, def_id) = <a href="#320">res</a> {
+                    <a class="self" href="#312">self</a>.spec_found = <span class="prelude-val">Some</span>((<a href="#321">def_id</a>, <a href="#319">substs</a>, <a href="#312">ex</a>.span));
                     <span class="kw">return</span>;
                 }
             }
         }
-        intravisit::walk_expr(<a class="self" href="#306">self</a>, <a href="#306">ex</a>);
+        intravisit::walk_expr(<a class="self" href="#312">self</a>, <a href="#312">ex</a>);
     }
 }
 </code></pre></div>

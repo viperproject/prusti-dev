@@ -1020,7 +1020,27 @@
 <a href="#1020" id="1020">1020</a>
 <a href="#1021" id="1021">1021</a>
 <a href="#1022" id="1022">1022</a>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../environment/mod.rs.html#51">environment::Environment</a>, <a href="../utils.rs.html#248">utils::has_trait_bounds_ghost_constraint</a>, <a href="../prusti_error.rs.html#22">PrustiError</a>};
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{<a href="../environment/mod.rs.html#51">environment::Environment</a>, <a href="../utils.rs.html#248">utils::has_trait_bounds_type_cond_spec</a>, <a href="../prusti_error.rs.html#22">PrustiError</a>};
 <span class="kw">pub use </span>common::{<a href="../../../prusti_interface/specs/typed/enum.SpecIdRef.html">SpecIdRef</a>, <a href="../../../prusti_interface/specs/typed/enum.SpecType.html">SpecType</a>, <a href="../../../prusti_interface/specs/typed/struct.SpecificationId.html">SpecificationId</a>};
 <span class="kw">use </span><a href="../../../log/macro.trace.html">log::trace</a>;
 <span class="kw">use </span>prusti_rustc_interface::{
@@ -1036,12 +1056,12 @@
 </span><span class="attr">#[derive(Default, Debug, Clone)]
 </span><span class="kw">pub struct </span>DefSpecificationMap {
     <span class="kw">pub </span>proc_specs: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, SpecGraph&lt;<a href="#196">ProcedureSpecification</a>&gt;&gt;,
-    <span class="kw">pub </span>loop_specs: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="#254">LoopSpecification</a>&gt;,
-    <span class="kw">pub </span>type_specs: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="#261">TypeSpecification</a>&gt;,
-    <span class="kw">pub </span>prusti_assertions: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="#285">PrustiAssertion</a>&gt;,
-    <span class="kw">pub </span>prusti_assumptions: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="#290">PrustiAssumption</a>&gt;,
-    <span class="kw">pub </span>ghost_begin: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="#295">GhostBegin</a>&gt;,
-    <span class="kw">pub </span>ghost_end: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="#300">GhostEnd</a>&gt;,
+    <span class="kw">pub </span>loop_specs: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="#256">LoopSpecification</a>&gt;,
+    <span class="kw">pub </span>type_specs: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="#263">TypeSpecification</a>&gt;,
+    <span class="kw">pub </span>prusti_assertions: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="#287">PrustiAssertion</a>&gt;,
+    <span class="kw">pub </span>prusti_assumptions: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="#292">PrustiAssumption</a>&gt;,
+    <span class="kw">pub </span>ghost_begin: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="#297">GhostBegin</a>&gt;,
+    <span class="kw">pub </span>ghost_end: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="#302">GhostEnd</a>&gt;,
 }
 
 <span class="kw">impl </span><a href="#15">DefSpecificationMap</a> {
@@ -1049,7 +1069,7 @@
         <span class="self">Self</span>::default()
     }
 
-    <span class="kw">pub fn </span>get_loop_spec(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#254">LoopSpecification</a>&gt; {
+    <span class="kw">pub fn </span>get_loop_spec(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#256">LoopSpecification</a>&gt; {
         <a class="self" href="#30">self</a>.loop_specs.get(<a href="#30">def_id</a>)
     }
 
@@ -1057,23 +1077,23 @@
         <a class="self" href="#34">self</a>.proc_specs.get(<a href="#34">def_id</a>)
     }
 
-    <span class="kw">pub fn </span>get_type_spec(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#261">TypeSpecification</a>&gt; {
+    <span class="kw">pub fn </span>get_type_spec(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#263">TypeSpecification</a>&gt; {
         <a class="self" href="#38">self</a>.type_specs.get(<a href="#38">def_id</a>)
     }
 
-    <span class="kw">pub fn </span>get_assertion(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#285">PrustiAssertion</a>&gt; {
+    <span class="kw">pub fn </span>get_assertion(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#287">PrustiAssertion</a>&gt; {
         <a class="self" href="#42">self</a>.prusti_assertions.get(<a href="#42">def_id</a>)
     }
 
-    <span class="kw">pub fn </span>get_assumption(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#290">PrustiAssumption</a>&gt; {
+    <span class="kw">pub fn </span>get_assumption(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#292">PrustiAssumption</a>&gt; {
         <a class="self" href="#46">self</a>.prusti_assumptions.get(<a href="#46">def_id</a>)
     }
 
-    <span class="kw">pub fn </span>get_ghost_begin(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#295">GhostBegin</a>&gt; {
+    <span class="kw">pub fn </span>get_ghost_begin(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#297">GhostBegin</a>&gt; {
         <a class="self" href="#50">self</a>.ghost_begin.get(<a href="#50">def_id</a>)
     }
 
-    <span class="kw">pub fn </span>get_ghost_end(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#300">GhostEnd</a>&gt; {
+    <span class="kw">pub fn </span>get_ghost_end(<span class="kw-2">&amp;</span><span class="self">self</span>, def_id: <span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="#302">GhostEnd</a>&gt; {
         <a class="self" href="#54">self</a>.ghost_end.get(<a href="#54">def_id</a>)
     }
 
@@ -1131,7 +1151,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>import_external(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         proc_specs: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, SpecGraph&lt;<a href="#196">ProcedureSpecification</a>&gt;&gt;,
-        type_specs: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="#261">TypeSpecification</a>&gt;,
+        type_specs: FxHashMap&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a href="#263">TypeSpecification</a>&gt;,
         env: <span class="kw-2">&amp;</span><a href="../environment/mod.rs.html#51">Environment</a>,
     ) {
         <span class="kw">let </span>duplicate_error = |item_id, spec_id_a: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, spec_id_b: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>| {
@@ -1219,26 +1239,28 @@
     <span class="comment">// DefId of fn signature to which the spec was attached.
     // For `extern_spec` it differs to the key in `proc_specs`
     </span><span class="kw">pub </span>source: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
-    <span class="kw">pub </span>kind: SpecificationItem&lt;<a href="#225">ProcedureSpecificationKind</a>&gt;,
+    <span class="kw">pub </span>kind: SpecificationItem&lt;<a href="#227">ProcedureSpecificationKind</a>&gt;,
     <span class="kw">pub </span>pres: SpecificationItem&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt;&gt;,
     <span class="kw">pub </span>posts: SpecificationItem&lt;Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt;&gt;,
-    <span class="kw">pub </span>pledges: SpecificationItem&lt;Vec&lt;<a href="#500">Pledge</a>&gt;&gt;,
+    <span class="kw">pub </span>pledges: SpecificationItem&lt;Vec&lt;<a href="#519">Pledge</a>&gt;&gt;,
     <span class="kw">pub </span>trusted: SpecificationItem&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt;,
     <span class="kw">pub </span>terminates: SpecificationItem&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>&gt;&gt;,
-}
+    <span class="kw">pub </span>purity: SpecificationItem&lt;<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt;&gt;, <span class="comment">// for type-conditional spec refinements
+</span>}
 
 <span class="kw">impl </span><a href="#196">ProcedureSpecification</a> {
     <span class="kw">pub fn </span>empty(source: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="self">Self </span>{
         <a href="#196">ProcedureSpecification</a> {
-            <a href="#209">source</a>,
+            <a href="#210">source</a>,
             <span class="comment">// We never create an empty &quot;kind&quot;. Having no concrete user-annotation
             // defaults to an impure function
-            </span>kind: <a href="#514">SpecificationItem::Inherent</a>(<a href="#226">ProcedureSpecificationKind::Impure</a>),
-            pres: <a href="#511">SpecificationItem::Empty</a>,
-            posts: <a href="#511">SpecificationItem::Empty</a>,
-            pledges: <a href="#511">SpecificationItem::Empty</a>,
-            trusted: <a href="#514">SpecificationItem::Inherent</a>(<span class="bool-val">false</span>),
-            terminates: <a href="#514">SpecificationItem::Inherent</a>(<span class="prelude-val">None</span>),
+            </span>kind: <a href="#533">SpecificationItem::Inherent</a>(<a href="#228">ProcedureSpecificationKind::Impure</a>),
+            pres: <a href="#530">SpecificationItem::Empty</a>,
+            posts: <a href="#530">SpecificationItem::Empty</a>,
+            pledges: <a href="#530">SpecificationItem::Empty</a>,
+            trusted: <a href="#533">SpecificationItem::Inherent</a>(<span class="bool-val">false</span>),
+            terminates: <a href="#533">SpecificationItem::Inherent</a>(<span class="prelude-val">None</span>),
+            purity: <a href="#533">SpecificationItem::Inherent</a>(<span class="prelude-val">None</span>),
         }
     }
 }
@@ -1257,16 +1279,16 @@
     ResolveGenericParamTraitBounds,
 }
 
-<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span><a href="#225">ProcedureSpecificationKind</a> {
+<span class="kw">impl </span><a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">Display</a> <span class="kw">for </span><a href="#227">ProcedureSpecificationKind</a> {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <a href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
-        <span class="kw">match </span><span class="self"><a href="#239">self</a> </span>{
-            <a href="#226">ProcedureSpecificationKind::Impure</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#239">f</a>, <span class="string">&quot;Impure&quot;</span>),
-            <a href="#227">ProcedureSpecificationKind::Pure</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#239">f</a>, <span class="string">&quot;Pure&quot;</span>),
-            <a href="#230">ProcedureSpecificationKind::Predicate</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#239">f</a>, <span class="string">&quot;Predicate&quot;</span>),
+        <span class="kw">match </span><span class="self"><a href="#241">self</a> </span>{
+            <a href="#228">ProcedureSpecificationKind::Impure</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#241">f</a>, <span class="string">&quot;Impure&quot;</span>),
+            <a href="#229">ProcedureSpecificationKind::Pure</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#241">f</a>, <span class="string">&quot;Pure&quot;</span>),
+            <a href="#232">ProcedureSpecificationKind::Predicate</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<a href="#241">f</a>, <span class="string">&quot;Predicate&quot;</span>),
         }
     }
 }
-<span class="kw">impl </span><a href="#225">ProcedureSpecificationKind</a> {
+<span class="kw">impl </span><a href="#227">ProcedureSpecificationKind</a> {
     <span class="kw">pub fn </span>is_impure(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>, ProcedureSpecificationKind::Impure)
     }
@@ -1291,12 +1313,12 @@
     <span class="kw">pub </span>counterexample_print: Vec&lt;(<span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>&gt;, <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>)&gt;,
 }
 
-<span class="kw">impl </span><a href="#261">TypeSpecification</a> {
+<span class="kw">impl </span><a href="#263">TypeSpecification</a> {
     <span class="kw">pub fn </span>empty(source: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="self">Self </span>{
-        <a href="#261">TypeSpecification</a> {
-            <a href="#273">source</a>,
-            invariant: <a href="#511">SpecificationItem::Empty</a>,
-            trusted: <a href="#514">SpecificationItem::Inherent</a>(<span class="bool-val">false</span>),
+        <a href="#263">TypeSpecification</a> {
+            <a href="#275">source</a>,
+            invariant: <a href="#530">SpecificationItem::Empty</a>,
+            trusted: <a href="#533">SpecificationItem::Inherent</a>(<span class="bool-val">false</span>),
             model: <span class="prelude-val">None</span>,
             counterexample_print: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         }
@@ -1333,13 +1355,13 @@
     </span><span class="kw">pub </span>base_spec: T,
 
     <span class="doccomment">/// Specs which are active when the corresponding [SpecConstraintKind] holds on callsite
-    </span><span class="kw">pub </span>specs_with_constraints: FxHashMap&lt;<a href="#234">SpecConstraintKind</a>, T&gt;,
+    </span><span class="kw">pub </span>specs_with_constraints: FxHashMap&lt;<a href="#236">SpecConstraintKind</a>, T&gt;,
 }
 
 <span class="kw">impl</span>&lt;T&gt; SpecGraph&lt;T&gt; {
     <span class="kw">pub fn </span>new(spec: T) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            base_spec: <a href="#318">spec</a>,
+            base_spec: <a href="#320">spec</a>,
             specs_with_constraints: FxHashMap::default(),
         }
     }
@@ -1375,7 +1397,7 @@
 /// trait SomeTrait {
 ///     #[requires(x &gt; 0)]
 ///     #[ensures(x &gt; 0)]
-///     #[ghost_constraint(T: MarkerTrait, [
+///     #[refine_spec(where T: MarkerTrait, [
 ///         requires(x &gt; 10),
 ///         ensures(x &gt; 10),
 ///     ])]
@@ -1387,7 +1409,7 @@
 /// impl SomeTrait for SomeStruct {
 ///     #[requires(x &gt;= 0)]
 ///     #[ensures(x &gt; 10)]
-///     #[ghost_constraint(T: MarkerTrait, [
+///     #[refine_spec(where T: MarkerTrait, [
 ///         requires(x &gt;= -5),
 ///         ensures(x &gt; 20),
 ///     ])]
@@ -1424,16 +1446,16 @@
     /// If this precondition has a constraint it will be attached to the corresponding
     /// constrained spec, otherwise just to the base spec.
     </span><span class="kw">pub fn </span>add_precondition&lt;<span class="lifetime">&#39;tcx</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pre: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>, env: <span class="kw-2">&amp;</span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
-        <span class="kw">match </span><a class="self" href="#404">self</a>.<a href="#486-490">get_constraint</a>(<a href="#404">pre</a>, <a href="#404">env</a>) {
+        <span class="kw">match </span><a class="self" href="#406">self</a>.<a href="#505-509">get_constraint</a>(<a href="#406">pre</a>, <a href="#406">env</a>) {
             <span class="prelude-val">None </span>=&gt; {
-                <a class="self" href="#404">self</a>.base_spec.pres.<a href="#688">push</a>(<a href="#404">pre</a>.to_def_id());
+                <a class="self" href="#406">self</a>.base_spec.pres.<a href="#707">push</a>(<a href="#406">pre</a>.to_def_id());
                 <span class="comment">// Preconditions are explicitly not copied (as opposed to postconditions)
                 // This would always violate behavioral subtyping rules
             </span>}
             <span class="prelude-val">Some</span>(constraint) =&gt; {
-                <a class="self" href="#404">self</a>.<a href="#474-477">get_constrained_spec_mut</a>(<a href="#411">constraint</a>)
+                <a class="self" href="#406">self</a>.<a href="#493-496">get_constrained_spec_mut</a>(<a href="#413">constraint</a>)
                     .pres
-                    .<a href="#688">push</a>(<a href="#404">pre</a>.to_def_id());
+                    .<a href="#707">push</a>(<a href="#406">pre</a>.to_def_id());
             }
         }
     }
@@ -1443,51 +1465,68 @@
     /// If this postcondition has a constraint it will be attached to the corresponding
     /// constrained spec **and** the base spec, otherwise just to the base spec.
     </span><span class="kw">pub fn </span>add_postcondition&lt;<span class="lifetime">&#39;tcx</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, post: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>, env: <span class="kw-2">&amp;</span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
-        <span class="kw">match </span><a class="self" href="#423">self</a>.<a href="#486-490">get_constraint</a>(<a href="#423">post</a>, <a href="#423">env</a>) {
+        <span class="kw">match </span><a class="self" href="#425">self</a>.<a href="#505-509">get_constraint</a>(<a href="#425">post</a>, <a href="#425">env</a>) {
             <span class="prelude-val">None </span>=&gt; {
-                <a class="self" href="#423">self</a>.base_spec.posts.<a href="#688">push</a>(<a href="#423">post</a>.to_def_id());
-                <a class="self" href="#423">self</a>.specs_with_constraints
+                <a class="self" href="#425">self</a>.base_spec.posts.<a href="#707">push</a>(<a href="#425">post</a>.to_def_id());
+                <a class="self" href="#425">self</a>.specs_with_constraints
                     .values_mut()
-                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|s| <a href="#429">s</a>.posts.<a href="#688">push</a>(<a href="#423">post</a>.to_def_id()));
+                    .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|s| <a href="#431">s</a>.posts.<a href="#707">push</a>(<a href="#425">post</a>.to_def_id()));
             }
             <span class="prelude-val">Some</span>(obligation) =&gt; {
-                <a class="self" href="#423">self</a>.<a href="#474-477">get_constrained_spec_mut</a>(<a href="#431">obligation</a>)
+                <a class="self" href="#425">self</a>.<a href="#493-496">get_constrained_spec_mut</a>(<a href="#433">obligation</a>)
                     .posts
-                    .<a href="#688">push</a>(<a href="#423">post</a>.to_def_id());
+                    .<a href="#707">push</a>(<a href="#425">post</a>.to_def_id());
+            }
+        }
+    }
+
+    <span class="kw">pub fn </span>add_purity&lt;<span class="lifetime">&#39;tcx</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, purity: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>, env: <span class="kw-2">&amp;</span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;) {
+        <span class="kw">match </span><a class="self" href="#441">self</a>.<a href="#505-509">get_constraint</a>(<a href="#441">purity</a>, <a href="#441">env</a>) {
+            <span class="prelude-val">None </span>=&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(
+                    <span class="string">&quot;separate purity defs are only used for type-conditional spec refinements&quot;
+                </span>)
+            }
+            <span class="prelude-val">Some</span>(constraint) =&gt; {
+                <span class="kw">let </span>constrained_spec = <a class="self" href="#441">self</a>.<a href="#493-496">get_constrained_spec_mut</a>(<a href="#448">constraint</a>);
+                <a href="#449">constrained_spec</a>.kind =
+                    <a href="#533">SpecificationItem::Inherent</a>(<a href="#229">ProcedureSpecificationKind::Pure</a>);
+                <span class="comment">// need to store this as well, since without pres or posts we couldn&#39;t find any def id with the trait bounds
+                </span><a href="#449">constrained_spec</a>.purity.<a href="#612">set</a>(<span class="prelude-val">Some</span>(<a href="#441">purity</a>.to_def_id()));
             }
         }
     }
 
     <span class="doccomment">/// Attaches the `pledge` to the base spec and all constrained specs.
-    </span><span class="kw">pub fn </span>add_pledge(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pledge: <a href="#500">Pledge</a>) {
-        <a class="self" href="#440">self</a>.base_spec.pledges.<a href="#688">push</a>(<a href="#440">pledge</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <a class="self" href="#440">self</a>.specs_with_constraints
+    </span><span class="kw">pub fn </span>add_pledge(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pledge: <a href="#519">Pledge</a>) {
+        <a class="self" href="#459">self</a>.base_spec.pledges.<a href="#707">push</a>(<a href="#459">pledge</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <a class="self" href="#459">self</a>.specs_with_constraints
             .values_mut()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|s| <a href="#444">s</a>.pledges.<a href="#688">push</a>(<a href="#440">pledge</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|s| <a href="#463">s</a>.pledges.<a href="#707">push</a>(<a href="#459">pledge</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()));
     }
 
     <span class="doccomment">/// Sets the trusted flag for the base spec and all constrained specs.
     </span><span class="kw">pub fn </span>set_trusted(<span class="kw-2">&amp;mut </span><span class="self">self</span>, trusted: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <a class="self" href="#448">self</a>.base_spec.trusted.<a href="#593">set</a>(<a href="#448">trusted</a>);
-        <a class="self" href="#448">self</a>.specs_with_constraints
+        <a class="self" href="#467">self</a>.base_spec.trusted.<a href="#612">set</a>(<a href="#467">trusted</a>);
+        <a class="self" href="#467">self</a>.specs_with_constraints
             .values_mut()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|s| <a href="#452">s</a>.trusted.<a href="#593">set</a>(<a href="#448">trusted</a>));
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|s| <a href="#471">s</a>.trusted.<a href="#612">set</a>(<a href="#467">trusted</a>));
     }
 
     <span class="doccomment">/// Sets the termination flag for the base spec and all constrained specs.
     </span><span class="kw">pub fn </span>set_terminates(<span class="kw-2">&amp;mut </span><span class="self">self</span>, terminates: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>) {
-        <a class="self" href="#456">self</a>.base_spec.terminates.<a href="#593">set</a>(<span class="prelude-val">Some</span>(<a href="#456">terminates</a>));
-        <a class="self" href="#456">self</a>.specs_with_constraints
+        <a class="self" href="#475">self</a>.base_spec.terminates.<a href="#612">set</a>(<span class="prelude-val">Some</span>(<a href="#475">terminates</a>));
+        <a class="self" href="#475">self</a>.specs_with_constraints
             .values_mut()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|s| <a href="#460">s</a>.terminates.<a href="#593">set</a>(<span class="prelude-val">Some</span>(<a href="#456">terminates</a>)));
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|s| <a href="#479">s</a>.terminates.<a href="#612">set</a>(<span class="prelude-val">Some</span>(<a href="#475">terminates</a>)));
     }
 
     <span class="doccomment">/// Sets the [ProcedureSpecificationKind] for the base spec and all constrained specs.
-    </span><span class="kw">pub fn </span>set_kind(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: <a href="#225">ProcedureSpecificationKind</a>) {
-        <a class="self" href="#464">self</a>.base_spec.kind.<a href="#593">set</a>(<a href="#464">kind</a>);
-        <a class="self" href="#464">self</a>.specs_with_constraints
+    </span><span class="kw">pub fn </span>set_kind(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: <a href="#227">ProcedureSpecificationKind</a>) {
+        <a class="self" href="#483">self</a>.base_spec.kind.<a href="#612">set</a>(<a href="#483">kind</a>);
+        <a class="self" href="#483">self</a>.specs_with_constraints
             .values_mut()
-            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|s| <a href="#468">s</a>.kind.<a href="#593">set</a>(<a href="#464">kind</a>));
+            .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(|s| <a href="#487">s</a>.kind.<a href="#612">set</a>(<a href="#483">kind</a>));
     }
 
     <span class="doccomment">/// Lazily gets/creates a constrained spec.
@@ -1495,11 +1534,11 @@
     /// the newly created constrained spec.
     </span><span class="kw">fn </span>get_constrained_spec_mut(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        constraint: <a href="#234">SpecConstraintKind</a>,
+        constraint: <a href="#236">SpecConstraintKind</a>,
     ) -&gt; <span class="kw-2">&amp;mut </span><a href="#196">ProcedureSpecification</a> {
-        <a class="self" href="#475">self</a>.specs_with_constraints
-            .entry(<a href="#476">constraint</a>)
-            .or_insert_with(|| <a class="self" href="#475">self</a>.base_spec.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <a class="self" href="#494">self</a>.specs_with_constraints
+            .entry(<a href="#495">constraint</a>)
+            .or_insert_with(|| <a class="self" href="#494">self</a>.base_spec.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 
     <span class="doccomment">/// Gets the constraint of a spec function `spec`.
@@ -1509,10 +1548,10 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         spec: <a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>,
         env: <span class="kw-2">&amp;</span>Environment&lt;<span class="lifetime">&#39;tcx</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#234">SpecConstraintKind</a>&gt; {
-        <span class="kw">let </span>attrs = <a href="#489">env</a>.query.<a href="../environment/query.rs.html#69">get_local_attributes</a>(<a href="#488">spec</a>);
-        <span class="kw">if </span>has_trait_bounds_ghost_constraint(attrs) {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#235">SpecConstraintKind::ResolveGenericParamTraitBounds</a>);
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="#236">SpecConstraintKind</a>&gt; {
+        <span class="kw">let </span>attrs = <a href="#508">env</a>.query.<a href="../environment/query.rs.html#69">get_local_attributes</a>(<a href="#507">spec</a>);
+        <span class="kw">if </span>has_trait_bounds_type_cond_spec(attrs) {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<a href="#237">SpecConstraintKind::ResolveGenericParamTraitBounds</a>);
         }
         <span class="prelude-val">None
     </span>}
@@ -1554,11 +1593,11 @@
         <span class="comment">// TODO(tymap): this API is not good: it must be possible to tell that
         //   the result was inherited, as we will e.g. need to rebase our substs
         //   to the trait
-        </span><span class="kw">match </span><span class="self"><a href="#531">self</a> </span>{
-            <a href="#511">SpecificationItem::Empty</a> =&gt; <span class="prelude-val">None</span>,
-            <a href="#517">SpecificationItem::Inherited</a>(val) =&gt; <span class="prelude-val">Some</span>((<span class="prelude-val">None</span>, <a href="#537">val</a>)),
-            <a href="#514">SpecificationItem::Inherent</a>(val) =&gt; <span class="prelude-val">Some</span>((<span class="prelude-val">None</span>, <a href="#538">val</a>)),
-            <a href="#522">SpecificationItem::Refined</a>(from, to) =&gt; <span class="prelude-val">Some</span>((<span class="prelude-val">Some</span>(<a href="#539">from</a>), <a href="#539">to</a>)),
+        </span><span class="kw">match </span><span class="self"><a href="#550">self</a> </span>{
+            <a href="#530">SpecificationItem::Empty</a> =&gt; <span class="prelude-val">None</span>,
+            <a href="#536">SpecificationItem::Inherited</a>(val) =&gt; <span class="prelude-val">Some</span>((<span class="prelude-val">None</span>, <a href="#556">val</a>)),
+            <a href="#533">SpecificationItem::Inherent</a>(val) =&gt; <span class="prelude-val">Some</span>((<span class="prelude-val">None</span>, <a href="#557">val</a>)),
+            <a href="#541">SpecificationItem::Refined</a>(from, to) =&gt; <span class="prelude-val">Some</span>((<span class="prelude-val">Some</span>(<a href="#558">from</a>), <a href="#558">to</a>)),
         }
     }
 
@@ -1567,45 +1606,45 @@
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
         strategy: S,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;R&gt; {
-        <a class="self" href="#545">self</a>.<a href="#531">get</a>().map(<a href="#546">strategy</a>)
+        <a class="self" href="#564">self</a>.<a href="#550">get</a>().map(<a href="#565">strategy</a>)
     }
 
     <span class="doccomment">/// Uses alternative C as discussed in
     /// https://ethz.ch/content/dam/ethz/special-interest/infk/chair-program-method/pm/documents/Education/Theses/Matthias_Erdin_MA_report.pdf
     /// pp 19-23
     </span><span class="kw">pub fn </span>extract_with_selective_replacement(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <a class="self" href="#554">self</a>.<a href="#544-547">extract_with_strategy</a>(|(<span class="kw">_</span>, refined)| <a href="#555">refined</a>)
+        <a class="self" href="#573">self</a>.<a href="#563-566">extract_with_strategy</a>(|(<span class="kw">_</span>, refined)| <a href="#574">refined</a>)
     }
 
     <span class="attr">#[track_caller]
     </span><span class="kw">pub fn </span>expect_empty_or_inherent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
-        <span class="kw">match </span><span class="self"><a href="#559">self</a> </span>{
-            <a href="#511">SpecificationItem::Empty</a> =&gt; <span class="prelude-val">None</span>,
-            <a href="#514">SpecificationItem::Inherent</a>(item) =&gt; <span class="prelude-val">Some</span>(<a href="#562">item</a>),
+        <span class="kw">match </span><span class="self"><a href="#578">self</a> </span>{
+            <a href="#530">SpecificationItem::Empty</a> =&gt; <span class="prelude-val">None</span>,
+            <a href="#533">SpecificationItem::Inherent</a>(item) =&gt; <span class="prelude-val">Some</span>(<a href="#581">item</a>),
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
 
     <span class="attr">#[track_caller]
     </span><span class="kw">pub fn </span>expect_inherent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">match </span><span class="self"><a href="#568">self</a> </span>{
-            <a href="#514">SpecificationItem::Inherent</a>(item) =&gt; <a href="#570">item</a>,
+        <span class="kw">match </span><span class="self"><a href="#587">self</a> </span>{
+            <a href="#533">SpecificationItem::Inherent</a>(item) =&gt; <a href="#589">item</a>,
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
 
     <span class="attr">#[track_caller]
     </span><span class="kw">pub fn </span>expect_inherited(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-        <span class="kw">match </span><span class="self"><a href="#576">self</a> </span>{
-            <a href="#517">SpecificationItem::Inherited</a>(item) =&gt; <a href="#578">item</a>,
+        <span class="kw">match </span><span class="self"><a href="#595">self</a> </span>{
+            <a href="#536">SpecificationItem::Inherited</a>(item) =&gt; <a href="#597">item</a>,
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
 
     <span class="attr">#[track_caller]
     </span><span class="kw">pub fn </span>expect_refined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;</span>T) {
-        <span class="kw">match </span><span class="self"><a href="#584">self</a> </span>{
-            <a href="#522">SpecificationItem::Refined</a>(a, b) =&gt; (<a href="#586">a</a>, <a href="#586">b</a>),
+        <span class="kw">match </span><span class="self"><a href="#603">self</a> </span>{
+            <a href="#541">SpecificationItem::Refined</a>(a, b) =&gt; (<a href="#605">a</a>, <a href="#605">b</a>),
             <span class="kw">_ </span>=&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
         }
     }
@@ -1613,12 +1652,12 @@
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; SpecificationItem&lt;T&gt; {
     <span class="kw">pub fn </span>set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_value: T) {
-        <span class="kw">match </span><span class="self"><a href="#593">self</a> </span>{
-            <a href="#511">SpecificationItem::Empty</a> =&gt; <span class="kw-2">*</span><span class="self"><a href="#593">self</a> </span>= <a href="#514">SpecificationItem::Inherent</a>(<a href="#593">new_value</a>),
-            <a href="#514">SpecificationItem::Inherent</a>(val) =&gt; <span class="kw-2">*</span><a href="#596">val</a> = <a href="#593">new_value</a>,
-            <a href="#522">SpecificationItem::Refined</a>(<span class="kw">_</span>, values) =&gt; <span class="kw-2">*</span><a href="#597">values</a> = <a href="#593">new_value</a>,
-            <a href="#517">SpecificationItem::Inherited</a>(inherited) =&gt; {
-                <span class="kw-2">*</span><span class="self"><a href="#593">self</a> </span>= <a href="#522">SpecificationItem::Refined</a>(<a href="#598">inherited</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#593">new_value</a>)
+        <span class="kw">match </span><span class="self"><a href="#612">self</a> </span>{
+            <a href="#530">SpecificationItem::Empty</a> =&gt; <span class="kw-2">*</span><span class="self"><a href="#612">self</a> </span>= <a href="#533">SpecificationItem::Inherent</a>(<a href="#612">new_value</a>),
+            <a href="#533">SpecificationItem::Inherent</a>(val) =&gt; <span class="kw-2">*</span><a href="#615">val</a> = <a href="#612">new_value</a>,
+            <a href="#541">SpecificationItem::Refined</a>(<span class="kw">_</span>, values) =&gt; <span class="kw-2">*</span><a href="#616">values</a> = <a href="#612">new_value</a>,
+            <a href="#536">SpecificationItem::Inherited</a>(inherited) =&gt; {
+                <span class="kw-2">*</span><span class="self"><a href="#612">self</a> </span>= <a href="#541">SpecificationItem::Refined</a>(<a href="#617">inherited</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#612">new_value</a>)
             }
         }
     }
@@ -1626,8 +1665,8 @@
 
 <span class="kw">impl </span>SpecificationItem&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
     <span class="kw">pub fn </span>extract_inherit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>&gt; {
-        <a class="self" href="#606">self</a>.<a href="#544-547">extract_with_strategy</a>(|(refined_from, refined)| {
-            <span class="kw-2">*</span>(<a href="#607">refined_from</a>.unwrap_or(<span class="kw-2">&amp;</span><span class="bool-val">false</span>)) || <span class="kw-2">*</span><a href="#607">refined</a>
+        <a class="self" href="#625">self</a>.<a href="#563-566">extract_with_strategy</a>(|(refined_from, refined)| {
+            <span class="kw-2">*</span>(<a href="#626">refined_from</a>.unwrap_or(<span class="kw-2">&amp;</span><span class="bool-val">false</span>)) || <span class="kw-2">*</span><a href="#626">refined</a>
         })
     }
 }
@@ -1639,11 +1678,11 @@
     /// However, we can not refine a non-predicate to a predicate, since predicates are not callable.
     /// This validation is not automatically performed during refinement. It needs to be invoked
     /// manually with [SpecificationItem&lt;ProcedureSpecificationKind&gt;::validate]
-    </span>InvalidSpecKindRefinement(<a href="#225">ProcedureSpecificationKind</a>, <a href="#225">ProcedureSpecificationKind</a>),
+    </span>InvalidSpecKindRefinement(<a href="#227">ProcedureSpecificationKind</a>, <a href="#227">ProcedureSpecificationKind</a>),
 }
 
-<span class="kw">impl </span>SpecificationItem&lt;<a href="#225">ProcedureSpecificationKind</a>&gt; {
-    <span class="kw">pub fn </span>is_pure(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="#614">ProcedureSpecificationKindError</a>&gt; {
+<span class="kw">impl </span>SpecificationItem&lt;<a href="#227">ProcedureSpecificationKind</a>&gt; {
+    <span class="kw">pub fn </span>is_pure(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="#633">ProcedureSpecificationKindError</a>&gt; {
         <span class="self">self</span>.validate()<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(
@@ -1652,35 +1691,35 @@
         ))
     }
 
-    <span class="kw">pub fn </span>is_impure(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="#614">ProcedureSpecificationKindError</a>&gt; {
+    <span class="kw">pub fn </span>is_impure(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <a href="#633">ProcedureSpecificationKindError</a>&gt; {
         <span class="self">self</span>.validate()<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a class="self" href="#633">self</a>.<a href="#554">extract_with_selective_replacement</a>() {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a class="self" href="#652">self</a>.<a href="#573">extract_with_selective_replacement</a>() {
             <span class="prelude-val">Some</span>(refined) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(refined, ProcedureSpecificationKind::Impure),
             <span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
         })
     }
 
-    <span class="kw">pub fn </span>get_predicate_body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt;, <a href="#614">ProcedureSpecificationKindError</a>&gt; {
+    <span class="kw">pub fn </span>get_predicate_body(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt;, <a href="#633">ProcedureSpecificationKindError</a>&gt; {
         <span class="self">self</span>.validate()<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a class="self" href="#642">self</a>.<a href="#554">extract_with_selective_replacement</a>() {
-            <span class="prelude-val">Some</span>(<a href="#230">ProcedureSpecificationKind::Predicate</a>(pred_id)) =&gt; <a href="#646">pred_id</a>.as_ref(),
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><a class="self" href="#661">self</a>.<a href="#573">extract_with_selective_replacement</a>() {
+            <span class="prelude-val">Some</span>(<a href="#232">ProcedureSpecificationKind::Predicate</a>(pred_id)) =&gt; <a href="#665">pred_id</a>.as_ref(),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         })
     }
 
     <span class="doccomment">/// Ensures that refined [ProcedureSpecificationKind]s are valid.
     /// See [ProcedureSpecificationKindError] for detailed error descriptions.
-    </span><span class="kw">pub fn </span>validate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#614">ProcedureSpecificationKindError</a>&gt; {
-        <span class="kw">use </span><a href="#225">ProcedureSpecificationKind</a>::<span class="kw-2">*</span>;
-        <span class="kw">if let </span><a href="#522">SpecificationItem::Refined</a>(base, refined) = <span class="self"><a href="#653">self</a> </span>{
-            <span class="kw">match </span>(<a href="#655">base</a>, <a href="#655">refined</a>) {
-                (<a href="#226">Impure</a>, <a href="#226">Impure</a>) | (<a href="#226">Impure</a>, <a href="#227">Pure</a>) | (<a href="#227">Pure</a>, <a href="#227">Pure</a>) | (<a href="#230">Predicate</a>(<span class="kw">_</span>), <a href="#230">Predicate</a>(<span class="kw">_</span>)) =&gt; {
+    </span><span class="kw">pub fn </span>validate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <a href="#633">ProcedureSpecificationKindError</a>&gt; {
+        <span class="kw">use </span><a href="#227">ProcedureSpecificationKind</a>::<span class="kw-2">*</span>;
+        <span class="kw">if let </span><a href="#541">SpecificationItem::Refined</a>(base, refined) = <span class="self"><a href="#672">self</a> </span>{
+            <span class="kw">match </span>(<a href="#674">base</a>, <a href="#674">refined</a>) {
+                (<a href="#228">Impure</a>, <a href="#228">Impure</a>) | (<a href="#228">Impure</a>, <a href="#229">Pure</a>) | (<a href="#229">Pure</a>, <a href="#229">Pure</a>) | (<a href="#232">Predicate</a>(<span class="kw">_</span>), <a href="#232">Predicate</a>(<span class="kw">_</span>)) =&gt; {
                     <span class="prelude-val">Ok</span>(())
                 }
-                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="#620">ProcedureSpecificationKindError::InvalidSpecKindRefinement</a>(
-                    <span class="kw-2">*</span><a href="#655">base</a>, <span class="kw-2">*</span><a href="#655">refined</a>,
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<a href="#639">ProcedureSpecificationKindError::InvalidSpecKindRefinement</a>(
+                    <span class="kw-2">*</span><a href="#674">base</a>, <span class="kw-2">*</span><a href="#674">refined</a>,
                 )),
             }
         } <span class="kw">else </span>{
@@ -1692,15 +1731,15 @@
 <span class="kw">impl</span>&lt;T&gt; SpecificationItem&lt;Vec&lt;T&gt;&gt; {
     <span class="kw">pub fn </span>new(vec: Vec&lt;T&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">if </span>vec.is_empty() {
-            <a href="#511">SpecificationItem::Empty</a>
+            <a href="#530">SpecificationItem::Empty</a>
         } <span class="kw">else </span>{
-            <a href="#514">SpecificationItem::Inherent</a>(<a href="#671">vec</a>)
+            <a href="#533">SpecificationItem::Inherent</a>(<a href="#690">vec</a>)
         }
     }
 
     <span class="kw">pub fn </span>extract_with_selective_replacement_iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>T&gt; + <span class="lifetime">&#39;_</span>&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(items) = <a class="self" href="#679">self</a>.<a href="#554">extract_with_selective_replacement</a>() {
-            <span class="kw">return </span>Box::new(<a href="#680">items</a>.iter());
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(items) = <a class="self" href="#698">self</a>.<a href="#573">extract_with_selective_replacement</a>() {
+            <span class="kw">return </span>Box::new(<a href="#699">items</a>.iter());
         }
         Box::new(std::iter::empty())
     }
@@ -1708,12 +1747,12 @@
 
 <span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>&gt; SpecificationItem&lt;Vec&lt;T&gt;&gt; {
     <span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) {
-        <span class="kw">match </span><span class="self"><a href="#688">self</a> </span>{
-            <a href="#511">SpecificationItem::Empty</a> =&gt; <span class="kw-2">*</span><span class="self"><a href="#688">self</a> </span>= <a href="#514">SpecificationItem::Inherent</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[value]),
-            <a href="#514">SpecificationItem::Inherent</a>(values) =&gt; <a href="#691">values</a>.push(<a href="#688">value</a>),
-            <a href="#522">SpecificationItem::Refined</a>(<span class="kw">_</span>, values) =&gt; <a href="#692">values</a>.push(<a href="#688">value</a>),
-            <a href="#517">SpecificationItem::Inherited</a>(inherited) =&gt; {
-                <span class="kw-2">*</span><span class="self"><a href="#688">self</a> </span>= <a href="#522">SpecificationItem::Refined</a>(<a href="#693">inherited</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[value])
+        <span class="kw">match </span><span class="self"><a href="#707">self</a> </span>{
+            <a href="#530">SpecificationItem::Empty</a> =&gt; <span class="kw-2">*</span><span class="self"><a href="#707">self</a> </span>= <a href="#533">SpecificationItem::Inherent</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[value]),
+            <a href="#533">SpecificationItem::Inherent</a>(values) =&gt; <a href="#710">values</a>.push(<a href="#707">value</a>),
+            <a href="#541">SpecificationItem::Refined</a>(<span class="kw">_</span>, values) =&gt; <a href="#711">values</a>.push(<a href="#707">value</a>),
+            <a href="#536">SpecificationItem::Inherited</a>(inherited) =&gt; {
+                <span class="kw-2">*</span><span class="self"><a href="#707">self</a> </span>= <a href="#541">SpecificationItem::Refined</a>(<a href="#712">inherited</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[value])
             }
         }
     }
@@ -1725,55 +1764,56 @@
         </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>;
 }
 
-<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>&gt; <a href="#700">Refinable</a> <span class="kw">for </span>SpecificationItem&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> + <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> + <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a>&gt; <a href="#719">Refinable</a> <span class="kw">for </span>SpecificationItem&lt;T&gt; {
     <span class="kw">fn </span>refine(<span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span><span class="self">Self</span>: <a href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <span class="kw">use </span><a href="#509">SpecificationItem</a>::<span class="kw-2">*</span>;
+        <span class="kw">use </span><a href="#528">SpecificationItem</a>::<span class="kw-2">*</span>;
 
         <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Refining {:?} with {:?}&quot;</span>, <span class="self">self</span>, other);
 
-        <span class="kw">let </span>other_val = <span class="kw">match </span><a href="#707">other</a> {
-            <a href="#511">Empty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;Trait spec should never be empty&quot;</span>),
-            <a href="#514">Inherent</a>(val) =&gt; <a href="#717">val</a>,
-            <a href="#517">Inherited</a>(val) =&gt; <a href="#718">val</a>,
-            <a href="#522">Refined</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Can not refine with a refined item&quot;</span>),
+        <span class="kw">let </span>other_val = <span class="kw">match </span><a href="#726">other</a> {
+            <a href="#530">Empty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;Trait spec should never be empty&quot;</span>),
+            <a href="#533">Inherent</a>(val) =&gt; <a href="#736">val</a>,
+            <a href="#536">Inherited</a>(val) =&gt; <a href="#737">val</a>,
+            <a href="#541">Refined</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Can not refine with a refined item&quot;</span>),
         };
 
-        <span class="kw">let </span>refined = <span class="kw">match </span><span class="self"><a href="#707">self</a> </span>{
-            <a href="#511">Empty</a> =&gt; <a href="#517">Inherited</a>(<a href="#715">other_val</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
-            <a href="#514">Inherent</a>(val) | <a href="#517">Inherited</a>(val) =&gt; <a href="#522">Refined</a>(<a href="#715">other_val</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#724">val</a>),
-            <a href="#522">Refined</a>(from, val) <span class="kw">if </span><span class="kw-2">&amp;</span><a href="#725">from</a> == <a href="#715">other_val</a> =&gt; <a href="#522">Refined</a>(<a href="#725">from</a>, <a href="#725">val</a>),
-            <a href="#522">Refined</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Can not refine this refined item&quot;</span>),
+        <span class="kw">let </span>refined = <span class="kw">match </span><span class="self"><a href="#726">self</a> </span>{
+            <a href="#530">Empty</a> =&gt; <a href="#536">Inherited</a>(<a href="#734">other_val</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+            <a href="#533">Inherent</a>(val) | <a href="#536">Inherited</a>(val) =&gt; <a href="#541">Refined</a>(<a href="#734">other_val</a>.<a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a href="#743">val</a>),
+            <a href="#541">Refined</a>(from, val) <span class="kw">if </span><span class="kw-2">&amp;</span><a href="#744">from</a> == <a href="#734">other_val</a> =&gt; <a href="#541">Refined</a>(<a href="#744">from</a>, <a href="#744">val</a>),
+            <a href="#541">Refined</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Can not refine this refined item&quot;</span>),
         };
 
         <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;\t -&gt; {:?}&quot;</span>, refined);
-        <a href="#722">refined</a>
+        <a href="#741">refined</a>
     }
 }
 
-<span class="kw">impl </span><a href="#700">Refinable</a> <span class="kw">for </span><a href="#196">ProcedureSpecification</a> {
+<span class="kw">impl </span><a href="#719">Refinable</a> <span class="kw">for </span><a href="#196">ProcedureSpecification</a> {
     <span class="kw">fn </span>refine(<span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self </span>{
         <span class="comment">// Unspecified trait specs should be treated as a default value instead of nothing
         // See issue-1022
         </span><span class="kw">type </span>SpecVec&lt;T&gt; = SpecificationItem&lt;Vec&lt;T&gt;&gt;;
-        <span class="kw">static </span>EMPTYL: SpecVec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt; = <a href="#514">SpecificationItem::Inherent</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]);
-        <span class="kw">static </span>EMPTYP: SpecVec&lt;<a href="#500">Pledge</a>&gt; = <a href="#514">SpecificationItem::Inherent</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]);
+        <span class="kw">static </span>EMPTYL: SpecVec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt; = <a href="#533">SpecificationItem::Inherent</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]);
+        <span class="kw">static </span>EMPTYP: SpecVec&lt;<a href="#519">Pledge</a>&gt; = <a href="#533">SpecificationItem::Inherent</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]);
         <span class="kw">fn </span>replace_empty&lt;<span class="lifetime">&#39;a</span>, T&gt;(empty: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SpecVec&lt;T&gt;, spec: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SpecVec&lt;T&gt;) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SpecVec&lt;T&gt; {
-            <span class="kw">match </span><a href="#741">spec</a> {
-                <a href="#511">SpecificationItem::Empty</a> =&gt; <a href="#741">empty</a>,
-                other =&gt; <a href="#744">other</a>,
+            <span class="kw">match </span><a href="#760">spec</a> {
+                <a href="#530">SpecificationItem::Empty</a> =&gt; <a href="#760">empty</a>,
+                other =&gt; <a href="#763">other</a>,
             }
         }
         <a href="#196">ProcedureSpecification</a> {
-            source: <a class="self" href="#735">self</a>.source,
-            pres: <a class="self" href="#735">self</a>.pres.<a href="#701-703">refine</a>(<a href="#741">replace_empty</a>(<span class="kw-2">&amp;</span><a href="#739">EMPTYL</a>, <span class="kw-2">&amp;</span><a href="#735">other</a>.pres)),
-            posts: <a class="self" href="#735">self</a>.posts.<a href="#701-703">refine</a>(<a href="#741">replace_empty</a>(<span class="kw-2">&amp;</span><a href="#739">EMPTYL</a>, <span class="kw-2">&amp;</span><a href="#735">other</a>.posts)),
-            pledges: <a class="self" href="#735">self</a>.pledges.<a href="#701-703">refine</a>(<a href="#741">replace_empty</a>(<span class="kw-2">&amp;</span><a href="#740">EMPTYP</a>, <span class="kw-2">&amp;</span><a href="#735">other</a>.pledges)),
-            kind: <a class="self" href="#735">self</a>.kind.<a href="#701-703">refine</a>(<span class="kw-2">&amp;</span><a href="#735">other</a>.kind),
-            trusted: <a class="self" href="#735">self</a>.trusted.<a href="#701-703">refine</a>(<span class="kw-2">&amp;</span><a href="#735">other</a>.trusted),
-            terminates: <a class="self" href="#735">self</a>.terminates.<a href="#701-703">refine</a>(<span class="kw-2">&amp;</span><a href="#735">other</a>.terminates),
+            source: <a class="self" href="#754">self</a>.source,
+            pres: <a class="self" href="#754">self</a>.pres.<a href="#720-722">refine</a>(<a href="#760">replace_empty</a>(<span class="kw-2">&amp;</span><a href="#758">EMPTYL</a>, <span class="kw-2">&amp;</span><a href="#754">other</a>.pres)),
+            posts: <a class="self" href="#754">self</a>.posts.<a href="#720-722">refine</a>(<a href="#760">replace_empty</a>(<span class="kw-2">&amp;</span><a href="#758">EMPTYL</a>, <span class="kw-2">&amp;</span><a href="#754">other</a>.posts)),
+            pledges: <a class="self" href="#754">self</a>.pledges.<a href="#720-722">refine</a>(<a href="#760">replace_empty</a>(<span class="kw-2">&amp;</span><a href="#759">EMPTYP</a>, <span class="kw-2">&amp;</span><a href="#754">other</a>.pledges)),
+            kind: <a class="self" href="#754">self</a>.kind.<a href="#720-722">refine</a>(<span class="kw-2">&amp;</span><a href="#754">other</a>.kind),
+            trusted: <a class="self" href="#754">self</a>.trusted.<a href="#720-722">refine</a>(<span class="kw-2">&amp;</span><a href="#754">other</a>.trusted),
+            terminates: <a class="self" href="#754">self</a>.terminates.<a href="#720-722">refine</a>(<span class="kw-2">&amp;</span><a href="#754">other</a>.terminates),
+            purity: <a class="self" href="#754">self</a>.purity.<a href="#720-722">refine</a>(<span class="kw-2">&amp;</span><a href="#754">other</a>.purity),
         }
     }
 }

@@ -186,13 +186,17 @@
 <a href="#186" id="186">186</a>
 <a href="#187" id="187">187</a>
 <a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Predicate parsing
 
-</span><span class="kw">use crate</span>::{<a href="lib.rs.html#18">rewriter</a>, <a href="specifications/common.rs.html#52">SpecificationId</a>, <a href="lib.rs.html#43">SPECS_VERSION</a>};
+</span><span class="kw">use crate</span>::{
+    common::{<a href="common.rs.html#108">HasMacro</a>, <a href="common.rs.html#62">HasSignature</a>},
+    <a href="lib.rs.html#18">rewriter</a>, <a href="specifications/common.rs.html#64">SpecificationId</a>, <a href="lib.rs.html#42">SPECS_VERSION</a>,
+};
 <span class="kw">use </span>proc_macro2::{<a href="../../proc_macro2/struct.Span.html">Span</a>, <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>};
 <span class="kw">use </span><a href="../../quote/to_tokens/trait.ToTokens.html">quote::ToTokens</a>;
 <span class="kw">use </span>syn::{<a href="../../syn/parse/trait.Parse.html">parse::Parse</a>, <a href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned</a>, <a href="../../syn/spanned/trait.Spanned.html">spanned::Spanned</a>};
-<span class="kw">use </span><span class="kw">crate</span>::common::{<a href="common.rs.html#100">HasMacro</a>, <a href="common.rs.html#54">HasSignature</a>};
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>PredicateWithBody&lt;T: <a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>&gt; {
@@ -204,8 +208,8 @@
 
 <span class="kw">impl</span>&lt;T: <a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a>&gt; <a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span>PredicateWithBody&lt;T&gt; {
     <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-        <a class="self" href="#18">self</a>.spec_function.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#18">tokens</a>);
-        <a class="self" href="#18">self</a>.patched_function.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#18">tokens</a>);
+        <a class="self" href="#20">self</a>.spec_function.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#20">tokens</a>);
+        <a class="self" href="#20">self</a>.patched_function.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#20">tokens</a>);
     }
 }
 
@@ -215,17 +219,17 @@
     </span>patched_function: <a href="../../syn/item/struct.TraitItemMethod.html">syn::TraitItemMethod</a>,
 }
 
-<span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#25">PredicateWithoutBody</a> {
+<span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#27">PredicateWithoutBody</a> {
     <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-        <span class="kw">let </span>patched_function = <span class="kw-2">&amp;</span><a class="self" href="#31">self</a>.patched_function;
-        <a href="#32">patched_function</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#31">tokens</a>);
+        <span class="kw">let </span>patched_function = <span class="kw-2">&amp;</span><a class="self" href="#33">self</a>.patched_function;
+        <a href="#34">patched_function</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#33">tokens</a>);
     }
 }
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>ParsedPredicate {
     <span class="doccomment">/// An abstract predicate, which can appear in trait methods
-    </span>Abstract(<a href="#25">PredicateWithoutBody</a>),
+    </span>Abstract(<a href="#27">PredicateWithoutBody</a>),
 
     <span class="doccomment">/// A predicate which implements an abstract predicate
     </span>Impl(PredicateWithBody&lt;<a href="../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a>&gt;),
@@ -234,40 +238,40 @@
     </span>FreeStanding(PredicateWithBody&lt;<a href="../../syn/item/struct.ItemFn.html">syn::ItemFn</a>&gt;),
 }
 
-<span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#38">ParsedPredicate</a> {
+<span class="kw">impl </span><a href="../../quote/to_tokens/trait.ToTokens.html">ToTokens</a> <span class="kw">for </span><a href="#40">ParsedPredicate</a> {
     <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span><a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
-        <span class="kw">match </span><span class="self"><a href="#50">self</a> </span>{
-            <span class="self">Self</span>::FreeStanding(p) =&gt; <a href="#52">p</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#50">tokens</a>),
-            <span class="self">Self</span>::Abstract(p) =&gt; <a href="#53">p</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#50">tokens</a>),
-            <span class="self">Self</span>::Impl(p) =&gt; <a href="#54">p</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#50">tokens</a>),
+        <span class="kw">match </span><span class="self"><a href="#52">self</a> </span>{
+            <span class="self">Self</span>::FreeStanding(p) =&gt; <a href="#54">p</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#52">tokens</a>),
+            <span class="self">Self</span>::Abstract(p) =&gt; <a href="#55">p</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#52">tokens</a>),
+            <span class="self">Self</span>::Impl(p) =&gt; <a href="#56">p</a>.<a href="../../quote/to_tokens/trait.ToTokens.html">to_tokens</a>(<a href="#52">tokens</a>),
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_predicate_macro&lt;T: <a href="common.rs.html#100">HasMacro</a>&gt;(makro: <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a href="#59">makro</a>
-        .<a href="common.rs.html#101">mac</a>()
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_predicate_macro&lt;T: <a href="common.rs.html#108">HasMacro</a>&gt;(makro: <span class="kw-2">&amp;</span>T) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <a href="#61">makro</a>
+        .<a href="common.rs.html#109">mac</a>()
         .path
         .segments
         .last()
-        .map(|last| <a href="#65">last</a>.ident == <span class="string">&quot;predicate&quot;</span>)
+        .map(|last| <a href="#67">last</a>.ident == <span class="string">&quot;predicate&quot;</span>)
         .unwrap_or(<span class="bool-val">false</span>)
 }
 
-<span class="kw">pub fn </span>parse_predicate_in_impl(tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; syn::Result&lt;<a href="#38">ParsedPredicate</a>&gt; {
-    <a href="#77-80">parse_predicate_internal</a>(<a href="#69">tokens</a>, <span class="bool-val">true</span>)
+<span class="kw">pub fn </span>parse_predicate_in_impl(tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; syn::Result&lt;<a href="#40">ParsedPredicate</a>&gt; {
+    <a href="#79-82">parse_predicate_internal</a>(<a href="#71">tokens</a>, <span class="bool-val">true</span>)
 }
 
-<span class="kw">pub fn </span>parse_predicate(tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; syn::Result&lt;<a href="#38">ParsedPredicate</a>&gt; {
-    <a href="#77-80">parse_predicate_internal</a>(<a href="#73">tokens</a>, <span class="bool-val">false</span>)
+<span class="kw">pub fn </span>parse_predicate(tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; syn::Result&lt;<a href="#40">ParsedPredicate</a>&gt; {
+    <a href="#79-82">parse_predicate_internal</a>(<a href="#75">tokens</a>, <span class="bool-val">false</span>)
 }
 
 <span class="kw">fn </span>parse_predicate_internal(
     tokens: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
     in_spec_refinement: <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-) -&gt; syn::Result&lt;<a href="#38">ParsedPredicate</a>&gt; {
-    <span class="kw">let </span>span = <a href="#78">tokens</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>();
-    <span class="kw">let </span>input: <a href="#161">PredicateFnInput</a> = syn::parse2(tokens).map_err(|e| {
+) -&gt; syn::Result&lt;<a href="#40">ParsedPredicate</a>&gt; {
+    <span class="kw">let </span>span = <a href="#80">tokens</a>.<a href="../../syn/spanned/trait.Spanned.html">span</a>();
+    <span class="kw">let </span>input: <a href="#163">PredicateFnInput</a> = syn::parse2(tokens).map_err(|e| {
         syn::Error::new(
             e.span(),
             <span class="string">&quot;`predicate!` can only be used on function definitions. it supports no attributes.&quot;</span>,
@@ -276,50 +280,50 @@
 
     <span class="kw">if </span>input.body.is_some() {
         <span class="kw">let </span><span class="kw-2">mut </span>rewriter = rewriter::AstRewriter::new();
-        <span class="kw">let </span>spec_id = <a href="#90">rewriter</a>.<a href="rewriter.rs.html#45">generate_spec_id</a>();
+        <span class="kw">let </span>spec_id = <a href="#92">rewriter</a>.<a href="rewriter.rs.html#45">generate_spec_id</a>();
 
         <span class="kw">if </span>in_spec_refinement {
             <span class="kw">let </span>patched_function: <a href="../../syn/item/struct.ImplItemMethod.html">syn::ImplItemMethod</a> =
-                <a href="#127-131">patch_predicate_macro_body</a>(<span class="kw-2">&amp;</span><a href="#82">input</a>, <a href="#81">span</a>, <a href="#91">spec_id</a>);
+                <a href="#129-133">patch_predicate_macro_body</a>(<span class="kw-2">&amp;</span><a href="#84">input</a>, <a href="#83">span</a>, <a href="#93">spec_id</a>);
             <span class="kw">let </span>spec_function =
                 generate_spec_function(input.body.unwrap(), spec_id, <span class="kw-2">&amp;</span>patched_function)<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<a href="#43">ParsedPredicate::Impl</a>(<a href="#10">PredicateWithBody</a> {
-                <a href="#96">spec_function</a>,
-                <a href="#94">patched_function</a>,
+            <span class="prelude-val">Ok</span>(<a href="#45">ParsedPredicate::Impl</a>(<a href="#12">PredicateWithBody</a> {
+                <a href="#98">spec_function</a>,
+                <a href="#96">patched_function</a>,
             }))
         } <span class="kw">else </span>{
-            <span class="kw">let </span>patched_function: <a href="../../syn/item/struct.ItemFn.html">syn::ItemFn</a> = <a href="#127-131">patch_predicate_macro_body</a>(<span class="kw-2">&amp;</span><a href="#82">input</a>, <a href="#81">span</a>, <a href="#91">spec_id</a>);
+            <span class="kw">let </span>patched_function: <a href="../../syn/item/struct.ItemFn.html">syn::ItemFn</a> = <a href="#129-133">patch_predicate_macro_body</a>(<span class="kw-2">&amp;</span><a href="#84">input</a>, <a href="#83">span</a>, <a href="#93">spec_id</a>);
             <span class="kw">let </span>spec_function =
                 generate_spec_function(input.body.unwrap(), spec_id, <span class="kw-2">&amp;</span>patched_function)<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(<a href="#46">ParsedPredicate::FreeStanding</a>(<a href="#10">PredicateWithBody</a> {
-                <a href="#105">spec_function</a>,
-                <a href="#104">patched_function</a>,
+            <span class="prelude-val">Ok</span>(<a href="#48">ParsedPredicate::FreeStanding</a>(<a href="#12">PredicateWithBody</a> {
+                <a href="#107">spec_function</a>,
+                <a href="#106">patched_function</a>,
             }))
         }
     } <span class="kw">else </span>{
-        <span class="kw">let </span>signature = <a href="#82">input</a>.fn_sig;
+        <span class="kw">let </span>signature = <a href="#84">input</a>.fn_sig;
         <span class="kw">let </span>patched_function = <a class="macro" href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned!</a>(span=&gt;
             <span class="attr">#[prusti::abstract_predicate]
             #[prusti::specs_version = #SPECS_VERSION]
             </span>#signature;
         );
 
-        <span class="prelude-val">Ok</span>(<a href="#40">ParsedPredicate::Abstract</a>(<a href="#25">PredicateWithoutBody</a> {
-            <a href="#115">patched_function</a>,
+        <span class="prelude-val">Ok</span>(<a href="#42">ParsedPredicate::Abstract</a>(<a href="#27">PredicateWithoutBody</a> {
+            <a href="#117">patched_function</a>,
         }))
     }
 }
 
 <span class="kw">fn </span>patch_predicate_macro_body&lt;R: <a href="../../syn/parse/trait.Parse.html">Parse</a>&gt;(
-    predicate: <span class="kw-2">&amp;</span><a href="#161">PredicateFnInput</a>,
+    predicate: <span class="kw-2">&amp;</span><a href="#163">PredicateFnInput</a>,
     input_span: <a href="../../proc_macro2/struct.Span.html">Span</a>,
-    spec_id: <a href="specifications/common.rs.html#52">SpecificationId</a>,
+    spec_id: <a href="specifications/common.rs.html#64">SpecificationId</a>,
 ) -&gt; R {
-    <span class="kw">let </span>visibility = <span class="kw-2">&amp;</span><a href="#128">predicate</a>.visibility;
-    <span class="kw">let </span>signature = <span class="kw-2">&amp;</span><a href="#128">predicate</a>.fn_sig;
-    <span class="kw">let </span>spec_id_str = <a href="#130">spec_id</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+    <span class="kw">let </span>visibility = <span class="kw-2">&amp;</span><a href="#130">predicate</a>.visibility;
+    <span class="kw">let </span>signature = <span class="kw-2">&amp;</span><a href="#130">predicate</a>.fn_sig;
+    <span class="kw">let </span>spec_id_str = <a href="#132">spec_id</a>.<a href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
 
     <a class="macro" href="../../syn/macro.parse_quote_spanned.html">parse_quote_spanned!</a>(input_span=&gt;
         <span class="attr">#[allow(unused_must_use, unused_variables, dead_code)]
@@ -331,17 +335,17 @@
     )
 }
 
-<span class="kw">fn </span>generate_spec_function&lt;T: <a href="common.rs.html#54">HasSignature</a> + <a href="../../syn/spanned/trait.Spanned.html">Spanned</a>&gt;(
+<span class="kw">fn </span>generate_spec_function&lt;T: <a href="common.rs.html#62">HasSignature</a> + <a href="../../syn/spanned/trait.Spanned.html">Spanned</a>&gt;(
     body: <a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-    spec_id: <a href="specifications/common.rs.html#52">SpecificationId</a>,
+    spec_id: <a href="specifications/common.rs.html#64">SpecificationId</a>,
     patched_function: <span class="kw-2">&amp;</span>T,
 ) -&gt; syn::Result&lt;<a href="../../syn/item/enum.Item.html">syn::Item</a>&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>rewriter = rewriter::AstRewriter::new();
-    <a href="#151">rewriter</a>.<a href="rewriter.rs.html#142-148">process_assertion</a>(
+    <a href="#153">rewriter</a>.<a href="rewriter.rs.html#148-154">process_assertion</a>(
         <a href="rewriter.rs.html#22">rewriter::SpecItemType::Predicate</a>,
-        <a href="#148">spec_id</a>,
-        <a href="#147">body</a>,
-        <a href="#149">patched_function</a>,
+        <a href="#150">spec_id</a>,
+        <a href="#149">body</a>,
+        <a href="#151">patched_function</a>,
     )
 }
 
@@ -352,9 +356,9 @@
     body: <span class="prelude-ty">Option</span>&lt;<a href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>&gt;,
 }
 
-<span class="kw">impl </span><a href="../../syn/parse/trait.Parse.html">syn::parse::Parse</a> <span class="kw">for </span><a href="#161">PredicateFnInput</a> {
+<span class="kw">impl </span><a href="../../syn/parse/trait.Parse.html">syn::parse::Parse</a> <span class="kw">for </span><a href="#163">PredicateFnInput</a> {
     <span class="kw">fn </span>parse(input: <a href="../../syn/parse/type.ParseStream.html">syn::parse::ParseStream</a>) -&gt; syn::Result&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>visibility = <a href="#168">input</a>.parse().ok();
+        <span class="kw">let </span>visibility = <a href="#170">input</a>.parse().ok();
         <span class="kw">let </span>fn_sig = input.parse()<span class="question-mark">?</span>;
 
         <span class="kw">let </span>body = <span class="kw">if </span>input.peek(<span class="macro">syn::Token!</span>[;]) {
@@ -364,13 +368,13 @@
             <span class="kw">let </span>brace_content;
             <span class="kw">let </span>_brace_token = <a class="macro" href="../../syn/syn/macro.braced.html">syn::braced!</a>(brace_content <span class="kw">in </span>input);
             <span class="kw">let </span>parsed_body = brace_content.parse()<span class="question-mark">?</span>;
-            <span class="prelude-val">Some</span>(<a href="#178">parsed_body</a>)
+            <span class="prelude-val">Some</span>(<a href="#180">parsed_body</a>)
         };
 
-        <span class="prelude-val">Ok</span>(<a href="#161">PredicateFnInput</a> {
-            <a href="#169">visibility</a>,
-            <a href="#170">fn_sig</a>,
-            <a href="#172">body</a>,
+        <span class="prelude-val">Ok</span>(<a href="#163">PredicateFnInput</a> {
+            <a href="#171">visibility</a>,
+            <a href="#172">fn_sig</a>,
+            <a href="#174">body</a>,
         })
     }
 }

@@ -258,6 +258,7 @@
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
 <a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::encoder::mir::specifications::{<a href="interface.rs.html#26">interface::FunctionCallEncodingQuery</a>, <a href="interface.rs.html#33">SpecQuery</a>};
 <span class="kw">use </span>log::{<a href="../../../../../log/macro.debug.html">debug</a>, <a href="../../../../../log/macro.trace.html">trace</a>};
 <span class="kw">use </span>prusti_interface::{
@@ -307,18 +308,13 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;spec </span><a href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>, <a href="../../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a>&gt; {
         <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Resolving spec constraints for {query:?}&quot;</span>);
 
-        <span class="kw">if </span>!prusti_common::config::enable_ghost_constraints() {
-            <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Ghost constraints are disabled, using base spec&quot;</span>);
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="self" href="#44">self</a>.base_spec);
-        }
-
         <span class="kw">if </span><span class="self">self</span>.specs_with_constraints.is_empty() {
             <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Spec has no constraints, using base spec&quot;</span>);
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="self" href="#44">self</a>.base_spec);
         }
 
         <span class="kw">let </span>context = <span class="kw">match </span><a href="#46">query</a> {
-            <a href="interface.rs.html#38">SpecQuery::GetProcKind</a>(<span class="kw">_</span>, <span class="kw">_</span>) | <a href="interface.rs.html#39">SpecQuery::FetchSpan</a>(<span class="kw">_</span>) =&gt; {
+            <a href="interface.rs.html#39">SpecQuery::FetchSpan</a>(<span class="kw">_</span>) =&gt; {
                 <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;No need to resolve obligations for cause {:?}&quot;</span>, query);
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="self" href="#44">self</a>.base_spec);
             }
@@ -326,17 +322,18 @@
                 called_def_id,
                 caller_def_id,
                 call_substs,
-            }) =&gt; <a href="#115">ConstraintSolvingContext</a> {
-                proc_def_id: <span class="kw-2">*</span><a href="#66">called_def_id</a>,
-                caller_proc_def_id: <span class="prelude-val">Some</span>(<span class="kw-2">*</span><a href="#67">caller_def_id</a>),
-                substs: <a href="#68">call_substs</a>,
+            }) =&gt; <a href="#111">ConstraintSolvingContext</a> {
+                proc_def_id: <span class="kw-2">*</span><a href="#61">called_def_id</a>,
+                caller_proc_def_id: <span class="prelude-val">Some</span>(<span class="kw-2">*</span><a href="#62">caller_def_id</a>),
+                substs: <a href="#63">call_substs</a>,
             },
             <span class="comment">// Obligations are resolved for function definition encodings to account
-            // for ghost constraints on traits (behavioral subtyping rules will be checked
+            // for type-conditional spec refinements on traits (behavioral subtyping rules will be checked
             // against the resolved spec).
-            </span><a href="interface.rs.html#34">SpecQuery::FunctionDefEncoding</a>(proc_def_id, substs) =&gt; <a href="#115">ConstraintSolvingContext</a> {
-                proc_def_id: <span class="kw-2">*</span><a href="#77">proc_def_id</a>,
-                <a href="#77">substs</a>,
+            </span><a href="interface.rs.html#34">SpecQuery::FunctionDefEncoding</a>(proc_def_id, substs)
+            | <a href="interface.rs.html#38">SpecQuery::GetProcKind</a>(proc_def_id, substs) =&gt; <a href="#111">ConstraintSolvingContext</a> {
+                proc_def_id: <span class="kw-2">*</span><a href="#72">proc_def_id</a>,
+                <a href="#72">substs</a>,
                 caller_proc_def_id: <span class="prelude-val">None</span>,
             },
         };
@@ -345,15 +342,15 @@
             <a class="self" href="#44">self</a>.specs_with_constraints
                 .iter()
                 .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(|(constraint_kind, spec)| {
-                    <a href="#121-126">constraint_fulfilled</a>(<a href="#45">env</a>, <span class="kw-2">&amp;</span><a href="#60">context</a>, <a href="#87">constraint_kind</a>, <a href="#87">spec</a>)
+                    <a href="#117-122">constraint_fulfilled</a>(<a href="#45">env</a>, <span class="kw-2">&amp;</span><a href="#55">context</a>, <a href="#83">constraint_kind</a>, <a href="#83">spec</a>)
                 });
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((constraint_kind, spec_with_constraints)) = <a href="#84">applicable_specs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((constraint_kind, spec_with_constraints)) = <a href="#80">applicable_specs</a>.<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
             <span class="kw">if </span>applicable_specs.next().is_some() {
-                <span class="kw">let </span>span = <a href="#45">env</a>.query.get_def_span(<a href="#60">context</a>.proc_def_id);
-                <span class="kw">return </span><span class="prelude-val">Err</span>(PrustiError::unsupported(<span class="string">&quot;Multiple different applicable specification obligations found, which is currently not supported in Prusti&quot;</span>, MultiSpan::from_span(<a href="#93">span</a>)).add_note(
+                <span class="kw">let </span>span = <a href="#45">env</a>.query.get_def_span(<a href="#55">context</a>.proc_def_id);
+                <span class="kw">return </span><span class="prelude-val">Err</span>(PrustiError::unsupported(<span class="string">&quot;Multiple different applicable specification obligations found, which is currently not supported in Prusti&quot;</span>, MultiSpan::from_span(<a href="#89">span</a>)).add_note(
                     <span class="string">&quot;This error is triggered because of a call to this function&quot;</span>,
-                    <a href="#60">context</a>.caller_proc_def_id.map(|caller| <a href="#45">env</a>.query.get_def_span(<a href="#96">caller</a>)),
+                    <a href="#55">context</a>.caller_proc_def_id.map(|caller| <a href="#45">env</a>.query.get_def_span(<a href="#92">caller</a>)),
                 ));
             }
 
@@ -363,7 +360,7 @@
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="prelude-val">Some</span>(<span class="bool-val">true</span>), spec_with_constraints.trusted.extract_inherit());
 
             <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Resolved to constrained spec with constraint {constraint_kind:?}&quot;</span>);
-            <span class="prelude-val">Ok</span>(<a href="#91">spec_with_constraints</a>)
+            <span class="prelude-val">Ok</span>(<a href="#87">spec_with_constraints</a>)
         } <span class="kw">else </span>{
             <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;No constrained spec applicable, using base spec&quot;</span>);
             <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><a class="self" href="#44">self</a>.base_spec)
@@ -384,16 +381,16 @@
     obligation: <span class="kw-2">&amp;</span><a href="../../../../../prusti_interface/specs/typed/enum.SpecConstraintKind.html">SpecConstraintKind</a>,
     proc_spec: <span class="kw-2">&amp;</span><span class="lifetime">&#39;spec </span><a href="../../../../../prusti_interface/specs/typed/struct.ProcedureSpecification.html">ProcedureSpecification</a>,
 ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">match </span><a href="#124">obligation</a> {
+    <span class="kw">match </span><a href="#120">obligation</a> {
         SpecConstraintKind::ResolveGenericParamTraitBounds =&gt; {
-            <a href="#139-143">trait_bounds::resolve</a>(<a href="#122">env</a>, <a href="#123">context</a>, <a href="#125">proc_spec</a>)
+            <a href="#135-139">trait_bounds::resolve</a>(<a href="#118">env</a>, <a href="#119">context</a>, <a href="#121">proc_spec</a>)
         }
     }
 }
 
-<span class="kw">pub mod </span>trait_bounds {
+<span class="kw">mod </span>trait_bounds {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span>prusti_interface::{<a href="../../../../../prusti_interface/utils/fn.has_trait_bounds_ghost_constraint.html">utils::has_trait_bounds_ghost_constraint</a>, <a href="../../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a>};
+    <span class="kw">use </span>prusti_interface::{<a href="../../../../../prusti_interface/utils/fn.has_trait_bounds_type_cond_spec.html">utils::has_trait_bounds_type_cond_spec</a>, <a href="../../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a>};
     <span class="kw">use </span><a href="../../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>resolve&lt;<span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;env</span>: <span class="lifetime">&#39;spec</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;env</span>&gt;(
@@ -403,38 +400,38 @@
     ) -&gt; <a href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="macro" href="../../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Trait bound constraint resolving for {:?}&quot;</span>, context);
 
-        <span class="kw">let </span>param_env_constraint = <a href="#218-221">extract_param_env</a>(<a href="#140">env</a>, <a href="#142">proc_spec</a>);
+        <span class="kw">let </span>param_env_constraint = <a href="#214-217">extract_param_env</a>(<a href="#136">env</a>, <a href="#138">proc_spec</a>);
         <span class="kw">let </span>param_env_constraint =
-            <a href="#181-185">perform_param_env_substitutions</a>(<a href="#140">env</a>, <a href="#141">context</a>, <a href="#146">param_env_constraint</a>);
+            <a href="#177-181">perform_param_env_substitutions</a>(<a href="#136">env</a>, <a href="#137">context</a>, <a href="#142">param_env_constraint</a>);
 
         <span class="comment">// There is no caller when encoding a function.
         // We still resolve obligations to account for constrained specs on a trait
         // for which we encode its implementation. The corresponding encoding will
         // contain a behavioral subtyping check which will be performed on the
         // resolved spec.
-        </span><span class="kw">let </span>param_env_lookup = <span class="kw">if let </span><span class="prelude-val">Some</span>(caller_def_id) = <a href="#141">context</a>.caller_proc_def_id {
-            <a href="#155">caller_def_id</a>
+        </span><span class="kw">let </span>param_env_lookup = <span class="kw">if let </span><span class="prelude-val">Some</span>(caller_def_id) = <a href="#137">context</a>.caller_proc_def_id {
+            <a href="#151">caller_def_id</a>
         } <span class="kw">else </span>{
-            <a href="#141">context</a>.proc_def_id
+            <a href="#137">context</a>.proc_def_id
         };
 
-        <span class="kw">let </span>all_bounds_satisfied = <a href="#147">param_env_constraint</a>
+        <span class="kw">let </span>all_bounds_satisfied = <a href="#143">param_env_constraint</a>
             .caller_bounds()
             .iter()
             .<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(|predicate| {
                 <span class="comment">// Normalize any associated type projections.
-                // This needs to be done because ghost constraints might contain &quot;deeply nested&quot;
+                // This needs to be done because type-conditional spec refinements might contain &quot;deeply nested&quot;
                 // associated types, e.g. `T: A&lt;SomeAssocType = &lt;Self as B&gt;::OtherAssocType`
                 // where `&lt;Self as B&gt;::OtherAssocType` can be normalized to some concrete type.
                 </span><span class="kw">let </span>normalized_predicate =
-                    <a href="#140">env</a>.query.resolve_assoc_types(<a href="#164">predicate</a>, <a href="#155">param_env_lookup</a>);
+                    <a href="#136">env</a>.query.resolve_assoc_types(<a href="#160">predicate</a>, <a href="#151">param_env_lookup</a>);
 
-                <a href="#140">env</a>.query
-                    .evaluate_predicate(<a href="#169">normalized_predicate</a>, <a href="#155">param_env_lookup</a>)
+                <a href="#136">env</a>.query
+                    .evaluate_predicate(<a href="#165">normalized_predicate</a>, <a href="#151">param_env_lookup</a>)
             });
 
         <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Constraint fulfilled: {all_bounds_satisfied}&quot;</span>);
-        <a href="#161">all_bounds_satisfied</a>
+        <a href="#157">all_bounds_satisfied</a>
     }
 
     <span class="doccomment">/// Substitutes the param environment
@@ -445,14 +442,14 @@
     ) -&gt; ty::ParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt; {
         <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Unsubstituted constraints: {:#?}&quot;</span>, param_env);
 
-        <span class="kw">let </span>maybe_trait_method = <a href="#182">env</a>
+        <span class="kw">let </span>maybe_trait_method = <a href="#178">env</a>
             .query
-            .find_trait_method_substs(<a href="#183">context</a>.proc_def_id, <a href="#183">context</a>.substs);
-        <span class="kw">let </span>param_env = <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, trait_substs)) = <a href="#188">maybe_trait_method</a> {
+            .find_trait_method_substs(<a href="#179">context</a>.proc_def_id, <a href="#179">context</a>.substs);
+        <span class="kw">let </span>param_env = <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, trait_substs)) = <a href="#184">maybe_trait_method</a> {
             <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Applying trait substs {:?}&quot;</span>, trait_substs);
-            ty::EarlyBinder(<a href="#184">param_env</a>).subst(<a href="#182">env</a>.tcx(), <a href="#191">trait_substs</a>)
+            ty::EarlyBinder(<a href="#180">param_env</a>).subst(<a href="#178">env</a>.tcx(), <a href="#187">trait_substs</a>)
         } <span class="kw">else </span>{
-            <a href="#184">param_env</a>
+            <a href="#180">param_env</a>
         };
 
         <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(
@@ -461,10 +458,10 @@
         );
 
         <span class="kw">let </span>param_env = <span class="kw">if </span>context.substs.is_empty() {
-            <a href="#191">param_env</a>
+            <a href="#187">param_env</a>
         } <span class="kw">else </span>{
             <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Applying call substs {:?}&quot;</span>, context.substs);
-            ty::EarlyBinder(<a href="#191">param_env</a>).subst(<a href="#182">env</a>.tcx(), <a href="#183">context</a>.substs)
+            ty::EarlyBinder(<a href="#187">param_env</a>).subst(<a href="#178">env</a>.tcx(), <a href="#179">context</a>.substs)
         };
 
         <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(
@@ -472,7 +469,7 @@
             param_env
         );
 
-        <a href="#203">param_env</a>
+        <a href="#199">param_env</a>
     }
 
     <span class="kw">fn </span>extract_param_env&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>&gt;(
@@ -481,21 +478,26 @@
     ) -&gt; ty::ParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>param_envs: FxHashMap&lt;ty::ParamEnv&lt;<span class="lifetime">&#39;tcx</span>&gt;, Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>&gt;&gt; = FxHashMap::default();
 
-        <span class="kw">let </span>pres: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt; = <a href="#220">spec</a>
+        <span class="kw">let </span>pres: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt; = <a href="#216">spec</a>
             .pres
             .expect_empty_or_inherent()
             .cloned()
             .unwrap_or_default();
-        <span class="kw">let </span>posts: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt; = <a href="#220">spec</a>
+        <span class="kw">let </span>posts: Vec&lt;<a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>&gt; = <a href="#216">spec</a>
             .posts
             .expect_empty_or_inherent()
             .cloned()
             .unwrap_or_default();
-        <span class="kw">for </span>spec_id <span class="kw">in </span>pres.iter().chain(posts.iter()) {
+        <span class="kw">let </span>purity = <a href="#216">spec</a>
+            .purity
+            .expect_empty_or_inherent()
+            .cloned()
+            .unwrap_or_default();
+        <span class="kw">for </span>spec_id <span class="kw">in </span>pres.iter().chain(posts.iter()).chain(purity.iter()) {
             <span class="kw">let </span>param_env = env.tcx().param_env(spec_id);
             <span class="kw">let </span>spec_span = env.query.get_def_span(spec_id);
             <span class="kw">let </span>attrs = env.query.get_attributes(<span class="kw-2">*</span>spec_id);
-            <span class="kw">if </span>has_trait_bounds_ghost_constraint(attrs) {
+            <span class="kw">if </span>has_trait_bounds_type_cond_spec(attrs) {
                 param_envs.entry(param_env).or_default().push(spec_span);
             }
         }
@@ -506,16 +508,16 @@
             <span class="string">&quot;Could not extract trait bound obligations from contract&quot;
         </span>);
         <span class="kw">if </span>param_envs.len() &gt; <span class="number">1 </span>{
-            <span class="kw">let </span>spans = <a href="#222">param_envs</a>.values().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+            <span class="kw">let </span>spans = <a href="#218">param_envs</a>.values().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flatten</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
             PrustiError::unsupported(
-                <span class="string">&quot;Multiple ghost constraints with different bounds defined&quot;</span>,
-                MultiSpan::from_spans(<a href="#249">spans</a>),
+                <span class="string">&quot;Multiple type-conditional spec refinements with different bounds defined&quot;</span>,
+                MultiSpan::from_spans(<a href="#250">spans</a>),
             )
             .add_note(<span class="string">&quot;This is currently not supported.&quot;</span>, <span class="prelude-val">None</span>)
-            .emit(<span class="kw-2">&amp;</span><a href="#219">env</a>.diagnostic);
+            .emit(<span class="kw-2">&amp;</span><a href="#215">env</a>.diagnostic);
         }
 
-        <a href="#222">param_envs</a>.into_keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap()
+        <a href="#218">param_envs</a>.into_keys().<a href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().unwrap()
     }
 }
 </code></pre></div>
