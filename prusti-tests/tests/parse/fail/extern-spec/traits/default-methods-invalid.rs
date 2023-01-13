@@ -10,7 +10,7 @@ trait MyTrait {
 #[extern_spec]
 trait MyTrait {
     #[ensures(result == 42)]
-    fn foo(&self) -> i32 { //~ ERROR: Default methods in external trait specs are invalid
+    fn foo(&self) -> i32 { //~ ERROR: Unexpected method body. (Extern specs only define specifications.)
         43
     }
 }

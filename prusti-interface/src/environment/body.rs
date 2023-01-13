@@ -292,7 +292,7 @@ impl<'tcx> EnvBody<'tcx> {
     /// prior to requesting their bodies with `get_spec_body` or exporting with `CrossCrateBodies::from`!
     pub(crate) fn load_spec_body(&mut self, def_id: LocalDefId) {
         // The same `def_id` may be referenced twice, e.g. see fn `constrained_contract_inherits_posts` in
-        // the `ghost-constraints-extend-base-attributes.rs` test case
+        // the `refinements-extend-base-attributes.rs` test case
         if self.specs.local.contains_key(&def_id) {
             return;
         }

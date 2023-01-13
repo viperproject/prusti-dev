@@ -138,7 +138,6 @@ lazy_static::lazy_static! {
         settings.set_default::<Option<String>>("dump_fold_unfold_state_of_blocks", None).unwrap();
         settings.set_default("print_hash", false).unwrap();
         settings.set_default("enable_cache", true).unwrap();
-        settings.set_default("enable_ghost_constraints", false).unwrap();
 
         settings.set_default("cargo_path", "cargo").unwrap();
         settings.set_default("cargo_command", "check").unwrap();
@@ -993,18 +992,6 @@ pub fn full_compilation() -> bool {
 /// When enabled, Viper identifiers are interned to shorten them when possible.
 pub fn intern_names() -> bool {
     read_setting("intern_names")
-}
-
-/// When enabled, ghost constraints can be used in Prusti specifications.
-///
-/// Ghost constraints allow for specifications which are only active if a
-/// certain "constraint" (i.e. a trait bound on a generic type parameter) is
-/// satisfied.
-///
-/// **This is an experimental feature**, because it is currently possible to
-/// introduce unsound verification behavior.
-pub fn enable_ghost_constraints() -> bool {
-    read_setting("enable_ghost_constraints")
 }
 
 /// Determines which cargo `cargo-prusti` should run (e.g. if "cargo" isn't in

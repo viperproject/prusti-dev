@@ -6,7 +6,7 @@ trait MyTrait<T> {
 }
 /// External traits
 #[extern_spec]
-trait MyTrait<#[generic] T > {
+trait MyTrait<T> {
     #[ensures(true)]
     fn get_value(&self) -> T;
 }
@@ -20,8 +20,7 @@ impl MyTrait<i32> for Impl {
     }
 }
 
-
 fn main() {
-    let s = Impl{};
+    let s = Impl {};
     assert!(MyTrait::<i32>::get_value(&s) == 42 as i32);
 }

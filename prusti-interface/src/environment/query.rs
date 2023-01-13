@@ -321,23 +321,28 @@ impl<'tcx> EnvQuery<'tcx> {
         called_def_id: impl IntoParam<ProcedureDefId>, // what are we calling?
         call_substs: SubstsRef<'tcx>,
     ) -> (ProcedureDefId, SubstsRef<'tcx>) {
-        use prusti_rustc_interface::middle::ty::TypeVisitable;
         let called_def_id = called_def_id.into_param();
 
-        // avoids a compiler-internal panic
-        if call_substs.needs_infer() {
-            return (called_def_id, call_substs);
-        }
+        (|| {
+            // trait resolution does not depend on lifetimes, and in fact fails in the presence of uninferred regions
+            let clean_substs = self.tcx.erase_regions(call_substs);
 
-        let param_env = self.tcx.param_env(caller_def_id.into_param());
-        self.tcx
-            .resolve_instance(param_env.and((called_def_id, call_substs)))
-            .map(|opt_instance| {
-                opt_instance
-                    .map(|instance| (instance.def_id(), instance.substs))
-                    .unwrap_or((called_def_id, call_substs))
-            })
-            .unwrap_or((called_def_id, call_substs))
+            let param_env = self.tcx.param_env(caller_def_id.into_param());
+            let instance = self
+                .tcx
+                .resolve_instance(param_env.and((called_def_id, clean_substs)))
+                .ok()??;
+            let resolved_def_id = instance.def_id();
+            let resolved_substs = if resolved_def_id == called_def_id {
+                // if no trait resolution occurred, we can keep the non-erased substs
+                call_substs
+            } else {
+                instance.substs
+            };
+
+            Some((resolved_def_id, resolved_substs))
+        })()
+        .unwrap_or((called_def_id, call_substs))
     }
 
     /// Checks whether `ty` is copy.
