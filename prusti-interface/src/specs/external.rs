@@ -178,8 +178,14 @@ impl<'tcx> ExternSpecResolver<'tcx> {
                     // TODO: there is more that we could check, e.g. that trait
                     // constraints are the same (otherwise specs might not make sense)
                     let (resolved_gens, current_gens) = (
-                        self.env_query.identity_substs(resolved_def_id).len(),
-                        self.env_query.identity_substs(current_def_id).len(),
+                        self.env_query
+                            .identity_substs(resolved_def_id)
+                            .non_erasable_generics()
+                            .count(),
+                        self.env_query
+                            .identity_substs(current_def_id)
+                            .non_erasable_generics()
+                            .count(),
                     );
                     if resolved_gens != current_gens {
                         let diff = resolved_gens as isize - current_gens as isize;

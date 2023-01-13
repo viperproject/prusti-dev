@@ -80,9 +80,15 @@ pub(super) fn inline_spec_item<'tcx>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
+    // each non-lifetime parameter should be matched with a subst
     assert_eq!(
-        substs.len(),
-        encoder.env().query.identity_substs(def_id).len()
+        substs.non_erasable_generics().count(),
+        encoder
+            .env()
+            .query
+            .identity_substs(def_id)
+            .non_erasable_generics()
+            .count()
     );
 
     let mir = encoder
