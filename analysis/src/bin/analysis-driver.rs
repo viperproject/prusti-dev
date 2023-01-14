@@ -260,6 +260,8 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
                             FramingAnalysis::new(tcx, local_def_id.to_def_id(), &body_with_facts);
                         match analyzer.run_analysis() {
                             Ok(state) => {
+                                println!("Input {:#?}", body_with_facts.input_facts);
+                                println!("Output {:#?}", body_with_facts.output_facts);
                                 println!("{}", serde_json::to_string_pretty(&state).unwrap());
                             }
                             Err(e) => eprintln!("{}", e.to_pretty_str(body)),
@@ -267,7 +269,7 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
                     }
                     "CouplingAnalysis" => {
                         println!("[driver]    Starting coupling analysis");
-                        let fact_table = FactTable::new(&body_with_facts).unwrap();
+                        let fact_table = FactTable::new(&body_with_facts, tcx).unwrap();
                         let result = CouplingAnalysis::new(
                             tcx,
                             local_def_id.to_def_id(),
