@@ -19,7 +19,7 @@ use prusti_rustc_interface::{
     data_structures::fx::{FxHashMap, FxHashSet},
     middle::{
         mir,
-        mir::{BorrowKind, Location, Rvalue, StatementKind, TerminatorKind},
+        mir::{BorrowKind, Location, Operand, Rvalue, StatementKind, TerminatorKind},
         ty::TyCtxt,
     },
     span::def_id::DefId,
@@ -101,7 +101,7 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir>
 }
 
 /// Struct containing lookups for all the Polonius facts
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct FactTable<'tcx> {
     /// Issue of a loan, into it's issuing origin, and a loan of a place
     loan_issues: LoanIssues<'tcx>,
@@ -126,28 +126,53 @@ type StructuralEdge<'tcx> = FxHashMap<PointIndex, Vec<(SubsetBaseKind, Region, R
 /// NOTE: The LHS of a origin is no necessarily this place, as it may be further unpacked.
 /// NOTE: We don't know if this is a bijection yet, nor the full scope of Temporaries Polonius
 /// uses (see: OriginLHS struct for the current characterization)
-#[derive(Debug, Default)]
-struct OriginPlaces<'tcx>(FxHashMap<Region, OriginLHS<'tcx>>);
+struct OriginPlaces<'tcx> {
+    map: FxHashMap<Region, OriginLHS<'tcx>>,
+    tcx: TyCtxt<'tcx>,
+}
+
+impl<'tcx> std::fmt::Debug for OriginPlaces<'tcx> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{:#?}", self.map))
+    }
+}
 
 impl<'tcx> OriginPlaces<'tcx> {
     // Attempt to add a new constraint to the origin mapping
     pub fn new_constraint(&mut self, r: Region, c: OriginLHS<'tcx>) {
         let normalized_c = self.normalize_origin_lhs(c);
-        if let Some(old_lhs) = self.0.insert(r, normalized_c.clone()) {
+        if let Some(old_lhs) = self.map.insert(r, normalized_c.clone()) {
             assert!(old_lhs == normalized_c);
         }
+    }
+
+    // todo: remove this code from prusti-pcs
+    // and move to common library
+    fn strip_place(&self, place: mir::Place<'tcx>) -> Option<mir::Place<'tcx>> {
+        let mut projection = place.projection.to_vec();
+        projection.pop()?;
+        Some(mir::Place {
+            local: place.local,
+            projection: self.tcx.intern_place_elems(&projection),
+        })
     }
 
     /// Rewrite c into a cannonical form for key equality
     /// eg. normalize_origin_lhs(*x) == normalize_origin_lhs(x)
     fn normalize_origin_lhs(&self, c: OriginLHS<'tcx>) -> OriginLHS<'tcx> {
         // fixme: Need to check that p is maximally packed if it is a place
-        return c;
+        match c {
+            OriginLHS::Place(p) => match self.strip_place(p) {
+                Some(p1) => OriginLHS::Place(p1),
+                None => OriginLHS::Place(p),
+            },
+            OriginLHS::Loan(_) => c,
+        }
     }
 
     fn get_origin(&self, c: OriginLHS<'tcx>) -> Option<Region> {
         let normalized_c = self.normalize_origin_lhs(c);
-        self.0
+        self.map
             .iter()
             .find(|(_, v)| **v == normalized_c)
             .map(|(k, v)| *k)
@@ -179,12 +204,18 @@ enum StatementKinds<'mir, 'tcx: 'mir> {
 
 impl<'tcx> FactTable<'tcx> {
     // FIXME: Use a several-pass pattern to compute this (eg. arguments of kind &mut Self)
-    pub fn new(mir: &BodyWithBorrowckFacts<'tcx>) -> AnalysisResult<Self> {
-        let mut working_table = Self::default();
-        Self::collect_subset_base_at(mir, &mut working_table)?;
+    pub fn new(mir: &BodyWithBorrowckFacts<'tcx>, tcx: TyCtxt<'tcx>) -> AnalysisResult<Self> {
+        let mut working_table = Self {
+            loan_issues: Default::default(),
+            origins: OriginPlaces {
+                map: Default::default(),
+                tcx,
+            },
+            origin_packing_at: Default::default(),
+            structural_edge: Default::default(),
+        };
         Self::compute_loan_issues(mir, &mut working_table)?;
         Self::characterize_subset_base(&mut working_table, mir)?;
-        Self::compute_loan_assigned_at(mir, &mut working_table)?;
         Self::collect_loan_killed_at(mir, &mut working_table)?;
         Self::collect_origin_contains_loan_at(mir, &mut working_table)?;
         println!("[fact table]  {:#?}", working_table);
@@ -199,25 +230,7 @@ impl<'tcx> FactTable<'tcx> {
         Ok(())
     }
 
-    fn collect_subset_base_at<'a, 'mir>(
-        mir: &'mir BodyWithBorrowckFacts<'tcx>,
-        working_table: &'a mut Self,
-    ) -> AnalysisResult<()> {
-        // fixme: todo
-        Ok(())
-    }
-
     fn collect_loan_killed_at<'a, 'mir>(
-        mir: &'mir BodyWithBorrowckFacts<'tcx>,
-        working_table: &'a mut Self,
-    ) -> AnalysisResult<()> {
-        // fixme: todo
-        Ok(())
-    }
-
-    // Read the assignments between loans at a  point
-    // REQUIRES: loan issues have been computed
-    fn compute_loan_assigned_at<'a, 'mir>(
         mir: &'mir BodyWithBorrowckFacts<'tcx>,
         working_table: &'a mut Self,
     ) -> AnalysisResult<()> {
@@ -238,34 +251,12 @@ impl<'tcx> FactTable<'tcx> {
                 OriginLHS::Loan(*loan),
             );
             Self::insert_loan_issue_constraint(working_table, *point, *issuing_origin);
-
-            // Insert facts for reborrows
-            let location = Self::expect_mid_location(mir.location_table.to_location(*point));
-            let statement = Self::mir_kind_at(mir, location);
-            let borrowed_from_place = *Self::get_borrowed_from_place(&statement, location)?;
-            if let Some(origin_borrowed_from) = working_table
-                .origins
-                .get_origin(OriginLHS::Place(borrowed_from_place))
-            {
-                Self::insert_packing_constraint(
-                    working_table,
-                    *point,
-                    origin_borrowed_from,
-                    OriginLHS::Place(borrowed_from_place),
-                );
-                Self::insert_structural_edge(
-                    working_table,
-                    *point,
-                    *issuing_origin,
-                    origin_borrowed_from,
-                    SubsetBaseKind::Reborrow,
-                );
-            }
         }
         Ok(())
     }
 
     // Constraint: An origin has a known LHS place
+    // Location insensitive, should panic if an origin has two known places
     fn insert_origin_lhs_constraint(
         working_table: &mut Self,
         origin: Region,
@@ -280,19 +271,21 @@ impl<'tcx> FactTable<'tcx> {
     }
 
     // Constraint: An origin must be packed to certain level at a pointIndex
+    // Implicitly, the LHS should cohere with the existing LHS.
     fn insert_packing_constraint(
         working_table: &mut Self,
         point: PointIndex,
         origin: Region,
         packing: OriginLHS<'tcx>,
     ) {
+        Self::insert_origin_lhs_constraint(working_table, origin, packing.clone());
         working_table
             .origin_packing_at
             .entry(point)
             .and_modify(|constraints| constraints.push((origin, packing)));
     }
 
-    // Constraint: An origin must be packed to certain level at a pointIndex
+    // Constraint: An edge between origins
     fn insert_structural_edge(
         working_table: &mut Self,
         point: PointIndex,
@@ -300,10 +293,8 @@ impl<'tcx> FactTable<'tcx> {
         origin_to: Region,
         kind: SubsetBaseKind,
     ) {
-        working_table
-            .structural_edge
-            .entry(point)
-            .and_modify(|constraints| constraints.push((kind, origin_from, origin_to)));
+        let constraint_set = working_table.structural_edge.entry(point).or_default();
+        constraint_set.push((kind, origin_from, origin_to));
     }
 
     // Panics when a location is not a start location
@@ -348,6 +339,43 @@ impl<'tcx> FactTable<'tcx> {
         }
     }
 
+    // Get the assigned-to place in all cases where we currently support borrow assignment
+    fn get_assigned_to_place<'a, 'mir>(
+        stmt: &'a StatementKinds<'mir, 'tcx>,
+        loc: Location,
+    ) -> AnalysisResult<&'a mir::Place<'tcx>> {
+        match stmt {
+            StatementKinds::Stmt(StatementKind::Assign(box (p, _))) => Ok(p),
+            _ => Err(AnalysisError::UnsupportedStatement(loc)),
+        }
+    }
+
+    // Get the assigned-to place in all cases where we currently support borrow assignment
+    fn get_moved_from_place<'a, 'mir>(
+        stmt: &'a StatementKinds<'mir, 'tcx>,
+        loc: Location,
+    ) -> AnalysisResult<&'a mir::Place<'tcx>> {
+        match stmt {
+            StatementKinds::Stmt(StatementKind::Assign(box (_, Rvalue::Use(Operand::Move(p))))) => {
+                Ok(p)
+            }
+            _ => Err(AnalysisError::UnsupportedStatement(loc)),
+        }
+    }
+
+    fn check_or_construct_origin<'mir>(
+        working_table: &mut Self,
+        lhs: OriginLHS<'tcx>,
+        origin: Region,
+    ) -> AnalysisResult<()> {
+        if let Some(real_origin) = working_table.origins.get_origin(lhs.to_owned()) {
+            assert_eq!(real_origin, origin);
+        } else {
+            Self::insert_origin_lhs_constraint(working_table, origin, lhs)
+        }
+        Ok(())
+    }
+
     // REQUIRES: Loan issue locations have been computed
     // Infer the reason why a subset_base fact was emitted by the compiler
     // FIXME: This is one place where the inference is limited, and this method should
@@ -366,16 +394,127 @@ impl<'tcx> FactTable<'tcx> {
                 acc
             });
 
-        for (point, mut set) in subset_base_locations.iter() {
+        for (point, s) in subset_base_locations.into_iter() {
+            let mut set = s.clone();
+            println!(
+                "[debug]   Inferring subset_base for {:#?} at {:?}",
+                set, point
+            );
             // Main inference algorithm for subset_base facts.
             // 1. Loan Issues
-            if let Some(issuing_origin) = working_table.loan_issues.get(point) {
-                // 1.1. There should be at most ONE subset downstream of the issuing region, for reborrows
-                // 1.2. There should be exactly ONE assignment
+            if let Some(issuing_origin) =
+                working_table.loan_issues.get(&point).map(|o| (*o).clone())
+            {
+                // 1.1. There should be at EXACTLY ONE subset upstream of the issuing origin
+                if let &[assigning_subset @ (_, assigning_origin)] = &set
+                    .iter()
+                    .filter(|(o, _)| *o == issuing_origin)
+                    .collect::<Vec<_>>()[..]
+                {
+                    // Issuing borrow assignment: the new borrow is assigned into assigning_subset.1
+                    Self::insert_structural_edge(
+                        working_table,
+                        point,
+                        issuing_origin,
+                        *assigning_origin,
+                        SubsetBaseKind::LoanIssue,
+                    );
+                    let location = Self::expect_mid_location(mir.location_table.to_location(point));
+                    let statement = Self::mir_kind_at(mir, location);
+                    let assigned_to_place = *Self::get_assigned_to_place(&statement, location)?;
+                    Self::insert_packing_constraint(
+                        working_table,
+                        point,
+                        *assigning_origin,
+                        OriginLHS::Place(assigned_to_place),
+                    );
+                    set.remove(&assigning_subset.clone());
+                } else {
+                    panic!("impossible: issued borrow without corresponding assignment");
+                }
+
+                // 1.2. There should be AT MOST ONE reborrowed origin
+                if let &[reborrowing_subset @ (reborrowing_origin, _)] = &set
+                    .iter()
+                    .filter(|(_, o)| *o == issuing_origin)
+                    .collect::<Vec<_>>()[..]
+                {
+                    let location = Self::expect_mid_location(mir.location_table.to_location(point));
+                    let statement = Self::mir_kind_at(mir, location);
+                    let borrowed_from_place = *Self::get_borrowed_from_place(&statement, location)?;
+                    // If the reborrowed-from place is None, it doesn't mean that it's a borrow of owned data!
+                    // We might just be constructing the fact table out of order
+                    Self::check_or_construct_origin(
+                        working_table,
+                        OriginLHS::Place(borrowed_from_place),
+                        *reborrowing_origin,
+                    )?;
+                    Self::insert_packing_constraint(
+                        working_table,
+                        point,
+                        *reborrowing_origin,
+                        OriginLHS::Place(borrowed_from_place),
+                    );
+                    Self::insert_structural_edge(
+                        working_table,
+                        point,
+                        issuing_origin,
+                        *reborrowing_origin,
+                        SubsetBaseKind::Reborrow,
+                    );
+
+                    // Reborrow repacking should be handled by the loan analysis
+                    set.remove(&reborrowing_subset.clone());
+                }
             } else {
-                // 2. All other relations should be assignments, the MIR at the point should be an assignment
+                // 2. All other relations should be assignments not between issuing origins
+                //      If there is exactly one subset AND The mir is an assignment
                 // 2.1 There should be at most ONE other relation, the assignment.
                 //          Both origins should either be new, or cohere with the known origins.
+                // Also add kills due to assignments here
+
+                let location = Self::expect_mid_location(mir.location_table.to_location(point));
+                let statement = Self::mir_kind_at(mir, location);
+                let t_to = Self::get_assigned_to_place(&statement, location);
+                let t_from = Self::get_moved_from_place(&statement, location);
+                if let (Ok(assigned_to_place), Ok(assigned_from_place)) = (t_to, t_from) {
+                    if let &[assigning_subset @ (assigned_from_origin, assigned_to_origin)] =
+                        &set.iter().collect::<Vec<_>>()[..]
+                    {
+                        Self::check_or_construct_origin(
+                            working_table,
+                            OriginLHS::Place(*assigned_from_place),
+                            *assigned_from_origin,
+                        )?;
+                        Self::check_or_construct_origin(
+                            working_table,
+                            OriginLHS::Place(*assigned_to_place),
+                            *assigned_to_origin,
+                        )?;
+                        Self::insert_packing_constraint(
+                            working_table,
+                            point,
+                            *assigned_to_origin,
+                            OriginLHS::Place(*assigned_to_place),
+                        );
+                        Self::insert_packing_constraint(
+                            working_table,
+                            point,
+                            *assigned_from_origin,
+                            OriginLHS::Place(*assigned_from_place),
+                        );
+                        Self::insert_structural_edge(
+                            working_table,
+                            point,
+                            *assigned_from_origin,
+                            *assigned_to_origin,
+                            SubsetBaseKind::Move,
+                        );
+                        set.remove(&assigning_subset.clone());
+                    } else {
+                        panic!("unhandled case in inference algorithm");
+                    }
+                }
             }
 
             if set.len() > 0 {
