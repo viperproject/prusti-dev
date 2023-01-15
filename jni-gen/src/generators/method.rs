@@ -220,7 +220,7 @@ fn generate(
     code.push(format!(") -> JNIResult<{return_type}> {{"));
 
     code.push(format!("    let class_name = \"{}\";", class.path()));
-    code.push(format!("    let method_name = \"{}\";", method_name));
+    code.push(format!("    let method_name = \"{method_name}\";"));
     code.push(format!(
         "    let method_signature = \"{method_signature}\";"
     ));
@@ -237,10 +237,9 @@ fn generate(
             let par_class = &par_sign[1..(par_sign.len() - 1)];
             code.push("    debug_assert!(".to_string());
             code.push("        self.env.is_instance_of(".to_string());
-            code.push(format!("            {},", par_name));
+            code.push(format!("            {par_name},"));
             code.push(format!(
-                "            self.env.find_class(\"{}\")?,",
-                par_class
+                "            self.env.find_class(\"{par_class}\")?,"
             ));
             code.push("        )?".to_string());
             code.push("    );".to_string());
@@ -302,8 +301,7 @@ fn generate(
         code.push("            self.env.is_instance_of(".to_string());
         code.push("                result,".to_string());
         code.push(format!(
-            "                self.env.find_class(\"{}\")?,",
-            return_class
+            "                self.env.find_class(\"{return_class}\")?,"
         ));
         code.push("            )?".to_string());
         code.push("        );".to_string());
@@ -364,7 +362,7 @@ fn generate_static(
     code.push(format!(") -> JNIResult<{return_type}> {{"));
 
     code.push(format!("    let class_name = \"{}\";", class.path()));
-    code.push(format!("    let method_name = \"{}\";", method_name));
+    code.push(format!("    let method_name = \"{method_name}\";"));
     code.push(format!(
         "    let method_signature = \"{method_signature}\";"
     ));
@@ -381,10 +379,9 @@ fn generate_static(
             let par_class = &par_sign[1..(par_sign.len() - 1)];
             code.push("    debug_assert!(".to_string());
             code.push("        self.env.is_instance_of(".to_string());
-            code.push(format!("            {},", par_name));
+            code.push(format!("            {par_name},"));
             code.push(format!(
-                "            self.env.find_class(\"{}\")?,",
-                par_class
+                "            self.env.find_class(\"{par_class}\")?,"
             ));
             code.push("        )?".to_string());
             code.push("    );".to_string());
@@ -441,8 +438,7 @@ fn generate_static(
         code.push("            self.env.is_instance_of(".to_string());
         code.push("                result,".to_string());
         code.push(format!(
-            "                self.env.find_class(\"{}\")?,",
-            return_class
+            "                self.env.find_class(\"{return_class}\")?,"
         ));
         code.push("            )?".to_string());
         code.push("        );".to_string());
