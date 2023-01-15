@@ -436,7 +436,7 @@ impl PrustiTokenStream {
                 "pure" => Ok(NestedSpec::Pure),
                 other => err(
                     self.source_span,
-                    format!("unexpected nested spec type: {}", other).as_ref(),
+                    format!("unexpected nested spec type: {other}").as_ref(),
                 ),
             }
         } else {
@@ -655,12 +655,7 @@ fn translate_spec_ent(
     let generic_res = TokenTree::Ident(proc_macro2::Ident::new("GR", span));
 
     let extract_args = (0..arg_count)
-        .map(|i| {
-            TokenTree::Ident(proc_macro2::Ident::new(
-                &format!("__extract_arg{}", i),
-                span,
-            ))
-        })
+        .map(|i| TokenTree::Ident(proc_macro2::Ident::new(&format!("__extract_arg{i}"), span)))
         .collect::<Vec<_>>();
     let extract_args_decl = extract_args
         .iter()

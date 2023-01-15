@@ -169,8 +169,7 @@ fn generate(
             let par_class = &par_sign[1..(par_sign.len() - 1)];
             code.push("    debug_assert!(".to_string());
             code.push(format!(
-                "        self.env.is_instance_of({}, self.env.find_class(\"{}\")?)?",
-                par_name, par_class
+                "        self.env.is_instance_of({par_name}, self.env.find_class(\"{par_class}\")?)?"
             ));
             code.push("    );".to_string());
         }
