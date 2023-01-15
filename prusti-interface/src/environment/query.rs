@@ -201,7 +201,7 @@ impl<'tcx> EnvQuery<'tcx> {
     ) -> Option<(ProcedureDefId, SubstsRef<'tcx>)> {
         let impl_method_def_id = impl_method_def_id.into_param();
         let impl_def_id = self.tcx.impl_of_method(impl_method_def_id)?;
-        let trait_ref = self.tcx.impl_trait_ref(impl_def_id)?;
+        let trait_ref = self.tcx.impl_trait_ref(impl_def_id)?.skip_binder();
 
         // At this point, we know that the given method:
         // - belongs to an impl block and

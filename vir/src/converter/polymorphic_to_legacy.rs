@@ -193,6 +193,37 @@ impl From<polymorphic::DomainAxiom> for legacy::DomainAxiom {
     }
 }
 
+// backend type
+impl From<polymorphic::BackendType> for legacy::BackendType {
+    fn from(domain: polymorphic::BackendType) -> legacy::BackendType {
+        legacy::BackendType {
+            name: domain.name,
+            functions: domain
+                .functions
+                .into_iter()
+                .map(|function| function.into())
+                .collect(),
+            interpretations: domain.interpretations,
+        }
+    }
+}
+
+impl From<polymorphic::BackendFuncDecl> for legacy::BackendFuncDecl {
+    fn from(domain_func: polymorphic::BackendFuncDecl) -> legacy::BackendFuncDecl {
+        legacy::BackendFuncDecl {
+            name: domain_func.get_identifier(),
+            formal_args: domain_func
+                .formal_args
+                .into_iter()
+                .map(|formal_arg| formal_arg.into())
+                .collect(),
+            return_type: domain_func.return_type.into(),
+            domain_name: domain_func.domain_name,
+            interpretation: domain_func.interpretation,
+        }
+    }
+}
+
 // expr
 impl From<polymorphic::Expr> for legacy::Expr {
     fn from(expr: polymorphic::Expr) -> legacy::Expr {
@@ -820,6 +851,11 @@ impl From<polymorphic::Program> for legacy::Program {
     fn from(program: polymorphic::Program) -> legacy::Program {
         legacy::Program {
             name: program.name,
+            backend_types: program
+                .backend_types
+                .into_iter()
+                .map(|backend_type| backend_type.into())
+                .collect(),
             domains: program
                 .domains
                 .into_iter()

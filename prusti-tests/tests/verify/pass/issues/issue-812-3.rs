@@ -2,7 +2,8 @@ use prusti_contracts::*;
 
 fn main() {}
 
-#[requires(forall(|i: usize| (0 <= i && i < slice.len()) ==> (bar(slice[i])), triggers=[(bar(slice[i]),(slice.len()),)]))]
+#[requires(forall(|i: usize| (0 <= i && i < slice.len()) ==> (bar(slice[i])), triggers=[(bar(slice[i]),)]))]
+//#[requires(forall(|i: usize| (0 <= i && i < slice.len()) ==> (bar(slice[i])), triggers=[(bar(slice[i]),(slice.len()),)]))] “(slice.len())” cannot be used as a trigger due to https://github.com/viperproject/silver/issues/617
 fn foo(slice: &[i32]) {}
 
 #[pure]
