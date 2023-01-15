@@ -102,35 +102,35 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir>
 #[derive(Debug)]
 pub struct FactTable<'tcx> {
     /// Issue of a loan, into it's issuing origin, and a loan of a place
-    loan_issues: LoanIssues,
+    pub(crate) loan_issues: LoanIssues<'tcx>,
 
     // Interpretation of regions in terms of places and temporaries
-    origins: OriginPlaces<'tcx>,
+    pub(crate) origins: OriginPlaces<'tcx>,
 
     // Some points requre the LHS of an origin to be repacked to include a specific place
-    origin_packing_at: OriginPacking<'tcx>,
+    pub(crate) origin_packing_at: OriginPacking<'tcx>,
 
     // Edges to add at each point, with interpretation
-    structural_edge: StructuralEdge,
+    pub(crate) structural_edge: StructuralEdge,
 
     // straight analouges of polonius facts
-    origin_contains_loan_at: OriginContainsLoanAt,
-    loan_killed_at: LoanKilledAt,
+    pub(crate) origin_contains_loan_at: OriginContainsLoanAt,
+    pub(crate) loan_killed_at: LoanKilledAt,
 }
 
 /// Issue of a new loan. The assocciated region should represent a borrow temporary.
-type LoanIssues = FxHashMap<PointIndex, Region>;
-type OriginPacking<'tcx> = FxHashMap<PointIndex, Vec<(Region, OriginLHS<'tcx>)>>;
-type StructuralEdge = FxHashMap<PointIndex, Vec<(SubsetBaseKind, Region, Region)>>;
-type OriginContainsLoanAt = FxHashMap<PointIndex, BTreeMap<Region, BTreeSet<Loan>>>;
-type LoanKilledAt = FxHashMap<PointIndex, BTreeSet<Loan>>;
+pub(crate) type LoanIssues<'tcx> = FxHashMap<PointIndex, (Region, mir::Place<'tcx>)>;
+pub(crate) type OriginPacking<'tcx> = FxHashMap<PointIndex, Vec<(Region, OriginLHS<'tcx>)>>;
+pub(crate) type StructuralEdge = FxHashMap<PointIndex, Vec<(SubsetBaseKind, Region, Region)>>;
+pub(crate) type OriginContainsLoanAt = FxHashMap<PointIndex, BTreeMap<Region, BTreeSet<Loan>>>;
+pub(crate) type LoanKilledAt = FxHashMap<PointIndex, BTreeSet<Loan>>;
 
 /// Assignment between Origins and places
 /// Precise relationship between these two are yet unconfirmed by the Polonius team
 /// NOTE: The LHS of a origin is no necessarily this place, as it may be further unpacked.
 /// NOTE: We don't know if this is a bijection yet, nor the full scope of Temporaries Polonius
 /// uses (see: OriginLHS struct for the current characterization)
-struct OriginPlaces<'tcx> {
+pub(crate) struct OriginPlaces<'tcx> {
     map: FxHashMap<Region, OriginLHS<'tcx>>,
     tcx: TyCtxt<'tcx>,
 }
@@ -199,7 +199,7 @@ impl<'tcx> std::fmt::Debug for OriginLHS<'tcx> {
 }
 
 #[derive(Debug)]
-enum SubsetBaseKind {
+pub(crate) enum SubsetBaseKind {
     Reborrow,
     LoanIssue,
     Move,
@@ -273,12 +273,20 @@ impl<'tcx> FactTable<'tcx> {
     ) -> AnalysisResult<()> {
         for (issuing_origin, loan, point) in mir.input_facts.loan_issued_at.iter() {
             // Insert facts for the new borrow temporary
+            let location = Self::expect_mid_location(mir.location_table.to_location(*point));
+            let statement = Self::mir_kind_at(mir, location);
+            let borrowed_from_place = *Self::get_borrowed_from_place(&statement, location)?;
             Self::insert_origin_lhs_constraint(
                 working_table,
                 *issuing_origin,
                 OriginLHS::Loan(*loan),
             );
-            Self::insert_loan_issue_constraint(working_table, *point, *issuing_origin);
+            Self::insert_loan_issue_constraint(
+                working_table,
+                *point,
+                *issuing_origin,
+                borrowed_from_place,
+            );
         }
         Ok(())
     }
@@ -294,8 +302,15 @@ impl<'tcx> FactTable<'tcx> {
     }
 
     // Constraint: Origin is issued a loan at a given point
-    fn insert_loan_issue_constraint(working_table: &mut Self, point: PointIndex, origin: Region) {
-        working_table.loan_issues.insert(point, origin);
+    fn insert_loan_issue_constraint(
+        working_table: &mut Self,
+        point: PointIndex,
+        origin: Region,
+        borrowed_from_place: mir::Place<'tcx>,
+    ) {
+        working_table
+            .loan_issues
+            .insert(point, (origin, borrowed_from_place));
     }
 
     // Constraint: An origin must be packed to certain level at a pointIndex
@@ -424,11 +439,13 @@ impl<'tcx> FactTable<'tcx> {
 
         for (point, s) in subset_base_locations.into_iter() {
             let mut set = s.clone();
-            if let Some(issuing_origin) =
-                working_table.loan_issues.get(&point).map(|o| (*o).clone())
+            if let Some((issuing_origin, issuing_borrowed_from_place)) = working_table
+                .loan_issues
+                .get(&point)
+                .map(|(o, p)| (*o, *p).clone())
             {
                 // 1.1. There should be at EXACTLY ONE subset upstream of the issuing origin
-                if let &[assigning_subset @ (_, assigning_origin)] = &set
+                if let &[assigning_subset @ (assigned_from_origin, assigning_origin)] = &set
                     .iter()
                     .filter(|(o, _)| *o == issuing_origin)
                     .collect::<Vec<_>>()[..]
@@ -437,6 +454,12 @@ impl<'tcx> FactTable<'tcx> {
                     let location = Self::expect_mid_location(mir.location_table.to_location(point));
                     let statement = Self::mir_kind_at(mir, location);
                     let assigned_to_place = *Self::get_assigned_to_place(&statement, location)?;
+                    assert_eq!(
+                        working_table
+                            .origins
+                            .get_origin(OriginLHS::Place(issuing_borrowed_from_place)),
+                        Some(*assigned_from_origin)
+                    );
                     Self::insert_structural_edge(
                         working_table,
                         point,

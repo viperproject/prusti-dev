@@ -82,7 +82,7 @@ pub struct CDGEdge<'tcx> {
 /// The CDG graph fragments associated with an origin
 /// INVARIANT: Can be (roughly) interpreted as the Hoare triple
 ///     {leaves} edges {roots}
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Default)]
 pub struct CDGOrigin<'tcx> {
     edges: BTreeSet<CDGEdge<'tcx>>,
     leaves: BTreeSet<Rc<CDGNode<'tcx>>>,
@@ -93,21 +93,19 @@ pub struct CDGOrigin<'tcx> {
 #[derive(Clone, Default, PartialEq, Eq)]
 pub struct CDG<'tcx> {
     pub origins: FxHashMap<Region, CDGOrigin<'tcx>>,
+    pub subset_invariant: bool,
+    pub origin_contains_loan_at_invariant: bool,
 }
 
 #[derive(Clone)]
 pub struct CouplingState<'facts, 'mir: 'facts, 'tcx: 'mir> {
-    coupling_graph: CDG<'tcx>,
+    pub coupling_graph: CDG<'tcx>,
     // Also include: invariant checks, loan kill marks
     mir: &'mir BodyWithBorrowckFacts<'tcx>,
     fact_table: &'facts FactTable<'tcx>,
 }
 
 impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
-    pub fn check_invariant(&self, location: impl fmt::Debug) -> bool {
-        todo!("check the Polonius invariants and determine if they hold")
-    }
-
     pub(crate) fn new_empty(
         mir: &'mir BodyWithBorrowckFacts<'tcx>,
         fact_table: &'facts FactTable<'tcx>,
@@ -139,23 +137,92 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
         self.apply_cdg_inference(location)
     }
 
-    /// The main inference algorithm for the CDG
-    /// Unclear if polonius inference is supposed to be different for Start and Mid locations yet
+    /// Apply the Polonius effects at a Location
+    /// it is unclear to me if polonius inference is supposed to be different for Start and Mid locations yet
     fn apply_cdg_inference(&mut self, location: Location) -> AnalysisResult<()> {
-        println!("[inference]   enter {:?}", RichLocation::Start(location));
-        self.apply_polonius_inference(RichLocation::Start(location))?;
-        println!("[inference]   enter {:?}", RichLocation::Mid(location));
-        self.apply_polonius_inference(RichLocation::Mid(location))?;
+        // println!("[inference]   enter {:?}", RichLocation::Start(location));
+        self.apply_polonius_inference(&self.mir.location_table.start_index(location))?;
+        // println!("[inference]   enter {:?}", RichLocation::Mid(location));
+        self.apply_polonius_inference(&self.mir.location_table.mid_index(location))?;
         Ok(())
     }
 
-    fn apply_polonius_inference(&mut self, location: RichLocation) -> AnalysisResult<()> {
-        // todo: inference algorithm
-        // if loan_issues.len() > 0 {
-        //     println!("[inference]   loan_issues {:?}", loan_issues);
-        // }
+    /// The main interpretation of Polonius facts
+    fn apply_polonius_inference(&mut self, location: &PointIndex) -> AnalysisResult<()> {
+        self.apply_marked_kills()?;
+        self.apply_origins(location)?;
+        self.apply_packing_requirements()?;
+        self.apply_loan_issues(location)?;
+        self.apply_loan_moves()?;
+        self.check_subset_invariant()?;
+        self.check_origin_contains_loan_at_invariant()?;
+        self.mark_kills()?;
+        Ok(())
+    }
 
-        // nts: Make sure to do the check and update a field in the state to track it
+    /// Repack the LHS of an origin to contain some place, and add edges to
+    /// RHS's as appropriate to ensure connectivity.
+    fn apply_packing_requirements(&mut self) -> AnalysisResult<()> {
+        // fixme: implement
+        Ok(())
+    }
+
+    /// For every loan which is marked as killed, kill it and remove the kill mark.
+    fn apply_marked_kills(&mut self) -> AnalysisResult<()> {
+        // fixme: implement
+        Ok(())
+    }
+
+    /// Expire non-live origins, and add new live origins
+    fn apply_origins(&mut self, location: &PointIndex) -> AnalysisResult<()> {
+        // Get the set of origins at a point from the origin_contains_loan_at fact
+        // (expiries) Remove all origins which are not in that set
+        //      todo: calculate and log the FPCS effects at this point
+        // (issues) Include empty origins for each new origin
+        Ok(())
+    }
+
+    /// Issue all new borrow temporaries into their appropriate loans, if they exist.
+    fn apply_loan_issues(&mut self, location: &PointIndex) -> AnalysisResult<()> {
+        if let Some((issuing_origin, borrowed_from_place)) =
+            self.fact_table.loan_issues.get(location)
+        {
+            // Issuing origin should be empty
+            // Issuing origin LHS should be a borrow
+            // Check for reborrows:
+            //      If there is a reborrow, it should be the case that the borrowed_from_place
+            //      is equal to the LHS of the borrowed_from_origin (ie. packing) due to the issued packing constraints.
+            //      Add an edge between the two.
+        }
+        Ok(())
+    }
+
+    /// For every loan move:
+    ///     - Kill the RHS of the move, unless it's a borrow
+    ///     - Unpack the RHS to meet the packing requirement
+    fn apply_loan_moves(&mut self) -> AnalysisResult<()> {
+        // fixme: implement
+        Ok(())
+    }
+
+    /// For every loan_killed_at at this location, mark the killed place
+    fn mark_kills(&mut self) -> AnalysisResult<()> {
+        // fixme: implement
+        Ok(())
+    }
+
+    /// Check that every subset at a location is true.
+    ///     subset(#a, #b) means the edge #b is an ancestor of the edge #a
+    fn check_subset_invariant(&mut self) -> AnalysisResult<()> {
+        // fixme: implement
+        Ok(())
+    }
+
+    /// Check that every subset at a location is true.
+    ///     origin_contains_loan_at(#a, bwx) means the temporary place bwx is
+    ///     a child of #a
+    fn check_origin_contains_loan_at_invariant(&mut self) -> AnalysisResult<()> {
+        // fixme: implement
         Ok(())
     }
 }
