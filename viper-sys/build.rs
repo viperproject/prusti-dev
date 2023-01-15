@@ -268,15 +268,15 @@ fn main() {
             java_class!("viper.silver.ast.BackendType$", vec![
                 object_getter!(),
             ]),
-            java_class!("viper.silver.ast.BackendFunc", vec![
-                constructor!(),
+            java_class!("viper.silver.ast.BackendFunc$", vec![
+                object_getter!(),
             ]),
             java_class!("viper.silver.ast.BackendFuncApp", vec![
                 constructor!(),
             ]),
             java_class!("viper.silver.ast.BackendFuncApp$", vec![
                 object_getter!(),
-                method!("apply", "(Lviper/silver/ast/BackendFunc;Lscala/collection/immutable/Seq;Lviper/silver/ast/Position;Lviper/silver/ast/Info;Lviper/silver/ast/ErrorTrafo;)Lviper/silver/ast/BackendFuncApp;"),
+                method!("apply", "(Lviper/silver/ast/DomainFunc;Lscala/collection/immutable/Seq;Lviper/silver/ast/Position;Lviper/silver/ast/Info;Lviper/silver/ast/ErrorTrafo;)Lviper/silver/ast/BackendFuncApp;"),
             ]),
             java_class!("viper.silver.ast.CondExp", vec![
                 constructor!(),

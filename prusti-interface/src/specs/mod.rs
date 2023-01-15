@@ -435,7 +435,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             if has_prusti_attr(attrs, "type_invariant_spec") {
                 let self_id = fn_decl.inputs[0].hir_id;
                 let hir = self.env.query.hir();
-                let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
+                let impl_id = hir.parent_id(hir.parent_id(self_id));
                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
                 self.type_specs
                     .entry(type_id.as_local().unwrap())
@@ -448,7 +448,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             if has_prusti_attr(attrs, "trusted_type") {
                 let self_id = fn_decl.inputs[0].hir_id;
                 let hir = self.env.query.hir();
-                let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
+                let impl_id = hir.parent_id(hir.parent_id(self_id));
                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
                 self.type_specs
                     .entry(type_id.as_local().unwrap())
@@ -461,7 +461,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                 let self_id = fn_decl.inputs[0].hir_id;
                 let name = read_prusti_attr("counterexample_print", attrs);
                 let hir = self.env.query.hir();
-                let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
+                let impl_id = hir.parent_id(hir.parent_id(self_id));
                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
                 self.type_specs
                     .entry(type_id.as_local().unwrap())
@@ -511,7 +511,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                             if let Some(attr) = read_prusti_attr("type_models_to_model_fn", attrs) {
                                 let self_id = fn_decl.inputs[0].hir_id;
                                 let hir = self.env.query.hir();
-                                let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
+                                let impl_id = hir.parent_id(hir.parent_id(self_id));
                                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
                                 if let Some(local_id) = type_id.as_local() {
                                     self.type_specs.entry(local_id).or_default().model =

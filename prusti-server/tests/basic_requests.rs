@@ -44,6 +44,7 @@ where
 
     let mut program = Program {
         name: "dummy".to_string(),
+        backend_types: vec![],
         domains: vec![],
         fields: vec![],
         builtin_methods: vec![],

@@ -289,7 +289,7 @@ impl<'a> AstFactory<'a> {
         let from_int = ast::utility::BVFactory::call_from__int(
             &bv_factory_,
             bv_factory,
-            self.jni.new_string("toBV8"),
+            self.jni.new_string("bv8_from_int"),
         )
         .unwrap();
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
@@ -301,7 +301,7 @@ impl<'a> AstFactory<'a> {
         let from_int = ast::utility::BVFactory::call_from__int(
             &bv_factory_,
             bv_factory,
-            self.jni.new_string("toBV8"),
+            self.jni.new_string("bv8_from_int"),
         )
         .unwrap();
         self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], self.no_position())
@@ -313,7 +313,7 @@ impl<'a> AstFactory<'a> {
         let from_int = ast::utility::BVFactory::call_from__int(
             &bv_factory_,
             bv_factory,
-            self.jni.new_string("toBV16"),
+            self.jni.new_string("bv16_from_int"),
         )
         .unwrap();
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
@@ -325,7 +325,7 @@ impl<'a> AstFactory<'a> {
         let from_int = ast::utility::BVFactory::call_from__int(
             &bv_factory_,
             bv_factory,
-            self.jni.new_string("toBV16"),
+            self.jni.new_string("bv16_from_int"),
         )
         .unwrap();
         self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], self.no_position())
@@ -337,7 +337,7 @@ impl<'a> AstFactory<'a> {
         let from_int = ast::utility::BVFactory::call_from__int(
             &bv_factory_,
             bv_factory,
-            self.jni.new_string("toBV32"),
+            self.jni.new_string("bv32_from_int"),
         )
         .unwrap();
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
@@ -349,7 +349,7 @@ impl<'a> AstFactory<'a> {
         let from_int = ast::utility::BVFactory::call_from__int(
             &bv_factory_,
             bv_factory,
-            self.jni.new_string("toBV32"),
+            self.jni.new_string("bv32_from_int"),
         )
         .unwrap();
         self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], self.no_position())
@@ -361,7 +361,7 @@ impl<'a> AstFactory<'a> {
         let from_int = ast::utility::BVFactory::call_from__int(
             &bv_factory_,
             bv_factory,
-            self.jni.new_string("toBV64"),
+            self.jni.new_string("bv64_from_int"),
         )
         .unwrap();
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
@@ -373,7 +373,7 @@ impl<'a> AstFactory<'a> {
         let from_int = ast::utility::BVFactory::call_from__int(
             &bv_factory_,
             bv_factory,
-            self.jni.new_string("toBV64"),
+            self.jni.new_string("bv64_to_int"),
         )
         .unwrap();
         self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], self.no_position())
@@ -385,7 +385,7 @@ impl<'a> AstFactory<'a> {
         let from_int = ast::utility::BVFactory::call_from__int(
             &bv_factory_,
             bv_factory,
-            self.jni.new_string("toBV128"),
+            self.jni.new_string("bv128_from_int"),
         )
         .unwrap();
         self.backend_func_app(from_int, &[self.int_lit(bits as i64)], self.no_position())
@@ -397,7 +397,7 @@ impl<'a> AstFactory<'a> {
         let from_int = ast::utility::BVFactory::call_from__int(
             &bv_factory_,
             bv_factory,
-            self.jni.new_string("toBV128"),
+            self.jni.new_string("bv128_from_int"),
         )
         .unwrap();
         self.backend_func_app(from_int, &[self.int_lit_from_ref(bits)], self.no_position())
@@ -414,7 +414,8 @@ impl<'a> AstFactory<'a> {
         let from_int = ast::utility::BVFactory::call_to__int(
             &factory_,
             factory,
-            self.jni.new_string(format!("toBV{}", bv_size.to_i32())),
+            self.jni
+                .new_string(format!("bv{}_from_int", bv_size.to_i32())),
         )
         .unwrap();
         self.backend_func_app(from_int, &[expr], self.no_position())
@@ -425,7 +426,8 @@ impl<'a> AstFactory<'a> {
         let to_int = ast::utility::BVFactory::call_to__int(
             &factory_,
             factory,
-            self.jni.new_string(format!("fromBV{}", bv_size.to_i32())),
+            self.jni
+                .new_string(format!("bv{}_to_int", bv_size.to_i32())),
         )
         .unwrap();
         self.backend_func_app(to_int, &[expr], self.no_position())
@@ -433,37 +435,58 @@ impl<'a> AstFactory<'a> {
 
     pub fn bv_binop(&self, op_kind: BinOpBv, bv_size: BvSize, left: Expr, right: Expr) -> Expr<'a> {
         let (factory_, factory) = self.bv_factory(bv_size);
+        let size = bv_size.to_i32();
         let op = match op_kind {
-            BinOpBv::BitAnd => {
-                ast::utility::BVFactory::call_and(&factory_, factory, self.jni.new_string("and"))
-            }
-            BinOpBv::BitOr => {
-                ast::utility::BVFactory::call_or(&factory_, factory, self.jni.new_string("or"))
-            }
-            BinOpBv::BitXor => {
-                ast::utility::BVFactory::call_xor(&factory_, factory, self.jni.new_string("xor"))
-            }
-            BinOpBv::BvAdd => {
-                ast::utility::BVFactory::call_add(&factory_, factory, self.jni.new_string("add"))
-            }
-            BinOpBv::BvSub => {
-                ast::utility::BVFactory::call_sub(&factory_, factory, self.jni.new_string("sub"))
-            }
-            BinOpBv::BvMul => {
-                ast::utility::BVFactory::call_mul(&factory_, factory, self.jni.new_string("mul"))
-            }
-            BinOpBv::BvUDiv => {
-                ast::utility::BVFactory::call_udiv(&factory_, factory, self.jni.new_string("udiv"))
-            }
-            BinOpBv::BvShl => {
-                ast::utility::BVFactory::call_shl(&factory_, factory, self.jni.new_string("shl"))
-            }
-            BinOpBv::BvLShr => {
-                ast::utility::BVFactory::call_lshr(&factory_, factory, self.jni.new_string("lshr"))
-            }
-            BinOpBv::BvAShr => {
-                ast::utility::BVFactory::call_ashr(&factory_, factory, self.jni.new_string("rshr"))
-            }
+            BinOpBv::BitAnd => ast::utility::BVFactory::call_and(
+                &factory_,
+                factory,
+                self.jni.new_string(&format!("bv{size}_and")),
+            ),
+            BinOpBv::BitOr => ast::utility::BVFactory::call_or(
+                &factory_,
+                factory,
+                self.jni.new_string(&format!("bv{size}_or")),
+            ),
+            BinOpBv::BitXor => ast::utility::BVFactory::call_xor(
+                &factory_,
+                factory,
+                self.jni.new_string(&format!("bv{size}_xor")),
+            ),
+            BinOpBv::BvAdd => ast::utility::BVFactory::call_add(
+                &factory_,
+                factory,
+                self.jni.new_string(&format!("bv{size}_add")),
+            ),
+            BinOpBv::BvSub => ast::utility::BVFactory::call_sub(
+                &factory_,
+                factory,
+                self.jni.new_string(&format!("bv{size}_sub")),
+            ),
+            BinOpBv::BvMul => ast::utility::BVFactory::call_mul(
+                &factory_,
+                factory,
+                self.jni.new_string(&format!("bv{size}_mul")),
+            ),
+            BinOpBv::BvUDiv => ast::utility::BVFactory::call_udiv(
+                &factory_,
+                factory,
+                self.jni.new_string(&format!("bv{size}_udiv")),
+            ),
+            BinOpBv::BvShl => ast::utility::BVFactory::call_shl(
+                &factory_,
+                factory,
+                self.jni.new_string(&format!("bv{size}_shl")),
+            ),
+            BinOpBv::BvLShr => ast::utility::BVFactory::call_lshr(
+                &factory_,
+                factory,
+                self.jni.new_string(&format!("bv{size}_lshr")),
+            ),
+            BinOpBv::BvAShr => ast::utility::BVFactory::call_ashr(
+                &factory_,
+                factory,
+                self.jni.new_string(&format!("bv{size}_ashr")),
+            ),
         }
         .unwrap();
         self.backend_func_app(op, &[left, right], self.no_position())
@@ -502,62 +525,66 @@ impl<'a> AstFactory<'a> {
             FloatSizeViper::F64 => ast::utility::FloatFactory::new(&factory_, 52, 12, rm),
         }
         .unwrap();
+        let size = match f_size {
+            FloatSizeViper::F32 => 32,
+            FloatSizeViper::F64 => 64,
+        };
         let op = match op_kind {
             // create FloatFactory function to call
             BinOpFloat::Add => ast::utility::FloatFactory::call_add(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_add"),
+                self.jni.new_string(format!("f{size}_fp_add")),
             ),
             BinOpFloat::Sub => ast::utility::FloatFactory::call_sub(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_sub"),
+                self.jni.new_string(format!("f{size}_fp_sub")),
             ),
             BinOpFloat::Mul => ast::utility::FloatFactory::call_mul(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_mul"),
+                self.jni.new_string(format!("f{size}_fp_mul")),
             ),
             BinOpFloat::Div => ast::utility::FloatFactory::call_div(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_div"),
+                self.jni.new_string(format!("f{size}_fp_div")),
             ),
             BinOpFloat::Min => ast::utility::FloatFactory::call_min(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_min"),
+                self.jni.new_string(format!("f{size}_fp_min")),
             ),
             BinOpFloat::Max => ast::utility::FloatFactory::call_max(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_max"),
+                self.jni.new_string(format!("f{size}_fp_max")),
             ),
             BinOpFloat::Eq => ast::utility::FloatFactory::call_eq(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_eq"),
+                self.jni.new_string(format!("f{size}_fp_eq")),
             ),
             BinOpFloat::Leq => ast::utility::FloatFactory::call_leq(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_leq"),
+                self.jni.new_string(format!("f{size}_fp_leq")),
             ),
             BinOpFloat::Geq => ast::utility::FloatFactory::call_geq(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_geq"),
+                self.jni.new_string(format!("f{size}_fp_geq")),
             ),
             BinOpFloat::Lt => ast::utility::FloatFactory::call_lt(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_lt"),
+                self.jni.new_string(format!("f{size}_fp_lt")),
             ),
             BinOpFloat::Gt => ast::utility::FloatFactory::call_gt(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_gt"),
+                self.jni.new_string(format!("f{size}_fp_gt")),
             ),
         }
         .unwrap();
@@ -575,44 +602,47 @@ impl<'a> AstFactory<'a> {
             FloatSizeViper::F64 => ast::utility::FloatFactory::new(&factory_, 52, 12, rm),
         }
         .unwrap();
-
+        let size = match f_size {
+            FloatSizeViper::F32 => 32,
+            FloatSizeViper::F64 => 64,
+        };
         let op = match op_kind {
             UnOpFloat::Neg => ast::utility::FloatFactory::call_neg(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_neg"),
+                self.jni.new_string(format!("f{size}_fp_neg")),
             ),
             UnOpFloat::Abs => ast::utility::FloatFactory::call_abs(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_abs"),
+                self.jni.new_string(format!("f{size}_fp_abs")),
             ),
             UnOpFloat::IsZero => ast::utility::FloatFactory::call_isZero(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_isZero"),
+                self.jni.new_string(format!("f{size}_fp_is_zero")),
             ),
             UnOpFloat::IsInfinite => ast::utility::FloatFactory::call_isInfinite(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_isInfinite"),
+                self.jni.new_string(format!("f{size}_fp_is_infinite")),
             ),
             UnOpFloat::IsNan => ast::utility::FloatFactory::call_isNaN(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_isNaN"),
+                self.jni.new_string(format!("f{size}_fp_is_nan")),
             ),
             UnOpFloat::IsNegative => ast::utility::FloatFactory::call_isNegative(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_isNegative"),
+                self.jni.new_string(format!("f{size}_fp_is_negative")),
             ),
             UnOpFloat::IsPositive => ast::utility::FloatFactory::call_isPositive(
                 &factory_,
                 factory,
-                self.jni.new_string("fp_isPositive"),
+                self.jni.new_string(format!("f{size}_fp_is_positive")),
             ),
-            UnOpFloat::GetType => ast::utility::FloatFactory::call_typ(&factory_, factory),
+            UnOpFloat::GetType => todo!(),
             UnOpFloat::FromBV => todo!(),
             UnOpFloat::ToBV => todo!(),
         }
@@ -631,7 +661,7 @@ impl<'a> AstFactory<'a> {
         let from_bv = ast::utility::FloatFactory::call_from__bv(
             &float_factory_,
             float_factory,
-            self.jni.new_string("tofp"),
+            self.jni.new_string("f32_from_bv"),
         )
         .unwrap();
         self.backend_func_app(from_bv, &[bv], self.no_position())
@@ -647,7 +677,7 @@ impl<'a> AstFactory<'a> {
         let from_bv = ast::utility::FloatFactory::call_from__bv(
             &float_factory_,
             float_factory,
-            self.jni.new_string("tofp"),
+            self.jni.new_string("f64_from_bv"),
         )
         .unwrap();
         self.backend_func_app(from_bv, &[bv], self.no_position())

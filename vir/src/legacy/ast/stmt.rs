@@ -74,7 +74,7 @@ pub enum Stmt {
 }
 
 // This preserves `Stmt == Stmt ==> hash(Stmt) == hash(Stmt)`
-#[allow(clippy::derive_hash_xor_eq)]
+#[allow(clippy::derived_hash_with_manual_eq)]
 impl Hash for Stmt {
     /// Hash ignoring Comments and ExpireBorrows
     fn hash<H: Hasher>(&self, state: &mut H) {

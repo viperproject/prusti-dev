@@ -69,7 +69,7 @@ impl Counterexample {
 }
 
 /// An expression mapped from a Silicon counterexample.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub enum Entry {
     /// A string is used to be able to represent integers outside the 128-bit
     /// range.
@@ -101,6 +101,7 @@ pub enum Entry {
     Array(Vec<Entry>),
     Tuple(Vec<Entry>),
     Seq(Vec<Entry>),
+    #[default]
     Unknown,
 }
 
@@ -110,12 +111,6 @@ impl Entry {
             Entry::Tuple(fields) => fields.is_empty(),
             _ => false,
         }
-    }
-}
-
-impl Default for Entry {
-    fn default() -> Self {
-        Entry::Unknown
     }
 }
 

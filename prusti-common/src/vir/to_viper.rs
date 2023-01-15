@@ -21,7 +21,8 @@ use vir::common::identifier::WithIdentifier;
 
 impl<'v> ToViper<'v, viper::Program<'v>> for Program {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Program<'v> {
-        let domains = self.domains.to_viper(context, ast);
+        let mut domains = self.domains.to_viper(context, ast);
+        domains.extend(self.backend_types.to_viper(context, ast));
         let fields = self.fields.to_viper(context, ast);
 
         let mut viper_methods: Vec<_> = self
@@ -902,6 +903,28 @@ impl<'a, 'v> ToViper<'v, viper::NamedDomainAxiom<'v>> for &'a DomainAxiom {
     }
 }
 
+impl<'a, 'v> ToViper<'v, viper::Domain<'v>> for &'a BackendType {
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Domain<'v> {
+        ast.backend_type(
+            &self.name,
+            &self.functions.to_viper(context, ast),
+            &self.interpretations,
+        )
+    }
+}
+
+impl<'a, 'v> ToViper<'v, viper::DomainFunc<'v>> for &'a BackendFuncDecl {
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::DomainFunc<'v> {
+        ast.backend_func(
+            &self.get_identifier(),
+            &self.formal_args.to_viper_decl(context, ast),
+            self.return_type.to_viper(context, ast),
+            &self.domain_name,
+            &self.interpretation,
+        )
+    }
+}
+
 // Vectors
 
 impl<'v> ToViper<'v, Vec<viper::Field<'v>>> for Vec<Field> {
@@ -952,6 +975,18 @@ impl<'v> ToViper<'v, Vec<viper::DomainFunc<'v>>> for Vec<DomainFunc> {
 
 impl<'v> ToViper<'v, Vec<viper::NamedDomainAxiom<'v>>> for Vec<DomainAxiom> {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> Vec<viper::NamedDomainAxiom<'v>> {
+        self.iter().map(|x| x.to_viper(context, ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::Domain<'v>>> for Vec<BackendType> {
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> Vec<viper::Domain<'v>> {
+        self.iter().map(|x| x.to_viper(context, ast)).collect()
+    }
+}
+
+impl<'v> ToViper<'v, Vec<viper::DomainFunc<'v>>> for Vec<BackendFuncDecl> {
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> Vec<viper::DomainFunc<'v>> {
         self.iter().map(|x| x.to_viper(context, ast)).collect()
     }
 }

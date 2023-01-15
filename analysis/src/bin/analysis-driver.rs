@@ -164,7 +164,7 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
             abstract_domain
         );
 
-        queries.global_ctxt().unwrap().peek_mut().enter(|tcx| {
+        queries.global_ctxt().unwrap().enter(|tcx| {
             // collect all functions with attribute #[analyzer::run]
             let mut local_def_ids: Vec<_> = tcx
                 .mir_keys(())

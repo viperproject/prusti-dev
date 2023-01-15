@@ -86,7 +86,7 @@ impl Counterexample {
 }
 
 /// An expression mapped from a Silicon counterexample.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub enum Entry {
     /// A string is used to be able to represent integers outside the 128-bit
     /// range.
@@ -108,6 +108,7 @@ pub enum Entry {
         //that is why no FxHashMap is used
     },
     Tuple(Vec<Entry>),
+    #[default]
     Unknown,
 }
 
@@ -203,12 +204,6 @@ impl Entry {
             }
             _ => self.clone(),
         }
-    }
-}
-
-impl Default for Entry {
-    fn default() -> Self {
-        Entry::Unknown
     }
 }
 
