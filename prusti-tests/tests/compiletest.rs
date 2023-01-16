@@ -198,6 +198,11 @@ fn test_runner(_tests: &[&()]) {
     run_verification_overflow("verify_overflow", &filter);
     save_verification_cache();
 
+    // Test the functionality of built-in specs.
+    println!("[prusti_std]");
+    run_verification_no_overflow("prusti_std", &filter);
+    save_verification_cache();
+
     // Test the verifier with test cases that only partially verify due to known open issues.
     // The purpose of these tests is two-fold: 1. these tests help prevent potential further
     // regressions, because the tests also test code paths not covered by other tests; and
