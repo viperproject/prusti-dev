@@ -79,7 +79,7 @@ lazy_static::lazy_static! {
         settings.set_default("check_foldunfold_state", false).unwrap();
         settings.set_default("check_overflows", true).unwrap();
         settings.set_default("check_panics", true).unwrap();
-        settings.set_default("encode_unsigned_num_constraint", false).unwrap();
+        settings.set_default("encode_unsigned_num_constraint", true).unwrap();
         settings.set_default("encode_bitvectors", false).unwrap();
         settings.set_default("simplify_encoding", true).unwrap();
         settings.set_default("log", "").unwrap();
