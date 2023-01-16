@@ -243,9 +243,16 @@ pub struct CDG<'tcx> {
 #[derive(Clone)]
 pub struct CouplingState<'facts, 'mir: 'facts, 'tcx: 'mir> {
     pub coupling_graph: CDG<'tcx>,
+    pub to_kill: ToKill<'tcx>,
     // Also include: invariant checks, loan kill marks
     mir: &'mir BodyWithBorrowckFacts<'tcx>,
     fact_table: &'facts FactTable<'tcx>,
+}
+
+#[derive(PartialEq, Eq, Clone, Debug, Default)]
+pub struct ToKill<'tcx> {
+    pub loans: BTreeSet<(Loan, PointIndex)>,
+    pub places: BTreeSet<(mir::Place<'tcx>, PointIndex)>,
 }
 
 impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
@@ -255,6 +262,7 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
     ) -> Self {
         Self {
             coupling_graph: Default::default(),
+            to_kill: Default::default(),
             fact_table,
             mir,
         }
@@ -415,7 +423,19 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
 
 impl<'facts, 'mir: 'facts, 'tcx: 'mir> Serialize for CouplingState<'facts, 'mir, 'tcx> {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
-        self.coupling_graph.serialize(serializer)
+        let mut s = serializer.serialize_struct("[coupling state]", 2)?;
+        s.serialize_field("[kills]", &self.to_kill)?;
+        s.serialize_field("[cdg]", &self.coupling_graph)?;
+        s.end()
+    }
+}
+
+impl<'tcx> Serialize for ToKill<'tcx> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut s = serializer.serialize_struct("[kills]", 2)?;
+        s.serialize_field("loans", &format!("{:?}", self.loans))?;
+        s.serialize_field("places", &format!("{:?}", self.places))?;
+        s.end()
     }
 }
 
@@ -441,7 +461,7 @@ impl fmt::Debug for CouplingState<'_, '_, '_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "CDG (fixme) {}",
+            "[coupling state] {}",
             serde_json::to_string_pretty(&self).unwrap()
         )
     }
