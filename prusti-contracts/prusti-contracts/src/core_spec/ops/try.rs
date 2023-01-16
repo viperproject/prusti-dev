@@ -1,9 +1,9 @@
 use crate::*;
 
 #[allow(unused_imports)]
-use core::ops::*;
+use core::convert::Infallible;
 #[allow(unused_imports)]
-use std::convert::Infallible;
+use core::ops::*;
 
 #[extern_spec]
 impl<T, E> Try for Result<T, E> {

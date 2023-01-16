@@ -1,6 +1,7 @@
 #![no_std]
 #![feature(auto_traits)]
 #![feature(negative_impls)]
+#![feature(try_trait_v2)]
 
 // this is present even when compiling outside prusti to enable (negatively) implementing traits used for better specs
 pub mod core_spec;
