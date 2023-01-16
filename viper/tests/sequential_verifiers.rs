@@ -9,7 +9,7 @@ fn sequential_verifier_initialization() {
     env_logger::init();
 
     for iteration in 0..5 {
-        println!("Iteration #{}...", iteration);
+        println!("Iteration #{iteration}...");
         let verification_context: VerificationContext = VIPER.attach_current_thread();
 
         let ast = verification_context.new_ast_factory();

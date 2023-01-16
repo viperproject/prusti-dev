@@ -120,7 +120,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         for (local_id, refs) in self.procedure_specs.iter() {
             let mut spec = SpecGraph::new(ProcedureSpecification::empty(local_id.to_def_id()));
 
-            let mut kind = refs.into();
+            // We do not want to create an empty kind.
+            // This would lead to refinement inheritance if there is a trait involved.
+            // Instead, we require the user to explicitly make annotations.
+            spec.set_kind(refs.into());
+            let mut kind_override = None;
 
             for spec_id_ref in &refs.spec_id_refs {
                 match spec_id_ref {
@@ -133,6 +137,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                             self.env,
                         );
                     }
+                    SpecIdRef::Purity(spec_id) => {
+                        spec.add_purity(*self.spec_functions.get(spec_id).unwrap(), self.env);
+                    }
                     SpecIdRef::Pledge { lhs, rhs } => {
                         spec.add_pledge(typed::Pledge {
                             reference: None, // FIXME: Currently only `result` is supported.
@@ -143,9 +150,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                         });
                     }
                     SpecIdRef::Predicate(spec_id) => {
-                        kind = ProcedureSpecificationKind::Predicate(Some(
+                        kind_override = Some(ProcedureSpecificationKind::Predicate(Some(
                             self.spec_functions.get(spec_id).unwrap().to_def_id(),
-                        ));
+                        )));
                     }
                     SpecIdRef::Terminates(spec_id) => {
                         spec.set_terminates(*self.spec_functions.get(spec_id).unwrap());
@@ -155,26 +162,15 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
             spec.set_trusted(refs.trusted);
 
-            // We do not want to create an empty kind.
-            // This would lead to refinement inheritance if there is a trait involved.
-            // Instead, we require the user to explicitly make annotations.
-            spec.set_kind(kind);
+            if let Some(kind) = kind_override {
+                spec.set_kind(kind);
+            }
 
-            if !spec.specs_with_constraints.is_empty()
-                && !prusti_common::config::enable_ghost_constraints()
+            if !spec.specs_with_constraints.is_empty() && !*spec.base_spec.trusted.expect_inherent()
             {
                 let span = self.env.query.get_def_span(*local_id);
                 PrustiError::unsupported(
-                    "Ghost constraints need to be enabled with the feature flag `enable_ghost_constraints`",
-                    MultiSpan::from(span),
-                )
-                .emit(&self.env.diagnostic);
-            } else if !spec.specs_with_constraints.is_empty()
-                && !*spec.base_spec.trusted.expect_inherent()
-            {
-                let span = self.env.query.get_def_span(*local_id);
-                PrustiError::unsupported(
-                    "Ghost constraints can only be used on trusted functions",
+                    "Type-conditional spec refinements can only be applied to trusted functions",
                     MultiSpan::from(span),
                 )
                 .emit(&self.env.diagnostic);
@@ -302,7 +298,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 fn parse_spec_id(spec_id: String, def_id: DefId) -> SpecificationId {
     spec_id
         .try_into()
-        .unwrap_or_else(|_| panic!("cannot parse the spec_id attached to {:?}", def_id))
+        .unwrap_or_else(|_| panic!("cannot parse the spec_id attached to {def_id:?}"))
 }
 
 /// Returns true iff def_id points to a spec function (i.e. a function for
@@ -324,6 +320,11 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
         read_prusti_attrs("post_spec_id_ref", attrs)
             .into_iter()
             .map(|raw_spec_id| SpecIdRef::Postcondition(parse_spec_id(raw_spec_id, def_id))),
+    );
+    spec_id_refs.extend(
+        read_prusti_attrs("pure_spec_id_ref", attrs)
+            .into_iter()
+            .map(|raw_spec_id| SpecIdRef::Purity(parse_spec_id(raw_spec_id, def_id))),
     );
     spec_id_refs.extend(
         read_prusti_attrs("terminates_spec_id_ref", attrs)

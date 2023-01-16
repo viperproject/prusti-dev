@@ -9,18 +9,22 @@ use crate::encoder::{
     mir::{
         places::PlacesEncoderInterface,
         pure::{
-            interpreter::ExpressionBackwardInterpreter,
+            interpreter::{
+                interpreter_high::ExpressionBackwardInterpreter,
+                interpreter_poly::PureFunctionBackwardInterpreter,
+                run_backward_interpretation_point_to_point,
+                state_poly::ExprBackwardInterpreterState,
+            },
             specifications::{
                 encoder_high::{
                     encode_quantifier_high, inline_closure_high, inline_spec_item_high,
                 },
                 encoder_poly::{encode_quantifier, inline_closure, inline_spec_item},
             },
-            PureEncodingContext, PureFunctionBackwardInterpreter,
+            PureEncodingContext,
         },
     },
     mir_encoder::{MirEncoder, PlaceEncoder, PRECONDITION_LABEL},
-    mir_interpreter::run_backward_interpretation_point_to_point,
     snapshot::interface::SnapshotEncoderInterface,
 };
 use prusti_rustc_interface::{
@@ -220,8 +224,8 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
              predecessor,
              invariant_block,
              inv_loc + 1, // include the closure assign itself
-             crate::encoder::mir::pure::interpreter::state::ExprBackwardInterpreterState::new_defined(encoded_invariant),
-             crate::encoder::mir::pure::interpreter::state::ExprBackwardInterpreterState::new(None),
+             crate::encoder::mir::pure::interpreter::state_high::ExprBackwardInterpreterState::new_defined(encoded_invariant),
+             crate::encoder::mir::pure::interpreter::state_high::ExprBackwardInterpreterState::new(None),
          )?;
 
         let final_invariant = invariant.unwrap().into_expr().unwrap();
@@ -358,10 +362,8 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             invariant_block,
             invariant_block,
             inv_loc + 1, // include the closure assign itself
-            crate::encoder::mir_interpreter::ExprBackwardInterpreterState::new_defined(
-                encoded_invariant,
-            ),
-            crate::encoder::mir_interpreter::ExprBackwardInterpreterState::new(None),
+            ExprBackwardInterpreterState::new_defined(encoded_invariant),
+            ExprBackwardInterpreterState::new(None),
         )?;
 
         // TODO: deal with old(...) ?

@@ -124,7 +124,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
 
         for (method, error) in consistency_errors.into_iter() {
             PrustiError::internal(
-                format!("consistency error in {}: {}", method, error), DUMMY_SP.into()
+                format!("consistency error in {method}: {error}"), DUMMY_SP.into()
             ).emit(&self.env.diagnostic);
             result = VerificationResult::Failure;
         }
@@ -132,7 +132,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
         for (method, exception) in java_exceptions.into_iter() {
             error!("Java exception: {}", exception.get_stack_trace());
             PrustiError::internal(
-                format!("in {}: {}", method, exception), DUMMY_SP.into()
+                format!("in {method}: {exception}"), DUMMY_SP.into()
             ).emit(&self.env.diagnostic);
             result = VerificationResult::Failure;
         }
@@ -158,8 +158,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                         } else {
                             prusti_error = prusti_error.add_note(
                                 format!(
-                                    "the verifier produced a counterexample for {}, but it could not be mapped to source code",
-                                    method
+                                    "the verifier produced a counterexample for {method}, but it could not be mapped to source code"
                                 ),
                                 None,
                             );
@@ -176,8 +175,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                     } else {
                         prusti_error = prusti_error.add_note(
                             format!(
-                                "the verifier produced a counterexample for {}, but it could not be mapped to source code",
-                                method
+                                "the verifier produced a counterexample for {method}, but it could not be mapped to source code"
                             ),
                             None,
                         );
@@ -223,7 +221,7 @@ fn verify_programs(env: &Environment, programs: Vec<Program>)
         let program_name = program.get_name().to_string();
         let check_mode = program.get_check_mode();
         // Prepend the Rust file name to the program.
-        program.set_name(format!("{}_{}", rust_program_name, program_name));
+        program.set_name(format!("{rust_program_name}_{program_name}"));
         let backend = if check_mode == CheckMode::Specifications {
             config::verify_specifications_backend()
         } else {
@@ -244,8 +242,7 @@ fn verify_programs(env: &Environment, programs: Vec<Program>)
         info!("Connecting to Prusti server at {}", server_address);
         let client = PrustiClient::new(&server_address).unwrap_or_else(|error| {
             panic!(
-                "Could not parse server address ({}) due to {:?}",
-                server_address, error
+                "Could not parse server address ({server_address}) due to {error:?}"
             )
         });
         // Here we construct a Tokio runtime to block until completion of the futures returned by
@@ -260,9 +257,7 @@ fn verify_programs(env: &Environment, programs: Vec<Program>)
             let remote_result = runtime.block_on(client.verify(request));
             let result = remote_result.unwrap_or_else(|error| {
                 panic!(
-                    "Verification request of program {} failed: {:?}",
-                    program_name,
-                    error
+                    "Verification request of program {program_name} failed: {error:?}"
                 )
             });
             (program_name, result)

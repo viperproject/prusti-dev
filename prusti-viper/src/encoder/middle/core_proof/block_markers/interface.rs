@@ -24,7 +24,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BlockMarkersInterface for Lowerer<'p, 'v, 'tcx> {
         &mut self,
         label: &vir_mid::BasicBlockId,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
-        self.create_variable(format!("{}$marker", label), vir_low::Type::Bool)
+        self.create_variable(format!("{label}$marker"), vir_low::Type::Bool)
     }
     fn lower_block_marker_condition(
         &mut self,

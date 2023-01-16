@@ -15,7 +15,7 @@ fn concurrent_verifier_initialization() {
     const MAX_NUM_THREADS: u32 = 10;
 
     for iteration in 0..10 {
-        println!("Iteration #{}...", iteration);
+        println!("Iteration #{iteration}...");
         for num_threads in MIN_NUM_THREADS..(MAX_NUM_THREADS + 1) {
             let mut handlers: Vec<JoinHandle<()>> = vec![];
 

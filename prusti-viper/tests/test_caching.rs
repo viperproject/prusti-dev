@@ -18,7 +18,7 @@ fn find_executable_path(base_name: &str) -> PathBuf {
         "release"
     };
     let executable_name = if cfg!(windows) {
-        format!("{}.exe", base_name)
+        format!("{base_name}.exe")
     } else {
         base_name.to_string()
     };
@@ -35,23 +35,22 @@ fn find_executable_path(base_name: &str) -> PathBuf {
         return workspace_prusti_rustc_path;
     }
     panic!(
-        "Could not find the {:?} prusti-rustc binary to be used in tests. \
-        It might be that Prusti has not been compiled correctly.",
-        target_directory
+        "Could not find the {target_directory:?} prusti-rustc binary to be used in tests. \
+        It might be that Prusti has not been compiled correctly."
     );
 }
 
 fn run_on_files<F: FnMut(&Path)>(dir: &Path, run: &mut F) {
     let test_file = dir.join("test_file.rs");
     let mut has_files = false;
-    for entry in fs::read_dir(dir).unwrap_or_else(|_| panic!("Did not find dir: {:?}", dir)) {
+    for entry in fs::read_dir(dir).unwrap_or_else(|_| panic!("Did not find dir: {dir:?}")) {
         let path = entry.unwrap().path();
         std::fs::copy(path, &test_file).unwrap();
         run(&test_file);
         std::fs::remove_file(&test_file).unwrap();
         has_files = true;
     }
-    assert!(has_files, "Dir \"{:?}\" did not constain any files!", dir);
+    assert!(has_files, "Dir \"{dir:?}\" did not constain any files!");
 }
 
 #[test]
@@ -60,7 +59,7 @@ fn test_prusti_rustc_caching_hash() {
 
     let mut hashes: HashMap<String, u64> = HashMap::new();
     let mut run = |program: &Path| {
-        println!("Running {:?} on {:?}...", prusti_rustc, program);
+        println!("Running {prusti_rustc:?} on {program:?}...");
         let out = Command::new(&prusti_rustc)
             .arg("--edition=2018")
             .arg("--crate-type=lib")
@@ -85,13 +84,13 @@ fn test_prusti_rustc_caching_hash() {
             let l2 = hash_lines.next().unwrap();
             let hash: u64 = l2.strip_prefix("Hash of the request is: ").unwrap().parse().unwrap();
             std::fs::rename(
-                format!("log/viper_program/{}", full_name),
-                format!("log/viper_program/{}.vpr", hash)
+                format!("log/viper_program/{full_name}"),
+                format!("log/viper_program/{hash}.vpr")
             ).unwrap();
             hashes.entry(fn_name.to_string())
                 .and_modify(|other|
                     if hash != *other {
-                        let f1 = std::fs::read_to_string(format!("log/viper_program/{}.vpr", hash)).unwrap();
+                        let f1 = std::fs::read_to_string(format!("log/viper_program/{hash}.vpr")).unwrap();
                         let f2 = std::fs::read_to_string(format!("log/viper_program/{}.vpr", *other)).unwrap();
                         println!("{}", diffy::create_patch(&f1, &f2));
                         std::fs::remove_dir_all("log").unwrap();
@@ -112,13 +111,13 @@ fn test_prusti_rustc_caching_error() {
     let cache_file = PathBuf::from("tests/error/cache.bin");
 
     let mut run = |program: &Path| {
-        println!("Running {:?} on {:?}...", prusti_rustc, program);
+        println!("Running {prusti_rustc:?} on {program:?}...");
         let out = Command::new(&prusti_rustc)
             .arg("--edition=2018")
             .arg("--crate-type=lib")
             .arg(program)
             .env("RUST_BACKTRACE", "1")
-            .env("PRUSTI_CACHE_PATH", &cache_file.to_string_lossy().to_string())
+            .env("PRUSTI_CACHE_PATH", cache_file.to_string_lossy().to_string())
             .output()
             .expect("failed to execute prusti-rustc");
         assert!(!out.status.success());
@@ -131,7 +130,7 @@ fn test_prusti_rustc_caching_error() {
   |             ^^^^^^^^^^^^^^
   |
   = note: this error originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)"),
-            "\n------------------\nunexpected stderr:\n------------------\n{}\n------------------", stderr
+            "\n------------------\nunexpected stderr:\n------------------\n{stderr}\n------------------"
         );
     };
     run_on_files(&PathBuf::from("tests/error/"), &mut run);

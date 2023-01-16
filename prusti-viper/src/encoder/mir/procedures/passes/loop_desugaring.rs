@@ -186,7 +186,7 @@ fn duplicate_blocks<'v, 'tcx: 'v>(
     };
     let new_label = |bb: &vir_high::BasicBlockId| {
         if blocks_to_duplicate.contains(bb) {
-            vir_high::BasicBlockId::new(format!("loop__{}__{}", loop_head, bb))
+            vir_high::BasicBlockId::new(format!("loop__{loop_head}__{bb}"))
         } else {
             bb.clone()
         }

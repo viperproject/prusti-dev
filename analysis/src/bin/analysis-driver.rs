@@ -59,7 +59,7 @@ fn get_attribute<'tcx>(
                             segments,
                             tokens: _,
                         },
-                    args: ast::MacArgs::Empty,
+                    args: ast::AttrArgs::Empty,
                     tokens: _,
                 } => {
                     segments.len() == 2
@@ -265,7 +265,7 @@ impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
                             Err(e) => eprintln!("{}", e.to_pretty_str(body)),
                         }
                     }
-                    _ => panic!("Unknown domain argument: {}", abstract_domain),
+                    _ => panic!("Unknown domain argument: {abstract_domain}"),
                 }
             }
         });

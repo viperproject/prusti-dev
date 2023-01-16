@@ -41,7 +41,7 @@ pub fn prefixed_method_name_from_camel_raw(prefix: &str, ident: &syn::Ident) -> 
 }
 
 pub fn append_ident(ident: &syn::Ident, suffix: &str) -> syn::Ident {
-    let name = format!("{}{}", ident, suffix).replace("__", "_");
+    let name = format!("{ident}{suffix}").replace("__", "_");
     syn::Ident::new(&name, ident.span())
 }
 
@@ -97,7 +97,7 @@ pub fn unwrap_type_ident(ty: &syn::Type) -> syn::Result<&syn::Ident> {
     }
     Err(syn::Error::new(
         ty.span(),
-        format!("type {:?} is not an ident", ty),
+        format!("type {ty:?} is not an ident"),
     ))
 }
 

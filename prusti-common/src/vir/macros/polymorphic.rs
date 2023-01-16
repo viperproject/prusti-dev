@@ -1,9 +1,17 @@
 #[macro_export]
 macro_rules! vir_type {
-    (Int) => {$crate::vir::polymorphic_vir::Type::Int};
-    (Ref) => {$crate::vir::polymorphic_vir::Type::Ref};
-    (Bool) => {$crate::vir::polymorphic_vir::Type::Bool};
-    ({$ty:expr}) => { $ty }
+    (Int) => {
+        $crate::vir::polymorphic_vir::Type::Int
+    };
+    (Ref) => {
+        $crate::vir::polymorphic_vir::Type::Ref
+    };
+    (Bool) => {
+        $crate::vir::polymorphic_vir::Type::Bool
+    };
+    ({$ty:expr}) => {
+        $ty
+    };
 }
 
 #[macro_export]
@@ -11,9 +19,9 @@ macro_rules! vir_local {
     ($name:ident : $type:tt) => {
         $crate::vir::polymorphic_vir::LocalVar {
             name: stringify!($name).to_string(),
-            typ: $crate::vir_type!($type)
+            typ: $crate::vir_type!($type),
         }
-    }
+    };
 }
 
 #[macro_export]
@@ -132,13 +140,22 @@ macro_rules! vir_expr {
         $crate::vir::polymorphic_vir::Expr::magic_wand(vir_expr!($lhs), vir_expr!($rhs), $borrow)
     };
 
-    (forall $($name: ident : $type: tt),+ :: {$($triggers: tt),*} $body: tt) => {
+    (forall $($name: ident : $type: tt),+ :: $({ $($triggers: tt),+ })+ :: $body: tt) => {
         $crate::vir::polymorphic_vir::Expr::forall(
             vec![$($crate::vir_local!($name: $type)),+],
-            vec![$($crate::vir::polymorphic_vir::Trigger::new(vec![vir_expr!($triggers)])),*],
+            vec![
+                $($crate::vir::polymorphic_vir::Trigger::new(vec![
+                    $(vir_expr!($triggers)),+
+                ])),*
+            ],
             vir_expr!($body),
         )
     };
+
+    (local $($tokens: tt)+) => {
+        vir_local!($($tokens)+).into()
+    };
+
     ([ $e: expr ]) => { $e.clone() };
     (( $($tokens: tt)+ )) => { vir_expr!($($tokens)+) }
 }
@@ -149,23 +166,26 @@ mod tests {
 
     #[test]
     fn forall() {
-        let expected = Expr::ForAll( ForAll {
+        let expected = Expr::ForAll(ForAll {
             variables: vec![vir_local!(i: Int), vir_local!(j: Int)],
-            triggers: vec![Trigger::new(vec![vir_expr!{ true }]), Trigger::new(vec![vir_expr!{ false }])],
-            body: Box::new(vir_expr!{ true }),
+            triggers: vec![
+                Trigger::new(vec![vir_expr! { true }, vir_expr! { false }]),
+                Trigger::new(vec![vir_expr! { true }]),
+            ],
+            body: Box::new(vir_expr! { true }),
             position: Position::default(),
         });
 
-        let actual = vir_expr!{ forall i: Int, j: Int :: {true, false} true };
+        let actual = vir_expr! { forall i: Int, j: Int :: {true, false} {true} :: true };
 
         assert_eq!(expected, actual);
     }
 
     #[test]
     fn expr_passthrough() {
-        let expr = vir_stmt!{ assert true };
+        let expr = vir_stmt! { assert true };
 
-        assert_eq!(expr, vir_expr!{ [expr] });
-        assert_eq!(expr, vir_expr!{ ( [expr] ) });
+        assert_eq!(expr, vir_expr! { [expr] });
+        assert_eq!(expr, vir_expr! { ( [expr] ) });
     }
 }

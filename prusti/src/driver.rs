@@ -84,8 +84,8 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
 
     let xs: Vec<Cow<'static, str>> = vec![
         "Prusti or the compiler unexpectedly panicked. This is a bug.".into(),
-        format!("We would appreciate a bug report: {}", bug_report_url).into(),
-        format!("Prusti version: {}", version_info).into(),
+        format!("We would appreciate a bug report: {bug_report_url}").into(),
+        format!("Prusti version: {version_info}").into(),
     ];
 
     for note in &xs {
@@ -218,9 +218,7 @@ fn main() {
         // Check that we met the deadline.
         assert!(
             duration < std::time::Duration::from_secs(deadline),
-            "Prusti failed to finish within {} seconds. It finished in {:?}.",
-            deadline,
-            duration,
+            "Prusti failed to finish within {deadline} seconds. It finished in {duration:?}.",
         );
     }
     std::process::exit(exit_code)
