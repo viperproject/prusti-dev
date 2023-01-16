@@ -5,9 +5,10 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // use log::info;
+
 use crate::{
     abstract_interpretation::{AbstractState, AnalysisResult, OriginLHS},
-    mir_utils,
+    mir_utils::{self, Place},
 };
 use itertools::zip;
 use prusti_rustc_interface::{
@@ -23,7 +24,10 @@ use prusti_rustc_interface::{
     },
     polonius_engine::FactTypes,
 };
-use serde::{ser::SerializeStruct, Serialize, Serializer};
+use serde::{
+    ser::{SerializeMap, SerializeStruct},
+    Serialize, Serializer,
+};
 use std::{
     borrow::Borrow,
     cmp::Ordering,
@@ -43,8 +47,8 @@ pub type Path = <RustcFacts as FactTypes>::Path;
 
 #[derive(PartialEq, Eq, Hash, Clone, PartialOrd, Ord, Debug)]
 pub struct Tagged<Data, Tag> {
-    data: Data,
-    tag: Option<Tag>,
+    pub data: Data,
+    pub tag: Option<Tag>,
 }
 
 impl<Data, Tag> Tagged<Data, Tag> {
@@ -60,9 +64,15 @@ impl<Data, Tag> Tagged<Data, Tag> {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[derive(PartialEq, Eq, Clone, Hash)]
 pub struct CPlace<'tcx> {
     pub place: mir::Place<'tcx>,
+}
+
+impl<'tcx> fmt::Debug for CPlace<'tcx> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.place.fmt(f)
+    }
 }
 
 impl<'tcx> CPlace<'tcx> {
@@ -106,10 +116,31 @@ impl<'tcx> Ord for CPlace<'tcx> {
 }
 
 /// Nodes for the coupling digraph
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum CDGNode<'tcx> {
     Place(Tagged<CPlace<'tcx>, Location>),
     Borrow(Tagged<Loan, Location>),
+}
+
+impl<'tcx> fmt::Debug for CDGNode<'tcx> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            CDGNode::Place(tp) => {
+                if let Some(tag) = tp.tag {
+                    write!(f, "{:?}@{:?}", tp.data, tag)
+                } else {
+                    write!(f, "{:?}", tp.data)
+                }
+            }
+            CDGNode::Borrow(tb) => {
+                if let Some(tag) = tb.tag {
+                    write!(f, "{:?}@{:?}", tb.data, tag)
+                } else {
+                    write!(f, "{:?}", tb.data)
+                }
+            }
+        }
+    }
 }
 
 impl<'tcx> CDGNode<'tcx> {
@@ -154,11 +185,32 @@ impl<'tcx> CDGEdge<'tcx> {
 /// The CDG graph fragments associated with an origin
 /// INVARIANT: Can be (roughly) interpreted as the Hoare triple
 ///     {leaves} edges {roots}
-#[derive(Clone, Default, PartialEq, Eq, Debug)]
+#[derive(Clone, Default, PartialEq, Eq)]
 pub struct CDGOrigin<'tcx> {
     edges: BTreeSet<CDGEdge<'tcx>>,
     leaves: BTreeSet<Rc<CDGNode<'tcx>>>,
     roots: BTreeSet<Rc<CDGNode<'tcx>>>,
+}
+
+impl<'tcx> fmt::Debug for CDGOrigin<'tcx> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{:?} --* {:?}: ",
+            self.leaves.iter().collect::<Vec<_>>(),
+            self.roots.iter().collect::<Vec<_>>()
+        )?;
+        for e in self.edges.iter() {
+            write!(
+                f,
+                "{:?} -{:?}-> {:?}; ",
+                e.lhs.iter().collect::<Vec<_>>(),
+                e.edge,
+                e.rhs.iter().collect::<Vec<_>>()
+            )?;
+        }
+        Ok(())
+    }
 }
 
 impl<'tcx> CDGOrigin<'tcx> {
@@ -363,9 +415,25 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
 
 impl<'facts, 'mir: 'facts, 'tcx: 'mir> Serialize for CouplingState<'facts, 'mir, 'tcx> {
     fn serialize<Se: Serializer>(&self, serializer: Se) -> Result<Se::Ok, Se::Error> {
-        let mut s = serializer.serialize_struct("CouplingState", 1)?;
-        s.serialize_field("fixme", "fixme")?;
-        s.end()
+        self.coupling_graph.serialize(serializer)
+    }
+}
+
+impl<'tcx> Serialize for CDG<'tcx> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("subset invariant?", &self.subset_invariant)?;
+        map.serialize_entry(
+            "origins invariant?",
+            &self.origin_contains_loan_at_invariant,
+        )?;
+        for (o, cdg) in self.origins.iter() {
+            map.serialize_entry(&format!("{:?}", o), &format!("{:?}", cdg))?;
+        }
+        map.end()
     }
 }
 
