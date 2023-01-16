@@ -198,7 +198,7 @@ impl<'tcx> std::fmt::Debug for OriginLHS<'tcx> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) enum SubsetBaseKind {
     Reborrow,
     LoanIssue,
@@ -240,6 +240,17 @@ impl<'tcx> FactTable<'tcx> {
         match self.origin_contains_loan_at.get(p) {
             None => panic!("accessing location outside MIR"),
             Some(s) => Ok(s.keys().cloned().collect::<_>()),
+        }
+    }
+
+    pub fn get_moves_at(&self, location: &PointIndex) -> Vec<(Region, Region)> {
+        match self.structural_edge.get(location) {
+            Some(v) => v
+                .iter()
+                .filter(|(kind, _, _)| *kind == SubsetBaseKind::Move)
+                .map(|(_, from, to)| (*from, *to))
+                .collect::<_>(),
+            None => Vec::default(),
         }
     }
 

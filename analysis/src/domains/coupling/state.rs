@@ -8,20 +8,11 @@
 
 use crate::{
     abstract_interpretation::{AbstractState, AnalysisResult, OriginLHS},
-    mir_utils::{self, Place},
+    mir_utils::{self, is_prefix, PlaceImpl},
 };
-use itertools::zip;
 use prusti_rustc_interface::{
-    borrowck::{
-        consumers::{RichLocation, RustcFacts},
-        BodyWithBorrowckFacts,
-    },
-    data_structures::fx::{FxHashMap, FxHashSet},
-    middle::{
-        mir,
-        mir::{Location, TerminatorKind},
-        ty::TyCtxt,
-    },
+    borrowck::{consumers::RustcFacts, BodyWithBorrowckFacts},
+    middle::{mir, mir::Location, ty::TyCtxt},
     polonius_engine::FactTypes,
 };
 use serde::{
@@ -29,11 +20,11 @@ use serde::{
     Serialize, Serializer,
 };
 use std::{
-    borrow::Borrow,
     cmp::Ordering,
     collections::{BTreeMap, BTreeSet},
     fmt,
-    rc::Rc,
+    iter::zip,
+    mem,
 };
 
 use super::FactTable;
@@ -118,8 +109,8 @@ impl<'tcx> Ord for CPlace<'tcx> {
 /// Nodes for the coupling digraph
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum CDGNode<'tcx> {
-    Place(Tagged<CPlace<'tcx>, Location>),
-    Borrow(Tagged<Loan, Location>),
+    Place(Tagged<CPlace<'tcx>, PointIndex>),
+    Borrow(Tagged<Loan, PointIndex>),
 }
 
 impl<'tcx> fmt::Debug for CDGNode<'tcx> {
@@ -145,11 +136,12 @@ impl<'tcx> fmt::Debug for CDGNode<'tcx> {
 
 impl<'tcx> CDGNode<'tcx> {
     // Kills a node, if it isn't already unkilled
-    pub fn kill(&mut self, l: Location) {
-        match self {
+    pub fn kill(mut self, l: PointIndex) -> Self {
+        match &mut self {
             CDGNode::Place(p) => p.tag(l),
             CDGNode::Borrow(b) => b.tag(l),
         }
+        self
     }
 }
 
@@ -163,19 +155,17 @@ pub enum CDGEdgeKind {
 // Coupling graph hyper-edges
 #[derive(Clone, PartialEq, PartialOrd, Eq, Ord, Debug)]
 pub struct CDGEdge<'tcx> {
-    pub lhs: BTreeSet<Rc<CDGNode<'tcx>>>,
-    pub rhs: BTreeSet<Rc<CDGNode<'tcx>>>,
+    pub lhs: BTreeSet<CDGNode<'tcx>>,
+    pub rhs: BTreeSet<CDGNode<'tcx>>,
     pub edge: CDGEdgeKind,
 }
 
 impl<'tcx> CDGEdge<'tcx> {
     pub fn loan_edge(loan: Loan, place: mir::Place<'tcx>) -> Self {
         Self {
-            lhs: BTreeSet::from_iter(
-                [Rc::new(CDGNode::Borrow(Tagged::untagged(loan)))].into_iter(),
-            ),
+            lhs: BTreeSet::from_iter([CDGNode::Borrow(Tagged::untagged(loan))].into_iter()),
             rhs: BTreeSet::from_iter(
-                [Rc::new(CDGNode::Place(Tagged::untagged(CPlace { place })))].into_iter(),
+                [CDGNode::Place(Tagged::untagged(CPlace { place }))].into_iter(),
             ),
             edge: CDGEdgeKind::Borrow,
         }
@@ -188,8 +178,8 @@ impl<'tcx> CDGEdge<'tcx> {
 #[derive(Clone, Default, PartialEq, Eq)]
 pub struct CDGOrigin<'tcx> {
     edges: BTreeSet<CDGEdge<'tcx>>,
-    leaves: BTreeSet<Rc<CDGNode<'tcx>>>,
-    roots: BTreeSet<Rc<CDGNode<'tcx>>>,
+    leaves: BTreeSet<CDGNode<'tcx>>,
+    roots: BTreeSet<CDGNode<'tcx>>,
 }
 
 impl<'tcx> fmt::Debug for CDGOrigin<'tcx> {
@@ -230,6 +220,57 @@ impl<'tcx> CDGOrigin<'tcx> {
         }
         self.edges.insert(edge);
     }
+
+    /// Replace a node in a BTreeSet
+    fn btree_replace<T: Ord>(btree: &mut BTreeSet<T>, from: &T, to: T) {
+        if btree.remove(from) {
+            btree.insert(to);
+        }
+    }
+
+    /// Tags all untagged places which have to_tag as a prefix in a set of nodes
+    fn tag_in_set(
+        set: &mut BTreeSet<CDGNode<'tcx>>,
+        location: PointIndex,
+        to_tag: mir::Place<'tcx>,
+    ) {
+        let mut to_replace: Vec<CDGNode<'tcx>> = vec![];
+        for node in set.iter() {
+            if let CDGNode::Place(p) = node {
+                if is_prefix(
+                    PlaceImpl::from_mir_place(p.data.place),
+                    PlaceImpl::from_mir_place(to_tag),
+                ) {
+                    to_replace.push((*node).clone())
+                }
+            }
+        }
+        for node in to_replace.iter() {
+            Self::btree_replace(set, node, node.clone().kill(location));
+        }
+    }
+
+    /// Tags all untagged places which have to_tag as a prefix in a set of edges
+    /// Bad performance (probably)
+    fn tag_in_edge_set(
+        set: &mut BTreeSet<CDGEdge<'tcx>>,
+        location: PointIndex,
+        to_tag: mir::Place<'tcx>,
+    ) {
+        let new_set: BTreeSet<CDGEdge<'tcx>> = BTreeSet::default();
+        for mut edge in set.clone().into_iter() {
+            Self::tag_in_set(&mut edge.lhs, location, to_tag);
+            Self::tag_in_set(&mut edge.rhs, location, to_tag);
+        }
+        *set = new_set;
+    }
+
+    /// Tags all untagged places which have to_tag as a prefix
+    pub fn tag(&mut self, location: PointIndex, to_tag: mir::Place<'tcx>) {
+        Self::tag_in_set(&mut self.roots, location, to_tag);
+        Self::tag_in_set(&mut self.leaves, location, to_tag);
+        Self::tag_in_edge_set(&mut self.edges, location, to_tag);
+    }
 }
 
 // A coupling graph
@@ -238,6 +279,18 @@ pub struct CDG<'tcx> {
     pub origins: BTreeMap<Region, CDGOrigin<'tcx>>,
     pub subset_invariant: bool,
     pub origin_contains_loan_at_invariant: bool,
+}
+
+impl<'tcx> CDG<'tcx> {
+    /// Apply a function to all origins in the graph
+    pub fn mutate_origins_uniform<'a, 's: 'a>(
+        &'s mut self,
+        f: fn(Region, &'a mut CDGOrigin<'tcx>),
+    ) {
+        for (origin, cdg_origin) in self.origins.iter_mut() {
+            f(*origin, cdg_origin);
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -304,7 +357,7 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
         self.apply_origins(location)?;
         self.apply_packing_requirements()?;
         self.apply_loan_issues(location)?;
-        self.apply_loan_moves()?;
+        self.apply_loan_moves(location)?;
         self.check_subset_invariant()?;
         self.check_origin_contains_loan_at_invariant()?;
         self.mark_kills()?;
@@ -394,8 +447,14 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
     /// For every loan move:
     ///     - Kill the RHS of the move, unless it's a borrow
     ///     - Unpack the RHS to meet the packing requirement
-    fn apply_loan_moves(&mut self) -> AnalysisResult<()> {
-        // fixme: implement
+    fn apply_loan_moves(&mut self, location: &PointIndex) -> AnalysisResult<()> {
+        for (from, to) in self.fact_table.get_moves_at(location) {
+            // Kill the RHS place
+            // fixme: implement
+
+            // Add an edge from
+            // fixme: implement
+        }
         Ok(())
     }
 
