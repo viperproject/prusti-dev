@@ -6,9 +6,10 @@
 
 // use log::info;
 use crate::{
-    abstract_interpretation::{AbstractState, AnalysisResult},
-    mir_utils::Place,
+    abstract_interpretation::{AbstractState, AnalysisResult, OriginLHS},
+    mir_utils,
 };
+use itertools::zip;
 use prusti_rustc_interface::{
     borrowck::{
         consumers::{RichLocation, RustcFacts},
@@ -18,11 +19,18 @@ use prusti_rustc_interface::{
     middle::{
         mir,
         mir::{Location, TerminatorKind},
+        ty::TyCtxt,
     },
     polonius_engine::FactTypes,
 };
 use serde::{ser::SerializeStruct, Serialize, Serializer};
-use std::{collections::BTreeSet, fmt, rc::Rc};
+use std::{
+    borrow::Borrow,
+    cmp::Ordering,
+    collections::{BTreeMap, BTreeSet},
+    fmt,
+    rc::Rc,
+};
 
 use super::FactTable;
 
@@ -33,7 +41,7 @@ pub type PointIndex = <RustcFacts as FactTypes>::Point;
 pub type Variable = <RustcFacts as FactTypes>::Variable;
 pub type Path = <RustcFacts as FactTypes>::Path;
 
-#[derive(PartialEq, Eq, Hash, Clone)]
+#[derive(PartialEq, Eq, Hash, Clone, PartialOrd, Ord, Debug)]
 pub struct Tagged<Data, Tag> {
     data: Data,
     tag: Option<Tag>,
@@ -46,12 +54,61 @@ impl<Data, Tag> Tagged<Data, Tag> {
             self.tag = Some(t);
         }
     }
+
+    fn untagged(data: Data) -> Self {
+        Self { data, tag: None }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+pub struct CPlace<'tcx> {
+    pub place: mir::Place<'tcx>,
+}
+
+impl<'tcx> CPlace<'tcx> {
+    pub fn cmp_local(&self, x: &CPlace<'tcx>) -> bool {
+        self.place.local == x.place.local
+    }
+
+    /// Measure the lexicographic similarity between two place's projections
+    pub fn cmp_lex(&self, x: &CPlace<'tcx>) -> u32 {
+        let mut r: u32 = 0;
+        for (p0, p1) in zip(self.place.iter_projections(), x.place.iter_projections()) {
+            if p0 != p1 {
+                break;
+            }
+            r += 1;
+        }
+        return r;
+    }
+
+    pub fn unpack(&self, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> BTreeSet<Self> {
+        mir_utils::expand_struct_place(self.place, mir, tcx, None)
+            .iter()
+            .map(|p| Self { place: *p })
+            .collect()
+    }
+}
+
+impl<'tcx> PartialOrd for CPlace<'tcx> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<'tcx> Ord for CPlace<'tcx> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        match self.place.local.cmp(&other.place.local) {
+            Ordering::Equal => self.place.projection.cmp(other.place.projection),
+            r @ (Ordering::Less | Ordering::Greater) => r,
+        }
+    }
 }
 
 /// Nodes for the coupling digraph
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum CDGNode<'tcx> {
-    Place(Tagged<Place<'tcx>, Location>),
+    Place(Tagged<CPlace<'tcx>, Location>),
     Borrow(Tagged<Loan, Location>),
 }
 
@@ -66,33 +123,67 @@ impl<'tcx> CDGNode<'tcx> {
 }
 
 /// Corresponds to the annotations we store in the CDG
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum CDGEdgeKind {
+    Borrow,
     Reborrow,
 }
 
 // Coupling graph hyper-edges
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, PartialOrd, Eq, Ord, Debug)]
 pub struct CDGEdge<'tcx> {
     pub lhs: BTreeSet<Rc<CDGNode<'tcx>>>,
     pub rhs: BTreeSet<Rc<CDGNode<'tcx>>>,
     pub edge: CDGEdgeKind,
 }
 
+impl<'tcx> CDGEdge<'tcx> {
+    pub fn loan_edge(loan: Loan, place: mir::Place<'tcx>) -> Self {
+        Self {
+            lhs: BTreeSet::from_iter(
+                [Rc::new(CDGNode::Borrow(Tagged::untagged(loan)))].into_iter(),
+            ),
+            rhs: BTreeSet::from_iter(
+                [Rc::new(CDGNode::Place(Tagged::untagged(CPlace { place })))].into_iter(),
+            ),
+            edge: CDGEdgeKind::Borrow,
+        }
+    }
+}
+
 /// The CDG graph fragments associated with an origin
 /// INVARIANT: Can be (roughly) interpreted as the Hoare triple
 ///     {leaves} edges {roots}
-#[derive(Clone, PartialEq, Eq, Default)]
+#[derive(Clone, Default, PartialEq, Eq, Debug)]
 pub struct CDGOrigin<'tcx> {
     edges: BTreeSet<CDGEdge<'tcx>>,
     leaves: BTreeSet<Rc<CDGNode<'tcx>>>,
     roots: BTreeSet<Rc<CDGNode<'tcx>>>,
 }
 
+impl<'tcx> CDGOrigin<'tcx> {
+    pub fn is_empty(&self) -> bool {
+        self.edges.is_empty() && self.leaves.is_empty() && self.leaves.is_empty()
+    }
+
+    pub fn insert_edge(&mut self, edge: CDGEdge<'tcx>) {
+        // fixme: stop outselves from making bad graphs (cyclic)
+        for node in edge.lhs.iter() {
+            self.roots.remove(node);
+            self.leaves.insert(node.clone());
+        }
+        for node in edge.rhs.iter() {
+            self.leaves.remove(node);
+            self.roots.insert(node.clone());
+        }
+        self.edges.insert(edge);
+    }
+}
+
 // A coupling graph
 #[derive(Clone, Default, PartialEq, Eq)]
 pub struct CDG<'tcx> {
-    pub origins: FxHashMap<Region, CDGOrigin<'tcx>>,
+    pub origins: BTreeMap<Region, CDGOrigin<'tcx>>,
     pub subset_invariant: bool,
     pub origin_contains_loan_at_invariant: bool,
 }
@@ -176,9 +267,32 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
     /// Expire non-live origins, and add new live origins
     fn apply_origins(&mut self, location: &PointIndex) -> AnalysisResult<()> {
         // Get the set of origins at a point from the origin_contains_loan_at fact
+        let origin_set = match self.fact_table.origin_contains_loan_at.get(location) {
+            Some(ocla_set) => ocla_set.keys().cloned().collect::<BTreeSet<_>>(),
+            None => BTreeSet::default(),
+        };
+
         // (expiries) Remove all origins which are not in that set
-        //      todo: calculate and log the FPCS effects at this point
+        //  todo: calculate and log the FPCS effects at this point
+        self.coupling_graph
+            .origins
+            .retain(|k, _| origin_set.contains(k));
+
         // (issues) Include empty origins for each new origin
+        for origin in origin_set.iter() {
+            self.coupling_graph.origins.entry(*origin).or_default();
+        }
+
+        // Sanity check
+        assert_eq!(
+            self.coupling_graph
+                .origins
+                .keys()
+                .cloned()
+                .collect::<BTreeSet<_>>(),
+            origin_set
+        );
+
         Ok(())
     }
 
@@ -188,8 +302,28 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
             self.fact_table.loan_issues.get(location)
         {
             // Issuing origin should be empty
+            assert!(self
+                .coupling_graph
+                .origins
+                .get(issuing_origin)
+                .unwrap()
+                .is_empty());
+
             // Issuing origin LHS should be a borrow
-            // Check for reborrows:
+            let issued_loan = match self.fact_table.origins.map.get(issuing_origin).unwrap() {
+                OriginLHS::Place(_) => panic!(),
+                OriginLHS::Loan(issued_loan) => issued_loan,
+            };
+
+            // Set the origin to be a loan from the LHS to RHS
+            let issuing_edge = CDGEdge::loan_edge(*issued_loan, *borrowed_from_place);
+            self.coupling_graph
+                .origins
+                .get_mut(issuing_origin)
+                .unwrap()
+                .insert_edge(issuing_edge);
+
+            // Check for reborrows: (fixme: unimplemented)
             //      If there is a reborrow, it should be the case that the borrowed_from_place
             //      is equal to the LHS of the borrowed_from_origin (ie. packing) due to the issued packing constraints.
             //      Add an edge between the two.
