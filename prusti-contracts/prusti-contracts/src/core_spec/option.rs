@@ -64,7 +64,7 @@ impl<T> Option<T> {
         F: FnOnce() -> T;
 
     #[ensures(old(&self).is_none() || old(self) === Some(result))]
-    #[ghost_constraint(T: super::default::PureDefault, [
+    #[refine_spec(where T: super::default::PureDefault, [
         ensures(result === match old(self) {
             Some(v) => v,
             None => Default::default(),

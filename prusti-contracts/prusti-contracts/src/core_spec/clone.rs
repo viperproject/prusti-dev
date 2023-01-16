@@ -2,7 +2,7 @@ use crate::*;
 
 #[extern_spec]
 trait Clone {
-    #[ghost_constraint(Self: SnapshotEqualClone, [
+    #[refine_spec(where Self: SnapshotEqualClone, [
         ensures(result === self),
     ])]
     fn clone(&self) -> Self;

@@ -1,21 +1,17 @@
 use crate::*;
 
-#[extern_spec]
-mod core {
-    mod mem {
-        use crate::*;
+#[extern_spec(core)]
+mod mem {
+    #[pure]
+    #[refine_spec(where T: KnownSize, [ensures(result == T::size())])]
+    fn size_of<T>() -> usize;
 
-        #[pure]
-        #[ghost_constraint(T: core_spec::mem::KnownSize, [ensures(result == T::size())])]
-        fn size_of<T>() -> usize;
+    #[pure]
+    #[refine_spec(where T: KnownSize, [ensures(result == T::align())])]
+    fn align_of<T>() -> usize;
 
-        #[pure]
-        #[ghost_constraint(T: core_spec::mem::KnownSize, [ensures(result == T::align())])]
-        fn align_of<T>() -> usize;
-
-        #[ensures(*x === old(snap(y)) && *y === old(snap(x)))]
-        fn swap<T>(x: &mut T, y: &mut T);
-    }
+    #[ensures(*x === old(snap(y)) && *y === old(snap(x)))]
+    fn swap<T>(x: &mut T, y: &mut T);
 }
 
 pub trait KnownSize {

@@ -100,7 +100,7 @@ impl<T, E> Result<T, E> {
         E: Debug;
 
     #[ensures(old(&self).is_err() || old(self) === Ok(result))]
-    #[ghost_constraint(T: super::default::PureDefault, [
+    #[refine_spec(where T: super::default::PureDefault, [
         ensures(result === match old(self) {
             Ok(v) => v,
             Err(_) => T::default(),

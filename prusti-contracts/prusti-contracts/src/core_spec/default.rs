@@ -2,7 +2,7 @@ use crate::*;
 
 #[extern_spec]
 trait Default {
-    #[ghost_constraint(Self: Copy + PureDefault, [pure])]
+    #[refine_spec(where Self: Copy + PureDefault, [pure])]
     fn default() -> Self;
 }
 
