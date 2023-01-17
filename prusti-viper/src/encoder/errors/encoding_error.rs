@@ -71,33 +71,3 @@ impl From<SpannedEncodingError> for EncodingError {
         EncodingError::Spanned(other)
     }
 }
-
-#[macro_export]
-macro_rules! error_internal {
-    ($message:expr) => {
-        return Err($crate::encoder::errors::EncodingError::internal($message))
-    };
-    ($($tokens:tt)+) => {
-        return Err($crate::encoder::errors::EncodingError::internal(format!($($tokens)+)))
-    };
-}
-
-#[macro_export]
-macro_rules! error_incorrect {
-    ($message:expr) => {
-        return Err($crate::encoder::errors::EncodingError::incorrect($message))
-    };
-    ($($tokens:tt)+) => {
-        return Err($crate::encoder::errors::EncodingError::incorrect(format!($($tokens)+)))
-    };
-}
-
-#[macro_export]
-macro_rules! error_unsupported {
-    ($message:expr) => {
-        return Err($crate::encoder::errors::EncodingError::unsupported($message))
-    };
-    ($($tokens:tt)+) => {
-        return Err($crate::encoder::errors::EncodingError::unsupported(format!($($tokens)+)))
-    };
-}
