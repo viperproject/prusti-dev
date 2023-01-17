@@ -275,11 +275,16 @@ impl Expr {
         })
     }
 
-    pub fn resource_access_predicate(resource_type: ResourceType, amount: Expr) -> Self {
+    pub fn resource_access_predicate(
+        resource_type: ResourceType,
+        amount: Expr,
+        scope_id: isize,
+    ) -> Self {
         let pos = amount.pos();
         Expr::ResourceAccessPredicate(ResourceAccessPredicate {
             resource_type,
             amount: Box::new(amount),
+            scope_id,
             position: pos,
         })
     }
@@ -2092,15 +2097,27 @@ impl Hash for PredicateAccessPredicate {
 pub struct ResourceAccessPredicate {
     pub resource_type: ResourceType,
     pub amount: Box<Expr>,
+    // Global scope id is -1, loops' scope id is the index of the loop head block
+    pub scope_id: isize,
     pub position: Position,
+}
+
+impl ResourceAccessPredicate {
+    pub fn replace_scope_id(&self, new_scope_id: isize) -> Expr {
+        Expr::ResourceAccessPredicate(ResourceAccessPredicate {
+            scope_id: new_scope_id,
+            ..self.clone()
+        })
+    }
 }
 
 impl fmt::Display for ResourceAccessPredicate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "acc({}(), {}/1)",
+            "acc({}({}), {}/1)",
             self.resource_type.encode_as_string(),
+            self.scope_id,
             self.amount
         )
     }

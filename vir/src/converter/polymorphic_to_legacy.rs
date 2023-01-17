@@ -272,6 +272,7 @@ impl From<polymorphic::Expr> for legacy::Expr {
                 legacy::Expr::ResourceAccessPredicate(
                     resource_access_predicate.resource_type.encode_as_string(),
                     Box::new((*resource_access_predicate.amount).into()),
+                    resource_access_predicate.scope_id,
                     resource_access_predicate.position.into(),
                 )
             }

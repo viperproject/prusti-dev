@@ -162,15 +162,10 @@ pub trait ExprFolder: Sized {
     }
 
     fn fold_resource_access_predicate(&mut self, expr: ResourceAccessPredicate) -> Expr {
-        let ResourceAccessPredicate {
-            resource_type,
-            amount,
-            position,
-        } = expr;
+        let ResourceAccessPredicate { amount, .. } = expr;
         Expr::ResourceAccessPredicate(ResourceAccessPredicate {
-            resource_type,
             amount: self.fold_boxed(amount),
-            position,
+            ..expr
         })
     }
 
@@ -862,15 +857,10 @@ pub trait FallibleExprFolder: Sized {
         &mut self,
         expr: ResourceAccessPredicate,
     ) -> Result<Expr, Self::Error> {
-        let ResourceAccessPredicate {
-            resource_type,
-            amount,
-            position,
-        } = expr;
+        let ResourceAccessPredicate { amount, .. } = expr;
         Ok(Expr::ResourceAccessPredicate(ResourceAccessPredicate {
-            resource_type,
             amount: self.fallible_fold_boxed(amount)?,
-            position,
+            ..expr
         }))
     }
 
