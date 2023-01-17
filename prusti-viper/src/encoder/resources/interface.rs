@@ -9,7 +9,12 @@ use prusti_rustc_interface::errors::MultiSpan;
 use vir_crate::polymorphic as vir;
 
 pub trait ResourcesEncoderInterface {
-    fn get_tick_call<T: Into<MultiSpan>>(&self, span: T, amount: usize) -> Vec<vir::Stmt>;
+    fn get_tick_call<T: Into<MultiSpan>>(
+        &self,
+        span: T,
+        amount: usize,
+        scope_ids: &[isize],
+    ) -> Vec<vir::Stmt>;
 }
 
 // TODO: differentiate between loops' and functions' bodies errors
@@ -17,22 +22,31 @@ pub trait ResourcesEncoderInterface {
 impl<'p, 'v: 'p, 'tcx: 'v> ResourcesEncoderInterface
     for super::super::procedure_encoder::ProcedureEncoder<'p, 'v, 'tcx>
 {
-    fn get_tick_call<T: Into<MultiSpan>>(&self, span: T, amount: usize) -> Vec<vir::Stmt> {
+    fn get_tick_call<T: Into<MultiSpan>>(
+        &self,
+        span: T,
+        amount: usize,
+        scope_ids: &[isize],
+    ) -> Vec<vir::Stmt> {
         let pos = self.register_error(span, ErrorCtxt::NotEnoughTimeCredits);
-        vec![
-            vir::Stmt::Exhale(vir::Exhale {
-                expr: vir::Expr::resource_access_predicate(
-                    vir::common::ResourceType::TimeCredits,
+        let mut stmts = vec![vir::Stmt::comment("tick call")];
+        stmts.extend(scope_ids.iter().map(|&scope_id| {
+            vir::Stmt::exhale(
+                vir::Expr::resource_access_predicate(
+                    vir::ResourceType::TimeCredits,
                     amount.into(),
-                ).set_pos(pos),
-                position: pos,
-            }),
-            vir::Stmt::Inhale(vir::Inhale {
-                expr: vir::Expr::resource_access_predicate(
-                    vir::common::ResourceType::TimeReceipts,
-                    amount.into(),
+                    scope_id,
                 ),
-            }),
-        ]
+                pos.clone(),
+            )
+        }));
+        stmts.extend(scope_ids.iter().map(|&scope_id| {
+            vir::Stmt::inhale(vir::Expr::resource_access_predicate(
+                vir::ResourceType::TimeReceipts,
+                amount.into(),
+                scope_id,
+            ))
+        }));
+        stmts
     }
 }
