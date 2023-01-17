@@ -147,6 +147,19 @@ impl fmt::Display for BitVectorSize {
     }
 }
 
+impl From<usize> for BitVectorSize {
+    fn from(value: usize) -> Self {
+        match value {
+            8 => BitVectorSize::BV8,
+            16 => BitVectorSize::BV16,
+            32 => BitVectorSize::BV32,
+            64 => BitVectorSize::BV64,
+            128 => BitVectorSize::BV128,
+            _ => panic!("Invalid bitvector size: {}", value),
+        }
+    }
+}
+
 #[derive(
     Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
 )]
