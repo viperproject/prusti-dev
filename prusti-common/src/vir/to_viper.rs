@@ -17,7 +17,7 @@ use crate::{
 use log::info;
 use rustc_hash::FxHashMap;
 use viper::{self, AstFactory};
-use vir::common::identifier::WithIdentifier;
+use vir::{common::identifier::WithIdentifier, legacy};
 
 impl<'v> ToViper<'v, viper::Program<'v>> for Program {
     #[tracing::instrument(name = "Program::to_viper", level = "debug", skip_all)]
@@ -407,10 +407,11 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for Expr {
                     perm.to_viper(context, ast),
                     pos.to_viper(context, ast),
                 ),
-            Expr::ResourceAccessPredicate(ref resource_name, ref amount, ref pos) => {
-                // resources are encoded as predicates with no arguments
+            Expr::ResourceAccessPredicate(ref resource_name, ref amount, scope_id, ref pos) => {
+                let id = ast.int_lit(*scope_id as i64);
+                // resources are encoded as predicates with the integer scope_id as arguments
                 ast.predicate_access_predicate_with_pos(
-                    ast.predicate_access(&[], resource_name),
+                    ast.predicate_access(&[id], resource_name),
                     ast.fractional_perm(amount.to_viper(context, ast), ast.int_lit(1)),
                     pos.to_viper(context, ast),
                 )
@@ -823,7 +824,10 @@ impl<'v> ToViper<'v, viper::Predicate<'v>> for Predicate {
             Predicate::Bodyless(name, this) => {
                 ast.predicate(name, &[this.to_viper_decl(context, ast)], None)
             }
-            Predicate::ResourceAccess(typ) => ast.predicate(typ, &[], None),
+            Predicate::ResourceAccess(typ) => {
+                let var = ast.local_var_decl("scope_id", legacy::Type::Int.to_viper(context, ast));
+                ast.predicate(typ, &[var], None)
+            }
         }
     }
 }

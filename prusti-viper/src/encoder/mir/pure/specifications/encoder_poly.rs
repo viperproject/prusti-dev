@@ -149,7 +149,7 @@ pub(super) fn encode_time_specifications<'tcx>(
         .register_error(span, error_ctxt, parent_def_id);
     let amount_non_negative = vir_crate::polymorphic::Expr::ge_cmp(amount.clone(), 0.into());
     let resource_access_predicate =
-        vir_crate::polymorphic::Expr::resource_access_predicate(resource_type, amount.clone())
+        vir_crate::polymorphic::Expr::resource_access_predicate(resource_type, amount.clone(), -1)
             .set_pos(pos);
     vir_crate::polymorphic::Expr::and(amount_non_negative, resource_access_predicate)
 }
