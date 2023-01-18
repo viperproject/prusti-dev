@@ -118,6 +118,7 @@ pub struct FactTable<'tcx> {
     // straight analouges of polonius facts
     pub(crate) origin_contains_loan_at: OriginContainsLoanAt,
     pub(crate) loan_killed_at: LoanKilledAt,
+    pub(crate) subsets_at: SubsetsAt,
 }
 
 /// Issue of a new loan. The assocciated region should represent a borrow temporary.
@@ -126,6 +127,7 @@ pub(crate) type OriginPacking<'tcx> = FxHashMap<PointIndex, Vec<(Region, OriginL
 pub(crate) type StructuralEdge = FxHashMap<PointIndex, Vec<(SubsetBaseKind, Region, Region)>>;
 pub(crate) type OriginContainsLoanAt = FxHashMap<PointIndex, BTreeMap<Region, BTreeSet<Loan>>>;
 pub(crate) type LoanKilledAt = FxHashMap<PointIndex, BTreeSet<Loan>>;
+pub(crate) type SubsetsAt = FxHashMap<PointIndex, BTreeMap<Region, BTreeSet<Region>>>;
 
 /// Assignment between Origins and places
 /// Precise relationship between these two are yet unconfirmed by the Polonius team
@@ -227,6 +229,7 @@ impl<'tcx> FactTable<'tcx> {
             structural_edge: Default::default(),
             origin_contains_loan_at: Default::default(),
             loan_killed_at: Default::default(),
+            subsets_at: Default::default(),
         }
     }
 
@@ -236,6 +239,7 @@ impl<'tcx> FactTable<'tcx> {
         Self::characterize_subset_base(&mut working_table, mir)?;
         Self::collect_loan_killed_at(mir, &mut working_table);
         Self::collect_origin_contains_loan_at(mir, &mut working_table);
+        Self::collect_subsets_at(mir, &mut working_table);
         println!("[fact table]  {:#?}", working_table);
         return Ok(working_table);
     }
@@ -252,7 +256,9 @@ impl<'tcx> FactTable<'tcx> {
         match self.structural_edge.get(location) {
             Some(v) => v
                 .iter()
-                .filter(|(kind, _, _)| *kind == SubsetBaseKind::Move)
+                .filter(|(kind, _, _)| {
+                    (*kind == SubsetBaseKind::Move) || (*kind == SubsetBaseKind::LoanIssue)
+                })
                 .map(|(_, from, to)| (*from, *to))
                 .collect::<_>(),
             None => Vec::default(),
@@ -268,6 +274,16 @@ impl<'tcx> FactTable<'tcx> {
             working_table
                 .origin_contains_loan_at
                 .insert(*k, (*v).to_owned());
+        }
+    }
+
+    /// Workaround for memory safety
+    fn collect_subsets_at<'a, 'mir>(
+        mir: &'mir BodyWithBorrowckFacts<'tcx>,
+        working_table: &'a mut Self,
+    ) {
+        for (l, m) in mir.output_facts.subset.iter() {
+            working_table.subsets_at.insert(*l, (*m).to_owned());
         }
     }
 
