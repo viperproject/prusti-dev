@@ -8,7 +8,7 @@
 
 use crate::{
     abstract_interpretation::{AbstractState, AnalysisResult, OriginLHS},
-    mir_utils::{self, is_prefix, PlaceImpl},
+    mir_utils::{self, is_prefix, Place, PlaceImpl},
 };
 use prusti_rustc_interface::{
     borrowck::{consumers::RustcFacts, BodyWithBorrowckFacts},
@@ -55,53 +55,12 @@ impl<Data, Tag> Tagged<Data, Tag> {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Hash)]
-pub struct CPlace<'tcx> {
-    pub place: mir::Place<'tcx>,
-}
-
-impl<'tcx> fmt::Debug for CPlace<'tcx> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.place.fmt(f)
-    }
-}
-
-impl<'tcx> CPlace<'tcx> {
-    pub fn cmp_local(&self, x: &CPlace<'tcx>) -> bool {
-        self.place.local == x.place.local
-    }
-
-    /// Measure the lexicographic similarity between two place's projections
-    pub fn cmp_lex(&self, x: &CPlace<'tcx>) -> u32 {
-        let mut r: u32 = 0;
-        for (p0, p1) in zip(self.place.iter_projections(), x.place.iter_projections()) {
-            if p0 != p1 {
-                break;
-            }
-            r += 1;
-        }
-        return r;
-    }
-
-    pub fn unpack(&self, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) -> BTreeSet<Self> {
-        mir_utils::expand_struct_place(self.place, mir, tcx, None)
-            .iter()
-            .map(|p| Self { place: *p })
-            .collect()
-    }
-}
-
-impl<'tcx> PartialOrd for CPlace<'tcx> {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl<'tcx> Ord for CPlace<'tcx> {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        match self.place.local.cmp(&other.place.local) {
-            Ordering::Equal => self.place.projection.cmp(other.place.projection),
-            r @ (Ordering::Less | Ordering::Greater) => r,
+impl<'tcx> Into<CDGNode<'tcx>> for OriginLHS<'tcx> {
+    // Turn an OriginLHS into a CDGNode by creating a new untagged node
+    fn into(self) -> CDGNode<'tcx> {
+        match self {
+            OriginLHS::Place(p) => CDGNode::Place(Tagged::untagged(p)),
+            OriginLHS::Loan(l) => CDGNode::Borrow(Tagged::untagged(l)),
         }
     }
 }
@@ -109,7 +68,7 @@ impl<'tcx> Ord for CPlace<'tcx> {
 /// Nodes for the coupling digraph
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum CDGNode<'tcx> {
-    Place(Tagged<CPlace<'tcx>, PointIndex>),
+    Place(Tagged<Place<'tcx>, PointIndex>),
     Borrow(Tagged<Loan, PointIndex>),
 }
 
@@ -150,6 +109,7 @@ impl<'tcx> CDGNode<'tcx> {
 pub enum CDGEdgeKind {
     Borrow,
     Reborrow,
+    Move,
 }
 
 // Coupling graph hyper-edges
@@ -161,13 +121,22 @@ pub struct CDGEdge<'tcx> {
 }
 
 impl<'tcx> CDGEdge<'tcx> {
-    pub fn loan_edge(loan: Loan, place: mir::Place<'tcx>) -> Self {
+    pub fn loan_edge(loan: Loan, place: Place<'tcx>) -> Self {
         Self {
             lhs: BTreeSet::from_iter([CDGNode::Borrow(Tagged::untagged(loan))].into_iter()),
-            rhs: BTreeSet::from_iter(
-                [CDGNode::Place(Tagged::untagged(CPlace { place }))].into_iter(),
-            ),
+            rhs: BTreeSet::from_iter([CDGNode::Place(Tagged::untagged(place.into()))].into_iter()),
             edge: CDGEdgeKind::Borrow,
+        }
+    }
+
+    pub fn move_edge(
+        assignee_cannonical_lhs: BTreeSet<CDGNode<'tcx>>,
+        assign_from_real_lhs: BTreeSet<CDGNode<'tcx>>,
+    ) -> Self {
+        Self {
+            lhs: assignee_cannonical_lhs,
+            rhs: assign_from_real_lhs,
+            edge: CDGEdgeKind::Move,
         }
     }
 }
@@ -229,18 +198,11 @@ impl<'tcx> CDGOrigin<'tcx> {
     }
 
     /// Tags all untagged places which have to_tag as a prefix in a set of nodes
-    fn tag_in_set(
-        set: &mut BTreeSet<CDGNode<'tcx>>,
-        location: PointIndex,
-        to_tag: mir::Place<'tcx>,
-    ) {
+    fn tag_in_set(set: &mut BTreeSet<CDGNode<'tcx>>, location: PointIndex, to_tag: Place<'tcx>) {
         let mut to_replace: Vec<CDGNode<'tcx>> = vec![];
         for node in set.iter() {
             if let CDGNode::Place(p) = node {
-                if is_prefix(
-                    PlaceImpl::from_mir_place(p.data.place),
-                    PlaceImpl::from_mir_place(to_tag),
-                ) {
+                if is_prefix(p.data, to_tag) {
                     to_replace.push((*node).clone())
                 }
             }
@@ -255,7 +217,7 @@ impl<'tcx> CDGOrigin<'tcx> {
     fn tag_in_edge_set(
         set: &mut BTreeSet<CDGEdge<'tcx>>,
         location: PointIndex,
-        to_tag: mir::Place<'tcx>,
+        to_tag: Place<'tcx>,
     ) {
         let new_set: BTreeSet<CDGEdge<'tcx>> = BTreeSet::default();
         for mut edge in set.clone().into_iter() {
@@ -266,7 +228,7 @@ impl<'tcx> CDGOrigin<'tcx> {
     }
 
     /// Tags all untagged places which have to_tag as a prefix
-    pub fn tag(&mut self, location: PointIndex, to_tag: mir::Place<'tcx>) {
+    pub fn tag(&mut self, location: PointIndex, to_tag: Place<'tcx>) {
         Self::tag_in_set(&mut self.roots, location, to_tag);
         Self::tag_in_set(&mut self.leaves, location, to_tag);
         Self::tag_in_edge_set(&mut self.edges, location, to_tag);
@@ -444,15 +406,51 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
         Ok(())
     }
 
-    /// For every loan move:
-    ///     - Kill the RHS of the move, unless it's a borrow
-    ///     - Unpack the RHS to meet the packing requirement
     fn apply_loan_moves(&mut self, location: &PointIndex) -> AnalysisResult<()> {
-        for (from, to) in self.fact_table.get_moves_at(location) {
-            // Kill the RHS place
-            // fixme: implement
+        for (from, to) in self.fact_table.get_move_origins_at(location) {
+            // Kill every place in the to-origins's current LHS
+            let to_origin_current_lhs = self.coupling_graph.origins.get(&to).unwrap().roots.clone();
+            for origin_lhs in to_origin_current_lhs.iter() {
+                if let CDGNode::Place(p) = origin_lhs {
+                    self.coupling_graph
+                        .origins
+                        .get_mut(&to)
+                        .unwrap()
+                        .tag(*location, p.data);
+                }
+            }
 
-            // Add an edge from
+            // Kill every place in the from-origins's LHS
+            let mut from_origin_current_lhs =
+                self.coupling_graph.origins.get(&to).unwrap().roots.clone();
+            for origin_lhs in from_origin_current_lhs.iter() {
+                if let CDGNode::Place(p) = origin_lhs {
+                    self.coupling_graph
+                        .origins
+                        .get_mut(&to)
+                        .unwrap()
+                        .tag(*location, p.data);
+                }
+            }
+
+            // Get the to-origin's LHS (this is already repacked to be the LHS of the assignment)
+            let to_origin_assigning_lhs: BTreeSet<CDGNode<'tcx>> =
+                BTreeSet::from([(*self.fact_table.origins.map.get(&to).unwrap())
+                    .clone()
+                    .into()]);
+
+            // Get the from-origin's new LHS (these should be killed, now)
+            from_origin_current_lhs = self.coupling_graph.origins.get(&to).unwrap().roots.clone();
+
+            // Add an edge from the to-origins's assigning LHS (a set of untagged places) to the LHS of the from-origin (a set of tagged places)
+            self.coupling_graph
+                .origins
+                .get_mut(&from)
+                .unwrap()
+                .insert_edge(CDGEdge::move_edge(
+                    to_origin_assigning_lhs,
+                    from_origin_current_lhs,
+                ));
             // fixme: implement
         }
         Ok(())
