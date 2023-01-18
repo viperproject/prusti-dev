@@ -77,14 +77,14 @@ impl<'tcx> fmt::Debug for CDGNode<'tcx> {
         match self {
             CDGNode::Place(tp) => {
                 if let Some(tag) = tp.tag {
-                    write!(f, "{:?}@{:?}", tp.data, tag)
+                    write!(f, "{:?}@{:?}", tp.data, tag.index())
                 } else {
                     write!(f, "{:?}", tp.data)
                 }
             }
             CDGNode::Borrow(tb) => {
                 if let Some(tag) = tb.tag {
-                    write!(f, "{:?}@{:?}", tb.data, tag)
+                    write!(f, "{:?}@{:?}", tb.data, tag.index())
                 } else {
                     write!(f, "{:?}", tb.data)
                 }
@@ -249,12 +249,12 @@ impl<'tcx> CDGOrigin<'tcx> {
         location: &PointIndex,
         to_tag: &CDGNode<'tcx>,
     ) {
-        let new_set: BTreeSet<CDGEdge<'tcx>> = BTreeSet::default();
-        for mut edge in set.clone().into_iter() {
+        let owned_set = std::mem::take(set);
+        for mut edge in owned_set.into_iter() {
             Self::tag_in_set(&mut edge.lhs, location, to_tag);
             Self::tag_in_set(&mut edge.rhs, location, to_tag);
+            set.insert(edge);
         }
-        *set = new_set;
     }
 
     /// Tags all untagged places which have to_tag as a prefix
@@ -266,7 +266,7 @@ impl<'tcx> CDGOrigin<'tcx> {
 }
 
 // A coupling graph
-#[derive(Clone, Default, PartialEq, Eq)]
+#[derive(Clone, Default, PartialEq, Eq, Debug)]
 pub struct CDG<'tcx> {
     pub origins: BTreeMap<Region, CDGOrigin<'tcx>>,
     pub subset_invariant: bool,
@@ -305,6 +305,12 @@ impl<'tcx> CDG<'tcx> {
 
     // Kill an OriginLHS in all origins
     fn kill_node(&mut self, location: &PointIndex, node: &CDGNode<'tcx>) -> AnalysisResult<()> {
+        // let graph = std::mem::take(&mut self.origins);
+        // for (origin, mut cdg_origin) in graph.into_iter() {
+        //     cdg_origin.tag(location, node);
+        //     self.origins.insert(origin, cdg_origin);
+        // }
+        // Ok(())
         for cdg_origin in self.origins.values_mut() {
             cdg_origin.tag(location, node);
         }
@@ -485,13 +491,13 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
                 .unwrap()
                 .leaves
                 .clone();
+
             for origin_lhs in from_origin_current_lhs.iter() {
                 if let node @ CDGNode::Place(_) = origin_lhs {
                     // Kill origin_lhs in all places in the graph
-                    self.coupling_graph.kill_node(location, node);
+                    self.coupling_graph.kill_node(location, node)?;
                 }
             }
-
             // Get the to-origin's LHS (this is already repacked to be the LHS of the assignment)
             let to_origin_assigning_lhs: BTreeSet<CDGNode<'tcx>> =
                 BTreeSet::from([(*self.fact_table.origins.map.get(&to).unwrap())
