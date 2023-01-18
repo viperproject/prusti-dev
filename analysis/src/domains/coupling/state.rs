@@ -179,15 +179,31 @@ impl<'tcx> CDGOrigin<'tcx> {
 
     pub fn insert_edge(&mut self, edge: CDGEdge<'tcx>) {
         // fixme: stop outselves from making bad graphs (cyclic)
-        for node in edge.lhs.iter() {
-            self.roots.remove(node);
-            self.leaves.insert(node.clone());
-        }
-        for node in edge.rhs.iter() {
-            self.leaves.remove(node);
-            self.roots.insert(node.clone());
-        }
         self.edges.insert(edge);
+        self.recompute_signature();
+    }
+
+    fn recompute_signature(&mut self) {
+        // fixme: Collections interface doesn't like chaining unions
+        //  maybe  a map/fold does better here?
+        let mut all_lhs: BTreeSet<CDGNode<'tcx>> = BTreeSet::default();
+        let mut all_rhs: BTreeSet<CDGNode<'tcx>> = BTreeSet::default();
+        for edge in self.edges.iter() {
+            all_lhs = all_lhs.union(&edge.lhs).cloned().collect();
+            all_rhs = all_rhs.union(&edge.rhs).cloned().collect();
+        }
+        self.leaves = all_lhs.difference(&all_rhs).cloned().collect();
+        self.roots = all_rhs.difference(&all_lhs).cloned().collect();
+    }
+
+    /// Adds an edge if it does not already exist
+    ///  Returns true if a new edge was added
+    pub fn enforce_edge(&mut self, edge: &CDGEdge<'tcx>) -> bool {
+        if !self.edges.contains(edge) {
+            self.insert_edge((*edge).clone());
+            return true;
+        }
+        return false;
     }
 
     /// Replace a node in a BTreeSet
@@ -252,6 +268,25 @@ impl<'tcx> CDG<'tcx> {
         for (origin, cdg_origin) in self.origins.iter_mut() {
             f(*origin, cdg_origin);
         }
+    }
+
+    /// Ensure all edges from origin "sub" are contained in "sup"
+    /// Return true if there is a change
+    pub fn enforce_subset(&mut self, sub: &Region, sup: &Region) -> bool {
+        let mut result = false;
+        let sub_edges: Vec<_> = self
+            .origins
+            .get(sub)
+            .unwrap()
+            .edges
+            .iter()
+            .cloned()
+            .collect();
+        for sub_edge in sub_edges.iter() {
+            let changed = self.origins.get_mut(sup).unwrap().enforce_edge(&sub_edge);
+            result = result || changed;
+        }
+        return result;
     }
 }
 
@@ -320,7 +355,7 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
         self.apply_packing_requirements()?;
         self.apply_loan_issues(location)?;
         self.apply_loan_moves(location)?;
-        self.check_subset_invariant()?;
+        self.enforce_subset_invariant(location)?;
         self.check_origin_contains_loan_at_invariant()?;
         self.mark_kills()?;
         Ok(())
@@ -421,8 +456,13 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
             }
 
             // Kill every place in the from-origins's LHS
-            let mut from_origin_current_lhs =
-                self.coupling_graph.origins.get(&to).unwrap().roots.clone();
+            let mut from_origin_current_lhs = self
+                .coupling_graph
+                .origins
+                .get(&from)
+                .unwrap()
+                .leaves
+                .clone();
             for origin_lhs in from_origin_current_lhs.iter() {
                 if let CDGNode::Place(p) = origin_lhs {
                     self.coupling_graph
@@ -440,18 +480,23 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
                     .into()]);
 
             // Get the from-origin's new LHS (these should be killed, now)
-            from_origin_current_lhs = self.coupling_graph.origins.get(&to).unwrap().roots.clone();
+            from_origin_current_lhs = self
+                .coupling_graph
+                .origins
+                .get(&from)
+                .unwrap()
+                .leaves
+                .clone();
 
             // Add an edge from the to-origins's assigning LHS (a set of untagged places) to the LHS of the from-origin (a set of tagged places)
             self.coupling_graph
                 .origins
-                .get_mut(&from)
+                .get_mut(&to)
                 .unwrap()
                 .insert_edge(CDGEdge::move_edge(
                     to_origin_assigning_lhs,
                     from_origin_current_lhs,
                 ));
-            // fixme: implement
         }
         Ok(())
     }
@@ -463,9 +508,23 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
     }
 
     /// Check that every subset at a location is true.
-    ///     subset(#a, #b) means the edge #b is an ancestor of the edge #a
-    fn check_subset_invariant(&mut self) -> AnalysisResult<()> {
-        // fixme: implement
+    ///     That is, for every subset #a<:#b copy the edges from #a into #b
+    ///     Iterate until we reach a fixed point (or come up with a smarter solution)
+    fn enforce_subset_invariant(&mut self, location: &PointIndex) -> AnalysisResult<()> {
+        println!("[debug]   Enforcing subset invariant at {:?}", location);
+        if let Some(subsets) = self.fact_table.subsets_at.get(location) {
+            println!("[debug]   Subsets are {:?}", subsets);
+            let mut changed = true;
+            while changed {
+                changed = false;
+                for (sub, sup_set) in subsets.iter() {
+                    for sup in sup_set.iter() {
+                        let iter_changed = self.coupling_graph.enforce_subset(sub, sup);
+                        changed = changed || iter_changed;
+                    }
+                }
+            }
+        }
         Ok(())
     }
 
