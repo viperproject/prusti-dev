@@ -10,6 +10,8 @@ use super::state::{Loan, PointIndex, Region};
 use crate::{
     abstract_interpretation::{AnalysisResult, FixpointEngine},
     domains::CouplingState,
+    mir_utils,
+    mir_utils::Place,
     AnalysisError, PointwiseState,
 };
 use prusti_rustc_interface::{
@@ -119,7 +121,7 @@ pub struct FactTable<'tcx> {
 }
 
 /// Issue of a new loan. The assocciated region should represent a borrow temporary.
-pub(crate) type LoanIssues<'tcx> = FxHashMap<PointIndex, (Region, mir::Place<'tcx>)>;
+pub(crate) type LoanIssues<'tcx> = FxHashMap<PointIndex, (Region, Place<'tcx>)>;
 pub(crate) type OriginPacking<'tcx> = FxHashMap<PointIndex, Vec<(Region, OriginLHS<'tcx>)>>;
 pub(crate) type StructuralEdge = FxHashMap<PointIndex, Vec<(SubsetBaseKind, Region, Region)>>;
 pub(crate) type OriginContainsLoanAt = FxHashMap<PointIndex, BTreeMap<Region, BTreeSet<Loan>>>;
@@ -152,13 +154,16 @@ impl<'tcx> OriginPlaces<'tcx> {
 
     // todo: remove this code from prusti-pcs
     // and move to common library
-    fn strip_place(&self, place: mir::Place<'tcx>) -> Option<mir::Place<'tcx>> {
+    fn strip_place(&self, place: Place<'tcx>) -> Option<Place<'tcx>> {
         let mut projection = place.projection.to_vec();
         projection.pop()?;
-        Some(mir::Place {
-            local: place.local,
-            projection: self.tcx.intern_place_elems(&projection),
-        })
+        Some(
+            mir::Place {
+                local: place.local,
+                projection: self.tcx.intern_place_elems(&projection),
+            }
+            .into(),
+        )
     }
 
     /// Rewrite c into a cannonical form for key equality
@@ -174,7 +179,7 @@ impl<'tcx> OriginPlaces<'tcx> {
         }
     }
 
-    fn get_origin(&self, c: OriginLHS<'tcx>) -> Option<Region> {
+    pub fn get_origin(&self, c: OriginLHS<'tcx>) -> Option<Region> {
         let normalized_c = self.normalize_origin_lhs(c);
         self.map
             .iter()
@@ -185,7 +190,7 @@ impl<'tcx> OriginPlaces<'tcx> {
 
 #[derive(PartialEq, Eq, Clone)]
 pub enum OriginLHS<'tcx> {
-    Place(mir::Place<'tcx>),
+    Place(Place<'tcx>),
     Loan(Loan),
 }
 
@@ -243,7 +248,7 @@ impl<'tcx> FactTable<'tcx> {
         }
     }
 
-    pub fn get_moves_at(&self, location: &PointIndex) -> Vec<(Region, Region)> {
+    pub fn get_move_origins_at(&self, location: &PointIndex) -> Vec<(Region, Region)> {
         match self.structural_edge.get(location) {
             Some(v) => v
                 .iter()
@@ -286,7 +291,8 @@ impl<'tcx> FactTable<'tcx> {
             // Insert facts for the new borrow temporary
             let location = Self::expect_mid_location(mir.location_table.to_location(*point));
             let statement = Self::mir_kind_at(mir, location);
-            let borrowed_from_place = *Self::get_borrowed_from_place(&statement, location)?;
+            let borrowed_from_place: mir_utils::Place<'tcx> =
+                (*Self::get_borrowed_from_place(&statement, location)?).into();
             Self::insert_origin_lhs_constraint(
                 working_table,
                 *issuing_origin,
@@ -317,7 +323,7 @@ impl<'tcx> FactTable<'tcx> {
         working_table: &mut Self,
         point: PointIndex,
         origin: Region,
-        borrowed_from_place: mir::Place<'tcx>,
+        borrowed_from_place: Place<'tcx>,
     ) {
         working_table
             .loan_issues
@@ -377,7 +383,7 @@ impl<'tcx> FactTable<'tcx> {
     fn get_borrowed_from_place<'a, 'mir>(
         stmt: &'a StatementKinds<'mir, 'tcx>,
         loc: Location,
-    ) -> AnalysisResult<&'a mir::Place<'tcx>> {
+    ) -> AnalysisResult<mir_utils::Place<'tcx>> {
         match stmt {
             StatementKinds::Stmt(StatementKind::Assign(box (
                 _,
@@ -388,7 +394,7 @@ impl<'tcx> FactTable<'tcx> {
                     },
                     p,
                 ),
-            ))) => Ok(p),
+            ))) => Ok((*p).into()),
             _ => Err(AnalysisError::UnsupportedStatement(loc)),
         }
     }
@@ -397,9 +403,9 @@ impl<'tcx> FactTable<'tcx> {
     fn get_assigned_to_place<'a, 'mir>(
         stmt: &'a StatementKinds<'mir, 'tcx>,
         loc: Location,
-    ) -> AnalysisResult<&'a mir::Place<'tcx>> {
+    ) -> AnalysisResult<Place<'tcx>> {
         match stmt {
-            StatementKinds::Stmt(StatementKind::Assign(box (p, _))) => Ok(p),
+            StatementKinds::Stmt(StatementKind::Assign(box (p, _))) => Ok(p.clone().into()),
             _ => Err(AnalysisError::UnsupportedStatement(loc)),
         }
     }
@@ -408,10 +414,10 @@ impl<'tcx> FactTable<'tcx> {
     fn get_moved_from_place<'a, 'mir>(
         stmt: &'a StatementKinds<'mir, 'tcx>,
         loc: Location,
-    ) -> AnalysisResult<&'a mir::Place<'tcx>> {
+    ) -> AnalysisResult<Place<'tcx>> {
         match stmt {
             StatementKinds::Stmt(StatementKind::Assign(box (_, Rvalue::Use(Operand::Move(p))))) => {
-                Ok(p)
+                Ok((*p).clone().into())
             }
             _ => Err(AnalysisError::UnsupportedStatement(loc)),
         }
@@ -484,7 +490,7 @@ impl<'tcx> FactTable<'tcx> {
                         working_table,
                         point,
                         *assigning_origin,
-                        OriginLHS::Place(assigned_to_place),
+                        OriginLHS::Place(assigned_to_place.into()),
                     );
                     set.remove(&assigning_subset.clone());
                 } else {
@@ -499,19 +505,22 @@ impl<'tcx> FactTable<'tcx> {
                 {
                     let location = Self::expect_mid_location(mir.location_table.to_location(point));
                     let statement = Self::mir_kind_at(mir, location);
-                    let borrowed_from_place = *Self::get_borrowed_from_place(&statement, location)?;
+                    let borrowed_from_place: OriginLHS<'tcx> = OriginLHS::Place(
+                        (*Self::get_borrowed_from_place(&statement, location)?).into(),
+                    );
+
                     // If the reborrowed-from place is None, it doesn't mean that it's a borrow of owned data!
                     // We might just be constructing the fact table out of order
                     Self::check_or_construct_origin(
                         working_table,
-                        OriginLHS::Place(borrowed_from_place),
+                        borrowed_from_place.clone(),
                         *reborrowing_origin,
                     )?;
                     Self::insert_packing_constraint(
                         working_table,
                         point,
                         *reborrowing_origin,
-                        OriginLHS::Place(borrowed_from_place),
+                        borrowed_from_place,
                     );
                     Self::insert_structural_edge(
                         working_table,
@@ -533,33 +542,40 @@ impl<'tcx> FactTable<'tcx> {
 
                 let location = Self::expect_mid_location(mir.location_table.to_location(point));
                 let statement = Self::mir_kind_at(mir, location);
-                let t_to = Self::get_assigned_to_place(&statement, location);
-                let t_from = Self::get_moved_from_place(&statement, location);
+                let t_to: AnalysisResult<mir_utils::Place> =
+                    Self::get_assigned_to_place(&statement, location);
+                let t_from: AnalysisResult<mir_utils::Place> =
+                    Self::get_moved_from_place(&statement, location);
                 if let (Ok(assigned_to_place), Ok(assigned_from_place)) = (t_to, t_from) {
                     if let &[assigning_subset @ (assigned_from_origin, assigned_to_origin)] =
                         &set.iter().collect::<Vec<_>>()[..]
                     {
+                        let to_place: OriginLHS<'tcx> =
+                            OriginLHS::Place((*assigned_to_place).into());
+                        let from_place: OriginLHS<'tcx> =
+                            OriginLHS::Place((*assigned_from_place).into());
+
                         Self::check_or_construct_origin(
                             working_table,
-                            OriginLHS::Place(*assigned_from_place),
+                            from_place.clone(),
                             *assigned_from_origin,
                         )?;
                         Self::check_or_construct_origin(
                             working_table,
-                            OriginLHS::Place(*assigned_to_place),
+                            to_place.clone(),
                             *assigned_to_origin,
                         )?;
                         Self::insert_packing_constraint(
                             working_table,
                             point,
                             *assigned_to_origin,
-                            OriginLHS::Place(*assigned_to_place),
+                            to_place,
                         );
                         Self::insert_packing_constraint(
                             working_table,
                             point,
                             *assigned_from_origin,
-                            OriginLHS::Place(*assigned_from_place),
+                            from_place,
                         );
                         Self::insert_structural_edge(
                             working_table,
