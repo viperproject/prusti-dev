@@ -95,12 +95,23 @@ impl<'tcx> fmt::Debug for CDGNode<'tcx> {
 
 impl<'tcx> CDGNode<'tcx> {
     // Kills a node, if it isn't already unkilled
-    pub fn kill(mut self, l: PointIndex) -> Self {
+    pub fn kill(mut self, l: &PointIndex) -> Self {
         match &mut self {
-            CDGNode::Place(p) => p.tag(l),
-            CDGNode::Borrow(b) => b.tag(l),
+            CDGNode::Place(p) => p.tag(*l),
+            CDGNode::Borrow(b) => b.tag(*l),
         }
         self
+    }
+
+    // Should a given node be killed if we are trying to kill another node?
+    fn should_tag(&self, to_kill: &CDGNode<'tcx>) -> bool {
+        match (self, to_kill) {
+            (CDGNode::Place(p_self), CDGNode::Place(p_kill)) => {
+                p_self.tag.is_none() && p_kill.tag.is_none() && is_prefix(p_self.data, p_kill.data)
+            }
+            (l0 @ CDGNode::Borrow(_), l1 @ CDGNode::Borrow(_)) => l0 == l1,
+            _ => false,
+        }
     }
 }
 
@@ -214,13 +225,16 @@ impl<'tcx> CDGOrigin<'tcx> {
     }
 
     /// Tags all untagged places which have to_tag as a prefix in a set of nodes
-    fn tag_in_set(set: &mut BTreeSet<CDGNode<'tcx>>, location: PointIndex, to_tag: Place<'tcx>) {
+    ///
+    fn tag_in_set(
+        set: &mut BTreeSet<CDGNode<'tcx>>,
+        location: &PointIndex,
+        to_tag: &CDGNode<'tcx>,
+    ) {
         let mut to_replace: Vec<CDGNode<'tcx>> = vec![];
         for node in set.iter() {
-            if let CDGNode::Place(p) = node {
-                if is_prefix(p.data, to_tag) {
-                    to_replace.push((*node).clone())
-                }
+            if node.should_tag(to_tag) {
+                to_replace.push((*node).clone())
             }
         }
         for node in to_replace.iter() {
@@ -232,8 +246,8 @@ impl<'tcx> CDGOrigin<'tcx> {
     /// Bad performance (probably)
     fn tag_in_edge_set(
         set: &mut BTreeSet<CDGEdge<'tcx>>,
-        location: PointIndex,
-        to_tag: Place<'tcx>,
+        location: &PointIndex,
+        to_tag: &CDGNode<'tcx>,
     ) {
         let new_set: BTreeSet<CDGEdge<'tcx>> = BTreeSet::default();
         for mut edge in set.clone().into_iter() {
@@ -244,7 +258,7 @@ impl<'tcx> CDGOrigin<'tcx> {
     }
 
     /// Tags all untagged places which have to_tag as a prefix
-    pub fn tag(&mut self, location: PointIndex, to_tag: Place<'tcx>) {
+    pub fn tag(&mut self, location: &PointIndex, to_tag: &CDGNode<'tcx>) {
         Self::tag_in_set(&mut self.roots, location, to_tag);
         Self::tag_in_set(&mut self.leaves, location, to_tag);
         Self::tag_in_edge_set(&mut self.edges, location, to_tag);
@@ -287,6 +301,14 @@ impl<'tcx> CDG<'tcx> {
             result = result || changed;
         }
         return result;
+    }
+
+    // Kill an OriginLHS in all origins
+    fn kill_node(&mut self, location: &PointIndex, node: &CDGNode<'tcx>) -> AnalysisResult<()> {
+        for cdg_origin in self.origins.values_mut() {
+            cdg_origin.tag(location, node);
+        }
+        Ok(())
     }
 }
 
@@ -444,18 +466,18 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
     fn apply_loan_moves(&mut self, location: &PointIndex) -> AnalysisResult<()> {
         for (from, to) in self.fact_table.get_move_origins_at(location) {
             // Kill every place in the to-origins's current LHS
-            let to_origin_current_lhs = self.coupling_graph.origins.get(&to).unwrap().roots.clone();
-            for origin_lhs in to_origin_current_lhs.iter() {
-                if let CDGNode::Place(p) = origin_lhs {
-                    self.coupling_graph
-                        .origins
-                        .get_mut(&to)
-                        .unwrap()
-                        .tag(*location, p.data);
-                }
-            }
+            // let to_origin_current_lhs = self.coupling_graph.origins.get(&to).unwrap().roots.clone();
+            // for origin_lhs in to_origin_current_lhs.iter() {
+            //     if let CDGNode::Place(p) = origin_lhs {
+            //         self.coupling_graph
+            //             .origins
+            //             .get_mut(&to)
+            //             .unwrap()
+            //             .tag(location, origin_lhs);
+            //     }
+            // }
 
-            // Kill every place in the from-origins's LHS
+            // Kill every place that is a prefix of this set:
             let mut from_origin_current_lhs = self
                 .coupling_graph
                 .origins
@@ -464,12 +486,9 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
                 .leaves
                 .clone();
             for origin_lhs in from_origin_current_lhs.iter() {
-                if let CDGNode::Place(p) = origin_lhs {
-                    self.coupling_graph
-                        .origins
-                        .get_mut(&to)
-                        .unwrap()
-                        .tag(*location, p.data);
+                if let node @ CDGNode::Place(_) = origin_lhs {
+                    // Kill origin_lhs in all places in the graph
+                    self.coupling_graph.kill_node(location, node);
                 }
             }
 
@@ -511,9 +530,7 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
     ///     That is, for every subset #a<:#b copy the edges from #a into #b
     ///     Iterate until we reach a fixed point (or come up with a smarter solution)
     fn enforce_subset_invariant(&mut self, location: &PointIndex) -> AnalysisResult<()> {
-        println!("[debug]   Enforcing subset invariant at {:?}", location);
         if let Some(subsets) = self.fact_table.subsets_at.get(location) {
-            println!("[debug]   Subsets are {:?}", subsets);
             let mut changed = true;
             while changed {
                 changed = false;
