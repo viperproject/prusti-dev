@@ -420,10 +420,6 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
                     let cannonical_roots = self.fact_table.origins.map.get(origin).unwrap();
                     assert_eq!(place, cannonical_roots);
                 } else {
-                    println!(
-                        "[pack] requirement {:?} in real {:?} at location {:?}",
-                        place, current_leaves, location
-                    );
                     // Try to repack the set of elements current_leaves to include place
                     // fixme: this is not a real repacker! this is a small hack
                     // which only creates unpack edges, or panics.

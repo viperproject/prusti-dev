@@ -517,11 +517,6 @@ impl<'tcx> FactTable<'tcx> {
                         *assigning_origin,
                         SubsetBaseKind::LoanIssue,
                     );
-
-                    println!(
-                        "[pack] constraint due to issue: {:?} in {:?} at {:?}",
-                        assigned_to_place, assigning_origin, point
-                    );
                     Self::insert_packing_constraint(
                         working_table,
                         point,
@@ -552,10 +547,6 @@ impl<'tcx> FactTable<'tcx> {
                         borrowed_from_place.clone(),
                         *reborrowing_origin,
                     )?;
-                    println!(
-                        "[pack] constraint due to reborrow: {:?} in {:?} at {:?}",
-                        borrowed_from_place, reborrowing_origin, point
-                    );
                     Self::insert_packing_constraint(
                         working_table,
                         point,
@@ -605,19 +596,11 @@ impl<'tcx> FactTable<'tcx> {
                             to_place.clone(),
                             *assigned_to_origin,
                         )?;
-                        println!(
-                            "[pack] constraint due to move-to: {:?} in {:?} at {:?}",
-                            to_place, assigned_to_origin, point
-                        );
                         Self::insert_packing_constraint(
                             working_table,
                             point,
                             *assigned_to_origin,
                             to_place,
-                        );
-                        println!(
-                            "[pack] constraint due to move-from: {:?} in {:?} at {:?}",
-                            from_place, assigned_from_origin, point
                         );
                         Self::insert_packing_constraint(
                             working_table,
