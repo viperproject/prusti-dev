@@ -45,17 +45,17 @@ impl<P: fmt::Debug> fmt::Display for BorrowInfo<P> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let lifetime = match self.region {
             None => "static".to_string(),
-            Some(ty::BoundRegionKind::BrAnon(id)) => format!("#{}", id),
+            Some(ty::BoundRegionKind::BrAnon(id, _)) => format!("#{id}"),
             Some(ty::BoundRegionKind::BrNamed(_, name)) => name.to_string(),
             _ => unimplemented!(),
         };
-        writeln!(f, "BorrowInfo<{}> {{", lifetime)?;
+        writeln!(f, "BorrowInfo<{lifetime}> {{")?;
         for path in self.blocking_paths.iter() {
-            writeln!(f, "  {:?}", path)?;
+            writeln!(f, "  {path:?}")?;
         }
         writeln!(f, "  --*")?;
         for path in self.blocked_paths.iter() {
-            writeln!(f, "  {:?}", path)?;
+            writeln!(f, "  {path:?}")?;
         }
         writeln!(f, "}}")
     }
@@ -141,8 +141,7 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
 
     fn visit_unsupported_sty(&mut self, sty: &TyKind<'tcx>) -> Result<(), Self::Error> {
         Err(EncodingError::unsupported(format!(
-            "unsupported type {:?}",
-            sty,
+            "unsupported type {sty:?}",
         )))
     }
 

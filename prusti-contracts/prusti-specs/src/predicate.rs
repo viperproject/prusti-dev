@@ -1,10 +1,12 @@
 //! Predicate parsing
 
-use crate::{rewriter, SpecificationId, SPECS_VERSION};
+use crate::{
+    common::{HasMacro, HasSignature},
+    rewriter, SpecificationId, SPECS_VERSION,
+};
 use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 use syn::{parse::Parse, parse_quote_spanned, spanned::Spanned};
-use crate::common::{HasMacro, HasSignature};
 
 #[derive(Debug)]
 pub struct PredicateWithBody<T: ToTokens> {

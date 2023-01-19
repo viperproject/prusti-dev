@@ -142,7 +142,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
         domain_name: &str,
         variant_name: &str,
     ) -> SpannedEncodingResult<String> {
-        Ok(format!("constructor${}${}", domain_name, variant_name))
+        Ok(format!("constructor${domain_name}${variant_name}"))
     }
     fn adt_destructor_variant_name(
         &mut self,
@@ -151,8 +151,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
         parameter_name: &str,
     ) -> SpannedEncodingResult<String> {
         Ok(format!(
-            "destructor${}${}${}",
-            domain_name, variant_name, parameter_name
+            "destructor${domain_name}${variant_name}${parameter_name}"
         ))
     }
     fn adt_constructor_variant_call(
@@ -305,7 +304,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
                     conjuncts.into_iter().conjoin(),
                 );
                 let axiom = vir_low::DomainAxiomDecl {
-                    name: format!("{}$bottom_up_injectivity_axiom", constructor_name),
+                    comment: None,
+                    name: format!("{constructor_name}$bottom_up_injectivity_axiom"),
                     body,
                 };
                 self.declare_axiom(domain_name, axiom)?;
@@ -351,7 +351,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
                 equality
             };
             let axiom = vir_low::DomainAxiomDecl {
-                name: format!("{}$top_down_injectivity_axiom", constructor_name),
+                comment: None,
+                name: format!("{constructor_name}$top_down_injectivity_axiom"),
                 body: vir_low::Expression::forall(vec![value], triggers, forall_body),
             };
             self.declare_axiom(domain_name, axiom)?;

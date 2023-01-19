@@ -232,14 +232,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::Type::TypeVar(self.encoder.encode_param(param_ty.name, param_ty.index))
             }
 
-            ty::TyKind::Projection(ty::ProjectionTy {
-                item_def_id,
-                substs,
-            }) => vir::Type::projection(
-                self.encoder.encode_item_name(*item_def_id),
-                self.encode_substs(substs),
-                lifetimes,
-            ),
+            ty::TyKind::Alias(ty::AliasKind::Projection, ty::AliasTy { def_id, substs, .. }) => {
+                vir::Type::projection(
+                    self.encoder.encode_item_name(*def_id),
+                    self.encode_substs(substs),
+                    lifetimes,
+                )
+            }
 
             ty::TyKind::Dynamic(..) => vir::Type::unsupported("dynamic".to_string()),
 
@@ -269,7 +268,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::GeneratorWitness(..)
             | ty::TyKind::Never
             | ty::TyKind::Tuple(_)
-            | ty::TyKind::Projection(_)
+            | ty::TyKind::Alias(ty::AliasKind::Projection, _)
             | ty::TyKind::Param(_)
             | ty::TyKind::Bound(..)
             | ty::TyKind::Placeholder(_)
@@ -280,7 +279,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::FnDef(did, _)
             | ty::TyKind::Closure(did, _)
             | ty::TyKind::Generator(did, _, _)
-            | ty::TyKind::Opaque(did, _) => self.encoder.env().query.get_def_span(did).into(),
+            | ty::TyKind::Alias(ty::AliasKind::Opaque, ty::AliasTy { def_id: did, .. }) => {
+                self.encoder.env().query.get_def_span(did).into()
+            }
         }
     }
 
@@ -804,51 +805,57 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
                 variants.push(encoded_variant);
             }
             let mir_discriminant_type = match adt_def.repr().discr_type() {
-                prusti_rustc_interface::attr::IntType::SignedInt(int) => {
-                    let int = match int {
-                        prusti_rustc_interface::ast::ast::IntTy::Isize => {
-                            prusti_rustc_interface::middle::ty::IntTy::Isize
-                        }
-                        prusti_rustc_interface::ast::ast::IntTy::I8 => {
-                            prusti_rustc_interface::middle::ty::IntTy::I8
-                        }
-                        prusti_rustc_interface::ast::ast::IntTy::I16 => {
-                            prusti_rustc_interface::middle::ty::IntTy::I16
-                        }
-                        prusti_rustc_interface::ast::ast::IntTy::I32 => {
-                            prusti_rustc_interface::middle::ty::IntTy::I32
-                        }
-                        prusti_rustc_interface::ast::ast::IntTy::I64 => {
-                            prusti_rustc_interface::middle::ty::IntTy::I64
-                        }
-                        prusti_rustc_interface::ast::ast::IntTy::I128 => {
-                            prusti_rustc_interface::middle::ty::IntTy::I128
-                        }
-                    };
-                    encoder.env().tcx().mk_ty(ty::TyKind::Int(int))
+                prusti_rustc_interface::target::abi::IntegerType::Fixed(int, signed) => {
+                    if signed {
+                        let int = match int {
+                            prusti_rustc_interface::target::abi::Integer::I8 => {
+                                prusti_rustc_interface::middle::ty::IntTy::I8
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I16 => {
+                                prusti_rustc_interface::middle::ty::IntTy::I16
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I32 => {
+                                prusti_rustc_interface::middle::ty::IntTy::I32
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I64 => {
+                                prusti_rustc_interface::middle::ty::IntTy::I64
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I128 => {
+                                prusti_rustc_interface::middle::ty::IntTy::I128
+                            }
+                        };
+                        encoder.env().tcx().mk_ty(ty::TyKind::Int(int))
+                    } else {
+                        let int = match int {
+                            prusti_rustc_interface::target::abi::Integer::I8 => {
+                                prusti_rustc_interface::middle::ty::UintTy::U8
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I16 => {
+                                prusti_rustc_interface::middle::ty::UintTy::U16
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I32 => {
+                                prusti_rustc_interface::middle::ty::UintTy::U32
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I64 => {
+                                prusti_rustc_interface::middle::ty::UintTy::U64
+                            }
+                            prusti_rustc_interface::target::abi::Integer::I128 => {
+                                prusti_rustc_interface::middle::ty::UintTy::U128
+                            }
+                        };
+                        encoder.env().tcx().mk_ty(ty::TyKind::Uint(int))
+                    }
                 }
-                prusti_rustc_interface::attr::IntType::UnsignedInt(uint) => {
-                    let uint = match uint {
-                        prusti_rustc_interface::ast::ast::UintTy::Usize => {
-                            prusti_rustc_interface::middle::ty::UintTy::Usize
-                        }
-                        prusti_rustc_interface::ast::ast::UintTy::U8 => {
-                            prusti_rustc_interface::middle::ty::UintTy::U8
-                        }
-                        prusti_rustc_interface::ast::ast::UintTy::U16 => {
-                            prusti_rustc_interface::middle::ty::UintTy::U16
-                        }
-                        prusti_rustc_interface::ast::ast::UintTy::U32 => {
-                            prusti_rustc_interface::middle::ty::UintTy::U32
-                        }
-                        prusti_rustc_interface::ast::ast::UintTy::U64 => {
-                            prusti_rustc_interface::middle::ty::UintTy::U64
-                        }
-                        prusti_rustc_interface::ast::ast::UintTy::U128 => {
-                            prusti_rustc_interface::middle::ty::UintTy::U128
-                        }
-                    };
-                    encoder.env().tcx().mk_ty(ty::TyKind::Uint(uint))
+                prusti_rustc_interface::target::abi::IntegerType::Pointer(signed) => {
+                    if signed {
+                        encoder.env().tcx().mk_ty(ty::TyKind::Int(
+                            prusti_rustc_interface::middle::ty::IntTy::Isize,
+                        ))
+                    } else {
+                        encoder.env().tcx().mk_ty(ty::TyKind::Uint(
+                            prusti_rustc_interface::middle::ty::UintTy::Usize,
+                        ))
+                    }
                 }
             };
             let discriminant_type = encoder.encode_type_high(mir_discriminant_type)?;
@@ -866,7 +873,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
         Ok(type_decl)
     } else {
         Err(SpannedEncodingError::internal(
-            format!("unexpected variant of adt_def: {:?}", adt_def),
+            format!("unexpected variant of adt_def: {adt_def:?}"),
             encoder.env().query.get_def_span(adt_def.did()),
         ))
     }

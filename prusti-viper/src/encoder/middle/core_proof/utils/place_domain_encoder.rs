@@ -34,7 +34,7 @@ pub(in super::super) trait PlaceExpressionDomainEncoder {
         lowerer: &mut Lowerer,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         // FIXME: Use ADT domains instead.
-        assert!(place.is_place(), "{} is not a place", place);
+        assert!(place.is_place(), "{place} is not a place");
         let result = match place {
             vir_mid::Expression::Local(local) => self.encode_local(local, lowerer)?,
             vir_mid::Expression::Field(field) => {

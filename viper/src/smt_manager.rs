@@ -66,8 +66,8 @@ impl SmtManager {
                         }
                         socket = accept => {
                             let (mut socket, _) = socket.unwrap();
-                            let log_file = log_path.join(format!("wrapper_{}.log", counter));
-                            let trace_file = log_path.join(format!("trace{}.log", counter));
+                            let log_file = log_path.join(format!("wrapper_{counter}.log"));
+                            let trace_file = log_path.join(format!("trace{counter}.log"));
                             let log_file = log_file.into_os_string().into_string().unwrap();
                             let trace_file = trace_file.into_os_string().into_string().unwrap();
                             socket.write_all(log_file.as_bytes()).await.unwrap();

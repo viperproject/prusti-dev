@@ -46,7 +46,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         ty: &vir_mid::Type,
         version: u64,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
-        let name = format!("{}$snapshot${}", name, version);
+        let name = format!("{name}$snapshot${version}");
         let ty = ty.to_snapshot(self)?;
         self.create_variable(name, ty)
     }
@@ -268,6 +268,15 @@ pub(in super::super::super) trait SnapshotVariablesInterface {
         statements: &mut Vec<vir_low::Statement>,
         target: &vir_mid::Expression,
         position: vir_low::Position,
+        new_snapshot: Option<vir_low::VariableDecl>,
+    ) -> SpannedEncodingResult<()>;
+    fn encode_snapshot_update_with_new_snapshot(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        target: &vir_mid::Expression,
+        value: vir_low::Expression,
+        position: vir_low::Position,
+        new_snapshot: Option<vir_low::VariableDecl>,
     ) -> SpannedEncodingResult<()>;
     #[allow(clippy::ptr_arg)] // Clippy false positive.
     fn encode_snapshot_update(
@@ -337,7 +346,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
             .snapshots_state
             .variables_at_label
             .get(label)
-            .unwrap_or_else(|| panic!("not found label {}", label))
+            .unwrap_or_else(|| panic!("not found label {label}"))
             .get_or_default(&variable.name);
         self.create_snapshot_variable(&variable.name, &variable.ty, version)
     }
@@ -346,12 +355,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
         statements: &mut Vec<vir_low::Statement>,
         target: &vir_mid::Expression,
         position: vir_low::Position,
+        new_snapshot: Option<vir_low::VariableDecl>,
     ) -> SpannedEncodingResult<()> {
         let base = target.get_base();
         self.ensure_type_definition(&base.ty)?;
         let old_snapshot = base.to_procedure_snapshot(self)?;
-        let new_snapshot = self.new_snapshot_variable_version(&base, position)?;
+        let new_snapshot = if let Some(new_snapshot) = new_snapshot {
+            new_snapshot
+        } else {
+            self.new_snapshot_variable_version(&base, position)?
+        };
         self.snapshot_copy_except(statements, old_snapshot, new_snapshot, target, position)?;
+        Ok(())
+    }
+    fn encode_snapshot_update_with_new_snapshot(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        target: &vir_mid::Expression,
+        value: vir_low::Expression,
+        position: vir_low::Position,
+        new_snapshot: Option<vir_low::VariableDecl>,
+    ) -> SpannedEncodingResult<()> {
+        use vir_low::macros::*;
+        self.encode_snapshot_havoc(statements, target, position, new_snapshot)?;
+        statements
+            .push(stmtp! { position => assume ([target.to_procedure_snapshot(self)?] == [value]) });
         Ok(())
     }
     fn encode_snapshot_update(
@@ -361,11 +389,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
         value: vir_low::Expression,
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
-        use vir_low::macros::*;
-        self.encode_snapshot_havoc(statements, target, position)?;
-        statements
-            .push(stmtp! { position => assume ([target.to_procedure_snapshot(self)?] == [value]) });
-        Ok(())
+        self.encode_snapshot_update_with_new_snapshot(statements, target, value, position, None)
     }
     /// `basic_block_edges` are statements to be executed then going from one
     /// block to another.

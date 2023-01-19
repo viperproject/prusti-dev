@@ -10,7 +10,7 @@ use crate::encoder::errors::{
 };
 use crate::encoder::Encoder;
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
-use crate::utils;
+use crate::{utils, error_internal, error_unsupported};
 use prusti_common::vir_expr;
 use vir_crate::{polymorphic as vir};
 use prusti_common::config;
@@ -45,7 +45,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
     fn get_local_span(&self, local: mir::Local) -> Span;
 
     fn encode_local_var_name(&self, local: mir::Local) -> String {
-        format!("{:?}", local)
+        format!("{local:?}")
     }
 
     fn encode_local_high(&self, local: mir::Local) -> SpannedEncodingResult<vir_crate::high::VariableDecl> {
@@ -124,15 +124,13 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             num
                         } else {
                             if num_variants != 1 {
-                                return Err(EncodingError::internal(
-                                    format!(
-                                        "tried to encode a projection that accesses the field {} \
-                                        of a variant without first downcasting its enumeration \
-                                        {:?}",
-                                        field.index(),
-                                        base_ty,
-                                    )
-                                ));
+                                error_internal!(
+                                    "tried to encode a projection that accesses the field {} \
+                                    of a variant without first downcasting its enumeration \
+                                    {:?}",
+                                    field.index(),
+                                    base_ty,
+                                );
                             }
                             0
                         };
@@ -146,9 +144,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let field = &variant_def.fields[field.index()];
                         let field_ty = *proj_field_ty;
                         if utils::is_reference(field_ty) {
-                            return Err(EncodingError::unsupported(
-                                "access to reference-typed fields is not supported",
-                            ));
+                            error_unsupported!("access to reference-typed fields is not supported");
                         }
                         let encoded_field = self
                             .encoder()
@@ -177,13 +173,11 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                     }
 
                     ty::TyKind::Generator(..) => {
-                        return Err(EncodingError::unsupported("generator fields are not supported"));
+                        error_unsupported!("generator fields are not supported");
                     }
 
                     x => {
-                        return Err(EncodingError::internal(
-                            format!("{} has no fields", utils::ty_to_string(x))
-                        ));
+                        error_internal!("{} has no fields", utils::ty_to_string(x));
                     }
                 }
             }
@@ -194,9 +188,9 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         let (e, ty, v) = self.encode_deref(e, base_ty)?;
                         (PlaceEncoding::Expr(e), ty, v)
                     }
-                    Err(_) => return Err(EncodingError::unsupported(
+                    Err(_) => error_unsupported!(
                         "mixed dereferencing and array indexing projections are not supported"
-                    )),
+                    ),
                 }
             }
 
@@ -239,9 +233,9 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                                 );
                                 vir_expr! { [ slice_len ] - [ vir::Expr::from(offset) ] }
                             }
-                            _ => return Err(EncodingError::unsupported(
-                                format!("pattern matching on the end of '{:?} is not supported", base_ty),
-                            ))
+                            _ => error_unsupported!(
+                                "pattern matching on the end of '{:?} is not supported", base_ty,
+                            )
                         }
                     }
                     _ => unreachable!(),
@@ -271,15 +265,13 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             None,
                         )
                     },
-                    _ => return Err(EncodingError::unsupported(
-                        format!("index on unsupported type '{:?}'", base_ty)
-                    )),
+                    _ => error_unsupported!("index on unsupported type '{:?}'", base_ty),
                 }
             }
 
-            mir::ProjectionElem::Subslice { .. } => return Err(EncodingError::unsupported(
+            mir::ProjectionElem::Subslice { .. } => error_unsupported!(
                 "slice patterns are not supported",
-            )),
+            ),
         })
     }
 
@@ -315,9 +307,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                 (access, base_ty.boxed_ty(), None)
             }
             ref x => {
-                return Err(EncodingError::internal(
-                    format!("Type {:?} can not be dereferenced", x)
-                ));
+                error_internal!("Type {:?} can not be dereferenced", x);
             }
         })
     }
@@ -521,15 +511,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir::BinOp::BitAnd |
             mir::BinOp::BitOr |
             mir::BinOp::BitXor if !config::encode_bitvectors() => {
-                return Err(EncodingError::unsupported(
-                    "bitwise operations on non-boolean types are experimental and disabled by default; use `encode_bitvectors` to enable"
-                ))
+                error_unsupported!(
+                    "bitwise operations on non-boolean types are experimental and disabled by \
+                    default; use `encode_bitvectors` to enable"
+                );
             }
             unsupported_op if !config::encode_bitvectors() => {
-                return Err(EncodingError::unsupported(format!(
-                    "support for operation '{:?}' is experimental and disabled by default; use `encode_bitvectors` to enable",
+                error_unsupported!(
+                    "support for operation '{:?}' is experimental and disabled by default; use \
+                    `encode_bitvectors` to enable it",
                     unsupported_op
-                )))
+                );
             }
             mir::BinOp::BitAnd => vir::Expr::bin_op(vir::BinaryOpKind::BitAnd, left, right),
             mir::BinOp::BitOr => vir::Expr::bin_op(vir::BinaryOpKind::BitOr, left, right),
@@ -540,10 +532,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             mir::BinOp::Shr if is_signed => vir::Expr::bin_op(vir::BinaryOpKind::AShr, left, right),
             mir::BinOp::Shr => vir::Expr::bin_op(vir::BinaryOpKind::LShr, left, right),
             mir::BinOp::Offset => {
-                return Err(EncodingError::unsupported(format!(
-                    "operation '{:?}' is not supported",
-                    op
-                )))
+                error_unsupported!("operation '{:?}' is not supported", op);
             }
         })
     }
@@ -630,11 +619,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                         vir::Expr::gt_cmp(result, std::f64::MAX.into()),
                     ),
                     _ => {
-                        return Err(EncodingError::unsupported(format!(
+                        error_unsupported!(
                             "overflow checks are unsupported for operation '{:?}' on type '{:?}'",
                             op,
                             ty,
-                        )));
+                        );
                     }
                 },
 
@@ -646,9 +635,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                         ty::TyKind::Uint(ty::UintTy::U64) => 64,
                         ty::TyKind::Uint(ty::UintTy::U128) => 128,
                         ty::TyKind::Uint(ty::UintTy::Usize) => {
-                            return Err(EncodingError::unsupported(
-                                "unknown size of usize for the overflow check",
-                            ));
+                            error_unsupported!("unknown size of usize for the overflow check");
                         }
                         ty::TyKind::Int(ty::IntTy::I8) => 8,
                         ty::TyKind::Int(ty::IntTy::I16) => 16,
@@ -656,15 +643,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
                         ty::TyKind::Int(ty::IntTy::I64) => 64,
                         ty::TyKind::Int(ty::IntTy::I128) => 128,
                         ty::TyKind::Int(ty::IntTy::Isize) => {
-                            return Err(EncodingError::unsupported(
-                                "unknown size of isize for the overflow check",
-                            ));
+                            error_unsupported!("unknown size of isize for the overflow check");
                         },
                         _ => {
-                            return Err(EncodingError::unsupported(format!(
+                            error_unsupported!(
                                 "overflow checks are unsupported for operation '{:?}' on type '{:?}'",
                                 op, ty,
-                            )));
+                            );
                         }
                     };
                     vir::Expr::or(
@@ -768,9 +753,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> MirEncoder<'p, 'v, 'tcx> {
             _ => {
                 return Err(SpannedEncodingError::unsupported(
                     format!(
-                        "unsupported cast from type '{:?}' to type '{:?}'",
-                        src_ty,
-                        dst_ty
+                        "unsupported cast from type '{src_ty:?}' to type '{dst_ty:?}'"
                     ),
                     span
                 ));

@@ -17,7 +17,7 @@ The following features are either currently supported or planned to be supported
 - [External specifications](external.md)
 - [Loop body invariants](loop.md)
 - [Pledges](pledge.md)
-- [Trait contract refinement](traits.md)
+- [Type-conditional spec refinements](type_cond_spec.md)
 - [Closures](closure.md)
 - [Specification entailments](spec_ent.md)
 - [Type models](type-models.md)

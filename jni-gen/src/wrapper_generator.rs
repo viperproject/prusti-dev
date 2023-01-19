@@ -12,11 +12,7 @@ use crate::{
 };
 use jni::{InitArgsBuilder, JNIVersion, JavaVM};
 use log::debug;
-use std::{
-    fs::{create_dir_all, OpenOptions},
-    io::prelude::*,
-    path::Path,
-};
+use std::{fs::create_dir_all, io::prelude::*, path::Path};
 
 #[derive(Default)]
 pub struct WrapperGenerator {
@@ -88,29 +84,23 @@ impl WrapperGenerator {
             if let Some(parent_path) = class_path.parent() {
                 create_dir_all(parent_path)?;
             }
-            let mut class_file = OpenOptions::new()
-                .read(true)
-                .write(true)
-                .create(true)
-                .truncate(true)
-                .open(&class_path)?;
+            // Here we use `NamedTempFile` and `TempPath::persist` to make the write atomic.
+            let mut class_file = tempfile::NamedTempFile::new_in(out_dir)?;
             let class_generator =
                 ClassGenerator::new(&env, class_name.to_owned(), class.get_items().to_vec());
             let class_code = class_generator.generate()?;
             class_file.write_all(class_code.as_bytes())?;
+            class_file.into_temp_path().persist(&class_path)?;
         }
 
         {
             let class_names: Vec<&ClassName> = self.classes.iter().map(|x| x.get_name()).collect();
             let mod_code = generate_module(class_names);
             let mod_path = out_dir.join("mod.rs");
-            let mut mod_file = OpenOptions::new()
-                .read(true)
-                .write(true)
-                .create(true)
-                .truncate(true)
-                .open(mod_path)?;
+            // Here we use `NamedTempFile` and `TempPath::persist` to make the write atomic.
+            let mut mod_file = tempfile::NamedTempFile::new_in(out_dir)?;
             mod_file.write_all(mod_code.as_bytes())?;
+            mod_file.into_temp_path().persist(mod_path)?;
         }
 
         Ok(())

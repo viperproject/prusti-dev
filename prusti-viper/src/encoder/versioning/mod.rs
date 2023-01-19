@@ -18,5 +18,7 @@ pub fn bump_mem_version_definition() -> vir::BodylessMethod {
         name: BUMP_MEM_VERSION_NAME.to_string(),
         formal_args: vec![vir_local!{ mem: Ref }],
         formal_returns: vec![],
+        pres: vec![],
+        posts: vec![],
     }
 }

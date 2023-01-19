@@ -2837,6 +2837,8 @@ mod tests {
                     vec![Type::type_var("E"), Type::type_var("F")],
                 ),
             }],
+            pres: vec![],
+            posts: vec![],
         };
 
         let expected = BodylessMethod {
@@ -2858,6 +2860,8 @@ mod tests {
                     vec![Type::Bool, Type::typed_ref("SimpleRef")],
                 ),
             }],
+            pres: vec![],
+            posts: vec![],
         };
         test(source, expected, &SUBSTITUTION_MAP);
     }
@@ -2910,6 +2914,7 @@ mod tests {
         let position = Position::new(1, 2, 3);
 
         let source = DomainAxiom {
+            comment: None,
             name: String::from("da"),
             expr: Expr::Local(Local {
                 variable: LocalVar {
@@ -2922,6 +2927,7 @@ mod tests {
         };
 
         let expected = DomainAxiom {
+            comment: None,
             name: String::from("da"),
             expr: Expr::Local(Local {
                 variable: LocalVar {
@@ -2981,6 +2987,7 @@ mod tests {
             ],
             axioms: vec![
                 DomainAxiom {
+                    comment: None,
                     name: String::from("da1"),
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -2992,6 +2999,7 @@ mod tests {
                     domain_name: String::from("dn3"),
                 },
                 DomainAxiom {
+                    comment: None,
                     name: String::from("da2"),
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -3046,6 +3054,7 @@ mod tests {
             ],
             axioms: vec![
                 DomainAxiom {
+                    comment: None,
                     name: String::from("da1"),
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -3057,6 +3066,7 @@ mod tests {
                     domain_name: String::from("dn3"),
                 },
                 DomainAxiom {
+                    comment: None,
                     name: String::from("da2"),
                     expr: Expr::Local(Local {
                         variable: LocalVar {
@@ -3864,7 +3874,6 @@ mod tests {
         let source = CfgMethod {
             uuid,
             method_name: String::from("mn1"),
-            formal_arg_count: 5,
             formal_returns: vec![
                 LocalVar {
                     name: String::from("_v1"),
@@ -3956,7 +3965,6 @@ mod tests {
         let expected = CfgMethod {
             uuid,
             method_name: String::from("mn1"),
-            formal_arg_count: 5,
             formal_returns: vec![
                 LocalVar {
                     name: String::from("_v1"),

@@ -48,7 +48,7 @@ impl<'mir, 'tcx: 'mir, S: Serialize> Serialize for PointwiseState<'mir, 'tcx, S>
                 let state = self.lookup_before(location).unwrap();
 
                 // output statement
-                stmt_vec.push(("state:", state, format!("statement: {:?}", stmt)));
+                stmt_vec.push(("state:", state, format!("statement: {stmt:?}")));
             }
 
             let term_location = self.mir.terminator_loc(bb);
@@ -60,11 +60,11 @@ impl<'mir, 'tcx: 'mir, S: Serialize> Serialize for PointwiseState<'mir, 'tcx, S>
             let map_after = self.lookup_after_block(bb).unwrap_or(&new_map);
             let ordered_succ_map: BTreeMap<_, _> = map_after
                 .iter()
-                .map(|(bb, s)| (format!("{:?}", bb), ("state:", s)))
+                .map(|(bb, s)| (format!("{bb:?}"), ("state:", s)))
                 .collect();
 
             map.serialize_entry(
-                &format!("{:?}", bb),
+                &format!("{bb:?}"),
                 &(
                     stmt_vec,
                     "state before terminator:",

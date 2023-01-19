@@ -56,8 +56,7 @@ pub(crate) async fn communicate(
         {
             assert!(
                 are_parens_balanced(&response),
-                "unbalanced EOF response: {}",
-                response
+                "unbalanced EOF response: {response}"
             );
             not_finished = false;
         }

@@ -3,13 +3,14 @@ use super::{
         ChangeUniqueRefPlaceMethodBuilder, DuplicateFracRefMethodBuilder,
         MemoryBlockCopyMethodBuilder,
     },
-    CallContext,
+    BuiltinMethodCallsInterface, CallContext,
 };
 use crate::encoder::{
     errors::{BuiltinMethodKind, ErrorCtxt, SpannedEncodingResult},
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         addresses::AddressesInterface,
+        block_markers::BlockMarkersInterface,
         builtin_methods::builders::{
             BuiltinMethodBuilderMethods, CopyPlaceMethodBuilder, IntoMemoryBlockMethodBuilder,
             MemoryBlockJoinMethodBuilder, MemoryBlockSplitMethodBuilder, MovePlaceMethodBuilder,
@@ -38,7 +39,10 @@ use crate::encoder::{
 use itertools::Itertools;
 use rustc_hash::FxHashSet;
 use vir_crate::{
-    common::{expression::UnaryOperationHelpers, identifier::WithIdentifier},
+    common::{
+        expression::{ExpressionIterator, UnaryOperationHelpers},
+        identifier::WithIdentifier,
+    },
     low::{self as vir_low, macros::method_name},
     middle::{
         self as vir_mid,
@@ -376,13 +380,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         &self,
         lft_count: usize,
     ) -> SpannedEncodingResult<String> {
-        Ok(format!("lft_tok_sep_take${}", lft_count))
+        Ok(format!("lft_tok_sep_take${lft_count}"))
     }
     fn encode_lft_tok_sep_return_method_name(
         &self,
         lft_count: usize,
     ) -> SpannedEncodingResult<String> {
-        Ok(format!("lft_tok_sep_return${}", lft_count))
+        Ok(format!("lft_tok_sep_return${lft_count}"))
     }
     fn encode_assign_method_name(
         &self,
@@ -1237,7 +1241,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         operand_counter: u32,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         Ok(vir_low::VariableDecl::new(
-            format!("operand{}_place", operand_counter),
+            format!("operand{operand_counter}_place"),
             self.place_type()?,
         ))
     }
@@ -1246,7 +1250,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         operand_counter: u32,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         Ok(vir_low::VariableDecl::new(
-            format!("operand{}_root_address", operand_counter),
+            format!("operand{operand_counter}_root_address"),
             self.address_type()?,
         ))
     }
@@ -1256,7 +1260,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         operand: &vir_mid::Operand,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         Ok(vir_low::VariableDecl::new(
-            format!("operand{}_value", operand_counter),
+            format!("operand{operand_counter}_value"),
             operand.expression.get_type().to_snapshot(self)?,
         ))
     }
@@ -2063,32 +2067,102 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         self.encode_assign_method(&method_name, target.get_type(), &value)?;
         let target_place = self.encode_expression_as_place(&target)?;
         let target_address = self.extract_root_address(&target)?;
-        let mut arguments = vec![target_place, target_address];
+        let mut arguments = vec![target_place.clone(), target_address.clone()];
         self.encode_rvalue_arguments(&target, &mut arguments, &value)?;
         let target_value_type = target.get_type().to_snapshot(self)?;
         let result_value = self.create_new_temporary_variable(target_value_type)?;
-        statements.push(vir_low::Statement::method_call(
+        let assign_statement = vir_low::Statement::method_call(
             method_name,
             arguments,
             vec![result_value.clone().into()],
             position,
-        ));
-        self.encode_snapshot_update(statements, &target, result_value.clone().into(), position)?;
-        if let vir_mid::Rvalue::Ref(value) = value {
-            let snapshot = if value.uniqueness.is_unique() {
-                self.reference_target_final_snapshot(
-                    target.get_type(),
-                    result_value.into(),
-                    position,
-                )?
-            } else {
-                self.reference_target_current_snapshot(
-                    target.get_type(),
-                    result_value.into(),
-                    position,
-                )?
+        );
+        if let vir_mid::Rvalue::Discriminant(value) = value {
+            let target_ty = target.get_type();
+            let source = {
+                let normalized_type = value.place.get_type().normalize_type();
+                let type_decl = self.encoder.get_type_decl_mid(&normalized_type)?;
+                let decl = type_decl.unwrap_enum();
+                let discriminant_field = decl.discriminant_field();
+                vir_mid::Expression::field(value.place.clone(), discriminant_field, position)
             };
-            self.encode_snapshot_update(statements, &value.place, snapshot, position)?;
+            let source_place = self.encode_expression_as_place(&source)?;
+            let source_root_address = self.extract_root_address(&source)?;
+            let source_permission_amount = if let Some(source_permission) = &value.source_permission
+            {
+                source_permission.to_procedure_snapshot(self)?.into()
+            } else {
+                vir_low::Expression::full_permission()
+            };
+            let source_snapshot = source.to_procedure_snapshot(self)?;
+            self.encode_copy_place_method(target_ty)?;
+            let mut copy_place_statements = vec![self.call_copy_place_method(
+                CallContext::Procedure,
+                target_ty,
+                target_ty,
+                position,
+                target_place,
+                target_address,
+                source_place,
+                source_root_address,
+                source_snapshot.clone(),
+                source_permission_amount,
+            )?];
+            let new_snapshot = self.new_snapshot_variable_version(&target.get_base(), position)?;
+            self.encode_snapshot_update_with_new_snapshot(
+                &mut copy_place_statements,
+                &target,
+                source_snapshot,
+                position,
+                Some(new_snapshot.clone()),
+            )?;
+            if let Some(conditions) = value.use_field {
+                let mut disjuncts = Vec::new();
+                for condition in conditions {
+                    disjuncts.push(self.lower_block_marker_condition(condition)?);
+                }
+                let mut else_branch = vec![assign_statement];
+                self.encode_snapshot_update_with_new_snapshot(
+                    &mut else_branch,
+                    &target,
+                    result_value.into(),
+                    position,
+                    Some(new_snapshot),
+                )?;
+                statements.push(vir_low::Statement::conditional(
+                    disjuncts.into_iter().disjoin(),
+                    copy_place_statements,
+                    else_branch,
+                    position,
+                ));
+            } else {
+                // Use field unconditionally.
+                statements.extend(copy_place_statements);
+            }
+        } else {
+            statements.push(assign_statement);
+            self.encode_snapshot_update(
+                statements,
+                &target,
+                result_value.clone().into(),
+                position,
+            )?;
+            if let vir_mid::Rvalue::Ref(value) = value {
+                let snapshot = if value.uniqueness.is_unique() {
+                    self.reference_target_final_snapshot(
+                        target.get_type(),
+                        result_value.into(),
+                        position,
+                    )?
+                } else {
+                    self.reference_target_current_snapshot(
+                        target.get_type(),
+                        result_value.into(),
+                        position,
+                    )?
+                };
+                self.encode_snapshot_update(statements, &value.place, snapshot, position)?;
+            }
         }
         Ok(())
     }

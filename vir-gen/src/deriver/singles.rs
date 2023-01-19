@@ -127,7 +127,7 @@ fn derive_new<'a>(
     for (i, field) in fields_iter.enumerate() {
         let name = field.ident.as_ref().unwrap();
         let parameter_type = unbox_type(&field.ty);
-        let generic_type = syn::Ident::new(&format!("G{}", i), parameter_type.span());
+        let generic_type = syn::Ident::new(&format!("G{i}"), parameter_type.span());
         if ignore_field
             .map(|ignored_name| name == ignored_name)
             .unwrap_or(false)

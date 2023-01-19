@@ -19,6 +19,7 @@ use rustc_hash::FxHashMap;
 ///     }
 /// }
 /// ```
+#[allow(clippy::needless_collect)] // False positive.
 pub fn apply_patch_to_borrowck<'tcx>(
     borrowck_input_facts: &mut AllInputFacts,
     location_table: &mut LocationTable,
@@ -103,6 +104,21 @@ pub fn apply_patch_to_borrowck<'tcx>(
             lt_patcher.start_point(loc.block.index(), loc.statement_index + 1);
         if loc.statement_index == 0 {
             predecessors_to_patch.push((loc, old_statement_start_point, statement_start_point));
+            if loc.block == mir::START_BLOCK {
+                assert_eq!(old_statement_start_point.index(), 0);
+                let old_subset_base: Vec<_> = borrowck_input_facts
+                    .subset_base
+                    .iter()
+                    .filter(|(_, _, point)| point == &old_statement_start_point)
+                    .cloned()
+                    .collect();
+                borrowck_input_facts.subset_base.extend(
+                    old_subset_base
+                        .into_iter()
+                        .map(|(subset, base, _)| (subset, base, statement_start_point)),
+                );
+                borrowck_input_facts.subset_base.sort();
+            }
         } else {
             // Insert the statement and patch the links with the previous and following statements.
             let previous_statement_mid_point =
@@ -350,15 +366,11 @@ impl<'a> LocationTablePatcher<'a> {
                 .locations
                 .insert(point, location)
                 .is_none(),
-            "location: {:?} point: {:?}",
-            location,
-            point
+            "location: {location:?} point: {point:?}"
         );
         assert!(
             self.location_table.points.insert(location, point).is_none(),
-            "location: {:?} point: {:?}",
-            location,
-            point
+            "location: {location:?} point: {point:?}"
         );
     }
 

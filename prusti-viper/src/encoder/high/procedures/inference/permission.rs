@@ -12,8 +12,28 @@ pub(in super::super) enum Permission {
     MutBorrowed(MutBorrowed),
 }
 
+impl Permission {
+    pub(in super::super) fn new(
+        place: vir_typed::Expression,
+        permission_kind: PermissionKind,
+    ) -> Self {
+        match permission_kind {
+            PermissionKind::Owned => Self::Owned(place),
+            PermissionKind::MemoryBlock => Self::MemoryBlock(place),
+        }
+    }
+
+    pub(in super::super) fn get_place(&self) -> &vir_typed::Expression {
+        match self {
+            Self::MemoryBlock(place) => place,
+            Self::Owned(place) => place,
+            Self::MutBorrowed(MutBorrowed { place, .. }) => place,
+        }
+    }
+}
+
 #[derive(Debug, Clone, derive_more::Display, PartialEq, Eq, PartialOrd, Ord)]
-#[display(fmt = "MutBorrowed({}, {})", lifetime, place)]
+#[display(fmt = "MutBorrowed({lifetime}, {place})")]
 pub(in super::super) struct MutBorrowed {
     pub(in super::super) lifetime: vir_typed::ty::LifetimeConst,
     pub(in super::super) place: vir_typed::Expression,

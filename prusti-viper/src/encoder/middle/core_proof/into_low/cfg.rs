@@ -574,7 +574,12 @@ impl IntoLow for vir_mid::Statement {
                 let variant_index = variant_place.clone().unwrap_variant().variant_index;
                 let union_place = variant_place.get_parent_ref().unwrap();
                 let mut statements = Vec::new();
-                lowerer.encode_snapshot_havoc(&mut statements, union_place, statement.position)?;
+                lowerer.encode_snapshot_havoc(
+                    &mut statements,
+                    union_place,
+                    statement.position,
+                    None,
+                )?;
                 let snapshot = union_place.to_procedure_snapshot(lowerer)?;
                 let discriminant = lowerer.obtain_enum_discriminant(
                     snapshot,
@@ -632,9 +637,8 @@ impl IntoLow for vir_mid::Statement {
                 let place = lowerer.encode_expression_as_place(&statement.target)?;
                 let root_address = lowerer.extract_root_address(&statement.target)?;
                 let current_snapshot = statement.target.to_procedure_snapshot(lowerer)?;
-                let mut statements = Vec::new();
                 // TODO: These should be method calls.
-                match uniqueness {
+                let statements = match uniqueness {
                     vir_mid::ty::Uniqueness::Unique => {
                         let final_snapshot =
                             statement.target.to_procedure_final_snapshot(lowerer)?;
@@ -649,18 +653,28 @@ impl IntoLow for vir_mid::Statement {
                             lifetime.into(),
                         )?;
                         lowerer.mark_unique_ref_as_used(ty)?;
-                        statements.push(vir_low::Statement::comment(format!(
-                            "dead reference: {}",
-                            statement.target
-                        )));
-                        statements.push(
+                        let mut statements = vec![
+                            vir_low::Statement::comment(format!(
+                                "dead reference: {}",
+                                statement.target
+                            )),
                             vir_low::Statement::exhale_no_pos(predicate)
                                 .set_default_position(statement.position),
-                        );
-                        statements.push(stmtp! {
-                            statement.position =>
-                            assume ([current_snapshot] == [final_snapshot])
-                        });
+                            stmtp! {
+                                statement.position =>
+                                assume ([current_snapshot] == [final_snapshot])
+                            },
+                        ];
+                        if let Some(condition) = statement.condition {
+                            let low_condition = lowerer.lower_block_marker_condition(condition)?;
+                            statements = vec![Statement::conditional(
+                                low_condition,
+                                statements,
+                                Vec::new(),
+                                statement.position,
+                            )];
+                        }
+                        statements
                     }
                     vir_mid::ty::Uniqueness::Shared => {
                         let predicate = lowerer.frac_ref(
@@ -672,12 +686,21 @@ impl IntoLow for vir_mid::Statement {
                             current_snapshot,
                             lifetime.into(),
                         )?;
-                        statements.push(
-                            vir_low::Statement::exhale_no_pos(predicate)
-                                .set_default_position(statement.position),
-                        );
+                        let low_statement = vir_low::Statement::exhale_no_pos(predicate)
+                            .set_default_position(statement.position);
+                        if let Some(condition) = statement.condition {
+                            let low_condition = lowerer.lower_block_marker_condition(condition)?;
+                            vec![Statement::conditional(
+                                low_condition,
+                                vec![low_statement],
+                                Vec::new(),
+                                statement.position,
+                            )]
+                        } else {
+                            vec![low_statement]
+                        }
                     }
-                }
+                };
                 Ok(statements)
             }
             Self::DeadLifetime(_statement) => {
@@ -903,7 +926,7 @@ impl IntoLow for vir_mid::Statement {
                     reference_value.clone(),
                     statement.position,
                 )?;
-                assert!(ty.is_reference(), "{:?}", ty);
+                assert!(ty.is_reference(), "{ty:?}");
                 let reference = ty.clone().unwrap_reference();
                 let final_snapshot = if reference.uniqueness.is_unique() {
                     Some(lowerer.reference_target_final_snapshot(
