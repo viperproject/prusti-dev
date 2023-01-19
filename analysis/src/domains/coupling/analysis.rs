@@ -101,8 +101,9 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir>
 }
 
 /// Struct containing lookups for all the Polonius facts
-#[derive(Debug)]
 pub struct FactTable<'tcx> {
+    pub(crate) tcx: TyCtxt<'tcx>,
+
     /// Issue of a loan, into it's issuing origin, and a loan of a place
     pub(crate) loan_issues: LoanIssues<'tcx>,
 
@@ -190,6 +191,20 @@ impl<'tcx> OriginPlaces<'tcx> {
     }
 }
 
+impl<'tcx> std::fmt::Debug for FactTable<'tcx> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FactTable")
+            .field("loan_issues", &self.loan_issues)
+            .field("origins", &self.origins)
+            .field("origin_packing_at", &self.origin_packing_at)
+            .field("structural_edge", &self.structural_edge)
+            .field("origin_contains_loan_at", &self.origin_contains_loan_at)
+            .field("loan_killed_at", &self.loan_killed_at)
+            .field("subsets_at", &self.subsets_at)
+            .finish()
+    }
+}
+
 #[derive(PartialEq, Eq, Clone)]
 pub enum OriginLHS<'tcx> {
     Place(Place<'tcx>),
@@ -220,6 +235,7 @@ enum StatementKinds<'mir, 'tcx: 'mir> {
 impl<'tcx> FactTable<'tcx> {
     fn default_from_tcx(tcx: TyCtxt<'tcx>) -> Self {
         Self {
+            tcx: tcx,
             loan_issues: Default::default(),
             origins: OriginPlaces {
                 map: Default::default(),
@@ -309,6 +325,7 @@ impl<'tcx> FactTable<'tcx> {
             let statement = Self::mir_kind_at(mir, location);
             let borrowed_from_place: mir_utils::Place<'tcx> =
                 (*Self::get_borrowed_from_place(&statement, location)?).into();
+
             Self::insert_origin_lhs_constraint(
                 working_table,
                 *issuing_origin,
@@ -355,10 +372,8 @@ impl<'tcx> FactTable<'tcx> {
         packing: OriginLHS<'tcx>,
     ) {
         Self::insert_origin_lhs_constraint(working_table, origin, packing.clone());
-        working_table
-            .origin_packing_at
-            .entry(point)
-            .and_modify(|constraints| constraints.push((origin, packing)));
+        let constraints = working_table.origin_packing_at.entry(point).or_default();
+        constraints.push((origin, packing));
     }
 
     // Constraint: An edge between origins
@@ -502,6 +517,11 @@ impl<'tcx> FactTable<'tcx> {
                         *assigning_origin,
                         SubsetBaseKind::LoanIssue,
                     );
+
+                    println!(
+                        "[pack] constraint due to issue: {:?} in {:?} at {:?}",
+                        assigned_to_place, assigning_origin, point
+                    );
                     Self::insert_packing_constraint(
                         working_table,
                         point,
@@ -532,6 +552,10 @@ impl<'tcx> FactTable<'tcx> {
                         borrowed_from_place.clone(),
                         *reborrowing_origin,
                     )?;
+                    println!(
+                        "[pack] constraint due to reborrow: {:?} in {:?} at {:?}",
+                        borrowed_from_place, reborrowing_origin, point
+                    );
                     Self::insert_packing_constraint(
                         working_table,
                         point,
@@ -581,11 +605,19 @@ impl<'tcx> FactTable<'tcx> {
                             to_place.clone(),
                             *assigned_to_origin,
                         )?;
+                        println!(
+                            "[pack] constraint due to move-to: {:?} in {:?} at {:?}",
+                            to_place, assigned_to_origin, point
+                        );
                         Self::insert_packing_constraint(
                             working_table,
                             point,
                             *assigned_to_origin,
                             to_place,
+                        );
+                        println!(
+                            "[pack] constraint due to move-from: {:?} in {:?} at {:?}",
+                            from_place, assigned_from_origin, point
                         );
                         Self::insert_packing_constraint(
                             working_table,
