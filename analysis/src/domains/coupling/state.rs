@@ -8,7 +8,7 @@
 
 use crate::{
     abstract_interpretation::{AbstractState, AnalysisResult, OriginLHS},
-    mir_utils::{self, is_prefix, Place, PlaceImpl},
+    mir_utils::{self, expand_struct_place, is_prefix, Place, PlaceImpl},
 };
 use prusti_rustc_interface::{
     borrowck::{consumers::RustcFacts, BodyWithBorrowckFacts},
@@ -22,6 +22,7 @@ use serde::{
 use std::{
     cmp::Ordering,
     collections::{BTreeMap, BTreeSet},
+    f32::consts::E,
     fmt,
     iter::zip,
     mem,
@@ -121,6 +122,7 @@ pub enum CDGEdgeKind {
     Borrow,
     Reborrow,
     Move,
+    Unpack,
 }
 
 // Coupling graph hyper-edges
@@ -148,6 +150,14 @@ impl<'tcx> CDGEdge<'tcx> {
             lhs: assignee_cannonical_lhs,
             rhs: assign_from_real_lhs,
             edge: CDGEdgeKind::Move,
+        }
+    }
+
+    pub fn unpack_edge(unpacked: BTreeSet<CDGNode<'tcx>>, packed: BTreeSet<CDGNode<'tcx>>) -> Self {
+        Self {
+            lhs: unpacked,
+            rhs: packed,
+            edge: CDGEdgeKind::Unpack,
         }
     }
 }
@@ -380,7 +390,7 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
     fn apply_polonius_inference(&mut self, location: &PointIndex) -> AnalysisResult<()> {
         self.apply_marked_kills()?;
         self.apply_origins(location)?;
-        self.apply_packing_requirements()?;
+        self.apply_packing_requirements(location, &self.mir.body, self.fact_table.tcx)?;
         self.apply_loan_issues(location)?;
         self.apply_loan_moves(location)?;
         self.enforce_subset_invariant(location)?;
@@ -391,8 +401,105 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
 
     /// Repack the LHS of an origin to contain some place, and add edges to
     /// RHS's as appropriate to ensure connectivity.
-    fn apply_packing_requirements(&mut self) -> AnalysisResult<()> {
-        // fixme: implement
+    fn apply_packing_requirements(
+        &mut self,
+        location: &PointIndex,
+        mir: &mir::Body<'tcx>,
+        tcx: TyCtxt<'tcx>,
+    ) -> AnalysisResult<()> {
+        // ok if is some and can be repacked, or current lhs is none and packing requiremt is cannonical origin
+        if let Some(reqs) = self.fact_table.origin_packing_at.get(location) {
+            for (origin, place) in reqs.iter() {
+                let mut current_leaves = self
+                    .coupling_graph
+                    .origins
+                    .get(origin)
+                    .and_then(|o| Some(o.leaves.clone()))
+                    .unwrap();
+                if current_leaves.is_empty() {
+                    let cannonical_roots = self.fact_table.origins.map.get(origin).unwrap();
+                    assert_eq!(place, cannonical_roots);
+                } else {
+                    println!(
+                        "[pack] requirement {:?} in real {:?} at location {:?}",
+                        place, current_leaves, location
+                    );
+                    // Try to repack the set of elements current_leaves to include place
+                    // fixme: this is not a real repacker! this is a small hack
+                    // which only creates unpack edges, or panics.
+                    // 0. expect that place is actually a place, and is untagged
+                    let target_place = match place {
+                        OriginLHS::Place(tp) => tp,
+                        OriginLHS::Loan(_) => {
+                            panic!("internal error, can't meet a pack requirement for a loan")
+                        }
+                    };
+
+                    // 1. exclude borrows and tagged places
+                    let mut leaf_set: BTreeSet<mir_utils::Place<'tcx>> = current_leaves
+                        .iter()
+                        .filter_map(|node| {
+                            if let CDGNode::Place(tp) = node {
+                                if let None = tp.tag {
+                                    Some(&tp.data)
+                                } else {
+                                    None
+                                }
+                            } else {
+                                None
+                            }
+                        })
+                        .cloned()
+                        .collect();
+
+                    // 2. Find the closest leaf (there should be exactly one leaf which is a prefix of place)
+                    let mut closest_leaf = match leaf_set
+                        .iter()
+                        .filter(|p| is_prefix(*target_place, **p))
+                        .cloned()
+                        .collect::<Vec<_>>()[..]
+                    {
+                        [closest_leaf] => closest_leaf,
+                        _ => panic!("internal error, no closest leaf for unpacker"),
+                    };
+
+                    while !leaf_set.contains(target_place) {
+                        // 3. Unpack it
+                        let closest_expansion = expand_struct_place(*closest_leaf, mir, tcx, None);
+
+                        // 4. Replace the closest leaf with the unpacked version in the leaf_set
+                        leaf_set.remove(&closest_leaf);
+                        for new_leaf in closest_expansion.iter().cloned() {
+                            leaf_set.insert(new_leaf.into());
+                        }
+
+                        // 5. Push a new unpack edge to origin
+                        self.coupling_graph.origins.entry(*origin).and_modify(|e| {
+                            e.insert_edge(CDGEdge::unpack_edge(
+                                closest_expansion
+                                    .into_iter()
+                                    .map(|p| CDGNode::Place(Tagged::untagged(p.into())))
+                                    .collect::<_>(),
+                                BTreeSet::from([CDGNode::Place(Tagged::untagged(
+                                    (*closest_leaf).into(),
+                                ))]),
+                            ))
+                        });
+
+                        // 6. Check that place is still a subset of some leaf (ie closest_leaf still exists)
+                        closest_leaf = match leaf_set
+                            .iter()
+                            .filter(|p| is_prefix(*target_place, **p))
+                            .cloned()
+                            .collect::<Vec<_>>()[..]
+                        {
+                            [closest_leaf] => closest_leaf,
+                            _ => panic!("internal error, no closest leaf for unpacker"),
+                        };
+                    }
+                }
+            }
+        }
         Ok(())
     }
 
