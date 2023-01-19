@@ -1,17 +1,16 @@
+use core::fmt;
 use prusti_common::config;
 use prusti_interface::environment::Environment;
-use core::fmt;
 use std::collections::HashMap;
 
 use super::ide_info::ProcDef;
 use prusti_rustc_interface::{
     hir::{def::DefKind, def_id::DefId},
-    middle::ty::{DefIdTree, Generics, ImplSubject, PredicateKind, TraitRef, Ty, TyCtxt},
+    middle::ty::{self, DefIdTree, Generics, ImplSubject, PredicateKind, TraitRef, Ty, TyCtxt},
 };
 
 pub fn collect_queried_signatures(env: &Environment<'_>, fncalls: &Vec<ProcDef>) -> Option<String> {
     let def_path_str: String = config::query_method_signature()?;
-    println!("\n\n\n\nCollecting Information for Queried Method");
     println!(
         "Got query for external specification template for : {}",
         def_path_str
@@ -31,13 +30,19 @@ pub fn collect_queried_signatures(env: &Environment<'_>, fncalls: &Vec<ProcDef>)
     match def_kind {
         DefKind::Fn => {
             // TODO
-            println!("Still a todo :)");
-            None
-        },
+            let parent_chain = get_parent_chain(defid, &tcx);
+            let signature_str = fn_signature_str(defid, &tcx);
+            let (fn_generics_str, _) = generic_params_str(defid, &tcx, false);
+            let item_name = tcx.opt_item_name(defid)?;
+            let contents = format!(
+                "use prusti_contracts::*;\nfn {}{}{};",
+                item_name, fn_generics_str, signature_str
+            );
+            Some(wrap_in_parent_mods(parent_chain, contents))
+        }
         DefKind::AssocFn => {
-            let opt_item_name = tcx.opt_item_name(defid)?;
-            let item_name = opt_item_name.as_str();
-            println!("Item Name: {}", item_name);
+            let item_name_ident = tcx.opt_item_name(defid)?;
+            let item_name = item_name_ident.as_str();
             let impl_of_method_opt = tcx.impl_of_method(defid);
             match impl_of_method_opt {
                 Some(impl_of_method) => {
@@ -54,7 +59,8 @@ pub fn collect_queried_signatures(env: &Environment<'_>, fncalls: &Vec<ProcDef>)
                     println!("Self Type: {:?}", self_ty);
 
                     let signature_str = fn_signature_str(defid, &tcx);
-                    let (impl_generics_str, _opt_where) = generic_params_str(impl_of_method, &tcx, false);
+                    let (impl_generics_str, _opt_where) =
+                        generic_params_str(impl_of_method, &tcx, false);
                     let (fn_generics_str, _opt_where) = generic_params_str(defid, &tcx, false);
 
                     // Generate result:
@@ -66,15 +72,10 @@ pub fn collect_queried_signatures(env: &Environment<'_>, fncalls: &Vec<ProcDef>)
                         res.push_str(" for ");
                     }
                     //pub fn name<generics>(arguments)
-                    res.push_str(
-                        &format!(
-                            "{} {{\n\tpub fn {}{}{};\n}}", 
-                            self_ty, 
-                            item_name, 
-                            fn_generics_str,
-                            signature_str,
-                        )
-                    );
+                    res.push_str(&format!(
+                        "{} {{\n\tpub fn {}{}{};\n}}",
+                        self_ty, item_name, fn_generics_str, signature_str,
+                    ));
 
                     println!("Result: {}", res);
 
@@ -87,18 +88,13 @@ pub fn collect_queried_signatures(env: &Environment<'_>, fncalls: &Vec<ProcDef>)
 
                     if tcx.is_trait(parent) {
                         println!("Yes indeed this is a trait");
-                        let fn_name = tcx.def_path_str(defid);
                         let traitname = tcx.def_path_str(parent);
                         let trait_params = trait_params(parent, &tcx);
                         let (fn_generics, _where) = generic_params_str(defid, &tcx, false);
                         let fn_sig = fn_signature_str(defid, &tcx);
                         Some(format!(
                             "#[extern_spec]\ntrait {}{} {{\n\tfn {}{}{};\n}}",
-                            traitname,
-                            trait_params,
-                            fn_name,
-                            fn_generics,
-                            fn_sig,
+                            traitname, trait_params, item_name, fn_generics, fn_sig,
                         ))
                     } else {
                         println!("Nope it's not actually a trait, check this case");
@@ -115,19 +111,17 @@ pub fn collect_queried_signatures(env: &Environment<'_>, fncalls: &Vec<ProcDef>)
     }
 }
 
-
 // by signature we mean the arguments + return type
-pub fn fn_signature_str(
-    defid: DefId, 
-    tcx: &TyCtxt<'_>,
-) -> String {
+pub fn fn_signature_str(defid: DefId, tcx: &TyCtxt<'_>) -> String {
     let signature = tcx.fn_sig(defid).skip_binder();
     let inputs = signature.inputs().iter();
     let arg_names = tcx.fn_arg_names(defid);
 
     let output = signature.output();
 
-    let args = arg_names.iter().zip(inputs)
+    let args = arg_names
+        .iter()
+        .zip(inputs)
         .map(|(name, ty)| format!("{}: {}", name.as_str(), ty))
         .collect::<Vec<String>>()
         .join(", ");
@@ -136,16 +130,20 @@ pub fn fn_signature_str(
 
 pub fn trait_params(defid: DefId, tcx: &TyCtxt<'_>) -> String {
     let generic_params = tcx.generics_of(defid);
-    let result = generic_params.params.iter()
-        .filter(|p| p.has_default()) // types like Self will show up here,but can't be in code 
-        .map(|p| format!("{}={:?}", p.name, p.default_value(*tcx).unwrap()))
-        .collect::<Vec<String>>().join(", ");
+    let substs = ty::subst::InternalSubsts::identity_for_item(*tcx, defid);
+
+    let result = generic_params
+        .params
+        .iter()
+        .filter(|p| p.has_default()) // types like Self will show up here,but can't be in code
+        .map(|p| format!("{}={:?}", p.name, p.default_value(*tcx).unwrap().subst(*tcx, substs)))
+        .collect::<Vec<String>>()
+        .join(", ");
     if generic_params.params.iter().len() > 0 {
         format!("<{}>", result)
     } else {
         "".to_string()
     }
-
 }
 
 enum GenArguments<'a> {
@@ -158,7 +156,7 @@ impl<'a> fmt::Display for GenArguments<'a> {
         match self {
             Self::GenType(ty) => {
                 write!(f, "{}", ty)
-            },
+            }
             Self::Projection(item, value) => {
                 write!(f, "{}={}", item, value)
             }
@@ -168,7 +166,7 @@ impl<'a> fmt::Display for GenArguments<'a> {
 pub fn generic_params_str(
     defid: DefId, // defid of a function or impl block
     tcx: &TyCtxt<'_>,
-    exclude_bounds_to_where: bool, // whether or not trait bounds should be 
+    exclude_bounds_to_where: bool, // whether or not trait bounds should be
                                    // moved into an extra "where" block
 ) -> (String, Option<String>) {
     // should receive defid of either an impl block or a function definition.
@@ -204,7 +202,8 @@ pub fn generic_params_str(
                 }
                 match traitbounds.get_mut(&self_ty_str) {
                     None => {
-                        traitbounds.insert(self_ty_str, HashMap::from([(traitref.def_id, trait_args)]));
+                        traitbounds
+                            .insert(self_ty_str, HashMap::from([(traitref.def_id, trait_args)]));
                     }
                     Some(trait_vec) => {
                         trait_vec.insert(traitref.def_id, trait_args);
@@ -240,34 +239,80 @@ pub fn generic_params_str(
     }
     // Stringify
     let count = generic_params.params.iter().len();
-    // there is a field generic_params.count() but apparently it does not 
+    // there is a field generic_params.count() but apparently it does not
     // give us the same value, not sure what it stands for
     if count > 0 {
-        let result = generic_params.params  // iterate through all parameters
+        let result = generic_params
+            .params // iterate through all parameters
             .iter()
             .map(|param_ident| {
                 let param = param_ident.name.as_str();
                 let traitboundmap_opt = traitbounds.get(param);
                 if let Some(traitboundmap) = traitboundmap_opt {
-                    let trait_list_str = traitboundmap.iter().map(|(trait_id, param_list)| {
-                        let trait_str = tcx.def_path_str(*trait_id); 
-                        if param_list.len() <= 0 {
-                            trait_str
-                        } else {
-                            let param_str = param_list.iter()
-                                .map(|gp| format!("{}", gp))
-                                .collect::<Vec<String>>().join(", ");
-                            format!("{trait_str}<{param_str}>")
-                        }
-                    }).collect::<Vec<String>>().join(" + ");
+                    let trait_list_str = traitboundmap
+                        .iter()
+                        .map(|(trait_id, param_list)| {
+                            let trait_str = tcx.def_path_str(*trait_id);
+                            if param_list.len() <= 0 {
+                                trait_str
+                            } else {
+                                let param_str = param_list
+                                    .iter()
+                                    .map(|gp| format!("{}", gp))
+                                    .collect::<Vec<String>>()
+                                    .join(", ");
+                                format!("{trait_str}<{param_str}>")
+                            }
+                        })
+                        .collect::<Vec<String>>()
+                        .join(" + ");
                     format!("{param}: {trait_list_str}")
                 } else {
                     param.to_string()
                 }
-            }).collect::<Vec<String>>().join(", ");
+            })
+            .collect::<Vec<String>>()
+            .join(", ");
         (format!("<{result}>"), None)
-        
     } else {
         ("".to_string(), None)
     }
+}
+
+fn get_parent_chain(defid: DefId, tcx: &TyCtxt<'_>) -> Vec<String> {
+    let mut result = vec![];
+    let mut parent_opt = tcx.opt_parent(defid);
+    while let Some(parent_id) = parent_opt {
+        let name = tcx.item_name(parent_id).to_string();
+        result.push(name);
+        parent_opt = tcx.opt_parent(parent_id); // check for parent of parent
+    }
+    println!("Get Parent Chain: {:?}", result);
+    result.reverse();
+    result
+}
+
+fn wrap_in_parent_mods(parent_chain: Vec<String>, contents: String) -> String {
+    let mut tab_level = 0;
+    let chain_length = parent_chain.len();
+    let mut result = "#[extern_spec]\n".to_string();
+    for parent_mod in &parent_chain {
+        result.push_str(&"\t".repeat(tab_level));
+        result.push_str(&format!("mod {} {{\n", parent_mod));
+        tab_level += 1;
+    }
+    result.push_str(
+        &contents
+            .split('\n')
+            .map(|line| "\t".repeat(tab_level) + line)
+            .collect::<Vec<String>>()
+            .join("\n"),
+    ); // appends the indented contents of the mod
+    for _ in 0..chain_length {
+        tab_level -= 1;
+        result.push('\n');
+        result.push_str(&"\t".repeat(tab_level));
+        result.push('}'); // close the curly braces at the right tab_level
+    }
+    result
 }
