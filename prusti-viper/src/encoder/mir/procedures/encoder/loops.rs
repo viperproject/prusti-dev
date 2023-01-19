@@ -81,7 +81,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
             .map_err(|err| match err {
                 LoopAnalysisError::UnsupportedPlaceContext(place_ctxt, loc) => {
                     SpannedEncodingError::internal(
-                        format!("loop uses the unexpected PlaceContext '{:?}'", place_ctxt),
+                        format!("loop uses the unexpected PlaceContext '{place_ctxt:?}'"),
                         self.encoder.get_mir_location_span(self.mir, loc),
                     )
                 }

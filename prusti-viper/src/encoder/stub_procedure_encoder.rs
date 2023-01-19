@@ -48,8 +48,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
         let mut cfg_method = vir::CfgMethod::new(
             // method name
             self.encoder.encode_item_name(self.def_id),
-            // formal args
-            self.mir.arg_count,
             // formal returns
             vec![],
             // local vars
@@ -90,7 +88,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
 
             log::report_with_writer(
                 "graphviz_method_stub",
-                format!("{}.{}.dot", source_filename, method_name),
+                format!("{source_filename}.{method_name}.dot"),
                 |writer| cfg_method.to_graphviz(writer),
             );
         }

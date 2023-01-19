@@ -57,8 +57,8 @@ pub(super) struct Specifications<'tcx> {
     user_typed_specs: DefSpecificationMap,
 
     /// A refinement can be different based on the query.
-    /// The query can resolve to different [ProcedureSpecification]s due to ghost constraints.
-    /// Since Prusti does currently not support refinements of ghost constraints, we
+    /// The query can resolve to different [ProcedureSpecification]s due to type-conditional spec refinements.
+    /// Since Prusti does currently not support refinements of type-conditional spec refinements, we
     /// store different refined versions for different queries.
     refined_specs: FxHashMap<SpecQuery<'tcx>, ProcedureSpecification>,
 }
@@ -121,8 +121,7 @@ impl<'tcx> Specifications<'tcx> {
                 );
                 assert!(
                     refined.is_some(),
-                    "Could not perform refinement for {:?}",
-                    query
+                    "Could not perform refinement for {query:?}"
                 );
                 refined
             }
@@ -203,37 +202,26 @@ impl<'tcx> Specifications<'tcx> {
                 let impl_method_name = env.name.get_absolute_item_name(impl_proc_def_id);
 
                 PrustiError::incorrect(
-                    format!(
-                        "Invalid specification kind for procedure '{}'",
-                        impl_method_name
-                    ),
+                    format!("Invalid specification kind for procedure '{impl_method_name}'"),
                     MultiSpan::from_span(impl_method_span),
                 )
                 .add_note("Procedures can be predicates, pure or impure", None)
                 .add_note(
-                    format!("This procedure is of kind '{}'", refined_kind).as_str(),
+                    format!("This procedure is of kind '{refined_kind}'").as_str(),
                     None,
                 )
                 .add_note(
-                    format!(
-                        "This procedure refines a function declared on '{}'",
-                        trait_name
-                    )
-                    .as_str(),
+                    format!("This procedure refines a function declared on '{trait_name}'")
+                        .as_str(),
                     Some(trait_span),
                 )
                 .add_note(
-                    format!(
-                        "However, '{}' is of kind '{}'",
-                        trait_method_name, base_kind
-                    )
-                    .as_str(),
+                    format!("However, '{trait_method_name}' is of kind '{base_kind}'").as_str(),
                     None,
                 )
                 .add_note(
                     format!(
-                        "Try to convert '{}' into a procedure of kind '{}'",
-                        impl_method_name, base_kind
+                        "Try to convert '{impl_method_name}' into a procedure of kind '{base_kind}'"
                     ),
                     Some(impl_method_span),
                 )

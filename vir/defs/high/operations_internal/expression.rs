@@ -12,8 +12,8 @@ use super::{
     },
     ty::Typed,
 };
-use std::collections::BTreeMap;
 use crate::common::expression::SyntacticEvaluation;
+use std::collections::BTreeMap;
 
 impl From<VariableDecl> for Expression {
     fn from(variable: VariableDecl) -> Self {

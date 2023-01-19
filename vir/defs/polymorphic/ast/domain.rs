@@ -66,8 +66,45 @@ pub struct DomainFunc {
 }
 
 impl DomainFunc {
+    pub fn new(
+        domain_name: impl ToString,
+        fn_name: impl ToString,
+        args: Vec<LocalVar>,
+        return_type: Type,
+    ) -> Self {
+        Self {
+            name: fn_name.to_string(),
+            type_arguments: vec![],
+            formal_args: args,
+            return_type,
+            unique: false,
+            domain_name: domain_name.to_string(),
+        }
+    }
+
     pub fn apply(&self, args: Vec<Expr>) -> Expr {
         Expr::domain_func_app(self.clone(), args)
+    }
+
+    pub fn apply0(&self) -> Expr {
+        self.apply(vec![])
+    }
+
+    pub fn apply1(&self, arg1: impl Into<Expr>) -> Expr {
+        self.apply(vec![arg1.into()])
+    }
+
+    pub fn apply2(&self, arg1: impl Into<Expr>, arg2: impl Into<Expr>) -> Expr {
+        self.apply(vec![arg1.into(), arg2.into()])
+    }
+
+    pub fn apply3(
+        &self,
+        arg1: impl Into<Expr>,
+        arg2: impl Into<Expr>,
+        arg3: impl Into<Expr>,
+    ) -> Expr {
+        self.apply(vec![arg1.into(), arg2.into(), arg3.into()])
     }
 }
 
@@ -107,6 +144,7 @@ impl WithIdentifier for DomainFunc {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct DomainAxiom {
+    pub comment: Option<String>,
     pub name: String,
     pub expr: Expr,
     pub domain_name: String,
@@ -114,6 +152,14 @@ pub struct DomainAxiom {
 
 impl fmt::Display for DomainAxiom {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "axiom {} {{ {} }}", self.name, self.expr)
+        if let Some(comment) = &self.comment {
+            writeln!(
+                f,
+                "/* {} */ axiom {} {{ {} }}",
+                comment, self.name, self.expr
+            )
+        } else {
+            writeln!(f, "axiom {} {{ {} }}", self.name, self.expr)
+        }
     }
 }

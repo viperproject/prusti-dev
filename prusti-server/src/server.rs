@@ -25,12 +25,7 @@ pub fn start_server_on_port(port: u16) {
         if port == 0 {
             return;
         }
-        assert_eq!(
-            address.port(),
-            port,
-            "Server could not bind to port {}",
-            port
-        )
+        assert_eq!(address.port(), port, "Server could not bind to port {port}")
     });
 }
 

@@ -38,10 +38,10 @@ RUSTFMT_CRATES = [
     'analysis',
     'jni-gen',
     'prusti',
-    #'prusti-common',
+    'prusti-common',
     'prusti-contracts/prusti-contracts',
     'prusti-contracts/prusti-contracts-proc-macros',
-    #'prusti-contracts/prusti-specs',
+    'prusti-contracts/prusti-specs',
     'prusti-contracts/prusti-std',
     'prusti-contracts-build',
     'prusti-interface',
@@ -75,6 +75,7 @@ RUSTFMT_PATHS = [
     'prusti-viper/src/encoder/lifetimes/mod.rs',
     'prusti-viper/src/encoder/definition_collector.rs',
     'prusti-viper/src/encoder/counterexamples/mod.rs',
+    'vir/defs/mod.rs',
 ]
 
 
@@ -98,13 +99,14 @@ def viper_version():
         return file.read().strip()
 
 
-def setup_ubuntu():
+def setup_ubuntu(install_deps: bool):
     """Install the dependencies on Ubuntu."""
     # Install dependencies.
-    shell('sudo apt-get update')
-    shell('sudo apt-get install -y '
-          'build-essential pkg-config '
-          'curl gcc libssl-dev')
+    if install_deps:
+        shell('sudo apt-get update')
+        shell('sudo apt-get install -y '
+            'build-essential pkg-config '
+            'curl gcc libssl-dev unzip')
     # Download Viper.
     shell(
         'curl https://github.com/viperproject/viper-ide/releases/'
@@ -166,26 +168,25 @@ def setup_rustup():
 
 def setup(args):
     """Install the dependencies."""
-    rustup_only = False
+    install_deps = True
     if len(args) == 1 and args[0] == '--dry-run':
         global dry_run
         dry_run = True
-    elif len(args) == 1 and args[0] == '--rustup-only':
-        rustup_only = True
+    elif len(args) == 1 and args[0] == '--no-deps':
+        install_deps = False
     elif args:
         error("unexpected arguments: {}", args)
-    if not rustup_only:
-        if sys.platform in ("linux", "linux2"):
-            if 'Ubuntu' in platform.version():
-                setup_ubuntu()
-            else:
-                setup_linux()
-        elif sys.platform == "darwin":
-            setup_mac()
-        elif sys.platform == "win32":
-            setup_win()
+    if sys.platform in ("linux", "linux2"):
+        if 'Ubuntu' in platform.version():
+            setup_ubuntu(install_deps)
         else:
-            error("unsupported platform: {}", sys.platform)
+            setup_linux()
+    elif sys.platform == "darwin":
+        setup_mac()
+    elif sys.platform == "win32":
+        setup_win()
+    else:
+        error("unsupported platform: {}", sys.platform)
     setup_rustup()
 
 
@@ -266,7 +267,7 @@ def package(mode: str, package_path: str):
 
     # Prepare destination folder
     Path(package_path).mkdir(parents=True, exist_ok=True)
-    if not os.listdir(package_path):
+    if os.listdir(package_path):
         logging.warning(f"The destination folder '{package_path}' is not empty.")
 
     # The glob patterns of the files to copy and their destination folder inside the package.
@@ -278,17 +279,17 @@ def package(mode: str, package_path: str):
         (f"target/{mode}/prusti-server*", "."),
         (f"target/{mode}/prusti-rustc*", "."),
         (f"target/{mode}/cargo-prusti*", "."),
-        (f"prusti-contracts/target/verify/{mode}/libprusti_contracts.*", "."),
-        (f"prusti-contracts/target/verify/{mode}/deps/libprusti_contracts_proc_macros-*", "deps"),
-        (f"prusti-contracts/target/verify/{mode}/deps/prusti_contracts_proc_macros-*.dll", "deps"),
-        (f"prusti-contracts/target/verify/{mode}/libprusti_std.*", "."),
-        (f"prusti-contracts/target/verify/{mode}/deps/libprusti_contracts-*", "deps"),
-        (f"prusti-contracts/target/verify/{mode}/deps/prusti_contracts-*.dll", "deps"),
+        (f"target/verify/{mode}/libprusti_contracts.*", "."),
+        (f"target/verify/{mode}/deps/libprusti_contracts_proc_macros-*", "deps"),
+        (f"target/verify/{mode}/deps/prusti_contracts_proc_macros-*.dll", "deps"),
+        (f"target/verify/{mode}/libprusti_std.*", "."),
+        (f"target/verify/{mode}/deps/libprusti_contracts-*", "deps"),
+        (f"target/verify/{mode}/deps/prusti_contracts-*.dll", "deps"),
     ]
     exclude_paths = [
         f"target/{mode}/*.d",
-        f"prusti-contracts/target/verify/{mode}/*.d",
-        f"prusti-contracts/target/verify/{mode}/deps/*.d",
+        f"target/verify/{mode}/*.d",
+        f"target/verify/{mode}/deps/*.d",
     ]
     actual_exclude_set = set(path for pattern in exclude_paths for path in glob.glob(pattern))
     logging.debug(f"The number of excluded paths is: {len(actual_exclude_set)}")

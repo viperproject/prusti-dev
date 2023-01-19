@@ -18,6 +18,16 @@ impl From<polymorphic::BodylessMethod> for legacy::BodylessMethod {
                 .into_iter()
                 .map(|formal_return| formal_return.into())
                 .collect(),
+            pres: bodyless_method
+                .pres
+                .into_iter()
+                .map(|formal_return| formal_return.into())
+                .collect(),
+            posts: bodyless_method
+                .posts
+                .into_iter()
+                .map(|formal_return| formal_return.into())
+                .collect(),
         }
     }
 }
@@ -175,9 +185,41 @@ impl From<polymorphic::DomainFunc> for legacy::DomainFunc {
 impl From<polymorphic::DomainAxiom> for legacy::DomainAxiom {
     fn from(domain_axiom: polymorphic::DomainAxiom) -> legacy::DomainAxiom {
         legacy::DomainAxiom {
+            comment: domain_axiom.comment,
             name: domain_axiom.name,
             expr: domain_axiom.expr.into(),
             domain_name: domain_axiom.domain_name,
+        }
+    }
+}
+
+// backend type
+impl From<polymorphic::BackendType> for legacy::BackendType {
+    fn from(domain: polymorphic::BackendType) -> legacy::BackendType {
+        legacy::BackendType {
+            name: domain.name,
+            functions: domain
+                .functions
+                .into_iter()
+                .map(|function| function.into())
+                .collect(),
+            interpretations: domain.interpretations,
+        }
+    }
+}
+
+impl From<polymorphic::BackendFuncDecl> for legacy::BackendFuncDecl {
+    fn from(domain_func: polymorphic::BackendFuncDecl) -> legacy::BackendFuncDecl {
+        legacy::BackendFuncDecl {
+            name: domain_func.get_identifier(),
+            formal_args: domain_func
+                .formal_args
+                .into_iter()
+                .map(|formal_arg| formal_arg.into())
+                .collect(),
+            return_type: domain_func.return_type.into(),
+            domain_name: domain_func.domain_name,
+            interpretation: domain_func.interpretation,
         }
     }
 }
@@ -680,7 +722,6 @@ impl From<polymorphic::CfgMethod> for legacy::CfgMethod {
     fn from(cfg_method: polymorphic::CfgMethod) -> legacy::CfgMethod {
         legacy::CfgMethod {
             method_name: cfg_method.method_name,
-            formal_arg_count: cfg_method.formal_arg_count,
             formal_returns: cfg_method
                 .formal_returns
                 .into_iter()
@@ -810,6 +851,11 @@ impl From<polymorphic::Program> for legacy::Program {
     fn from(program: polymorphic::Program) -> legacy::Program {
         legacy::Program {
             name: program.name,
+            backend_types: program
+                .backend_types
+                .into_iter()
+                .map(|backend_type| backend_type.into())
+                .collect(),
             domains: program
                 .domains
                 .into_iter()

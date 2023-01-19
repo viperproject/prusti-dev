@@ -4,6 +4,7 @@ use crate::polymorphic::{ast::*, cfg::CfgMethod};
 pub struct Program {
     pub name: String,
     pub domains: Vec<Domain>,
+    pub backend_types: Vec<BackendType>,
     pub fields: Vec<Field>,
     pub builtin_methods: Vec<BodylessMethod>,
     pub methods: Vec<CfgMethod>,

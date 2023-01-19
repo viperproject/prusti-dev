@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{class_name::*, module_tree::*};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub fn generate_module(class_names: Vec<&ClassName>) -> String {
     let mut modules = ModuleTree::default();
@@ -21,18 +21,18 @@ pub fn generate_module(class_names: Vec<&ClassName>) -> String {
 
     let modules_tree = modules
         .visit(|modules| {
-            let modules: HashMap<String, Option<String>> = modules;
+            let modules: BTreeMap<String, Option<String>> = modules;
             let mut res: Vec<String> = vec![];
             for (name, opt_rec_result) in modules {
                 match opt_rec_result {
                     None => {
-                        res.push(format!("mod {}_wrapper;\n", name));
-                        res.push(format!("pub use self::{}_wrapper::*;\n", name));
+                        res.push(format!("mod {name}_wrapper;\n"));
+                        res.push(format!("pub use self::{name}_wrapper::*;\n"));
                     }
                     Some(rec_result) => {
-                        res.push(format!("pub mod {} {{\n", name));
+                        res.push(format!("pub mod {name} {{\n"));
                         res.push(rec_result.to_string());
-                        res.push(format!("}} // end of mod {}\n", name));
+                        res.push(format!("}} // end of mod {name}\n"));
                     }
                 }
             }

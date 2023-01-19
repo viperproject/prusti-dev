@@ -18,7 +18,7 @@ use crate::encoder::{
     Encoder,
 };
 use prusti_rustc_interface::hir::def_id::DefId;
-use rustc_hash::FxHashSet;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::collections::BTreeMap;
 use vir_crate::{
     common::{cfg::Cfg, check_mode::CheckMode, graphviz::ToGraphviz},
@@ -52,7 +52,15 @@ pub(super) fn lower_procedure<'p, 'v: 'p, 'tcx: 'v>(
     procedure: vir_mid::ProcedureDecl,
 ) -> SpannedEncodingResult<LoweringResult> {
     let lowerer = self::Lowerer::new(encoder);
-    let result = lowerer.lower_procedure(def_id, procedure)?;
+    let mut result = lowerer.lower_procedure(def_id, procedure)?;
+    if let Some(path) = prusti_common::config::execute_only_failing_trace() {
+        let label_markers: FxHashMap<String, bool> =
+            serde_json::from_reader(std::fs::File::open(path).unwrap()).unwrap();
+        super::transformations::remove_unvisited_blocks::remove_unvisited_blocks(
+            &mut result.procedures,
+            &label_markers,
+        )?;
+    }
     if prusti_common::config::dump_debug_info() {
         let source_filename = encoder.env().name.source_file_name();
         for procedure in &result.procedures {
@@ -230,7 +238,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             .iter()
             .enumerate()
             .map(|(index, arg)| {
-                vir_low::VariableDecl::new(format!("_{}", index), arg.get_type().clone())
+                vir_low::VariableDecl::new(format!("_{index}"), arg.get_type().clone())
             })
             .collect()
     }
@@ -239,7 +247,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         &mut self,
         label: &vir_mid::BasicBlockId,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
-        self.create_variable(format!("{}$marker", label), vir_low::Type::Bool)
+        self.create_variable(format!("{label}$marker"), vir_low::Type::Bool)
     }
 
     /// If `check_copy` is true, encode `copy` builtin method.

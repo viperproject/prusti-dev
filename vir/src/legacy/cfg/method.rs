@@ -25,7 +25,6 @@ pub const RETURN_LABEL: &str = "end_of_method";
 pub struct CfgMethod {
     #[derivative(Hash = "ignore", PartialEq = "ignore")]
     pub method_name: String,
-    pub formal_arg_count: usize,
     pub formal_returns: Vec<LocalVar>,
     pub local_vars: Vec<LocalVar>,
     #[derivative(Hash = "ignore", PartialEq = "ignore")]
@@ -91,13 +90,11 @@ impl CfgBlockIndex {
 impl CfgMethod {
     pub fn new(
         method_name: String,
-        formal_arg_count: usize,
         formal_returns: Vec<LocalVar>,
         local_vars: Vec<LocalVar>,
     ) -> Self {
         CfgMethod {
             method_name,
-            formal_arg_count,
             formal_returns,
             local_vars,
             labels: HashSet::new(),
@@ -163,8 +160,7 @@ impl CfgMethod {
         for label_name in gather_labels(&stmt) {
             assert!(
                 self.is_fresh_local_name(&label_name),
-                "label {} is not fresh",
-                label_name
+                "label {label_name} is not fresh"
             );
             self.labels.insert(label_name);
         }
@@ -185,8 +181,7 @@ impl CfgMethod {
             .all(|c| c.is_alphanumeric() || c == '_'));
         assert!(
             self.basic_blocks_labels.iter().all(|l| l != label),
-            "Label {} is already used",
-            label
+            "Label {label} is already used"
         );
         assert!(label != RETURN_LABEL);
         let index = self.basic_blocks.len();

@@ -46,7 +46,6 @@ pub fn get_prusti_contracts_dir(exe_dir: &Path) -> Option<PathBuf> {
             .unwrap()
             .parent()
             .unwrap()
-            .join("prusti-contracts")
             .join("target")
             .join("verify")
             .join(target_dir),
@@ -78,7 +77,7 @@ fn env_prepend_path(name: &str, value: Vec<PathBuf>, cmd: &mut Command) {
         Ok(new_value) => {
             cmd.env(name, new_value);
         }
-        Err(err) => panic!("Error: {:?}", err),
+        Err(err) => panic!("Error: {err:?}"),
     }
 }
 

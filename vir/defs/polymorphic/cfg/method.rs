@@ -21,7 +21,6 @@ pub struct CfgMethod {
     #[serde(skip)]
     pub(crate) uuid: Uuid,
     pub(crate) method_name: String,
-    pub(crate) formal_arg_count: usize,
     pub(crate) formal_returns: Vec<LocalVar>,
     // FIXME: This should be pub(in super::super). However, the optimization
     // that depends on snapshots needs to modify this field.
@@ -137,7 +136,6 @@ impl CfgBlockIndex {
 impl CfgMethod {
     pub fn new(
         method_name: String,
-        formal_arg_count: usize,
         formal_returns: Vec<LocalVar>,
         local_vars: Vec<LocalVar>,
         reserved_labels: Vec<String>,
@@ -145,7 +143,6 @@ impl CfgMethod {
         CfgMethod {
             uuid: Uuid::new_v4(),
             method_name,
-            formal_arg_count,
             formal_returns,
             local_vars,
             labels: FxHashSet::default(),

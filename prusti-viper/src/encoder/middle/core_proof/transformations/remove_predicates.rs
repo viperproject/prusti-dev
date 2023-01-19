@@ -91,9 +91,22 @@ fn from_statements(
                 let pure_expression = remover.fold_expression(expression);
                 statements.push(vir_low::Statement::inhale(pure_expression, unfold.position));
             }
-            vir_low::Statement::Fold(_)
-            | vir_low::Statement::ApplyMagicWand(_)
-            | vir_low::Statement::Conditional(_) => {}
+            vir_low::Statement::Fold(_) | vir_low::Statement::ApplyMagicWand(_) => {}
+            vir_low::Statement::Conditional(mut conditional) => {
+                from_statements(
+                    &mut conditional.then_branch,
+                    removed_methods,
+                    removed_functions,
+                    predicates,
+                );
+                from_statements(
+                    &mut conditional.else_branch,
+                    removed_methods,
+                    removed_functions,
+                    predicates,
+                );
+                statements.push(vir_low::Statement::Conditional(conditional));
+            }
         }
     }
 }

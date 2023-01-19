@@ -62,7 +62,7 @@ impl<'a> JniUtils<'a> {
     /// Unwrap a JniResult<T>.
     pub fn unwrap_result<T>(&self, res: JniResult<T>) -> T {
         self.unwrap_or_exception(res)
-            .unwrap_or_else(|java_exception| panic!("{:?}", java_exception))
+            .unwrap_or_else(|java_exception| panic!("{java_exception:?}"))
     }
 
     /// Converts a Rust Option<JObject> to a Scala Option
@@ -89,7 +89,7 @@ impl<'a> JniUtils<'a> {
 
     /// Converts a Rust number to a Java BigInt
     pub fn new_big_int(&self, number: &dyn ToString) -> JObject {
-        let number_string = self.new_string(&number.to_string());
+        let number_string = self.new_string(number.to_string());
 
         let java_big_integer =
             self.unwrap_result(java::math::BigInteger::with(self.env).new(number_string));
