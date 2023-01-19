@@ -30,20 +30,6 @@ fn sum2(n: u32) -> u32 {
     res
 }
 
-#[requires(time_credits((n * n) + 2 * n + 1))]
-#[ensures(time_receipts((n * n) + 2 * n + 1))]
-fn double_loop(n: usize) -> u32 {
-    let mut i = 0;
-    let mut res = 0;
-    while i < n {
-        body_invariant!(time_credits((n - i) * (n + 2)));
-        body_invariant!(time_receipts(i * (n + 2)));
-        res += sum(n as u32);
-        i += 1;
-    }
-    res
-}
-
 #[requires(time_credits(1))]
 #[ensures(time_receipts(1))]
 fn foo() -> usize {
@@ -63,6 +49,22 @@ fn loop_foo(n: usize) -> usize {
     }
     res += foo();
     res
+}
+
+#[requires(time_credits(2 * n + 1))]
+#[ensures(time_receipts(2 * n + 1))]
+fn loop_foo_before_body_inv(n: usize) -> usize {
+	let mut i = 0;
+	let mut res = 0;
+	while i < n {
+		foo();
+		body_invariant!(i < n);
+		body_invariant!(time_credits(2 * n - 2 * i - 1));
+		body_invariant!(time_receipts(2 * i + 1));
+		res += 1;
+		i += 1;
+	}
+	res
 }
 
 
