@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use super::ide_info::ProcDef;
 use prusti_rustc_interface::{
     hir::{def::DefKind, def_id::DefId},
-    middle::ty::{self, DefIdTree, Generics, ImplSubject, PredicateKind, TraitRef, Ty, TyCtxt},
+    middle::ty::{self, DefIdTree, Generics, ImplSubject, PredicateKind, TraitRef, Ty, TyCtxt, Clause},
 };
 
 pub fn collect_queried_signatures(env: &Environment<'_>, fncalls: &Vec<ProcDef>) -> Option<String> {
@@ -89,7 +89,7 @@ pub fn collect_queried_signatures(env: &Environment<'_>, fncalls: &Vec<ProcDef>)
                     if tcx.is_trait(parent) {
                         println!("Yes indeed this is a trait");
                         let traitname = tcx.def_path_str(parent);
-                        let trait_params = trait_params(parent, &tcx);
+                        let trait_params = trait_params(parent, tcx);
                         let (fn_generics, _where) = generic_params_str(defid, &tcx, false);
                         let fn_sig = fn_signature_str(defid, &tcx);
                         Some(format!(
@@ -128,15 +128,15 @@ pub fn fn_signature_str(defid: DefId, tcx: &TyCtxt<'_>) -> String {
     format!("({}) -> {}", args, output)
 }
 
-pub fn trait_params(defid: DefId, tcx: &TyCtxt<'_>) -> String {
+pub fn trait_params(defid: DefId, tcx: TyCtxt<'_>) -> String {
     let generic_params = tcx.generics_of(defid);
-    let substs = ty::subst::InternalSubsts::identity_for_item(*tcx, defid);
+    let substs = ty::subst::InternalSubsts::identity_for_item(tcx, defid);
 
     let result = generic_params
         .params
         .iter()
-        .filter(|p| p.has_default()) // types like Self will show up here,but can't be in code
-        .map(|p| format!("{}={:?}", p.name, p.default_value(*tcx).unwrap().subst(*tcx, substs)))
+        .filter(|p| (*p).default_value(tcx).is_some()) // types like Self will show up here,but can't be in code,
+        .map(|p| format!("{}={:?}", p.name, p.default_value(tcx).unwrap().subst(tcx, substs)))
         .collect::<Vec<String>>()
         .join(", ");
     if generic_params.params.iter().len() > 0 {
@@ -184,7 +184,7 @@ pub fn generic_params_str(
         println!("Found predicate of kind: {:?}", predicate.kind());
         let kind: PredicateKind = predicate.kind().skip_binder(); // i don't understand this...
         match kind {
-            PredicateKind::Trait(t) => {
+            PredicateKind::Clause(Clause::Trait(t)) => {
                 println!("PredicateKind::Trait(t) with t: {:?}", t);
                 let traitref = t.trait_ref;
                 let self_ty_str = format!("{}", traitref.self_ty());
@@ -210,14 +210,14 @@ pub fn generic_params_str(
                     }
                 }
             }
-            PredicateKind::Projection(p) => {
+            PredicateKind::Clause(Clause::Projection(p)) => {
                 // for example, for impl<T: Trait<Output=T>>,
                 // - item_id identifies Output,
                 // - trait_defid: Trait
                 // - term: the type assigned to Ouptut
                 // - self_ty: The first T
                 //  (not very sure about the last 2)
-                let item_id = p.projection_ty.item_def_id;
+                let item_id = p.projection_ty.def_id;
                 let self_ty_str = format!("{}", p.projection_ty.self_ty());
 
                 let trait_defid: DefId = p.projection_ty.trait_def_id(*tcx); // I want the identifier e.g. std::ops::Add
