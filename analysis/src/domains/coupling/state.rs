@@ -276,10 +276,34 @@ impl<'tcx> CDGOrigin<'tcx> {
 }
 
 // A coupling graph
-#[derive(Clone, Default, PartialEq, Eq, Debug)]
+#[derive(Clone, Default, PartialEq, Eq)]
 pub struct CDG<'tcx> {
     pub origins: CouplingOrigins<'tcx>,
     pub origin_contains_loan_at_invariant: bool,
+}
+
+impl<'tcx> fmt::Debug for CDG<'tcx> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(
+            f,
+            "CDG(ocla_invariant? {:?})",
+            self.origin_contains_loan_at_invariant
+        )?;
+
+        let mut counter: usize = 0;
+        for origin in self.origins.origins.iter() {
+            if origin.is_empty() {
+                writeln!(f, "\t<group {:?}> Empty", counter)?;
+            } else {
+                writeln!(f, "\t<group {:?}>", counter)?;
+                for (o, s) in origin.iter() {
+                    writeln!(f, "\t\t{:?}: {:?}", o, s)?;
+                }
+            }
+            counter += 1;
+        }
+        Ok(())
+    }
 }
 
 #[derive(Default, Eq, Clone)]
@@ -354,7 +378,7 @@ impl<'tcx> CouplingOrigins<'tcx> {
                 for other_origin_map in self.origins.iter() {
                     if let Some(other_cdgo) = other_origin_map.get(origin) {
                         println!(
-                            "[debug] checking origin {:?}: cdgo {:?} and {:?}",
+                            "[debug: join] checking origin {:?}: cdgo {:?} and {:?}",
                             origin, cdgo.leaves, other_cdgo.leaves
                         );
                         assert_eq!(cdgo.leaves, other_cdgo.leaves);
@@ -397,11 +421,37 @@ pub struct CouplingState<'facts, 'mir: 'facts, 'tcx: 'mir> {
 #[derive(PartialEq, Eq, Clone, Debug, Default)]
 pub struct ToKill<'tcx> {
     pub loans: BTreeSet<(Loan, PointIndex)>,
-    pub places: BTreeSet<(mir::Place<'tcx>, PointIndex)>,
+    pub places: BTreeSet<(Place<'tcx>, PointIndex)>,
 }
 impl<'tcx> ToKill<'tcx> {
     fn is_empty(&self) -> bool {
         self.loans.is_empty() && self.places.is_empty()
+    }
+
+    pub fn mark_loan(&mut self, loan: Loan, point: PointIndex) {
+        assert!(self.loans.insert((loan, point)));
+    }
+
+    pub fn mark_place(&mut self, place: Place<'tcx>, point: PointIndex) {
+        assert!(self.places.insert((place, point)));
+    }
+
+    pub fn apply_all(&mut self, graph: &mut CDG<'tcx>) -> AnalysisResult<()> {
+        // fixme: this should not be possible, but nothing in the data structure is preventing
+        // a loan to be killed by multiple points. revisit when considering function calls.
+        for (loan, point) in self.loans.iter() {
+            graph
+                .origins
+                .kill_node(point, &CDGNode::Borrow(Tagged::untagged(*loan)))?;
+        }
+        for (place, point) in self.places.iter() {
+            graph
+                .origins
+                .kill_node(point, &CDGNode::Place(Tagged::untagged(*place)))?;
+        }
+        self.loans = Default::default();
+        self.places = Default::default();
+        Ok(())
     }
 }
 
@@ -479,7 +529,7 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
         self.apply_loan_moves(location)?;
         self.enforce_subset_invariant(location)?;
         self.check_origin_contains_loan_at_invariant()?;
-        self.mark_kills()?;
+        self.mark_kills(location)?;
         Ok(())
     }
 
@@ -587,6 +637,7 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
     /// For every loan which is marked as killed, kill it and remove the kill mark.
     fn apply_marked_kills(&mut self) -> AnalysisResult<()> {
         // fixme: implement
+        self.to_kill.apply_all(&mut self.coupling_graph);
         Ok(())
     }
 
@@ -701,9 +752,17 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
         Ok(())
     }
 
-    /// For every loan_killed_at at this location, mark the killed place
-    fn mark_kills(&mut self) -> AnalysisResult<()> {
-        // fixme: implement
+    /// - For every loan_killed_at at this location, mark the killed place
+    /// - if the MIR statement is a StorageDead and the location is a Start index, mark this place.
+    fn mark_kills(&mut self, location: &PointIndex) -> AnalysisResult<()> {
+        if let Some(kill_set) = self.fact_table.loan_killed_at.get(location) {
+            for loan_to_kill in kill_set.iter() {
+                self.to_kill.mark_loan(*loan_to_kill, *location);
+            }
+        }
+        if let Some(place_to_kill) = FactTable::get_storage_dead_at(self.mir, *location) {
+            self.to_kill.mark_place(place_to_kill, *location)
+        }
         Ok(())
     }
 
@@ -731,6 +790,7 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
     ///     a child of #a
     fn check_origin_contains_loan_at_invariant(&mut self) -> AnalysisResult<()> {
         // fixme: implement
+
         Ok(())
     }
 }
