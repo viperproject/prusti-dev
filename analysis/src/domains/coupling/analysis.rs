@@ -63,7 +63,7 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> FixpointEngine<'mir, 'tcx>
 
     fn new_bottom(&self) -> Self::State {
         // todo: remove stub
-        Self::State::new_empty(self.body_with_facts, self.fact_table)
+        Self::State::new_bottom(self.body_with_facts, self.fact_table)
     }
 
     fn new_initial(&self) -> Self::State {

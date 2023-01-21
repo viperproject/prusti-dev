@@ -278,54 +278,111 @@ impl<'tcx> CDGOrigin<'tcx> {
 // A coupling graph
 #[derive(Clone, Default, PartialEq, Eq, Debug)]
 pub struct CDG<'tcx> {
-    pub origins: BTreeMap<Region, CDGOrigin<'tcx>>,
-    pub subset_invariant: bool,
+    pub origins: CouplingOrigins<'tcx>,
     pub origin_contains_loan_at_invariant: bool,
 }
 
-impl<'tcx> CDG<'tcx> {
-    /// Apply a function to all origins in the graph
-    pub fn mutate_origins_uniform<'a, 's: 'a>(
-        &'s mut self,
-        f: fn(Region, &'a mut CDGOrigin<'tcx>),
-    ) {
-        for (origin, cdg_origin) in self.origins.iter_mut() {
-            f(*origin, cdg_origin);
+#[derive(Default, Eq, Clone)]
+pub struct CouplingOrigins<'tcx> {
+    pub origins: Vec<BTreeMap<Region, CDGOrigin<'tcx>>>,
+}
+
+impl<'tcx> PartialEq for CouplingOrigins<'tcx> {
+    fn eq(&self, other: &Self) -> bool {
+        self.origins
+            .iter()
+            .all(|origins_map| other.origins.contains(origins_map))
+            && other
+                .origins
+                .iter()
+                .all(|origins_map| self.origins.contains(origins_map))
+    }
+}
+
+impl<'tcx> fmt::Debug for CouplingOrigins<'tcx> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for origins_map in self.origins.iter() {
+            write!(f, "[[{:?}]]", origins_map)?;
+        }
+        Ok(())
+    }
+}
+
+impl<'tcx> CouplingOrigins<'tcx> {
+    /// Construct a CouplingOrigins that contains a single origin with no facts
+    pub fn new_empty() -> Self {
+        Self {
+            origins: vec![Default::default()],
         }
     }
 
-    /// Ensure all edges from origin "sub" are contained in "sup"
+    /// Ensure that all origins from origin "sub" are contained in "sup:"
     /// Return true if there is a change
     pub fn enforce_subset(&mut self, sub: &Region, sup: &Region) -> bool {
         let mut result = false;
-        let sub_edges: Vec<_> = self
-            .origins
-            .get(sub)
-            .unwrap()
-            .edges
-            .iter()
-            .cloned()
-            .collect();
-        for sub_edge in sub_edges.iter() {
-            let changed = self.origins.get_mut(sup).unwrap().enforce_edge(&sub_edge);
-            result = result || changed;
+        for origin_map in self.origins.iter_mut() {
+            let sub_edges: Vec<_> = origin_map.get(sub).unwrap().edges.iter().cloned().collect();
+            for sub_edge in sub_edges.iter() {
+                let changed = origin_map.get_mut(sup).unwrap().enforce_edge(&sub_edge);
+                result = result || changed;
+            }
         }
         return result;
     }
 
-    // Kill an OriginLHS in all origins
     fn kill_node(&mut self, location: &PointIndex, node: &CDGNode<'tcx>) -> AnalysisResult<()> {
-        // let graph = std::mem::take(&mut self.origins);
-        // for (origin, mut cdg_origin) in graph.into_iter() {
-        //     cdg_origin.tag(location, node);
-        //     self.origins.insert(origin, cdg_origin);
-        // }
-        // Ok(())
-        for cdg_origin in self.origins.values_mut() {
-            cdg_origin.tag(location, node);
+        for cdg_origin_map in self.origins.iter_mut() {
+            for cdg_origin in cdg_origin_map.values_mut() {
+                cdg_origin.tag(location, node);
+            }
         }
         Ok(())
     }
+
+    fn join(&mut self, other: &CouplingOrigins<'tcx>) {
+        // Join the two by appending the origins together
+        self.origins.append(&mut other.origins.clone());
+
+        // Now we must ensure the two sets of origin mappings cohere, that is they
+        //  have the same LHS for each non-empty origin.
+        // fixme: right now we just panic if they are incoherent, but in reality we should
+        // probably fix them by repacking.
+
+        // naive hack solution: iterate over all tuples
+        for origin_map in self.origins.iter() {
+            for (origin, cdgo) in origin_map.iter() {
+                for other_origin_map in self.origins.iter() {
+                    if let Some(other_cdgo) = other_origin_map.get(origin) {
+                        println!(
+                            "[debug] checking origin {:?}: cdgo {:?} and {:?}",
+                            origin, cdgo.leaves, other_cdgo.leaves
+                        );
+                        assert_eq!(cdgo.leaves, other_cdgo.leaves);
+                    }
+                }
+            }
+        }
+    }
+}
+
+impl<'tcx> CDG<'tcx> {
+    pub fn new_empty() -> Self {
+        Self {
+            origins: CouplingOrigins::new_empty(),
+            origin_contains_loan_at_invariant: false,
+        }
+    }
+
+    // Ensure all edges from origin "sub" are contained in "sup"
+    // Return true if there is a change
+    // pub fn enforce_subset(&mut self, sub: &Region, sup: &Region) -> bool {
+    //     self.origins.enforce_subset(sub, sup)
+    // }
+
+    // Kill an OriginLHS in all origins
+    // fn kill_node(&mut self, location: &PointIndex, node: &CDGNode<'tcx>) -> AnalysisResult<()> {
+    //     self.origins.kill_node(location, node)
+    // }
 }
 
 #[derive(Clone)]
@@ -342,9 +399,26 @@ pub struct ToKill<'tcx> {
     pub loans: BTreeSet<(Loan, PointIndex)>,
     pub places: BTreeSet<(mir::Place<'tcx>, PointIndex)>,
 }
+impl<'tcx> ToKill<'tcx> {
+    fn is_empty(&self) -> bool {
+        self.loans.is_empty() && self.places.is_empty()
+    }
+}
 
 impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
     pub(crate) fn new_empty(
+        mir: &'mir BodyWithBorrowckFacts<'tcx>,
+        fact_table: &'facts FactTable<'tcx>,
+    ) -> Self {
+        Self {
+            coupling_graph: CDG::new_empty(),
+            to_kill: Default::default(),
+            fact_table,
+            mir,
+        }
+    }
+
+    pub(crate) fn new_bottom(
         mir: &'mir BodyWithBorrowckFacts<'tcx>,
         fact_table: &'facts FactTable<'tcx>,
     ) -> Self {
@@ -381,8 +455,18 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
     fn apply_cdg_inference(&mut self, location: Location) -> AnalysisResult<()> {
         // println!("[inference]   enter {:?}", RichLocation::Start(location));
         self.apply_polonius_inference(&self.mir.location_table.start_index(location))?;
+        println!(
+            "[debug@{:?}] {:?}",
+            self.mir.location_table.start_index(location),
+            self.coupling_graph
+        );
         // println!("[inference]   enter {:?}", RichLocation::Mid(location));
         self.apply_polonius_inference(&self.mir.location_table.mid_index(location))?;
+        println!(
+            "[debug@{:?}] {:?}",
+            self.mir.location_table.mid_index(location),
+            self.coupling_graph
+        );
         Ok(())
     }
 
@@ -407,83 +491,48 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
     ) -> AnalysisResult<()> {
-        // ok if is some and can be repacked, or current lhs is none and packing requiremt is cannonical origin
-        if let Some(reqs) = self.fact_table.origin_packing_at.get(location) {
-            for (origin, place) in reqs.iter() {
-                let mut current_leaves = self
-                    .coupling_graph
-                    .origins
-                    .get(origin)
-                    .and_then(|o| Some(o.leaves.clone()))
-                    .unwrap();
-                if current_leaves.is_empty() {
-                    let cannonical_roots = self.fact_table.origins.map.get(origin).unwrap();
-                    assert_eq!(place, cannonical_roots);
-                } else {
-                    // Try to repack the set of elements current_leaves to include place
-                    // fixme: this is not a real repacker! this is a small hack
-                    // which only creates unpack edges, or panics.
-                    // 0. expect that place is actually a place, and is untagged
-                    let target_place = match place {
-                        OriginLHS::Place(tp) => tp,
-                        OriginLHS::Loan(_) => {
-                            panic!("internal error, can't meet a pack requirement for a loan")
-                        }
-                    };
+        for origin_map in self.coupling_graph.origins.origins.iter_mut() {
+            // ok if is some and can be repacked, or current lhs is none and packing requiremt is cannonical origin
+            if let Some(reqs) = self.fact_table.origin_packing_at.get(location) {
+                for (origin, place) in reqs.iter() {
+                    let current_leaves = origin_map
+                        .get(origin)
+                        .and_then(|o| Some(o.leaves.clone()))
+                        .unwrap();
+                    if current_leaves.is_empty() {
+                        let cannonical_roots = self.fact_table.origins.map.get(origin).unwrap();
+                        assert_eq!(place, cannonical_roots);
+                    } else {
+                        // Try to repack the set of elements current_leaves to include place
+                        // fixme: this is not a real repacker! this is a small hack
+                        // which only creates unpack edges, or panics.
+                        // 0. expect that place is actually a place, and is untagged
+                        let target_place = match place {
+                            OriginLHS::Place(tp) => tp,
+                            OriginLHS::Loan(_) => {
+                                panic!("internal error, can't meet a pack requirement for a loan")
+                            }
+                        };
 
-                    // 1. exclude borrows and tagged places
-                    let mut leaf_set: BTreeSet<mir_utils::Place<'tcx>> = current_leaves
-                        .iter()
-                        .filter_map(|node| {
-                            if let CDGNode::Place(tp) = node {
-                                if let None = tp.tag {
-                                    Some(&tp.data)
+                        // 1. exclude borrows and tagged places
+                        let mut leaf_set: BTreeSet<mir_utils::Place<'tcx>> = current_leaves
+                            .iter()
+                            .filter_map(|node| {
+                                if let CDGNode::Place(tp) = node {
+                                    if let None = tp.tag {
+                                        Some(&tp.data)
+                                    } else {
+                                        None
+                                    }
                                 } else {
                                     None
                                 }
-                            } else {
-                                None
-                            }
-                        })
-                        .cloned()
-                        .collect();
+                            })
+                            .cloned()
+                            .collect();
 
-                    // 2. Find the closest leaf (there should be exactly one leaf which is a prefix of place)
-                    let mut closest_leaf = match leaf_set
-                        .iter()
-                        .filter(|p| is_prefix(*target_place, **p))
-                        .cloned()
-                        .collect::<Vec<_>>()[..]
-                    {
-                        [closest_leaf] => closest_leaf,
-                        _ => panic!("internal error, no closest leaf for unpacker"),
-                    };
-
-                    while !leaf_set.contains(target_place) {
-                        // 3. Unpack it
-                        let closest_expansion = expand_struct_place(*closest_leaf, mir, tcx, None);
-
-                        // 4. Replace the closest leaf with the unpacked version in the leaf_set
-                        leaf_set.remove(&closest_leaf);
-                        for new_leaf in closest_expansion.iter().cloned() {
-                            leaf_set.insert(new_leaf.into());
-                        }
-
-                        // 5. Push a new unpack edge to origin
-                        self.coupling_graph.origins.entry(*origin).and_modify(|e| {
-                            e.insert_edge(CDGEdge::unpack_edge(
-                                closest_expansion
-                                    .into_iter()
-                                    .map(|p| CDGNode::Place(Tagged::untagged(p.into())))
-                                    .collect::<_>(),
-                                BTreeSet::from([CDGNode::Place(Tagged::untagged(
-                                    (*closest_leaf).into(),
-                                ))]),
-                            ))
-                        });
-
-                        // 6. Check that place is still a subset of some leaf (ie closest_leaf still exists)
-                        closest_leaf = match leaf_set
+                        // 2. Find the closest leaf (there should be exactly one leaf which is a prefix of place)
+                        let mut closest_leaf = match leaf_set
                             .iter()
                             .filter(|p| is_prefix(*target_place, **p))
                             .cloned()
@@ -492,6 +541,42 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
                             [closest_leaf] => closest_leaf,
                             _ => panic!("internal error, no closest leaf for unpacker"),
                         };
+
+                        while !leaf_set.contains(target_place) {
+                            // 3. Unpack it
+                            let closest_expansion =
+                                expand_struct_place(*closest_leaf, mir, tcx, None);
+
+                            // 4. Replace the closest leaf with the unpacked version in the leaf_set
+                            leaf_set.remove(&closest_leaf);
+                            for new_leaf in closest_expansion.iter().cloned() {
+                                leaf_set.insert(new_leaf.into());
+                            }
+
+                            // 5. Push a new unpack edge to origin
+                            origin_map.entry(*origin).and_modify(|e| {
+                                e.insert_edge(CDGEdge::unpack_edge(
+                                    closest_expansion
+                                        .into_iter()
+                                        .map(|p| CDGNode::Place(Tagged::untagged(p.into())))
+                                        .collect::<_>(),
+                                    BTreeSet::from([CDGNode::Place(Tagged::untagged(
+                                        (*closest_leaf).into(),
+                                    ))]),
+                                ))
+                            });
+
+                            // 6. Check that place is still a subset of some leaf (ie closest_leaf still exists)
+                            closest_leaf = match leaf_set
+                                .iter()
+                                .filter(|p| is_prefix(*target_place, **p))
+                                .cloned()
+                                .collect::<Vec<_>>()[..]
+                            {
+                                [closest_leaf] => closest_leaf,
+                                _ => panic!("internal error, no closest leaf for unpacker"),
+                            };
+                        }
                     }
                 }
             }
@@ -513,27 +598,22 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
             None => BTreeSet::default(),
         };
 
-        // (expiries) Remove all origins which are not in that set
-        //  todo: calculate and log the FPCS effects at this point
-        self.coupling_graph
-            .origins
-            .retain(|k, _| origin_set.contains(k));
+        for origin_map in self.coupling_graph.origins.origins.iter_mut() {
+            // (expiries) Remove all origins which are not in that set
+            //  todo: calculate and log the FPCS effects at this point
+            origin_map.retain(|k, _| origin_set.contains(k));
 
-        // (issues) Include empty origins for each new origin
-        for origin in origin_set.iter() {
-            self.coupling_graph.origins.entry(*origin).or_default();
+            // (issues) Include empty origins for each new origin
+            for origin in origin_set.iter() {
+                origin_map.entry(*origin).or_default();
+            }
+
+            // Sanity check
+            assert_eq!(
+                origin_map.keys().cloned().collect::<BTreeSet<_>>(),
+                origin_set
+            );
         }
-
-        // Sanity check
-        assert_eq!(
-            self.coupling_graph
-                .origins
-                .keys()
-                .cloned()
-                .collect::<BTreeSet<_>>(),
-            origin_set
-        );
-
         Ok(())
     }
 
@@ -542,32 +622,28 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
         if let Some((issuing_origin, borrowed_from_place)) =
             self.fact_table.loan_issues.get(location)
         {
-            // Issuing origin should be empty
-            assert!(self
-                .coupling_graph
-                .origins
-                .get(issuing_origin)
-                .unwrap()
-                .is_empty());
+            for origin_map in self.coupling_graph.origins.origins.iter_mut() {
+                // Issuing origin should be empty
+                assert!(origin_map.get(issuing_origin).unwrap().is_empty());
 
-            // Issuing origin LHS should be a borrow
-            let issued_loan = match self.fact_table.origins.map.get(issuing_origin).unwrap() {
-                OriginLHS::Place(_) => panic!(),
-                OriginLHS::Loan(issued_loan) => issued_loan,
-            };
+                // Issuing origin LHS should be a borrow
+                let issued_loan = match self.fact_table.origins.map.get(issuing_origin).unwrap() {
+                    OriginLHS::Place(_) => panic!(),
+                    OriginLHS::Loan(issued_loan) => issued_loan,
+                };
 
-            // Set the origin to be a loan from the LHS to RHS
-            let issuing_edge = CDGEdge::loan_edge(*issued_loan, *borrowed_from_place);
-            self.coupling_graph
-                .origins
-                .get_mut(issuing_origin)
-                .unwrap()
-                .insert_edge(issuing_edge);
+                // Set the origin to be a loan from the LHS to RHS
+                let issuing_edge = CDGEdge::loan_edge(*issued_loan, *borrowed_from_place);
+                origin_map
+                    .get_mut(issuing_origin)
+                    .unwrap()
+                    .insert_edge(issuing_edge);
 
-            // Check for reborrows: (fixme: unimplemented)
-            //      If there is a reborrow, it should be the case that the borrowed_from_place
-            //      is equal to the LHS of the borrowed_from_origin (ie. packing) due to the issued packing constraints.
-            //      Add an edge between the two.
+                // Check for reborrows: (fixme: unimplemented)
+                //      If there is a reborrow, it should be the case that the borrowed_from_place
+                //      is equal to the LHS of the borrowed_from_origin (ie. packing) due to the issued packing constraints.
+                //      Add an edge between the two.
+            }
         }
         Ok(())
     }
@@ -586,45 +662,41 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
             //     }
             // }
 
-            // Kill every place that is a prefix of this set:
-            let mut from_origin_current_lhs = self
-                .coupling_graph
-                .origins
-                .get(&from)
-                .unwrap()
-                .leaves
-                .clone();
-
-            for origin_lhs in from_origin_current_lhs.iter() {
-                if let node @ CDGNode::Place(_) = origin_lhs {
-                    // Kill origin_lhs in all places in the graph
-                    self.coupling_graph.kill_node(location, node)?;
+            let mut nodes_to_kill: Vec<_> = Default::default();
+            for origin_map in self.coupling_graph.origins.origins.iter_mut() {
+                // Kill every place that is a prefix of this set:
+                let from_origin_current_lhs = origin_map.get(&from).unwrap().leaves.clone();
+                for origin_lhs in from_origin_current_lhs.iter() {
+                    if let node @ CDGNode::Place(_) = origin_lhs {
+                        // Kill origin_lhs in all places in the graph
+                        nodes_to_kill.push(node.clone());
+                    }
                 }
             }
-            // Get the to-origin's LHS (this is already repacked to be the LHS of the assignment)
-            let to_origin_assigning_lhs: BTreeSet<CDGNode<'tcx>> =
-                BTreeSet::from([(*self.fact_table.origins.map.get(&to).unwrap())
-                    .clone()
-                    .into()]);
 
-            // Get the from-origin's new LHS (these should be killed, now)
-            from_origin_current_lhs = self
-                .coupling_graph
-                .origins
-                .get(&from)
-                .unwrap()
-                .leaves
-                .clone();
+            for node in nodes_to_kill.into_iter() {
+                self.coupling_graph.origins.kill_node(location, &node)?;
+            }
 
-            // Add an edge from the to-origins's assigning LHS (a set of untagged places) to the LHS of the from-origin (a set of tagged places)
-            self.coupling_graph
-                .origins
-                .get_mut(&to)
-                .unwrap()
-                .insert_edge(CDGEdge::move_edge(
-                    to_origin_assigning_lhs,
-                    from_origin_current_lhs,
-                ));
+            for origin_map in self.coupling_graph.origins.origins.iter_mut() {
+                // Get the to-origin's LHS (this is already repacked to be the LHS of the assignment)
+                let to_origin_assigning_lhs: BTreeSet<CDGNode<'tcx>> =
+                    BTreeSet::from([(*self.fact_table.origins.map.get(&to).unwrap())
+                        .clone()
+                        .into()]);
+
+                // Get the from-origin's new LHS (these should be killed, now)
+                let from_origin_current_lhs = origin_map.get(&from).unwrap().leaves.clone();
+
+                // Add an edge from the to-origins's assigning LHS (a set of untagged places) to the LHS of the from-origin (a set of tagged places)
+                origin_map
+                    .get_mut(&to)
+                    .unwrap()
+                    .insert_edge(CDGEdge::move_edge(
+                        to_origin_assigning_lhs,
+                        from_origin_current_lhs,
+                    ));
+            }
         }
         Ok(())
     }
@@ -645,7 +717,7 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
                 changed = false;
                 for (sub, sup_set) in subsets.iter() {
                     for sup in sup_set.iter() {
-                        let iter_changed = self.coupling_graph.enforce_subset(sub, sup);
+                        let iter_changed = self.coupling_graph.origins.enforce_subset(sub, sup);
                         changed = changed || iter_changed;
                     }
                 }
@@ -687,14 +759,16 @@ impl<'tcx> Serialize for CDG<'tcx> {
         S: Serializer,
     {
         let mut map = serializer.serialize_map(None)?;
-        map.serialize_entry("subset invariant?", &self.subset_invariant)?;
         map.serialize_entry(
             "origins invariant?",
             &self.origin_contains_loan_at_invariant,
         )?;
-        for (o, cdg) in self.origins.iter() {
-            map.serialize_entry(&format!("{:?}", o), &format!("{:?}", cdg))?;
-        }
+        todo!("do this right");
+        // for origin_map in self.origins.origins.iter() {
+        //     for (o, cdg) in origin_map.iter() {
+        //         map.serialize_entry(&format!("{:?}", o), &format!("{:?}", cdg))?;
+        //     }
+        // }
         map.end()
     }
 }
@@ -719,15 +793,20 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> Eq for CouplingState<'facts, 'mir, 'tcx> 
 
 impl<'facts, 'mir: 'facts, 'tcx: 'mir> AbstractState for CouplingState<'facts, 'mir, 'tcx> {
     fn is_bottom(&self) -> bool {
-        // todo: remove stub
-        false
+        self.to_kill.is_empty() && self.coupling_graph.origins.origins.is_empty()
     }
 
+    // Invariant: bottom join X is X
     fn join(&mut self, other: &Self) {
-        // todo: remove stub
+        if !self.to_kill.is_empty() || !other.to_kill.is_empty() {
+            unreachable!("(fixable) model assumes terminators do not kill places on exit");
+        }
+        self.coupling_graph
+            .origins
+            .join(&other.coupling_graph.origins);
     }
 
-    fn widen(&mut self, previous: &Self) {
-        unimplemented!()
+    fn widen(&mut self, _: &Self) {
+        unreachable!("widening is not possible in this model")
     }
 }
