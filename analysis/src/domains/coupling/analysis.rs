@@ -81,7 +81,6 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> FixpointEngine<'mir, 'tcx>
         state: &mut Self::State,
         location: mir::Location,
     ) -> AnalysisResult<()> {
-        // todo: remove stub
         state.apply_statement_effect(location)
     }
 
@@ -94,7 +93,6 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> FixpointEngine<'mir, 'tcx>
     }
 }
 
-// todo: Put
 impl<'facts, 'mir: 'facts, 'tcx: 'mir>
     PointwiseState<'mir, 'tcx, CouplingState<'facts, 'mir, 'tcx>>
 {
@@ -268,6 +266,24 @@ impl<'tcx> FactTable<'tcx> {
         }
     }
 
+    // Get the storage_dead facts at a location
+    pub fn get_storage_dead_at<'mir>(
+        mir: &'mir BodyWithBorrowckFacts<'tcx>,
+        location: PointIndex,
+    ) -> Option<Place<'tcx>>
+    where
+        'tcx: 'mir,
+    {
+        // Only apply statement-based kills at Start locations
+        let rich_location = mir.location_table.to_location(location);
+        match rich_location {
+            RichLocation::Start(loc) => {
+                Self::get_storage_dead(&Self::mir_kind_at(mir, loc), loc).unwrap()
+            }
+            RichLocation::Mid(_) => None,
+        }
+    }
+
     pub fn get_move_origins_at(&self, location: &PointIndex) -> Vec<(Region, Region)> {
         match self.structural_edge.get(location) {
             Some(v) => v
@@ -437,6 +453,17 @@ impl<'tcx> FactTable<'tcx> {
     ) -> AnalysisResult<Place<'tcx>> {
         match stmt {
             StatementKinds::Stmt(StatementKind::Assign(box (p, _))) => Ok(p.clone().into()),
+            _ => Err(AnalysisError::UnsupportedStatement(loc)),
+        }
+    }
+
+    // Get the assigned-to place in all cases where we currently support borrow assignment
+    fn get_storage_dead<'a, 'mir>(
+        stmt: &'a StatementKinds<'mir, 'tcx>,
+        loc: Location,
+    ) -> AnalysisResult<Option<Place<'tcx>>> {
+        match stmt {
+            StatementKinds::Stmt(StatementKind::StorageDead(p)) => Ok(Some(p.clone().into())),
             _ => Err(AnalysisError::UnsupportedStatement(loc)),
         }
     }
