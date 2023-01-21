@@ -277,9 +277,7 @@ impl<'tcx> FactTable<'tcx> {
         // Only apply statement-based kills at Start locations
         let rich_location = mir.location_table.to_location(location);
         match rich_location {
-            RichLocation::Start(loc) => {
-                Self::get_storage_dead(&Self::mir_kind_at(mir, loc), loc).unwrap()
-            }
+            RichLocation::Start(loc) => Self::get_storage_dead(&Self::mir_kind_at(mir, loc), loc),
             RichLocation::Mid(_) => None,
         }
     }
@@ -461,10 +459,10 @@ impl<'tcx> FactTable<'tcx> {
     fn get_storage_dead<'a, 'mir>(
         stmt: &'a StatementKinds<'mir, 'tcx>,
         loc: Location,
-    ) -> AnalysisResult<Option<Place<'tcx>>> {
+    ) -> Option<Place<'tcx>> {
         match stmt {
-            StatementKinds::Stmt(StatementKind::StorageDead(p)) => Ok(Some(p.clone().into())),
-            _ => Err(AnalysisError::UnsupportedStatement(loc)),
+            StatementKinds::Stmt(StatementKind::StorageDead(p)) => Some(p.clone().into()),
+            _ => None,
         }
     }
 

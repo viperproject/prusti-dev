@@ -355,6 +355,7 @@ impl<'tcx> CouplingOrigins<'tcx> {
     }
 
     fn kill_node(&mut self, location: &PointIndex, node: &CDGNode<'tcx>) -> AnalysisResult<()> {
+        // fixme: get the maximum tag for node@location across all origins here.
         for cdg_origin_map in self.origins.iter_mut() {
             for cdg_origin in cdg_origin_map.values_mut() {
                 cdg_origin.tag(location, node);
@@ -377,15 +378,39 @@ impl<'tcx> CouplingOrigins<'tcx> {
             for (origin, cdgo) in origin_map.iter() {
                 for other_origin_map in self.origins.iter() {
                     if let Some(other_cdgo) = other_origin_map.get(origin) {
-                        println!(
-                            "[debug: join] checking origin {:?}: cdgo {:?} and {:?}",
-                            origin, cdgo.leaves, other_cdgo.leaves
-                        );
                         assert_eq!(cdgo.leaves, other_cdgo.leaves);
                     }
                 }
             }
         }
+
+        // The two are now coherent. perform the join by constructing magic wands
+        todo!("wand inference here");
+    }
+
+    // Get all leaves of an origin (in all branches). These should be equal.
+    fn get_leaves(&self, origin: &Region) -> BTreeSet<CDGNode<'tcx>> {
+        let mut lhs: Option<&BTreeSet<CDGNode<'tcx>>> = None;
+        for leaf_set in self
+            .origins
+            .iter()
+            .map(|origin_map| &origin_map.get(origin).unwrap().leaves)
+        {
+            if lhs.is_none() {
+                lhs = Some(leaf_set)
+            } else {
+                assert_eq!(lhs, Some(leaf_set));
+            }
+        }
+        return lhs.and_then(|s| Some((*s).clone())).unwrap();
+    }
+
+    // Kill all leaves that are the LHS of a region
+    pub fn kill_leaves(&mut self, origin: &Region, location: &PointIndex) -> AnalysisResult<()> {
+        for leaf in self.get_leaves(origin) {
+            self.kill_node(location, &leaf)?;
+        }
+        Ok(())
     }
 }
 
@@ -637,7 +662,7 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
     /// For every loan which is marked as killed, kill it and remove the kill mark.
     fn apply_marked_kills(&mut self) -> AnalysisResult<()> {
         // fixme: implement
-        self.to_kill.apply_all(&mut self.coupling_graph);
+        self.to_kill.apply_all(&mut self.coupling_graph)?;
         Ok(())
     }
 
@@ -701,17 +726,13 @@ impl<'facts, 'mir: 'facts, 'tcx: 'mir> CouplingState<'facts, 'mir, 'tcx> {
 
     fn apply_loan_moves(&mut self, location: &PointIndex) -> AnalysisResult<()> {
         for (from, to) in self.fact_table.get_move_origins_at(location) {
-            // Kill every place in the to-origins's current LHS
-            // let to_origin_current_lhs = self.coupling_graph.origins.get(&to).unwrap().roots.clone();
-            // for origin_lhs in to_origin_current_lhs.iter() {
-            //     if let CDGNode::Place(p) = origin_lhs {
-            //         self.coupling_graph
-            //             .origins
-            //             .get_mut(&to)
-            //             .unwrap()
-            //             .tag(location, origin_lhs);
-            //     }
-            // }
+            // Kill every place in the to-origins's cannonical LHS (fixme: is this right? I want to kill the assigned-to place)
+            if let OriginLHS::Place(mir_place) = self.fact_table.origins.map.get(&to).unwrap() {
+                let node_to_kill = CDGNode::Place(Tagged::untagged(*mir_place));
+                self.coupling_graph
+                    .origins
+                    .kill_node(location, &node_to_kill)?;
+            };
 
             let mut nodes_to_kill: Vec<_> = Default::default();
             for origin_map in self.coupling_graph.origins.origins.iter_mut() {
