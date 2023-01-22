@@ -1,24 +1,12 @@
 use prusti_contracts::*;
 
-use std::collections::HashSet;
-use std::borrow::Borrow;
-use std::hash::{BuildHasher, Hash};
-use std::cmp::Eq;
-use std::option::Option;
-
-#[extern_spec]
-impl<T> Option<T> {
-    #[pure]
-    #[ensures(matches!(*self, Some(_)) == result)]
-    pub fn is_some(&self) -> bool;
-
-    #[pure]
-    #[ensures(result != self.is_some())]
-    pub fn is_none(&self) -> bool;
-
-    #[requires(self.is_some())]
-    pub fn unwrap(self) -> T;
-}
+use std::{
+    borrow::Borrow,
+    cmp::Eq,
+    collections::HashSet,
+    hash::{BuildHasher, Hash},
+    option::Option,
+};
 
 #[extern_spec]
 impl<T> HashSet<T> {
@@ -47,9 +35,9 @@ where
 {
     #[pure]
     pub fn contains<Q: ?Sized>(&self, value: &Q) -> bool
-        where
-            T: std::borrow::Borrow<Q>,
-            Q: std::hash::Hash + std::cmp::Eq;
+    where
+        T: std::borrow::Borrow<Q>,
+        Q: std::hash::Hash + std::cmp::Eq;
 
     #[ensures(self.len() == old(self.len()) + 1)]
     pub fn insert(&mut self, value: T) -> bool;

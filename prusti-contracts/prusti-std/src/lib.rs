@@ -7,8 +7,15 @@ where
     S: ::std::hash::BuildHasher,
 {
     #[pure]
-    pub fn contains_key<Q>(&self, k: &Q) -> bool
+    #[ensures(result.is_some() == self.contains_key(k))]
+    pub fn get<Q: ?Sized>(&self, k: &Q) -> Option<&V>
     where
-        K: ::core::borrow::Borrow<Q>,
-        Q: ::core::hash::Hash + Eq;
+        K: core::borrow::Borrow<Q> + std::cmp::Eq + std::hash::Hash,
+        Q: core::hash::Hash + Eq;
+
+    #[pure]
+    fn contains_key<Q: ?Sized>(&self, k: &Q) -> bool
+    where
+        K: core::borrow::Borrow<Q> + Eq + std::hash::Hash,
+        Q: core::hash::Hash + Eq;
 }

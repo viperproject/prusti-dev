@@ -100,6 +100,7 @@ impl Default for Style {
     /// assert_eq!(false, Style::default().is_bold);
     /// assert_eq!("txt", Style::default().paint("txt").to_string());
     /// ```
+    #[pure]
     fn default() -> Style {
         Style {
             is_bold: false,

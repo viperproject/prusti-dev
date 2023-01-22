@@ -1,28 +1,12 @@
 #![feature(allocator_api)]
 
 use prusti_contracts::*;
-use std::vec::Vec;
-use std::option::Option;
-
-#[extern_spec]
-impl<T> Option<T> {
-    #[pure]
-    #[ensures(matches!(*self, Some(_)) == result)]
-    pub fn is_some(&self) -> bool;
-
-    #[pure]
-    #[ensures(self.is_some() ==> !result)]
-    #[ensures(!self.is_some() ==> result)]
-    pub fn is_none(&self) -> bool;
-
-    #[requires(self.is_some())]
-    pub fn unwrap(self) -> T;
-}
+use std::{option::Option, vec::Vec};
 
 #[extern_spec]
 impl<T> Vec<T> {
     #[ensures(result.len() == 0)]
-    fn new() -> Vec::<T>;
+    fn new() -> Vec<T>;
 }
 
 #[extern_spec]

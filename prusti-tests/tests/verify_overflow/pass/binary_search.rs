@@ -1,16 +1,5 @@
 use prusti_contracts::*;
 
-#[extern_spec]
-impl<T: std::cmp::PartialEq> std::option::Option<T> {
-    #[pure]
-    #[ensures(matches!(*self, Some(_)) == result)]
-    pub fn is_some(&self) -> bool;
-
-    #[pure]
-    #[ensures(self.is_some() == !result)]
-    pub fn is_none(&self) -> bool;
-}
-
 // cloned unwrap
 #[trusted]
 #[pure]
@@ -19,7 +8,9 @@ impl<T: std::cmp::PartialEq> std::option::Option<T> {
     Some(value) => *value == result,
     None => unreachable!(),
 })]
-fn option_peek(opt: &Option<usize>) -> usize { unimplemented!() }
+fn option_peek(opt: &Option<usize>) -> usize {
+    unimplemented!()
+}
 
 fn main() {}
 
