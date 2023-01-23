@@ -1,4 +1,5 @@
 pub mod clone;
+pub mod convert;
 pub mod default;
 pub mod mem;
 pub mod ops;
