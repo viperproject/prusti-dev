@@ -43,3 +43,32 @@ default_spec! { i128, 0 }
 
 default_spec! { f32, 0.0f32 }
 default_spec! { f64, 0.0f64 }
+
+// specify behavior for tuples (have to rely on PureDefault)
+
+// recursive like https://github.com/rust-lang/rust/blob/a5fa99eed20a46a88c0c85eed6552a94b6656634/library/core/src/tuple.rs#L10
+macro_rules! specify_tuple_default {
+    (impl $( $T:ident )*) => {
+        #[extern_spec]
+        impl<$($T,)*> Default for ($($T,)*) where
+            $($T: Default,)*
+        {
+            #[refine_spec(where
+                $($T: Copy + PureDefault,)*
+            [
+                pure,
+                ensures(snapshot_equality(&result, &($($T::default(),)*))),
+            ])]
+            fn default() -> Self;
+        }
+    };
+    (impls $T:ident $( $U:ident )+) => {
+        specify_tuple_default!(impl $T $($U)+);
+        specify_tuple_default!(impls $($U)+);
+    };
+    (impls $T:ident) => {
+        specify_tuple_default!(impl $T);
+    };
+}
+
+specify_tuple_default!(impls E D C B A Z Y X W V U T);
