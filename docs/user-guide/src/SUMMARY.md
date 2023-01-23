@@ -4,6 +4,7 @@
 - [Installation](install.md)
 - [Basic Usage](basic.md)
 - [Guided Tour](tour/summary.md)
+  - [Setup](tour/setup.md)
   - [Getting Started](tour/getting-started.md)
   - [New](tour/new.md)
   - [Push](tour/push.md)
