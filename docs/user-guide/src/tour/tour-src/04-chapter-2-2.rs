@@ -20,3 +20,9 @@ impl List {
         }
     }
 }
+
+impl Link {
+    fn len(&self) -> usize {
+        0
+    }
+}
