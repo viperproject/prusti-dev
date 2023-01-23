@@ -15,15 +15,15 @@ See the [following chapter](verify/summary.md) for a list of verification featur
 
 To run Prusti on a file using the command-line setup:
 
-```bash
-$ prusti-rustc --edition=2018 path/to/file.rs
+```sh
+prusti-rustc --edition=2018 path/to/file.rs
 ```
 
 ## Introductory example
 
 Let us verify that the function `max` below, which takes two integers and returns the greater one, is implemented correctly.
 
-```rust
+```rust,noplaypen
 fn max(a: i32, b: i32) -> i32 {
     if a > b {
         a
@@ -42,7 +42,7 @@ This tells us that
 To also verify that `max` indeed always returns the maximum of its two inputs, we have to add a corresponding specification, which states
 that the return value of `max` is at least as large as both `a` and `b` and, additionally, coincides with `a` or `b`:
 
-```rust
+```rust,noplaypen
 use prusti_contracts::*;
 
 #[ensures(result >= a && result >= b)]
@@ -68,7 +68,7 @@ Notice that Prusti assumes by default that integer types are bounded; it thus pe
 
 Next, we add a second function `max3` which returns the maximum of three instead of two integers; we reuse the already verified function `max` in the new function's specification to show that this function is implemented correctly.
 
-```rust
+```rust,noplaypen
 use prusti_contracts::*;
 
 #[pure]
@@ -103,7 +103,7 @@ If we omit this annotation, Prusti will complain that the postcondition of funct
 So far, we only considered programs that meet their specification and that, consequently, Prusti successfully verified.
 To conclude this example, assume we accidentally return `c` instead of `b` if `b > c` holds:
 
-```rust
+```rust,noplaypen
 #[ensures(result == max(a, max(b, c)))]
 fn max3(a: i32, b: i32, c: i32) -> i32 {
     if a > b && a > c {
@@ -122,7 +122,7 @@ In this case, Prusti will highlight the line with the error and report that the 
 
 For debugging purposes, it is often useful to add `assert!(...)` macros to our code to locate the issue. For example, in the code below, we added an assertion that fails because `b > c` and thus the maximum of `b` and `c` is `b` instead of `c`. 
 
-```rust
+```rust,noplaypen
 use prusti_contracts::*;
 
 #[pure]
