@@ -33,17 +33,17 @@ impl<T, E> Result<T, E> {
     // FUTURE(refs): ensure identity matches
     fn as_ref(&self) -> Result<&T, &E>;
 
-    #[ensures(result.is_ok() == old(self).is_ok())]
+    #[ensures(result.is_ok() == old(self.is_ok()))]
     // FUTURE(refs): ensure identity matches & result affects original
     fn as_mut(&mut self) -> Result<&mut T, &mut E>;
 
-    #[ensures(result.is_ok() == old(self).is_ok())]
+    #[ensures(result.is_ok() == old(self.is_ok()))]
     // FUTURE(calls): describe that and how the function is called if ok, and that its result is returned
     fn map<U, F>(self, op: F) -> Result<U, E>
     where
         F: FnOnce(T) -> U;
 
-    #[ensures(old(self).is_err() ==> result === default)]
+    #[ensures(old(self.is_err()) ==> result === default)]
     // FUTURE(calls): describe that and how the function is called if ok, and that its result is returned
     fn map_or<U, F>(self, default: U, op: F) -> U
     where
@@ -74,7 +74,7 @@ impl<T, E> Result<T, E> {
     where
         T: Deref;
 
-    #[ensures(result.is_ok() == old(self).is_ok())]
+    #[ensures(result.is_ok() == old(self.is_ok()))]
     // FUTURE(calls): describe as call to Deref::deref if some
     // FUTURE(refs): describe transformation of ok value and error not changing
     fn as_deref_mut(&mut self) -> Result<&mut <T as Deref>::Target, &mut E>
@@ -99,7 +99,7 @@ impl<T, E> Result<T, E> {
     where
         E: Debug;
 
-    #[ensures(old(&self).is_err() || old(self) === Ok(result))]
+    #[ensures(old(self.is_err()) || old(self) === Ok(result))]
     #[refine_spec(where T: super::default::PureDefault, [
         ensures(result === match old(self) {
             Ok(v) => v,

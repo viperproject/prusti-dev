@@ -1,5 +1,9 @@
 use crate::*;
 
+/// Specifies that `From::from`, if implemented, is a pure method, allowing its usage in specs.
+/// This enables specifying the blanket impl of `Into` as calling `From::from`.
+///
+/// Does not apply to types that do not implement `Copy`, since pure methods can only involve `Copy` types.
 pub auto trait PureFrom {}
 
 #[extern_spec]

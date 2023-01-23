@@ -63,7 +63,7 @@ impl<T> Option<T> {
     where
         F: FnOnce() -> T;
 
-    #[ensures(old(&self).is_none() || old(self) === Some(result))]
+    #[ensures(old(self.is_none()) || old(self) === Some(result))]
     #[refine_spec(where T: super::default::PureDefault, [
         ensures(result === match old(self) {
             Some(v) => v,
@@ -79,13 +79,13 @@ impl<T> Option<T> {
     #[ensures(old(self) === Some(result))]
     unsafe fn unwrap_unchecked(self) -> T;
 
-    #[ensures(result.is_some() == old(self).is_some())]
+    #[ensures(result.is_some() == old(self.is_some()))]
     // FUTURE(calls): describe that and how the function is called if some, and that its result is returned
     fn map<U, F>(self, f: F) -> Option<U>
     where
         F: FnOnce(T) -> U;
 
-    #[ensures(old(self).is_none() ==> result === default)]
+    #[ensures(old(self.is_none()) ==> result === default)]
     // FUTURE(calls): describe that and how the function is called if some, and that its result is returned
     fn map_or<U, F>(self, default: U, f: F) -> U
     where
@@ -137,7 +137,7 @@ impl<T> Option<T> {
     })]
     fn and<U>(self, optb: Option<U>) -> Option<U>;
 
-    #[ensures(old(self).is_none() ==> result.is_none())]
+    #[ensures(old(self.is_none()) ==> result.is_none())]
     // FUTURE(calls): describe call to function if some, and that its result is returned
     fn and_then<U, F>(self, f: F) -> Option<U>
     where
@@ -158,7 +158,7 @@ impl<T> Option<T> {
     })]
     fn or(self, optb: Option<T>) -> Option<T>;
 
-    #[ensures(old(self).is_some() ==> result.is_some())]
+    #[ensures(old(self.is_some()) ==> result.is_some())]
     // FUTURE(calls): describe call to function if none, and that its result is returned
     fn or_else<F>(self, f: F) -> Option<T>
     where
