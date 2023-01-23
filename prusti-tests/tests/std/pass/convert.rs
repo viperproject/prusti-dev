@@ -34,7 +34,7 @@ struct ImpureFrom {
     x: i32,
 }
 
-impl !core_spec::convert::PureFrom for ImpureFrom {}
+impl !core_spec::PureFrom for ImpureFrom {}
 
 #[refine_trait_spec]
 impl From<i32> for ImpureFrom {

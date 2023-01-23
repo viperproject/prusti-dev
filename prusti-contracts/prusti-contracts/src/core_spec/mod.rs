@@ -10,4 +10,5 @@ pub mod result;
 // They are due to be revised later as features are added.
 
 pub use clone::SnapshotEqualClone;
+pub use convert::PureFrom;
 pub use default::PureDefault;

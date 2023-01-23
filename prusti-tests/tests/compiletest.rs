@@ -200,7 +200,7 @@ fn test_runner(_tests: &[&()]) {
 
     // Test the functionality of built-in specs.
     println!("[prusti_std]");
-    run_verification_no_overflow("prusti_std", &filter);
+    run_verification_no_overflow("std", &filter);
     save_verification_cache();
 
     // Test the verifier with test cases that only partially verify due to known open issues.
