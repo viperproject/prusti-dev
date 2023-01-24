@@ -835,6 +835,8 @@ impl PrustiToken {
                 PrustiBinaryOp::Implies
             } else if operator3("===", p1, p2, p3) {
                 PrustiBinaryOp::SnapEq
+            } else if operator3("!==", p1, p2, p3) {
+                PrustiBinaryOp::SnapNe
             } else if operator3("..=", p1, p2, p3) {
                 PrustiBinaryOp::Rust(RustOp::RangeInclusive)
             } else if operator3("<<=", p1, p2, p3) {
@@ -859,6 +861,7 @@ enum PrustiBinaryOp {
     Or,
     And,
     SnapEq,
+    SnapNe,
 }
 
 impl PrustiBinaryOp {
@@ -870,6 +873,7 @@ impl PrustiBinaryOp {
             Self::Or => (5, 6),
             Self::And => (7, 8),
             Self::SnapEq => (9, 10),
+            Self::SnapNe => (9, 10),
         }
     }
 
@@ -882,15 +886,20 @@ impl PrustiBinaryOp {
             // order issues: `f(a, b)` makes Rust evaluate both `a` and `b`
             // before the `f` call
             Self::Implies => {
+                let joined_span = join_spans(lhs.span(), rhs.span());
                 // preserve span of LHS
                 let not_lhs = quote_spanned! { lhs.span() => !#lhs };
-                quote_spanned! { span => #not_lhs || #rhs }
+                quote_spanned! { joined_span => #not_lhs || #rhs }
             }
             Self::Or => quote_spanned! { span => #lhs || #rhs },
             Self::And => quote_spanned! { span => #lhs && #rhs },
             Self::SnapEq => {
                 let joined_span = join_spans(lhs.span(), rhs.span());
                 quote_spanned! { joined_span => snapshot_equality(&#lhs, &#rhs) }
+            }
+            Self::SnapNe => {
+                let joined_span = join_spans(lhs.span(), rhs.span());
+                quote_spanned! { joined_span => !snapshot_equality(&#lhs, &#rhs) }
             }
         }
     }
@@ -985,6 +994,12 @@ mod tests {
                 .unwrap()
                 .to_string(),
             "snapshot_equality (& (a) , & (b + c))",
+        );
+        assert_eq!(
+            parse_prusti("a !== b + c".parse().unwrap())
+                .unwrap()
+                .to_string(),
+            "! snapshot_equality (& (a) , & (b + c))",
         );
         assert_eq!(
             parse_prusti("a ==> b ==> c".parse().unwrap())

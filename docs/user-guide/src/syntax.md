@@ -7,6 +7,7 @@ Prusti specifications are a superset of Rust boolean expressions. They must be d
 | [`old(...)`](#old-expressions) | Value of expression in a previous state |
 | [`... ==> ...`](#implications) | Implication |
 | [`... === ...`](#snapshot-equality) | Snapshot equality |
+| [`... !== ...`](#snapshot-equality) | Snapshot inequality |
 | [`forall(...)`](#quantifiers) | Universal quantifier |
 | [`exists(...)`](#quantifiers) | Existential quantifier |
 | [<code>... &#x7C;= ...</code>](#specification-entailments) | Specification entailment |
@@ -66,6 +67,8 @@ fn main() {
     foo(X { a: 1 }, X { a: 1 });
 }
 ```
+
+Snapshot *in*equality is expressed using the `!==` operator.
 
 ## Quantifiers
 
