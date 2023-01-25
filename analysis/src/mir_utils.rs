@@ -193,6 +193,61 @@ pub fn expand_struct_place<'tcx, P: PlaceImpl<'tcx> + std::marker::Copy>(
     places
 }
 
+/// Remove one projection level from the place, if possible
+pub fn strip_place<'tcx>(tcx: TyCtxt<'tcx>, place: &Place<'tcx>) -> Option<Place<'tcx>> {
+    let mut projection = place.projection.to_vec();
+    projection.pop()?;
+    Some(
+        mir::Place {
+            local: place.local,
+            projection: tcx.intern_place_elems(&projection),
+        }
+        .into(),
+    )
+}
+
+/// Check if place is local
+pub fn is_local<'tcx>(place: &Place<'tcx>) -> bool {
+    place.0.projection.len() == 0
+}
+
+/// Returns the set of places which
+/// If `place` is a local, return the local
+/// If `place` is not a local, strip one level and unpack it
+pub fn place_siblings<'tcx>(
+    mir: &mir::Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
+    place: Place<'tcx>,
+) -> Vec<Place<'tcx>> {
+    if let Some(parent) = strip_place(tcx, &place) {
+        expand_struct_place(parent, mir, tcx, None)
+    } else {
+        vec![place]
+    }
+}
+
+/// Returns the maximally packed version of a single place
+pub fn maximally_pack<'tcx>(
+    mir: &mir::Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
+    mut place: Place<'tcx>,
+) -> Place<'tcx> {
+    loop {
+        // fixme: refactor/simplify this
+        if place.0.has_deref() {
+            place = strip_place(tcx, &place).unwrap();
+        } else if let Some(parent) = strip_place(tcx, &place) {
+            if vec![place] == place_siblings(mir, tcx, place) {
+                place = parent;
+            } else {
+                return place;
+            }
+        } else {
+            return place;
+        }
+    }
+}
+
 /// Expand `current_place` one level down by following the `guide_place`.
 /// Returns the new `current_place` and a vector containing other places that
 /// could have resulted from the expansion.
