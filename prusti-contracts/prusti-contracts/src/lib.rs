@@ -3,6 +3,9 @@
 #![feature(negative_impls)]
 #![feature(try_trait_v2)]
 #![feature(cfg_version)]
+#![feature(allocator_api)]
+
+extern crate alloc; // to specify Vec and String without std
 
 // this is present even when compiling outside prusti to enable (negatively) implementing traits used for better specs
 pub mod core_spec;

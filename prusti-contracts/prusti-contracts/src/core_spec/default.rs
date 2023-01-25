@@ -1,3 +1,5 @@
+extern crate alloc;
+
 use crate::*;
 
 #[extern_spec]
@@ -72,3 +74,25 @@ macro_rules! specify_tuple_default {
 }
 
 specify_tuple_default!(impls E D C B A Z Y X W V U T);
+
+// more specific types
+
+#[extern_spec]
+impl Default for alloc::string::String {
+    #[ensures(result.is_empty())]
+    fn default() -> Self;
+}
+
+#[extern_spec]
+impl<T> Default for alloc::vec::Vec<T> {
+    #[refine_spec(where Self: Copy, [pure])]
+    #[ensures(result.is_empty())]
+    fn default() -> Self;
+}
+
+#[extern_spec]
+impl<T> Default for Option<T> {
+    #[refine_spec(where Self: Copy, [pure])]
+    #[ensures(result.is_none())]
+    fn default() -> Self;
+}
