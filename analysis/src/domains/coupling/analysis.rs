@@ -11,7 +11,7 @@ use crate::{
     abstract_interpretation::{AnalysisResult, FixpointEngine},
     domains::CouplingState,
     mir_utils,
-    mir_utils::Place,
+    mir_utils::{maximally_pack, Place},
     AnalysisError, PointwiseState,
 };
 use prusti_rustc_interface::{
@@ -146,42 +146,40 @@ impl<'tcx> std::fmt::Debug for OriginPlaces<'tcx> {
 
 impl<'tcx> OriginPlaces<'tcx> {
     // Attempt to add a new constraint to the origin mapping
-    pub fn new_constraint(&mut self, r: Region, c: OriginLHS<'tcx>) {
-        let normalized_c = self.normalize_origin_lhs(c);
+    pub fn new_constraint(&mut self, mir: &mir::Body<'tcx>, r: Region, c: OriginLHS<'tcx>) {
+        let normalized_c = self.normalize_origin_lhs(mir, c);
         if let Some(old_lhs) = self.map.insert(r, normalized_c.clone()) {
-            assert!(old_lhs == normalized_c);
+            assert_eq!(
+                old_lhs, normalized_c,
+                "[failure] new OriginPlaces constratint normalization: {:?} /= {:?}",
+                old_lhs, normalized_c
+            );
         }
-    }
-
-    // todo: remove this code from prusti-pcs
-    // and move to common library
-    fn strip_place(&self, place: Place<'tcx>) -> Option<Place<'tcx>> {
-        let mut projection = place.projection.to_vec();
-        projection.pop()?;
-        Some(
-            mir::Place {
-                local: place.local,
-                projection: self.tcx.intern_place_elems(&projection),
-            }
-            .into(),
-        )
     }
 
     /// Rewrite c into a cannonical form for key equality
     /// eg. normalize_origin_lhs(*x) == normalize_origin_lhs(x)
-    fn normalize_origin_lhs(&self, c: OriginLHS<'tcx>) -> OriginLHS<'tcx> {
+    fn normalize_origin_lhs(&self, mir: &mir::Body<'tcx>, c: OriginLHS<'tcx>) -> OriginLHS<'tcx> {
         // fixme: Need to check that p is maximally packed if it is a place
         match c {
-            OriginLHS::Place(p) => match self.strip_place(p) {
-                Some(p1) => OriginLHS::Place(p1),
-                None => OriginLHS::Place(p),
-            },
-            OriginLHS::Loan(_) => c,
+            OriginLHS::Place(p) => {
+                let p1 = maximally_pack(mir, self.tcx, p);
+                println!(
+                    "[debug] normalizing {:?} into {:?}",
+                    c,
+                    OriginLHS::Place(p1)
+                );
+                OriginLHS::Place(p1)
+            }
+            OriginLHS::Loan(_) => {
+                println!("[debug] normalizing {:?} into {:?}", c, c);
+                c
+            }
         }
     }
 
-    pub fn get_origin(&self, c: OriginLHS<'tcx>) -> Option<Region> {
-        let normalized_c = self.normalize_origin_lhs(c);
+    pub fn get_origin(&self, mir: &mir::Body<'tcx>, c: OriginLHS<'tcx>) -> Option<Region> {
+        let normalized_c = self.normalize_origin_lhs(mir, c);
         self.map
             .iter()
             .find(|(_, v)| **v == normalized_c)
@@ -342,6 +340,7 @@ impl<'tcx> FactTable<'tcx> {
 
             Self::insert_origin_lhs_constraint(
                 working_table,
+                &mir.body,
                 *issuing_origin,
                 OriginLHS::Loan(*loan),
             );
@@ -359,10 +358,11 @@ impl<'tcx> FactTable<'tcx> {
     // Location insensitive, should panic if an origin has two known places
     fn insert_origin_lhs_constraint(
         working_table: &mut Self,
+        mir: &mir::Body<'tcx>,
         origin: Region,
         lhs: OriginLHS<'tcx>,
     ) {
-        working_table.origins.new_constraint(origin, lhs);
+        working_table.origins.new_constraint(mir, origin, lhs);
     }
 
     // Constraint: Origin is issued a loan at a given point
@@ -381,11 +381,12 @@ impl<'tcx> FactTable<'tcx> {
     // Implicitly, the LHS should cohere with the existing LHS.
     fn insert_packing_constraint(
         working_table: &mut Self,
+        mir: &mir::Body<'tcx>,
         point: PointIndex,
         origin: Region,
         packing: OriginLHS<'tcx>,
     ) {
-        Self::insert_origin_lhs_constraint(working_table, origin, packing.clone());
+        Self::insert_origin_lhs_constraint(working_table, mir, origin, packing.clone());
         let constraints = working_table.origin_packing_at.entry(point).or_default();
         constraints.push((origin, packing));
     }
@@ -481,13 +482,14 @@ impl<'tcx> FactTable<'tcx> {
 
     fn check_or_construct_origin<'mir>(
         working_table: &mut Self,
+        mir: &mir::Body<'tcx>,
         lhs: OriginLHS<'tcx>,
         origin: Region,
     ) -> AnalysisResult<()> {
-        if let Some(real_origin) = working_table.origins.get_origin(lhs.to_owned()) {
+        if let Some(real_origin) = working_table.origins.get_origin(mir, lhs.to_owned()) {
             assert_eq!(real_origin, origin);
         } else {
-            Self::insert_origin_lhs_constraint(working_table, origin, lhs)
+            Self::insert_origin_lhs_constraint(working_table, mir, origin, lhs)
         }
         Ok(())
     }
@@ -544,6 +546,7 @@ impl<'tcx> FactTable<'tcx> {
                     );
                     Self::insert_packing_constraint(
                         working_table,
+                        &mir.body,
                         point,
                         *assigning_origin,
                         OriginLHS::Place(assigned_to_place.into()),
@@ -569,11 +572,13 @@ impl<'tcx> FactTable<'tcx> {
                     // We might just be constructing the fact table out of order
                     Self::check_or_construct_origin(
                         working_table,
+                        &mir.body,
                         borrowed_from_place.clone(),
                         *reborrowing_origin,
                     )?;
                     Self::insert_packing_constraint(
                         working_table,
+                        &mir.body,
                         point,
                         *reborrowing_origin,
                         borrowed_from_place,
@@ -613,22 +618,26 @@ impl<'tcx> FactTable<'tcx> {
 
                         Self::check_or_construct_origin(
                             working_table,
+                            &mir.body,
                             from_place.clone(),
                             *assigned_from_origin,
                         )?;
                         Self::check_or_construct_origin(
                             working_table,
+                            &mir.body,
                             to_place.clone(),
                             *assigned_to_origin,
                         )?;
                         Self::insert_packing_constraint(
                             working_table,
+                            &mir.body,
                             point,
                             *assigned_to_origin,
                             to_place,
                         );
                         Self::insert_packing_constraint(
                             working_table,
+                            &mir.body,
                             point,
                             *assigned_from_origin,
                             from_place,
