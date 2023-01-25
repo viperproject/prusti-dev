@@ -7,7 +7,7 @@
 #[macro_export]
 macro_rules! error_internal {
     ($span:expr => $message:expr) => {
-        return Err($crate::encoder::errors::SpannedEncodingError::internal($message), $span)
+        return Err($crate::encoder::errors::SpannedEncodingError::internal($message, $span))
     };
     ($span:expr => $($tokens:tt)+) => {
         return Err($crate::encoder::errors::SpannedEncodingError::internal(format!($($tokens)+), $span))
@@ -23,7 +23,7 @@ macro_rules! error_internal {
 #[macro_export]
 macro_rules! error_incorrect {
     ($span:expr => $message:expr) => {
-        return Err($crate::encoder::errors::SpannedEncodingError::incorrect($message), $span)
+        return Err($crate::encoder::errors::SpannedEncodingError::incorrect($message, $span))
     };
     ($span:expr => $($tokens:tt)+) => {
         return Err($crate::encoder::errors::SpannedEncodingError::incorrect(format!($($tokens)+), $span))
@@ -39,7 +39,7 @@ macro_rules! error_incorrect {
 #[macro_export]
 macro_rules! error_unsupported {
     ($span:expr => $message:expr) => {
-        return Err($crate::encoder::errors::SpannedEncodingError::unsupported($message), $span)
+        return Err($crate::encoder::errors::SpannedEncodingError::unsupported($message, $span))
     };
     ($span:expr => $($tokens:tt)+) => {
         return Err($crate::encoder::errors::SpannedEncodingError::unsupported(format!($($tokens)+), $span))

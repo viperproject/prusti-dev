@@ -1,24 +1,31 @@
-use crate::encoder::{
-    builtin_encoder::BuiltinFunctionKind,
-    errors::{EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
-    high::{
-        builtin_functions::HighBuiltinFunctionEncoderInterface,
-        generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
-    },
-    mir::{
-        pure::{
-            interpreter::{state_poly::ExprBackwardInterpreterState, BackwardMirInterpreter},
-            pure_functions::PureFunctionEncoderInterface,
-            specifications::SpecificationEncoderInterface,
-            PureEncodingContext,
+use crate::{
+    encoder::{
+        builtin_encoder::BuiltinFunctionKind,
+        errors::{
+            EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan,
         },
-        sequences::MirSequencesEncoderInterface,
-        specifications::SpecificationsInterface,
-        types::MirTypeEncoderInterface,
+        high::{
+            builtin_functions::HighBuiltinFunctionEncoderInterface,
+            generics::HighGenericsEncoderInterface, types::HighTypeEncoderInterface,
+        },
+        mir::{
+            pure::{
+                interpreter::{state_poly::ExprBackwardInterpreterState, BackwardMirInterpreter},
+                pure_functions::PureFunctionEncoderInterface,
+                specifications::SpecificationEncoderInterface,
+                PureEncodingContext,
+            },
+            sequences::MirSequencesEncoderInterface,
+            specifications::SpecificationsInterface,
+            types::MirTypeEncoderInterface,
+        },
+        mir_encoder::{
+            MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL,
+        },
+        snapshot::interface::SnapshotEncoderInterface,
+        Encoder,
     },
-    mir_encoder::{MirEncoder, PlaceEncoder, PlaceEncoding, PRECONDITION_LABEL, WAND_LHS_LABEL},
-    snapshot::interface::SnapshotEncoderInterface,
-    Encoder,
+    error_unsupported,
 };
 use log::{debug, trace};
 use prusti_common::vir_local;
@@ -824,6 +831,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             }
 
             mir::StatementKind::Assign(box (lhs, ref rhs)) => {
+                if !lhs.projection.is_empty() {
+                    error_unsupported!(span =>
+                        "only assignments to local variables are supported in pure code"
+                    );
+                }
+
                 let (encoded_lhs, ty, _) = self.encode_place(lhs).with_span(span)?;
                 trace!("Encoding assignment to LHS {:?}", encoded_lhs);
 
